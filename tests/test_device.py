@@ -113,7 +113,7 @@ class TestDevicePacketHandlers:
 
     def test_set_label_handler(self, color_device):
         """Test DeviceSetLabel (24) updates device label."""
-        new_label = b"New Label".join([b"\x00"] * 23)
+        new_label = b"New Label".ljust(32, b"\x00")
         packet = Device.SetLabel(label=new_label)
         header = LifxHeader(
             source=12345,

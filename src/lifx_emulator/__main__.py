@@ -39,19 +39,16 @@ serial_group = cyclopts.Group.create_ordered("Serial Number Options")
 
 def _setup_logging(verbose: bool) -> logging.Logger:
     """Configure logging based on verbosity level."""
-    # log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     log_format = "%(message)s"
-    logging.basicConfig(format=log_format, handlers=[RichHandler()])
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(format=log_format, handlers=[RichHandler()], level=level)
 
-    logger = logging.getLogger(__package__)
+    _logger = logging.getLogger(__package__)
 
     if verbose:
-        logger.setLevel(level=logging.DEBUG)
-        logger.debug("Verbose logging enabled")
-    else:
-        logger.setLevel(level=logging.INFO)
+        _logger.debug("Verbose logging enabled")
 
-    return logger
+    return _logger
 
 
 def _format_capabilities(device) -> str:
@@ -361,18 +358,17 @@ async def run(
         Enable persistent storage:
             lifx-emulator --persistent --api
     """
-    logger = _setup_logging(verbose)
+    logger: logging.Logger = _setup_logging(verbose)
 
     # Validate that --persistent-scenarios requires --persistent
     if persistent_scenarios and not persistent:
-        error_msg = "--persistent-scenarios requires --persistent to be enabled"
-        logger.error(error_msg)
+        logger.error("--persistent-scenarios requires --persistent")
         return False
 
     # Initialize storage if persistence is enabled
     storage = AsyncDeviceStorage() if persistent else None
     if persistent and storage:
-        logger.info("Async persistent storage enabled at %s", storage.storage_dir)
+        logger.info("Persistent storage enabled at %s", storage.storage_dir)
 
     # Build device list based on parameters
     devices = []
