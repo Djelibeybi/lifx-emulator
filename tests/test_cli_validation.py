@@ -1,5 +1,6 @@
 """Tests for CLI parameter validation."""
 
+import re
 import socket
 import subprocess
 from contextlib import contextmanager
@@ -74,7 +75,9 @@ class TestCLIValidation:
 
             # Should have error message in output (either stdout or stderr)
             output = stdout + stderr
-            assert "--persistent-scenarios requires --persistent" in output
+            assert re.search(
+                r"--persistent-scenarios requires.*--persistent", output, re.DOTALL
+            )
 
     def test_persistent_scenarios_with_persistent_works(self):
         """Test that --persistent-scenarios works when --persistent is set."""

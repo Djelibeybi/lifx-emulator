@@ -720,10 +720,13 @@ class TestRunCommand:
         assert len(devices) == 2
 
     @pytest.mark.asyncio
-    @patch("lifx_emulator.__main__.logger")
-    @patch("lifx_emulator.__main__._setup_logging")
-    async def test_run_with_invalid_product_id(self, mock_setup_logging, mock_logger):
+    @patch("lifx_emulator.__main__.logging.getLogger")
+    async def test_run_with_invalid_product_id(self, mock_get_logger):
         """Test running with invalid product ID."""
+        # Create a mock logger
+        mock_logger = MagicMock()
+        mock_get_logger.return_value = mock_logger
+
         # Use a product ID that doesn't exist
         await run(product=[9999])
 
@@ -734,10 +737,13 @@ class TestRunCommand:
         )
 
     @pytest.mark.asyncio
-    @patch("lifx_emulator.__main__.logger")
-    @patch("lifx_emulator.__main__._setup_logging")
-    async def test_run_with_no_devices(self, mock_setup_logging, mock_logger):
+    @patch("lifx_emulator.__main__.logging.getLogger")
+    async def test_run_with_no_devices(self, mock_get_logger):
         """Test running with no devices configured."""
+        # Create a mock logger
+        mock_logger = MagicMock()
+        mock_get_logger.return_value = mock_logger
+
         # Set all device counts to 0
         await run(color=0)
 
