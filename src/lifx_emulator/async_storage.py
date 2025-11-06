@@ -279,8 +279,9 @@ class AsyncDeviceStorage:
             )
             await asyncio.gather(*self.background_tasks, return_exceptions=True)
 
-        # Shutdown executor
-        self.executor.shutdown(wait=True)
+        # Shutdown executor (non-blocking to avoid hanging on Windows)
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.executor.shutdown, True)
 
         logger.info("Async storage shutdown complete")
 

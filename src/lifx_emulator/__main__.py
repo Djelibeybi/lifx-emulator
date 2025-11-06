@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import signal
 from typing import Annotated
 
 import cyclopts
@@ -547,6 +548,25 @@ async def run(
         logger.info("Starting HTTP API server on http://%s:%s", api_host, api_port)
         api_task = asyncio.create_task(run_api_server(server, api_host, api_port))
 
+    # Set up graceful shutdown on signals
+    shutdown_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+
+    def signal_handler(signum, frame):
+        """Handle shutdown signals gracefully (thread-safe for asyncio)."""
+        # Use call_soon_threadsafe to safely set event from signal handler
+        loop.call_soon_threadsafe(shutdown_event.set)
+
+    # Register signal handlers for graceful shutdown
+    # Use signal.signal() instead of loop.add_signal_handler() for Windows compatibility
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    # On Windows, also handle SIGBREAK
+    sigbreak = getattr(signal, "SIGBREAK", None)
+    if sigbreak is not None:
+        signal.signal(sigbreak, signal_handler)
+
     try:
         if api:
             logger.info(
@@ -565,8 +585,8 @@ async def run(
                 "Server running... Press Ctrl+C to stop (use --verbose to see packets)"
             )
 
-        await asyncio.Event().wait()  # Run forever
-    except KeyboardInterrupt:
+        await shutdown_event.wait()  # Wait for shutdown signal
+    finally:
         logger.info("Shutting down server...")
 
         # Shutdown storage first to flush pending writes
