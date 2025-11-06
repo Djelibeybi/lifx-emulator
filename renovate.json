@@ -156,6 +156,6 @@
   },
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Dependency Dashboard",
-  "dependencyDashboardHeader": "This dashboard shows all pending dependency updates for lifx-async.",
+  "dependencyDashboardHeader": "This dashboard shows all pending dependency updates for lifx-emulator.",
   "dependencyDashboardFooter": "Configure Renovate by editing `renovate.json`"
 }
