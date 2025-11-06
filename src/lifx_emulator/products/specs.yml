@@ -1,0 +1,327 @@
+# LIFX Product Specs and Defaults
+# =================================
+#
+# This file contains product-specific details that are not available in the
+# upstream LIFX products.json catalog, such as default zone counts, tile
+# configurations, and other device-specific defaults.
+#
+# These values are used by the emulator to create realistic device configurations
+# when specific parameters are not provided by the user.
+#
+# Format:
+# -------
+# products:
+#   <product_id>:
+#     # For multizone devices
+#     default_zone_count: <number>      # Default number of zones (e.g., 16 for Z strip)
+#     min_zone_count: <number>          # Minimum zones supported
+#     max_zone_count: <number>          # Maximum zones supported
+#
+#     # For matrix devices (tiles, candles, etc.)
+#     default_tile_count: <number>      # Default number of tiles in chain
+#     min_tile_count: <number>          # Minimum tiles supported
+#     max_tile_count: <number>          # Maximum tiles supported
+#     tile_width: <number>              # Width of each tile in pixels
+#     tile_height: <number>             # Height of each tile in pixels
+#
+#     # Other device-specific defaults
+#     notes: "<string>"                 # Human-readable notes about this product
+
+products:
+  # ============================================================================
+  # Multizone Products (Linear Strips)
+  # ============================================================================
+
+  31:  # Original LIFX Z strip, 2 meters, 8 zones per meter
+    default_zone_count: 16
+    min_zone_count: 8
+    max_zone_count: 16
+    notes: Original LIFX Z strip, 2 meters, 8 zones per meter
+
+  32:  # LIFX Z with extended multizone firmware support
+    default_zone_count: 16
+    min_zone_count: 8
+    max_zone_count: 16
+    notes: LIFX Z with extended multizone firmware support
+
+  38:  # LIFX Beam, 6 individual beams, each with multiple zones
+    default_zone_count: 80
+    min_zone_count: 10
+    max_zone_count: 82
+    notes: LIFX Beam, 8 individual beams, each with 10 zones and up to 2 corners
+
+  117:  # LIFX Z US variant
+    default_zone_count: 16
+    min_zone_count: 8
+    max_zone_count: 16
+    notes: LIFX Z US variant
+
+  118:  # LIFX Z International variant
+    default_zone_count: 16
+    min_zone_count: 8
+    max_zone_count: 16
+    notes: LIFX Z International variant
+
+  119:  # LIFX Beam US variant
+    default_zone_count: 80
+    min_zone_count: 10
+    max_zone_count: 82
+    notes: LIFX Beam US variant
+
+  120:  # LIFX Beam International variant
+    default_zone_count: 80
+    min_zone_count: 10
+    max_zone_count: 82
+    notes: LIFX Beam International variant
+
+  141:  # LIFX Neon flexible light strip
+    default_zone_count: 24
+    min_zone_count: 24
+    max_zone_count: 48
+    notes: LIFX Neon flexible light strip
+
+  142:  # LIFX Neon International variant
+    default_zone_count: 24
+    min_zone_count: 24
+    max_zone_count: 48
+    notes: LIFX Neon International variant
+
+  143:  # LIFX String lights
+    default_zone_count: 36
+    min_zone_count: 36
+    max_zone_count: 72
+    notes: LIFX String lights
+
+  144:  # LIFX String International variant
+    default_zone_count: 20
+    min_zone_count: 36
+    max_zone_count: 72
+    notes: LIFX String International variant
+
+  161:  # LIFX Outdoor Neon
+    default_zone_count: 60
+    min_zone_count: 60
+    max_zone_count: 120
+    notes: LIFX Outdoor Neon
+
+  162:  # LIFX Outdoor Neon International variant
+    default_zone_count: 60
+    min_zone_count: 60
+    max_zone_count: 120
+    notes: LIFX Outdoor Neon International variant
+
+  203:  # LIFX String US (newer model)
+    default_zone_count: 36
+    min_zone_count: 36
+    max_zone_count: 72
+    notes: LIFX String US (newer model)
+
+  204:  # LIFX String International (newer model)
+    default_zone_count: 36
+    min_zone_count: 36
+    max_zone_count: 72
+    notes: LIFX String International (newer model)
+
+  205:  # LIFX Indoor Neon US
+    default_zone_count: 24
+    min_zone_count: 24
+    max_zone_count: 48
+    notes: LIFX Indoor Neon US
+
+  206:  # LIFX Indoor Neon Intl
+    default_zone_count: 24
+    min_zone_count: 24
+    max_zone_count: 48
+    notes: LIFX Indoor Neon Intl
+
+  213:  # LIFX Permanent Outdoor US
+    default_zone_count: 30
+    min_zone_count: 30
+    max_zone_count: 120
+    notes: LIFX Permanent Outdoor US
+
+  214:  # LIFX Permanent Outdoor Intl
+    default_zone_count: 30
+    min_zone_count: 30
+    max_zone_count: 120
+    notes: LIFX Permanent Outdoor Intl
+
+  # ============================================================================
+  # Matrix Products (Tiles, Candles, etc.)
+  # ============================================================================
+
+  55:  # LIFX Tile, 8x8 pixel matrix, chainable up to 5
+    default_tile_count: 5
+    min_tile_count: 1
+    max_tile_count: 5
+    tile_width: 8
+    tile_height: 8
+    notes: LIFX Tile, 8x8 pixel matrix, chainable up to 5
+
+  57:  # LIFX Candle, 5x6 pixel matrix, single unit
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle, 5x6 pixel matrix, single unit
+
+  68:  # LIFX Candle variant, 5x6 pixel matrix
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle variant, 5x6 pixel matrix
+
+  137:  # LIFX Candle Color US 5x6 variant
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Color US 5x6 variant
+
+  138:  # LIFX Candle Colour 5x6 International variant
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Colour 5x6 International variant
+
+  171:  # LIFX Round Spot, 3x1 matrix
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 1
+    notes: LIFX Round Spot, 3x1 matrix
+
+  173:  # LIFX Round Path, 3x2 matrix
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Round Path, 3x2 matrix
+
+  174:  # LIFX Square Path, 3x2 matrix
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Square Path, 3x2 matrix
+
+  176:  # LIFX Ceiling, 8x8 matrix, zones 1-63: downlight, zone 64: uplight
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 8
+    tile_height: 8
+    notes: 'LIFX Ceiling, 8x8 matrix, zones 1-63: downlight, zone 64: uplight'
+
+  177:  # LIFX Tube Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 11
+    notes: LIFX Tube Intl
+
+  185:  # LIFX Candle Color US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Color US
+
+  186:  # LIFX Candle Colour Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Colour Intl
+
+  201:  # LIFX Ceiling 13x26" US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 16
+    tile_height: 8
+    notes: LIFX Ceiling 13x26" US
+
+  202:  # LIFX Ceiling 13x26" Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 16
+    tile_height: 8
+    notes: LIFX Ceiling 13x26" Intl
+
+  215:  # LIFX Candle Color US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Color US
+
+  216:  # LIFX Candle Colour Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 6
+    notes: LIFX Candle Colour Intl
+
+  217:  # LIFX Tube US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 11
+    notes: LIFX Tube US
+
+  218:  # LIFX Tube Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 11
+    notes: LIFX Tube Intl
+
+  219:  # LIFX Luna US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 7
+    tile_height: 5
+    notes: LIFX Luna US
+
+  220:  # LIFX Luna Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 7
+    tile_height: 5
+    notes: LIFX Luna Intl
+
+  221:  # LIFX Round Spot Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 1
+    notes: LIFX Round Spot Intl
+
+  222:  # LIFX Round Path Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Round Path Intl

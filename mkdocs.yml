@@ -1,0 +1,212 @@
+site_name: LIFX Emulator
+site_description: A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries
+site_author: Avi Miller <me@dje.li>
+site_url: https://djelibeybi.github.io/lifx-emulator
+
+repo_name: Djelibeybi/lifx-emulator
+repo_url: https://github.com/djelibeybi/lifx-emulator
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+  - scheme: default
+    primary: indigo
+    accent: blue
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+    # Dark mode
+  - scheme: slate
+    primary: indigo
+    accent: blue
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+  features:
+  - navigation.instant
+  - navigation.tracking
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.sections
+  - navigation.expand
+  - navigation.path
+  - navigation.indexes
+  - toc.follow
+  - toc.integrate
+  - search.suggest
+  - search.highlight
+  - search.share
+  - content.code.copy
+  - content.code.annotate
+  - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/lightbulb-on
+  favicon: assets/favicon.png
+
+plugins:
+- search:
+    lang: en
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [src]    # Add source path for imports
+          # Load object inventories to enable cross-references to other projects.
+        inventories:
+        - https://docs.python.org/3/objects.inv
+        options:
+          docstring_options:
+            ignore_init_summary: true
+
+            # Docstring parsing
+          docstring_style: google
+          docstring_section_style: spacy
+
+            # Headings and structure
+          show_root_heading: true
+          show_root_full_path: false
+          show_root_members_full_path: false
+          show_object_full_path: false
+          show_category_heading: true
+          heading_level: 2
+
+            # Signatures
+          show_signature: true
+          show_signature_annotations: true
+          separate_signature: true
+          signature_crossrefs: true
+
+            # Members
+          members_order: source
+          group_by_category: true
+          show_if_no_docstring: false
+          show_docstring_attributes: true
+          show_docstring_functions: true
+          show_docstring_classes: true
+          show_docstring_modules: true
+
+            # Source code
+          show_source: true
+
+            # Inheritance
+          show_bases: true
+          show_inheritance_diagram: false
+
+            # Special members
+          merge_init_into_class: true
+          show_labels: true
+
+            # Additional improvements
+          annotations_path: brief
+          line_length: 80
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          summary: true
+
+- git-revision-date-localized:
+    enable_creation_date: true
+
+markdown_extensions:
+- admonition
+- pymdownx.details
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_code_format
+- pymdownx.highlight:
+    anchor_linenums: true
+    line_spans: __span
+    pygments_lang_class: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.tasklist:
+    custom_checkbox: true
+- attr_list
+- md_in_html
+- tables
+- footnotes
+- def_list
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+- pymdownx.critic
+- pymdownx.caret
+- pymdownx.keys
+- pymdownx.mark
+- pymdownx.tilde
+- toc:
+    permalink: true
+    toc_depth: 3
+
+nav:
+
+- Home: index.md
+- Getting Started:
+  - Installation: getting-started/installation.md
+  - Quick Start: getting-started/quickstart.md
+  - CLI Usage: getting-started/cli.md
+
+- Tutorials:
+  - Overview: tutorials/index.md
+  - 01 - First Device: tutorials/01-first-device.md
+  - 02 - Basic Usage: tutorials/02-basic.md
+  - 03 - Advanced Scenarios: tutorials/03-advanced.md
+  - 04 - Integration Testing: tutorials/04-integration.md
+  - 05 - CI/CD Integration: tutorials/05-cicd.md
+
+- User Guide:
+  - Overview: guide/overview.md
+  - Device Types: guide/device-types.md
+  - Products & Specs: guide/products-and-specs.md
+  - Web Interface: guide/web-interface.md
+  - Testing Scenarios: guide/testing-scenarios.md
+  - Best Practices: guide/best-practices.md
+  - Advanced Testing: guide/integration-testing.md
+
+- API Reference:
+  - Overview: api/index.md
+  - Factory Functions: api/factories.md
+  - Device: api/device.md
+  - Server: api/server.md
+  - Protocol Types: api/protocol.md
+  - Storage: api/storage.md
+  - Product Registry: api/products.md
+
+- Advanced Topics:
+  - Device Management API: advanced/device-management-api.md
+  - Scenario Management API: advanced/scenario-api.md
+  - Persistent Storage: advanced/storage.md
+  - Custom Scenarios: advanced/scenarios.md
+
+- Architecture:
+  - Overview: architecture/overview.md
+  - Packet Flow: architecture/packet-flow.md
+  - Protocol Layer: architecture/protocol.md
+  - Device State: architecture/device-state.md
+
+- FAQ: faq.md
+
+- Reference:
+  - Troubleshooting: reference/troubleshooting.md
+  - Glossary: reference/glossary.md
+
+- Changelog: changelog.md
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/Djelibeybi/lifx-emulator
+  - icon: fontawesome/brands/python
+    link: https://pypi.org/project/lifx-emulator/
+  version:
+    provider: mike
+
+extra_css:
+- stylesheets/extra.css
+
+copyright: Copyright &copy; 2025 Avi Miller
