@@ -266,7 +266,8 @@ class Packet:
                             data, current_offset
                         )
                     else:
-                        item, current_offset = struct_class.unpack(data, current_offset)
+                        item_result = struct_class.unpack(data, current_offset)
+                        item, current_offset = item_result  # type: ignore[misc]
                     result.append(item)
                 return result, current_offset
             elif base_type in ("uint8", "byte"):

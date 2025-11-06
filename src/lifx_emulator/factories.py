@@ -250,12 +250,14 @@ def create_device(
     # Create default color based on product type
     if (
         not product_info.has_color
+        and product_info.temperature_range is not None
         and product_info.temperature_range.min == product_info.temperature_range.max
     ):
         # Brightness only light
         default_color = LightHsbk(hue=0, saturation=0, brightness=32768, kelvin=2700)
     elif (
         not product_info.has_color
+        and product_info.temperature_range is not None
         and product_info.temperature_range.min != product_info.temperature_range.max
     ):
         # Color temperature adjustable light

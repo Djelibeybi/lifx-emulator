@@ -157,6 +157,9 @@ class StateRestorer:
             state: DeviceState to restore into
             saved_state: Dictionary with saved state values
         """
+        if state.multizone is None:
+            return
+
         # First restore zone_count from saved state
         # This ensures the device matches what was previously saved
         if "zone_count" in saved_state:
@@ -190,6 +193,9 @@ class StateRestorer:
             state: DeviceState to restore into
             saved_state: Dictionary with saved state values
         """
+        if state.matrix is None:
+            return
+
         # First restore tile configuration (count, width, height) from saved state
         # This ensures the device matches what was previously saved
         if "tile_count" in saved_state:
