@@ -1,0 +1,37 @@
+/* Custom styles for LIFX Emulator documentation */
+
+:root {
+    --md-primary-fg-color: #5E35B1;
+    --md-accent-fg-color: #448AFF;
+}
+
+/* Code block styling */
+.highlight pre {
+    border-radius: 4px;
+}
+
+/* Improve table styling */
+table {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Add some spacing for better readability */
+.md-typeset h2 {
+    margin-top: 2rem;
+}
+
+.md-typeset h3 {
+    margin-top: 1.5rem;
+}
+
+/* Style for badges */
+.md-typeset a.badge {
+    text-decoration: none;
+}
+
+/* Improve code inline styling */
+.md-typeset code {
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}

@@ -1,0 +1,2876 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries">
+      
+      
+        <meta name="author" content="Avi Miller <me@dje.li>">
+      
+      
+        <link rel="canonical" href="https://djelibeybi.github.io/lifx-emulator/faq/">
+      
+      
+        <link rel="prev" href="../architecture/device-state/">
+      
+      
+        <link rel="next" href="../reference/troubleshooting/">
+      
+      
+      <link rel="icon" href="../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>FAQ - LIFX Emulator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#frequently-asked-questions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="LIFX Emulator" class="md-header__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LIFX Emulator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FAQ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guide/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../advanced/device-management-api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Advanced Topics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/troubleshooting/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../changelog.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="LIFX Emulator" class="md-nav__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    LIFX Emulator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/01-first-device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    01 - First Device
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/02-basic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    02 - Basic Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/03-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    03 - Advanced Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/04-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    04 - Integration Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/05-cicd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    05 - CI/CD Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/device-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/products-and-specs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Products & Specs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/web-interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Interface
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/testing-scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Best Practices
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/integration-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advanced Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/factories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Factory Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Protocol Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/products/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Product Registry
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/device-management-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device Management API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/scenario-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Persistent Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/packet-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Packet Flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Protocol Layer
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/device-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device State
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-answers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Answers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Answers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#port-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port conflicts?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-too-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test too slow?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discovery-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discovery not working?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Protocol errors?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#need-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Need examples?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      General Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-the-lifx-emulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is the LIFX Emulator?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-use-the-emulator-instead-of-real-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why use the emulator instead of real devices?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-lifx-emulator-vs-other-testing-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why LIFX Emulator vs other testing approaches?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-protocol-version-is-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      What protocol version is supported?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-accurate-is-the-emulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      How accurate is the emulation?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-use-this-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can I use this in production?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-many-devices-can-i-emulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      How many devices can I emulate?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-many-packets-per-second-can-it-handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      How many packets per second can it handle?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#platform-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Platform Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-platforms-are-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      What platforms are supported?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-it-work-in-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      Does it work in Docker?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-it-work-in-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      Does it work in CI/CD?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feature Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#can-i-emulate-specific-firmware-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can I emulate specific firmware versions?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-it-support-firmware-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Does it support firmware updates?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-test-device-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can I test device discovery?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-test-multizone-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can I test multizone effects?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-test-tile-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can I test tile patterns?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Questions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-cant-my-client-find-the-emulated-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why can't my client find the emulated device?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-are-my-tests-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why are my tests slow?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-debug-protocol-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      How do I debug protocol issues?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-do-i-report-bugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Where do I report bugs?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version Compatibility
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-python-versions-are-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Python versions are supported?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-are-the-differences-from-real-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      What are the differences from real devices?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Help
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Help">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-can-i-find-more-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Where can I find more documentation?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      How do I contribute?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-there-a-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      Is there a community?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#still-have-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Still Have Questions?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="frequently-asked-questions">Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permanent link">&para;</a></h1>
+<p>Common questions about the LIFX Emulator and their answers.</p>
+<h2 id="quick-answers">Quick Answers<a class="headerlink" href="#quick-answers" title="Permanent link">&para;</a></h2>
+<h3 id="port-conflicts">Port conflicts?<a class="headerlink" href="#port-conflicts" title="Permanent link">&para;</a></h3>
+<p>→ See <a href="../guide/best-practices/#port-management">Best Practices - Port Management</a></p>
+<h3 id="test-too-slow">Test too slow?<a class="headerlink" href="#test-too-slow" title="Permanent link">&para;</a></h3>
+<p>→ See <a href="../guide/best-practices/#performance-considerations">Best Practices - Performance</a></p>
+<h3 id="discovery-not-working">Discovery not working?<a class="headerlink" href="#discovery-not-working" title="Permanent link">&para;</a></h3>
+<p>→ See <a href="../reference/troubleshooting/#discovery-failures-and-debugging">Troubleshooting - Discovery Failures</a></p>
+<h3 id="protocol-errors">Protocol errors?<a class="headerlink" href="#protocol-errors" title="Permanent link">&para;</a></h3>
+<p>→ See <a href="../reference/troubleshooting/#protocol-errors-and-interpretation">Troubleshooting - Protocol Errors</a></p>
+<h3 id="need-examples">Need examples?<a class="headerlink" href="#need-examples" title="Permanent link">&para;</a></h3>
+<p>→ See <a href="../tutorials/">Tutorials</a> and <a href="../tutorials/02-basic/">Examples</a></p>
+<h2 id="general-questions">General Questions<a class="headerlink" href="#general-questions" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-the-lifx-emulator">What is the LIFX Emulator?<a class="headerlink" href="#what-is-the-lifx-emulator" title="Permanent link">&para;</a></h3>
+<p>The LIFX Emulator is a virtual LIFX device implementation that speaks the LIFX LAN protocol. It allows you to test LIFX client libraries and applications without needing physical LIFX devices.</p>
+<h3 id="why-use-the-emulator-instead-of-real-devices">Why use the emulator instead of real devices?<a class="headerlink" href="#why-use-the-emulator-instead-of-real-devices" title="Permanent link">&para;</a></h3>
+<p><strong>Advantages of the emulator:</strong></p>
+<ul>
+<li><strong>Cost:</strong> No need to purchase physical devices (a single LIFX device costs $60-350+)</li>
+<li><strong>Speed:</strong> Instant device creation, no setup time</li>
+<li><strong>Availability:</strong> Always available, no dependency on hardware</li>
+<li><strong>Scalability:</strong> Test with 100+ devices on one machine</li>
+<li><strong>Control:</strong> Precise control over device state and behavior</li>
+<li><strong>Error injection:</strong> Simulate network issues, firmware bugs, edge cases</li>
+<li><strong>Reproducibility:</strong> Consistent test results, no flaky hardware</li>
+<li><strong>CI/CD:</strong> Run tests in automated pipelines without hardware</li>
+</ul>
+<p><strong>When to use real devices:</strong></p>
+<ul>
+<li>Testing hardware-specific behavior</li>
+<li>Validating WiFi/network stack issues</li>
+<li>Final integration testing before release</li>
+<li>Testing firmware update mechanisms</li>
+<li>Verifying physical device interactions (buttons, etc.)</li>
+</ul>
+<p>See also: <a href="../guide/best-practices/#when-to-use-the-emulator">Best Practices - When to Use the Emulator</a></p>
+<h3 id="why-lifx-emulator-vs-other-testing-approaches">Why LIFX Emulator vs other testing approaches?<a class="headerlink" href="#why-lifx-emulator-vs-other-testing-approaches" title="Permanent link">&para;</a></h3>
+<p><strong>Comparison with alternatives:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Speed</th>
+<th>Accuracy</th>
+<th>Setup</th>
+<th>Cost</th>
+<th>Error Testing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LIFX Emulator</strong></td>
+<td>⚡ Fast</td>
+<td>✅ High</td>
+<td>🟢 Easy</td>
+<td>💰 Free</td>
+<td>✅ Excellent</td>
+</tr>
+<tr>
+<td><strong>Mocking</strong></td>
+<td>⚡⚡ Fastest</td>
+<td>⚠️ Low</td>
+<td>🟢 Easy</td>
+<td>💰 Free</td>
+<td>⚠️ Limited</td>
+</tr>
+<tr>
+<td><strong>VCR/Recording</strong></td>
+<td>⚡ Fast</td>
+<td>✅ High</td>
+<td>🟡 Medium</td>
+<td>💰 Free</td>
+<td>❌ None</td>
+</tr>
+<tr>
+<td><strong>Real Devices</strong></td>
+<td>🐌 Slow</td>
+<td>✅✅ Perfect</td>
+<td>🔴 Hard</td>
+<td>💰💰 Expensive</td>
+<td>❌ Difficult</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Use the emulator when:</strong></p>
+<ul>
+<li>Testing LIFX protocol implementation</li>
+<li>Integration testing your application</li>
+<li>Running tests in CI/CD</li>
+<li>Testing error handling and edge cases</li>
+</ul>
+<p><strong>Use mocks when:</strong></p>
+<ul>
+<li>Unit testing business logic</li>
+<li>Speed is critical</li>
+<li>Testing code that uses LIFX, not the protocol itself</li>
+</ul>
+<p><strong>Use real devices when:</strong></p>
+<ul>
+<li>Final validation before production release</li>
+<li>Testing hardware-specific features</li>
+<li>Verifying WiFi behavior</li>
+</ul>
+<h3 id="what-protocol-version-is-supported">What protocol version is supported?<a class="headerlink" href="#what-protocol-version-is-supported" title="Permanent link">&para;</a></h3>
+<p>The emulator implements the <strong>LIFX LAN Protocol</strong> as documented at https://lan.developer.lifx.com.</p>
+<p><strong>Protocol compliance:</strong></p>
+<ul>
+<li>✅ Full header support (36 bytes)</li>
+<li>✅ Device discovery (GetService, StateService)</li>
+<li>✅ Device messages (label, location, group, power, etc.)</li>
+<li>✅ Light messages (color, brightness, effects)</li>
+<li>✅ MultiZone messages (standard and extended)</li>
+<li>✅ Tile/Matrix messages (Get64, Set64)</li>
+<li>✅ HEV/Clean messages</li>
+<li>✅ Infrared messages</li>
+</ul>
+<p><strong>Protocol version:</strong> Compatible with protocol as of November 2025</p>
+<h3 id="how-accurate-is-the-emulation">How accurate is the emulation?<a class="headerlink" href="#how-accurate-is-the-emulation" title="Permanent link">&para;</a></h3>
+<p><strong>What's accurate:</strong></p>
+<ul>
+<li>✅ Binary protocol implementation (packet structure, types, serialization)</li>
+<li>✅ Device state management (color, power, zones, tiles)</li>
+<li>✅ Packet acknowledgment (ack_required, res_required)</li>
+<li>✅ Broadcast vs unicast handling</li>
+<li>✅ Multi-device support</li>
+<li>✅ Device capabilities (color, multizone, matrix, HEV, infrared)</li>
+</ul>
+<p><strong>What's approximated:</strong></p>
+<ul>
+<li>⚠️ Timing (real devices may have different response times)</li>
+<li>⚠️ Firmware behavior (emulator uses generalized logic)</li>
+<li>⚠️ Hardware limitations (real devices have memory/CPU constraints)</li>
+</ul>
+<p><strong>What's not emulated:</strong></p>
+<ul>
+<li>❌ WiFi/network layer (emulator uses UDP directly)</li>
+<li>❌ Firmware updates</li>
+<li>❌ Physical buttons or sensors</li>
+<li>❌ Actual light output (brightness, color rendering)</li>
+<li>❌ Power consumption</li>
+</ul>
+<p><strong>Accuracy rating:</strong> ~95% for protocol testing, ~70% for real-world behavior</p>
+<h3 id="can-i-use-this-in-production">Can I use this in production?<a class="headerlink" href="#can-i-use-this-in-production" title="Permanent link">&para;</a></h3>
+<p><strong>No, the emulator is for testing only.</strong></p>
+<p><strong>Appropriate uses:</strong></p>
+<ul>
+<li>✅ Development and testing</li>
+<li>✅ CI/CD pipelines</li>
+<li>✅ Integration tests</li>
+<li>✅ Demonstrations (with disclaimers)</li>
+<li>✅ Protocol exploration and learning</li>
+</ul>
+<p><strong>Not appropriate for:</strong></p>
+<ul>
+<li>❌ Production control systems</li>
+<li>❌ Customer-facing deployments</li>
+<li>❌ Critical infrastructure</li>
+<li>❌ Safety-critical applications</li>
+</ul>
+<p><strong>Why not production?</strong></p>
+<ul>
+<li>No reliability guarantees</li>
+<li>May have undiscovered bugs</li>
+<li>Not validated against all edge cases</li>
+<li>No security hardening</li>
+<li>No official support from LIFX</li>
+</ul>
+<h2 id="performance-questions">Performance Questions<a class="headerlink" href="#performance-questions" title="Permanent link">&para;</a></h2>
+<h3 id="how-many-devices-can-i-emulate">How many devices can I emulate?<a class="headerlink" href="#how-many-devices-can-i-emulate" title="Permanent link">&para;</a></h3>
+<p><strong>Practical limits:</strong></p>
+<ul>
+<li><strong>Typical usage:</strong> 1-10 devices (most common)</li>
+<li><strong>Stress testing:</strong> 50-100 devices (depends on hardware)</li>
+<li><strong>Maximum tested:</strong> 500+ devices (on powerful hardware)</li>
+</ul>
+<p><strong>Limiting factors:</strong></p>
+<ul>
+<li>Available RAM (each device uses ~1-5 MB)</li>
+<li>CPU for packet processing</li>
+<li>Network bandwidth (UDP packet throughput)</li>
+<li>Operating system limits (file descriptors, ports)</li>
+</ul>
+<p><strong>Performance tips:</strong></p>
+<ul>
+<li>Use a single server with multiple devices (not multiple servers)</li>
+<li>Minimize device state updates</li>
+<li>Use appropriate test fixture scopes</li>
+<li>Run tests in parallel with pytest-xdist</li>
+</ul>
+<h3 id="how-many-packets-per-second-can-it-handle">How many packets per second can it handle?<a class="headerlink" href="#how-many-packets-per-second-can-it-handle" title="Permanent link">&para;</a></h3>
+<p><strong>Typical performance:</strong></p>
+<ul>
+<li><strong>Single device:</strong> ~1,000-10,000 packets/sec</li>
+<li><strong>10 devices:</strong> ~500-5,000 packets/sec</li>
+<li><strong>100 devices:</strong> ~100-1,000 packets/sec</li>
+</ul>
+<p><strong>Factors affecting performance:</strong></p>
+<ul>
+<li>Hardware (CPU, RAM)</li>
+<li>Packet type (simple vs complex)</li>
+<li>Python interpreter (CPython vs PyPy)</li>
+<li>Operating system</li>
+<li>Concurrent clients</li>
+</ul>
+<p><strong>Optimization:</strong></p>
+<ul>
+<li>Emulator uses asyncio for concurrency</li>
+<li>Packet processing is lightweight</li>
+<li>Most time spent in serialization/deserialization</li>
+</ul>
+<h2 id="platform-questions">Platform Questions<a class="headerlink" href="#platform-questions" title="Permanent link">&para;</a></h2>
+<h3 id="what-platforms-are-supported">What platforms are supported?<a class="headerlink" href="#what-platforms-are-supported" title="Permanent link">&para;</a></h3>
+<p><strong>Fully supported:</strong></p>
+<ul>
+<li>✅ <strong>Linux</strong> (Ubuntu, Debian, Fedora, etc.)</li>
+<li>✅ <strong>macOS</strong> (Intel and Apple Silicon)</li>
+<li>✅ <strong>Windows</strong> (Windows 10/11)</li>
+<li>✅ <strong>WSL</strong> (Windows Subsystem for Linux)</li>
+</ul>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Python 3.11 or newer</li>
+<li>asyncio support</li>
+<li>UDP networking</li>
+</ul>
+<p><strong>Platform-specific notes:</strong></p>
+<p><strong>Windows:</strong></p>
+<ul>
+<li>May need <code>WindowsProactorEventLoopPolicy</code> for asyncio</li>
+<li>Firewall may prompt for UDP access</li>
+<li>Use dynamic port allocation in tests</li>
+</ul>
+<p><strong>macOS:</strong></p>
+<ul>
+<li>Works on both Intel and Apple Silicon (M1/M2/M3)</li>
+<li>May need to allow Python through firewall</li>
+</ul>
+<p><strong>WSL:</strong></p>
+<ul>
+<li>Works well for development and testing</li>
+<li>UDP networking functions correctly</li>
+<li>Port conflicts rare</li>
+</ul>
+<h3 id="does-it-work-in-docker">Does it work in Docker?<a class="headerlink" href="#does-it-work-in-docker" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> The emulator works great in Docker.</p>
+<p><strong>Example Dockerfile:</strong></p>
+<div class="language-dockerfile highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.13-slim</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/app
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">EXPOSE</span><span class="w"> </span><span class="s">56700/udp</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;lifx-emulator&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--color&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;3&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p><strong>Docker tips:</strong></p>
+<ul>
+<li>Expose UDP port 56700 (or your custom port)</li>
+<li>Bind to <code>0.0.0.0</code> for container networking</li>
+<li>Use Docker networks for multi-container testing</li>
+<li>Map volumes for persistent storage</li>
+</ul>
+<p>See also: <a href="../tutorials/05-cicd/#docker-integration">CI/CD Integration Tutorial</a></p>
+<h3 id="does-it-work-in-cicd">Does it work in CI/CD?<a class="headerlink" href="#does-it-work-in-cicd" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> Designed specifically for CI/CD.</p>
+<p><strong>Supported CI platforms:</strong></p>
+<ul>
+<li>✅ GitHub Actions</li>
+<li>✅ GitLab CI</li>
+<li>✅ CircleCI</li>
+<li>✅ Travis CI</li>
+<li>✅ Jenkins</li>
+<li>✅ Azure Pipelines</li>
+</ul>
+<p><strong>CI/CD best practices:</strong></p>
+<ul>
+<li>Use dynamic port allocation</li>
+<li>Run tests in parallel</li>
+<li>Cache pip/uv dependencies</li>
+<li>Use pytest-xdist for speed</li>
+<li>Set appropriate timeouts</li>
+</ul>
+<p>See also: <a href="../tutorials/05-cicd/">CI/CD Integration Tutorial</a></p>
+<h2 id="feature-questions">Feature Questions<a class="headerlink" href="#feature-questions" title="Permanent link">&para;</a></h2>
+<h3 id="can-i-emulate-specific-firmware-versions">Can I emulate specific firmware versions?<a class="headerlink" href="#can-i-emulate-specific-firmware-versions" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> Use the <code>firmware_version</code> scenario:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Emulate firmware version 3.70</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">device</span><span class="o">.</span><span class="n">scenarios</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="s1">&#39;firmware_version&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Test version detection logic</li>
+<li>Verify compatibility with old firmware</li>
+<li>Test upgrade/migration code</li>
+<li>Ensure graceful degradation</li>
+</ul>
+<p><strong>Note:</strong> This only changes the <em>reported</em> version, not actual behavior.</p>
+<p>See also: <a href="../guide/testing-scenarios/#6-custom-firmware-version-firmware_version">Testing Scenarios Guide</a></p>
+<h3 id="does-it-support-firmware-updates">Does it support firmware updates?<a class="headerlink" href="#does-it-support-firmware-updates" title="Permanent link">&para;</a></h3>
+<p><strong>No.</strong> The emulator does not support firmware update mechanisms.</p>
+<p><strong>Why not:</strong></p>
+<ul>
+<li>Firmware updates are hardware-specific</li>
+<li>Would require implementing entire update protocol</li>
+<li>Not needed for most testing scenarios</li>
+<li>Real devices needed for firmware testing</li>
+</ul>
+<h3 id="can-i-test-device-discovery">Can I test device discovery?<a class="headerlink" href="#can-i-test-device-discovery" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> The emulator fully supports discovery.</p>
+<p><strong>How it works:</strong></p>
+<ul>
+<li>Emulator responds to GetService (type 2) broadcasts</li>
+<li>Returns StateService with port number</li>
+<li>Clients can discover devices as usual</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Emulator side</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">([</span><span class="n">device</span><span class="p">],</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>  <span class="c1"># Bind to all interfaces</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Client side (using any LIFX library)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Discovery will find the emulated device</span>
+</span></code></pre></div>
+<p><strong>Discovery tips:</strong></p>
+<ul>
+<li>Bind to <code>0.0.0.0</code> for network-wide discovery</li>
+<li>Bind to <code>127.0.0.1</code> for localhost-only discovery</li>
+<li>Ensure firewall allows UDP traffic</li>
+<li>Use correct port (default: 56700)</li>
+</ul>
+<h3 id="can-i-test-multizone-effects">Can I test multizone effects?<a class="headerlink" href="#can-i-test-multizone-effects" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> Multizone effects are supported.</p>
+<p><strong>Available effects:</strong></p>
+<ul>
+<li>MOVE effect (packet type 510/511)</li>
+</ul>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">strip</span> <span class="o">=</span> <span class="n">create_multizone_light</span><span class="p">(</span><span class="s2">&quot;d073d8000001&quot;</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Device responds to:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># - GetColorZones (502) / SetColorZones (503)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># - GetMultiZoneEffect (510) / SetMultiZoneEffect (511)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># - GetExtendedColorZones (506) / SetExtendedColorZones (512)</span>
+</span></code></pre></div></p>
+<h3 id="can-i-test-tile-patterns">Can I test tile patterns?<a class="headerlink" href="#can-i-test-tile-patterns" title="Permanent link">&para;</a></h3>
+<p><strong>Yes!</strong> Tile/matrix devices are fully supported.</p>
+<p><strong>Tile features:</strong></p>
+<ul>
+<li>Multiple tiles per device (up to 5 or more)</li>
+<li>Get64/Set64 for zone updates</li>
+<li>GetDeviceChain for tile info</li>
+<li>Custom tile dimensions (8x8, 16x8, 5x6)</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">tiles</span> <span class="o">=</span> <span class="n">create_tile_device</span><span class="p">(</span><span class="s2">&quot;d073d9000001&quot;</span><span class="p">,</span> <span class="n">tile_count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Each tile has 64 zones (8x8)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Responds to Get64 (707) and Set64 (715) packets</span>
+</span></code></pre></div>
+<h2 id="troubleshooting-questions">Troubleshooting Questions<a class="headerlink" href="#troubleshooting-questions" title="Permanent link">&para;</a></h2>
+<h3 id="why-cant-my-client-find-the-emulated-device">Why can't my client find the emulated device?<a class="headerlink" href="#why-cant-my-client-find-the-emulated-device" title="Permanent link">&para;</a></h3>
+<p><strong>Common causes:</strong></p>
+<ol>
+<li><strong>Wrong network interface</strong></li>
+<li>
+<p>Solution: Bind to <code>0.0.0.0</code> instead of <code>127.0.0.1</code></p>
+</li>
+<li>
+<p><strong>Port conflict</strong></p>
+</li>
+<li>
+<p>Solution: Use dynamic port allocation or check for conflicts</p>
+</li>
+<li>
+<p><strong>Firewall blocking UDP</strong></p>
+</li>
+<li>
+<p>Solution: Allow Python through firewall (Windows/macOS)</p>
+</li>
+<li>
+<p><strong>Client looking on wrong port</strong></p>
+</li>
+<li>
+<p>Solution: Ensure client uses port 56700 (or your custom port)</p>
+</li>
+<li>
+<p><strong>Emulator not running</strong></p>
+</li>
+<li>Solution: Verify emulator started successfully</li>
+</ol>
+<p>See also: <a href="../reference/troubleshooting/#discovery-failures-and-debugging">Troubleshooting Guide</a></p>
+<h3 id="why-are-my-tests-slow">Why are my tests slow?<a class="headerlink" href="#why-are-my-tests-slow" title="Permanent link">&para;</a></h3>
+<p><strong>Common causes:</strong></p>
+<ol>
+<li><strong>Too many devices</strong></li>
+<li>
+<p>Solution: Use only devices you need</p>
+</li>
+<li>
+<p><strong>Function-scoped fixtures</strong></p>
+</li>
+<li>
+<p>Solution: Use module or session scope when appropriate</p>
+</li>
+<li>
+<p><strong>Sequential test execution</strong></p>
+</li>
+<li>
+<p>Solution: Use pytest-xdist for parallel tests</p>
+</li>
+<li>
+<p><strong>Unnecessary delays</strong></p>
+</li>
+<li>
+<p>Solution: Remove artificial sleep() calls</p>
+</li>
+<li>
+<p><strong>Slow client library</strong></p>
+</li>
+<li>Solution: Profile your client code</li>
+</ol>
+<p>See also: <a href="../guide/best-practices/#performance-considerations">Best Practices - Performance Considerations</a></p>
+<h3 id="how-do-i-debug-protocol-issues">How do I debug protocol issues?<a class="headerlink" href="#how-do-i-debug-protocol-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Debugging techniques:</strong></p>
+<ol>
+<li>
+<p><strong>Enable verbose logging:</strong>
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Use --verbose flag:</strong>
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>lifx-emulator<span class="w"> </span>--verbose
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Check packet types:</strong>
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.protocol.packets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Light</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GetColor: </span><span class="si">{</span><span class="n">Light</span><span class="o">.</span><span class="n">GetColor</span><span class="o">.</span><span class="n">PKT_TYPE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Inspect device state:</strong>
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device state: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">state</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Use network sniffer:</strong></p>
+</li>
+<li>Wireshark or tcpdump to see actual UDP packets</li>
+</ol>
+<p>See also: <a href="../reference/troubleshooting/">Troubleshooting Guide</a></p>
+<h3 id="where-do-i-report-bugs">Where do I report bugs?<a class="headerlink" href="#where-do-i-report-bugs" title="Permanent link">&para;</a></h3>
+<p><strong>Bug reports:</strong>
+- 🐛 GitHub Issues: https://github.com/Djelibeybi/lifx-emulator/issues</p>
+<p><strong>Before reporting:</strong></p>
+<ol>
+<li>Check existing issues</li>
+<li>Update to latest version</li>
+<li>Reproduce with minimal example</li>
+<li>Collect relevant information:</li>
+<li>Python version</li>
+<li>Operating system</li>
+<li>lifx-emulator version</li>
+<li>Error messages</li>
+<li>Minimal reproduction code</li>
+</ol>
+<p><strong>Good bug report includes:</strong></p>
+<ul>
+<li>Clear description of issue</li>
+<li>Steps to reproduce</li>
+<li>Expected behavior</li>
+<li>Actual behavior</li>
+<li>Code example</li>
+<li>Error messages/stack traces</li>
+</ul>
+<h2 id="version-compatibility">Version Compatibility<a class="headerlink" href="#version-compatibility" title="Permanent link">&para;</a></h2>
+<h3 id="what-python-versions-are-supported">What Python versions are supported?<a class="headerlink" href="#what-python-versions-are-supported" title="Permanent link">&para;</a></h3>
+<p><strong>Required:</strong> Python 3.11 or newer</p>
+<p><strong>Tested on:</strong>
+- ✅ Python 3.11
+- ✅ Python 3.12
+- ✅ Python 3.13
+- ✅ Python 3.14</p>
+<p><strong>Not supported:</strong>
+- ❌ Python 3.10 and older</p>
+<p><strong>Why Python 3.11+?</strong>
+- Modern async features
+- Performance improvements
+- Type hints improvements
+- Better error messages</p>
+<h3 id="what-are-the-differences-from-real-devices">What are the differences from real devices?<a class="headerlink" href="#what-are-the-differences-from-real-devices" title="Permanent link">&para;</a></h3>
+<p><strong>Protocol differences:</strong>
+- ✅ Emulator implements protocol exactly as documented
+- ⚠️ Real devices may have firmware quirks
+- ⚠️ Real devices may have timing differences</p>
+<p><strong>Behavioral differences:</strong>
+- 🔴 Emulator responds instantly (no physical light transition)
+- 🔴 Emulator has no memory/CPU constraints
+- 🔴 Emulator doesn't model WiFi issues
+- 🔴 Emulator doesn't have button inputs</p>
+<p><strong>State differences:</strong>
+- ✅ Color, power, zones, tiles: accurate
+- ⚠️ Signal strength, WiFi info: stubbed
+- ⚠️ Uptime, reboot count: simplified</p>
+<p><strong>Best practice:</strong> Use emulator for protocol testing, real devices for final validation.</p>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<h3 id="where-can-i-find-more-documentation">Where can I find more documentation?<a class="headerlink" href="#where-can-i-find-more-documentation" title="Permanent link">&para;</a></h3>
+<p><strong>Documentation sections:</strong></p>
+<ul>
+<li>📖 <a href="../getting-started/quickstart/">Getting Started</a></li>
+<li>📖 <a href="../tutorials/">Tutorials</a></li>
+<li>📖 <a href="../guide/overview/">User Guide</a></li>
+<li>📖 <a href="../api/">API Reference</a></li>
+<li>📖 <a href="../reference/troubleshooting/">Troubleshooting</a></li>
+<li>📖 <a href="../reference/glossary/">Glossary</a></li>
+</ul>
+<h3 id="how-do-i-contribute">How do I contribute?<a class="headerlink" href="#how-do-i-contribute" title="Permanent link">&para;</a></h3>
+<p><strong>Contributions welcome!</strong></p>
+<ul>
+<li>🎯 GitHub: https://github.com/Djelibeybi/lifx-emulator</li>
+</ul>
+<p><strong>Ways to contribute:</strong></p>
+<ul>
+<li>Report bugs</li>
+<li>Suggest features</li>
+<li>Improve documentation</li>
+<li>Submit pull requests</li>
+<li>Help others in issues</li>
+</ul>
+<h3 id="is-there-a-community">Is there a community?<a class="headerlink" href="#is-there-a-community" title="Permanent link">&para;</a></h3>
+<p><strong>Official resources:</strong></p>
+<ul>
+<li>GitHub Discussions: https://github.com/Djelibeybi/lifx-emulator/discussions</li>
+<li>GitHub Issues: https://github.com/Djelibeybi/lifx-emulator/issues</li>
+</ul>
+<h2 id="still-have-questions">Still Have Questions?<a class="headerlink" href="#still-have-questions" title="Permanent link">&para;</a></h2>
+<p>If your question isn't answered here:</p>
+<ol>
+<li><strong>Check the <a href="../reference/glossary/">Glossary</a></strong> for terminology</li>
+<li><strong>Read the <a href="../reference/troubleshooting/">Troubleshooting Guide</a></strong> for common issues</li>
+<li><strong>Browse the <a href="../tutorials/">Tutorials</a></strong> for usage examples</li>
+<li><strong>Search <a href="https://github.com/Djelibeybi/lifx-emulator/issues">GitHub Issues</a></strong> for similar questions</li>
+<li><strong>Ask in <a href="https://github.com/Djelibeybi/lifx-emulator/discussions">GitHub Discussions</a></strong></li>
+</ol>
+<p>We're here to help! 🎉</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Avi Miller
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Djelibeybi/lifx-emulator" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/lifx-emulator/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
