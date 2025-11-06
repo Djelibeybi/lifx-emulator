@@ -242,9 +242,11 @@ LIFX LAN protocol.
                 has_matrix=dev.state.has_matrix,
                 has_hev=dev.state.has_hev,
                 zone_count=dev.state.multizone.zone_count
-                if dev.state.has_multizone
+                if dev.state.multizone is not None
                 else 0,
-                tile_count=dev.state.matrix.tile_count if dev.state.has_matrix else 0,
+                tile_count=dev.state.matrix.tile_count
+                if dev.state.matrix is not None
+                else 0,
                 color=ColorHsbk(
                     hue=dev.state.color.hue,
                     saturation=dev.state.color.saturation,
@@ -262,10 +264,10 @@ LIFX LAN protocol.
                     )
                     for c in dev.state.multizone.zone_colors
                 ]
-                if dev.state.has_multizone
+                if dev.state.multizone is not None
                 else [],
                 tile_devices=dev.state.matrix.tile_devices
-                if dev.state.has_matrix
+                if dev.state.matrix is not None
                 else [],
                 version_major=dev.state.version_major,
                 version_minor=dev.state.version_minor,
@@ -309,9 +311,11 @@ LIFX LAN protocol.
             has_matrix=device.state.has_matrix,
             has_hev=device.state.has_hev,
             zone_count=device.state.multizone.zone_count
-            if device.state.has_multizone
+            if device.state.multizone is not None
             else 0,
-            tile_count=device.state.matrix.tile_count if device.state.has_matrix else 0,
+            tile_count=device.state.matrix.tile_count
+            if device.state.matrix is not None
+            else 0,
             color=ColorHsbk(
                 hue=device.state.color.hue,
                 saturation=device.state.color.saturation,
@@ -329,10 +333,10 @@ LIFX LAN protocol.
                 )
                 for c in device.state.multizone.zone_colors
             ]
-            if device.state.has_multizone
+            if device.state.multizone is not None
             else [],
             tile_devices=device.state.matrix.tile_devices
-            if device.state.has_matrix
+            if device.state.matrix is not None
             else [],
             version_major=device.state.version_major,
             version_minor=device.state.version_minor,
@@ -401,9 +405,11 @@ LIFX LAN protocol.
             has_matrix=device.state.has_matrix,
             has_hev=device.state.has_hev,
             zone_count=device.state.multizone.zone_count
-            if device.state.has_multizone
+            if device.state.multizone is not None
             else 0,
-            tile_count=device.state.matrix.tile_count if device.state.has_matrix else 0,
+            tile_count=device.state.matrix.tile_count
+            if device.state.matrix is not None
+            else 0,
             color=ColorHsbk(
                 hue=device.state.color.hue,
                 saturation=device.state.color.saturation,
@@ -421,10 +427,10 @@ LIFX LAN protocol.
                 )
                 for c in device.state.multizone.zone_colors
             ]
-            if device.state.has_multizone
+            if device.state.multizone is not None
             else [],
             tile_devices=device.state.matrix.tile_devices
-            if device.state.has_matrix
+            if device.state.matrix is not None
             else [],
             version_major=device.state.version_major,
             version_minor=device.state.version_minor,

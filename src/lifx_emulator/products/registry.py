@@ -52,7 +52,7 @@ class ProductInfo:
     name: str
     vendor: int
     capabilities: int
-    temperature_range: TemperatureRange
+    temperature_range: TemperatureRange | None
     min_ext_mz_firmware: int | None
 
     def has_capability(self, capability: ProductCapability) -> bool:
@@ -1278,10 +1278,8 @@ class ProductRegistry:
                 name = product["name"]
 
                 # Merge features with defaults
-                features: dict[str, Any] = {
-                    **default_features,
-                    **product.get("features", {}),
-                }
+                prod_features = product.get("features", {})
+                features: dict[str, Any] = {**default_features, **prod_features}
 
                 # Build capabilities bitfield
                 capabilities = 0
@@ -1314,7 +1312,7 @@ class ProductRegistry:
                         break
 
                 # Parse temperature range
-                temp_range = TemperatureRange(min=3500, max=3500)
+                temp_range = None
                 if "temperature_range" in features:
                     temp_list = features["temperature_range"]
                     if len(temp_list) >= 2:

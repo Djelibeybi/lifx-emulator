@@ -5,15 +5,15 @@
 # upstream LIFX products.json catalog, such as default zone counts, tile
 # configurations, and other device-specific defaults.
 #
-# These values are used by the emulator to create realistic device configurations
-# when specific parameters are not provided by the user.
+# These values are used by the emulator to create realistic device
+# configurations when specific parameters are not provided by the user.
 #
 # Format:
 # -------
 # products:
 #   <product_id>:
 #     # For multizone devices
-#     default_zone_count: <number>      # Default number of zones (e.g., 16 for Z strip)
+#     default_zone_count: <number>      # Default zones (e.g., 16)
 #     min_zone_count: <number>          # Minimum zones supported
 #     max_zone_count: <number>          # Maximum zones supported
 #
@@ -25,12 +25,12 @@
 #     tile_height: <number>             # Height of each tile in pixels
 #
 #     # Other device-specific defaults
-#     notes: "<string>"                 # Human-readable notes about this product
+#     notes: "<string>"                 # Notes about product
 
 products:
-  # ============================================================================
+  # ========================================
   # Multizone Products (Linear Strips)
-  # ============================================================================
+  # ========================================
 
   31:  # Original LIFX Z strip, 2 meters, 8 zones per meter
     default_zone_count: 16
@@ -44,7 +44,7 @@ products:
     max_zone_count: 16
     notes: LIFX Z with extended multizone firmware support
 
-  38:  # LIFX Beam, 6 individual beams, each with multiple zones
+  38:  # LIFX Beam, 8 individual beams, each with 10 zones and up to 2 corners
     default_zone_count: 80
     min_zone_count: 10
     max_zone_count: 82
@@ -146,9 +146,9 @@ products:
     max_zone_count: 120
     notes: LIFX Permanent Outdoor Intl
 
-  # ============================================================================
+  # ========================================
   # Matrix Products (Tiles, Candles, etc.)
-  # ============================================================================
+  # ========================================
 
   55:  # LIFX Tile, 8x8 pixel matrix, chainable up to 5
     default_tile_count: 5
