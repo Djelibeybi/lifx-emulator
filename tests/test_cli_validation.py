@@ -3,6 +3,7 @@
 import re
 import socket
 import subprocess
+import sys
 from contextlib import contextmanager
 
 import pytest
@@ -79,6 +80,9 @@ class TestCLIValidation:
                 r"--persistent-scenarios requires.*--persistent", output, re.DOTALL
             )
 
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="Subprocess termination unreliable on Windows"
+    )
     def test_persistent_scenarios_with_persistent_works(self):
         """Test that --persistent-scenarios works when --persistent is set."""
         port = find_free_port()

@@ -581,6 +581,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         # Run for a short time then cancel
         task = asyncio.create_task(run())
@@ -609,6 +611,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(verbose=True))
         await asyncio.sleep(0.1)
@@ -632,6 +636,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         mock_storage = MagicMock()
         mock_storage.storage_dir = "/tmp/lifx"
@@ -660,6 +666,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(bind="192.168.1.100", port=12345))
         await asyncio.sleep(0.1)
@@ -685,6 +693,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(color=2, infrared=1, multizone=1, tile=1))
         await asyncio.sleep(0.1)
@@ -706,6 +716,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(product=[27, 32]))
         await asyncio.sleep(0.1)
@@ -762,6 +774,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(
             run(color=2, serial_prefix="cafe00", serial_start=100)
@@ -788,6 +802,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         # Need to disable default color light
         task = asyncio.create_task(
@@ -814,6 +830,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         # Need to disable default color light
         task = asyncio.create_task(
@@ -841,6 +859,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(color_temperature=2))
         await asyncio.sleep(0.1)
@@ -863,6 +883,8 @@ class TestRunCommand:
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
         mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
 
         task = asyncio.create_task(run(hev=1))
         await asyncio.sleep(0.1)
