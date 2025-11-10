@@ -553,6 +553,48 @@ All factory functions now use the specs system to load product-specific defaults
 - Tile dimensions (e.g., 8x8 for Tiles, 5x6 for Candles)
 - Users can override these defaults by passing explicit parameters
 
+### Product Registry
+
+**Product Registry** (`src/lifx_emulator/products/registry.py`):
+- Auto-generated from official LIFX products.json (https://github.com/LIFX/products)
+- Contains 137+ product definitions with capabilities, temperature ranges, and firmware requirements
+- Pre-built `ProductInfo` instances for efficient runtime lookups
+- Capability flags: `COLOR`, `INFRARED`, `MULTIZONE`, `CHAIN`, `MATRIX`, `RELAYS`, `BUTTONS`, `HEV`, `EXTENDED_MULTIZONE`
+- Never edit this file manually - regenerate using the generator
+
+**Product Registry Generator** (`src/lifx_emulator/products/generator.py`):
+- Downloads latest products.json from LIFX GitHub repository
+- Generates optimized Python code with pre-built product definitions
+- Handles extended multizone capability detection:
+  - **Native support**: Products with `extended_multizone: true` in features (no firmware requirement)
+    - Examples: LIFX Z US (PID 117), LIFX Beam US (PID 119), LIFX Neon, LIFX Permanent Outdoor
+  - **Firmware upgrade**: Products with `extended_multizone` in upgrades section (requires minimum firmware)
+    - Examples: LIFX Z (PID 32, requires firmware 2.77+), LIFX Beam (PID 38, requires firmware 2.77+)
+- Updates specs.yml with templates for new multizone/matrix products
+- Run with: `python -m lifx_emulator.products.generator`
+
+**Product Specs** (`src/lifx_emulator/products/specs.yml`):
+- Product-specific configuration not available in upstream products.json
+- Default zone counts, tile configurations, and device-specific defaults
+- Used by factory functions to create realistic device configurations
+- Manually maintained for accurate product specifications
+
+**ProductInfo API:**
+```python
+from lifx_emulator.products.registry import get_product
+
+product = get_product(117)  # LIFX Z US
+product.has_extended_multizone  # True
+product.min_ext_mz_firmware     # None (native support)
+product.supports_extended_multizone()  # True
+
+product = get_product(32)  # LIFX Z (older model)
+product.has_extended_multizone  # True
+product.min_ext_mz_firmware     # 131149 (firmware 2.77)
+product.supports_extended_multizone(131149)  # True (meets requirement)
+product.supports_extended_multizone(131148)  # False (below requirement)
+```
+
 ## Key Implementation Details
 
 ### MultiZone Handling

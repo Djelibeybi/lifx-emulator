@@ -677,7 +677,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=117,
         name="LIFX Z US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -685,7 +687,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=118,
         name="LIFX Z Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -693,7 +697,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=119,
         name="LIFX Beam US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -701,7 +707,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=120,
         name="LIFX Beam Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -853,7 +861,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=141,
         name="LIFX Neon US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -861,7 +871,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=142,
         name="LIFX Neon Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -869,7 +881,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=143,
         name="LIFX String US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -877,7 +891,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=144,
         name="LIFX String Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -885,7 +901,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=161,
         name="LIFX Outdoor Neon US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -893,7 +911,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=162,
         name="LIFX Outdoor Neon Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1101,7 +1121,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=203,
         name="LIFX String US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1109,7 +1131,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=204,
         name="LIFX String Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1117,7 +1141,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=205,
         name="LIFX Indoor Neon US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1125,7 +1151,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=206,
         name="LIFX Indoor Neon Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1133,7 +1161,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=213,
         name="LIFX Permanent Outdoor US",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1141,7 +1171,9 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=214,
         name="LIFX Permanent Outdoor Intl",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
@@ -1300,16 +1332,22 @@ class ProductRegistry:
                 if features.get("hev"):
                     capabilities |= ProductCapability.HEV
 
-                # Check for extended multizone in upgrades
+                # Check for extended multizone capability
                 min_ext_mz_firmware = None
-                for upgrade in product.get("upgrades", []):
-                    if upgrade.get("features", {}).get("extended_multizone"):
-                        capabilities |= ProductCapability.EXTENDED_MULTIZONE
-                        # Parse firmware version (major.minor format)
-                        major = upgrade.get("major", 0)
-                        minor = upgrade.get("minor", 0)
-                        min_ext_mz_firmware = (major << 16) | minor
-                        break
+
+                # First check if it's a native feature (no firmware requirement)
+                if features.get("extended_multizone"):
+                    capabilities |= ProductCapability.EXTENDED_MULTIZONE
+                else:
+                    # Check if it's available as an upgrade (requires minimum firmware)
+                    for upgrade in product.get("upgrades", []):
+                        if upgrade.get("features", {}).get("extended_multizone"):
+                            capabilities |= ProductCapability.EXTENDED_MULTIZONE
+                            # Parse firmware version (major.minor format)
+                            major = upgrade.get("major", 0)
+                            minor = upgrade.get("minor", 0)
+                            min_ext_mz_firmware = (major << 16) | minor
+                            break
 
                 # Parse temperature range
                 temp_range = None
