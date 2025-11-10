@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
@@ -132,6 +132,22 @@ class ScenarioConfigModel(BaseModel):
     send_unhandled: bool = Field(
         False, description="Send unhandled message responses for unknown packet types"
     )
+
+    @field_validator("drop_packets", mode="before")
+    @classmethod
+    def convert_drop_packets_keys(cls, v):
+        """Convert string keys to integers for drop_packets."""
+        if isinstance(v, dict):
+            return {int(k): float(val) for k, val in v.items()}
+        return v
+
+    @field_validator("response_delays", mode="before")
+    @classmethod
+    def convert_response_delays_keys(cls, v):
+        """Convert string keys to integers for response_delays."""
+        if isinstance(v, dict):
+            return {int(k): float(val) for k, val in v.items()}
+        return v
 
 
 class ScenarioResponse(BaseModel):

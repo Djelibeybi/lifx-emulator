@@ -627,3 +627,85 @@ class TestScenarioConfiguration:
         assert data["scenario"]["response_delays"]["101"] == 0.1
         assert data["scenario"]["response_delays"]["102"] == 0.2
         assert data["scenario"]["response_delays"]["116"] == 0.5
+
+    def test_scenario_drop_packets_string_keys_converted(
+        self, api_client, server_with_devices
+    ):
+        """Test that string keys in drop_packets are converted to integers.
+
+        Regression test for bug where JSON string keys like {"101": 1.0}
+        were not being converted to integers, causing packet dropping to fail
+        because the comparison was int vs string.
+        """
+        from lifx_emulator.protocol.header import LifxHeader
+
+        # Set scenario with string keys (as JSON will provide)
+        scenario_config = {
+            "drop_packets": {"101": 1.0},  # String key
+            "response_delays": {},
+            "malformed_packets": [],
+            "invalid_field_values": [],
+            "firmware_version": None,
+            "partial_responses": [],
+            "send_unhandled": False,
+        }
+        response = api_client.put("/api/scenarios/global", json=scenario_config)
+        assert response.status_code == 200
+
+        # Verify the device's scenario manager has integer keys
+        device = server_with_devices.get_device("d073d5000001")
+        resolved_scenario = device._get_resolved_scenario()
+
+        # Keys should be integers, not strings
+        assert 101 in resolved_scenario.drop_packets
+        assert "101" not in resolved_scenario.drop_packets
+        assert resolved_scenario.drop_packets[101] == 1.0
+
+        # Verify packet dropping actually works
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=101,  # GetColor - should be dropped
+            res_required=True,
+        )
+        responses = device.process_packet(header, None)
+        assert len(responses) == 0  # Packet should be dropped
+
+    def test_scenario_response_delays_string_keys_converted(
+        self, api_client, server_with_devices
+    ):
+        """Test that string keys in response_delays are converted to integers.
+
+        Ensures Pydantic validation correctly converts JSON string keys like
+        {"101": 0.5} to integer keys for proper packet type matching.
+        """
+        # Set scenario with string keys (as JSON will provide)
+        scenario_config = {
+            "drop_packets": {},
+            "response_delays": {"101": 0.5, "116": 1.0},  # String keys
+            "malformed_packets": [],
+            "invalid_field_values": [],
+            "firmware_version": None,
+            "partial_responses": [],
+            "send_unhandled": False,
+        }
+        response = api_client.put("/api/scenarios/global", json=scenario_config)
+        assert response.status_code == 200
+
+        # Verify the response contains the expected data
+        data = response.json()
+        assert data["scenario"]["response_delays"] == {"101": 0.5, "116": 1.0}
+
+        # Verify the device's scenario manager has integer keys
+        device = server_with_devices.get_device("d073d5000001")
+        resolved_scenario = device._get_resolved_scenario()
+
+        # Keys should be integers, not strings
+        assert 101 in resolved_scenario.response_delays
+        assert "101" not in resolved_scenario.response_delays
+        assert resolved_scenario.response_delays[101] == 0.5
+
+        assert 116 in resolved_scenario.response_delays
+        assert "116" not in resolved_scenario.response_delays
+        assert resolved_scenario.response_delays[116] == 1.0
