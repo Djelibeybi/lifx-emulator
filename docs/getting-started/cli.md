@@ -60,6 +60,50 @@ Enable verbose logging showing all packet traffic.
 - **Default:** `False`
 - **Example:** `--verbose`
 
+### `--persistent`
+
+Enable persistent storage of device state across sessions. Device state (label, power, color, location, group, etc.) is saved to `~/.lifx-emulator/` and automatically restored on restart.
+
+- **Default:** `False`
+- **Example:** `--persistent`
+
+### `--persistent-scenarios`
+
+Enable persistent storage of scenario configurations across sessions. Scenarios are saved to `~/.lifx-emulator/scenarios.json`. Requires `--persistent` to be enabled.
+
+- **Default:** `False`
+- **Example:** `--persistent --persistent-scenarios`
+
+## API Server Options
+
+### `--api`
+
+Enable HTTP API server for monitoring and device management. Provides a web dashboard and REST API for runtime control.
+
+- **Default:** `False`
+- **Example:** `--api`
+
+### `--api-host <IP>`
+
+IP address for the API server to bind to.
+
+- **Default:** `127.0.0.1` (localhost only)
+- **Example:** `--api-host 0.0.0.0`
+
+### `--api-port <PORT>`
+
+Port for the API server.
+
+- **Default:** `8080`
+- **Example:** `--api-port 9090`
+
+### `--api-activity <BOOL>`
+
+Enable activity logging in the API (last 100 packets). Disable to reduce traffic and save UI space.
+
+- **Default:** `True`
+- **Example:** `--api-activity=false`
+
 ## Product Selection
 
 ### `--product <product ID>`
@@ -129,14 +173,14 @@ Number of zones per multizone device. If not specified, uses product defaults:
 - **Default:** `None` (uses product defaults)
 - **Example:** `--multizone-zones 24`
 
-### `--multizone-extended`
+### `--multizone-extended` / `--no-multizone-extended`
 
-Enable extended multizone support for multizone devices (creates LIFX Beam instead of LIFX Z).
+Enable or disable extended multizone support for multizone devices.
 
-- **Default:** `False`
-- **Example:** `--multizone-extended`
-
-Extended multizone devices support up to 82 zones and are backwards compatible with standard multizone packets.
+- **Default:** `True` (creates LIFX Beam with firmware 3.70)
+- **Enabled:** `--multizone-extended` (default, firmware 3.70)
+- **Disabled:** `--no-multizone-extended` (creates LIFX Z, firmware 2.60)
+- **Example:** `--no-multizone-extended --multizone-zones 16`
 
 ### `--tile <COUNT>`
 
@@ -265,6 +309,36 @@ lifx-emulator --color 10 --multizone 5 --tile 3
 lifx-emulator --bind 127.0.0.1 --verbose
 ```
 
+### With HTTP API
+
+```bash
+# Enable web dashboard and REST API
+lifx-emulator --api --color 2 --multizone 1
+
+# Custom API port
+lifx-emulator --api --api-port 9090
+
+# API without activity logging (reduces traffic)
+lifx-emulator --api --api-activity=false
+```
+
+### Persistent Storage
+
+```bash
+# Enable state persistence
+lifx-emulator --persistent --color 2
+
+# Enable both state and scenario persistence
+lifx-emulator --persistent --persistent-scenarios --api
+```
+
+### Non-Extended Multizone
+
+```bash
+# Create LIFX Z (non-extended, 16 zones max)
+lifx-emulator --multizone 2 --no-multizone-extended --multizone-zones 16
+```
+
 ## List Products Command
 
 ### Basic List
@@ -275,7 +349,7 @@ lifx-emulator list-products
 
 Output:
 ```
-LIFX Product Registry (40 products)
+LIFX Product Registry (137 products)
 
  product ID │ Product Name                              │ Capabilities
 ─────┼───────────────────────────────────────────┼─────────────────────
@@ -317,6 +391,21 @@ For quick testing, use verbose mode to see all traffic:
 lifx-emulator --verbose
 ```
 
+### Visual Monitoring
+
+Use the HTTP API for visual monitoring during development:
+
+```bash
+lifx-emulator --api --verbose
+# Open http://localhost:8080 in your browser
+```
+
+The web dashboard shows:
+- Real-time server statistics
+- List of all devices
+- Recent packet activity (last 100 packets)
+- REST API for runtime device management
+
 ### CI/CD Integration
 
 Use specific ports and localhost binding in CI:
@@ -336,16 +425,44 @@ List products to find the right product ID for your tests:
 lifx-emulator list-products --filter-type multizone
 ```
 
+### State Preservation
+
+Enable persistence to maintain device state across test runs:
+
+```bash
+lifx-emulator --persistent
+# Device labels, colors, power states persist across restarts
+```
+
 ### Realistic Configurations
 
 Use product defaults for realistic device configurations:
 
 ```bash
-# LIFX Beam with default 80 zones
-lifx-emulator --multizone 1 --multizone-extended
+# LIFX Beam with default 80 zones (extended by default)
+lifx-emulator --multizone 1
 
 # LIFX Tile with default 5 tiles
 lifx-emulator --tile 1
+```
+
+### Development Mode
+
+For development with full observability:
+
+```bash
+# Verbose logging, API dashboard, persistent state
+lifx-emulator --verbose --api --persistent --color 2 --multizone 1
+```
+
+### Testing Mode
+
+For testing network issues and edge cases:
+
+```bash
+# API enabled for runtime scenario configuration
+lifx-emulator --api --color 3
+# Then use the REST API to configure packet loss, delays, etc.
 ```
 
 ## Next Steps

@@ -434,4 +434,4 @@ async def lifx_server():
 
 - [Device API](device.md) - EmulatedLifxDevice documentation
 - [Factory Functions](factories.md) - Device creation
-- [Integration Testing Tutorial](../tutorials/04-integration.md) - Integration test examples
+- [Integration Testing Tutorial](../tutorials/03-integration.md) - Integration test examples

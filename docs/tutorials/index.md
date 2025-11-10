@@ -1,16 +1,16 @@
 # Tutorials Overview
 
-This section contains practical tutorials and examples for using the LIFX Emulator, organized by difficulty level to provide a clear learning path.
+Step-by-step tutorials to master the LIFX Emulator, organized from beginner to advanced.
 
 ## Learning Path
 
 Follow these tutorials in order for the best learning experience:
 
 1. **🟢 Beginner** - [First Device](01-first-device.md) - Your first emulated LIFX device (⏱️ 10-15 minutes)
-2. **🟢 Beginner** - [Basic Usage](02-basic.md) - Single and multiple device examples (⏱️ 15-30 minutes)
-3. **🟡 Intermediate** - [Integration Testing](04-integration.md) - Using the emulator in test suites (⏱️ 30-45 minutes)
-4. **🔴 Advanced** - [Advanced Scenarios](03-advanced.md) - Error injection and complex testing scenarios (⏱️ 45-60 minutes)
-5. **🔴 Advanced** - [CI/CD Integration](05-cicd.md) - Deploying in CI/CD pipelines and Docker (⏱️ 30-45 minutes)
+2. **🟢 Beginner** - [Basic Usage](02-basic.md) - Multiple devices and basic operations (⏱️ 15-30 minutes)
+3. **🟡 Intermediate** - [Integration Testing](03-integration.md) - Using the emulator in test suites (⏱️ 30-45 minutes)
+4. **🔴 Advanced** - [Advanced Scenarios](04-advanced-scenarios.md) - Error injection and complex testing (⏱️ 45-60 minutes)
+5. **🔴 Advanced** - [CI/CD Integration](05-cicd.md) - Automated testing pipelines (⏱️ 30-45 minutes)
 
 ## Tutorial Categories
 

@@ -777,7 +777,7 @@ def configure_logging():
 - **[Best Practices](best-practices.md)** - Testing best practices
 - **[Testing Scenarios](testing-scenarios.md)** - Error injection
 - **[CI/CD Tutorial](../tutorials/05-cicd.md)** - Detailed CI/CD setup
-- **[Integration Examples](../tutorials/04-integration.md)** - More examples
+- **[Integration Examples](../tutorials/03-integration.md)** - More examples
 
 ## See Also
 

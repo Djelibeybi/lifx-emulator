@@ -570,7 +570,7 @@ if __name__ == "__main__":
 
 ## Next Steps
 
-- **[Integration Examples](04-integration.md)** - Comprehensive pytest patterns and test fixtures
+- **[Integration Examples](03-integration.md)** - Comprehensive pytest patterns and test fixtures
 - **[Basic Examples](02-basic.md)** - Review basic usage patterns
 - **[Testing Scenarios Guide](../guide/testing-scenarios.md)** - Detailed testing scenarios documentation
 - **[API Reference: Device](../api/device.md)** - Full device API reference

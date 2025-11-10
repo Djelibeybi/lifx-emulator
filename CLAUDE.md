@@ -106,7 +106,7 @@ lifx-emulator --help
     - `brightness only`: Fixed color temperature, brightness control only
     - `switch`: Relay-based switches (not lights)
     - `multizone`: Linear light strips
-    - `extended-multizone`: Extended multizone (>16 zones)
+    - `extended-multizone`: Extended multizone packet support
     - `matrix`: 2D tile/candle arrangements
     - `infrared`: Night vision capability
     - `HEV`: Germicidal UV-C capability
@@ -536,9 +536,10 @@ delay = manager.get_response_delay(502, merged)  # 1.0s
 - `create_infrared_light()`: Night vision capable (product=29)
 - `create_hev_light()`: LIFX Clean with HEV (product=90)
 - `create_multizone_light(zone_count=None, extended_multizone=False)`: Multizone strip/beam
-  - `extended_multizone=False`: LIFX Z strip (product=32, up to 16 zones)
-  - `extended_multizone=True`: LIFX Beam (product=38, up to 82 zones)
-  - Extended multizone devices are backwards compatible with non-extended packets
+  - `extended_multizone=False`: LIFX Z strip (product=32)
+  - `extended_multizone=True`: LIFX Beam (product=38)
+  - Extended multizone devices are backwards compatible and support GetMultiZone and StateMultiZone packets
+  - Multizone devices with more than 82 zones will return multiple StateExtendedMultiZone packets
   - Zone count uses product defaults from specs if not specified
 - `create_tile_device(tile_count=None)`: Tile chain (product=55)
   - Tile count and dimensions use product defaults from specs if not specified
@@ -598,9 +599,12 @@ product.supports_extended_multizone(131148)  # False (below requirement)
 ## Key Implementation Details
 
 ### MultiZone Handling
-- Standard multizone: Returns multiple `StateMultiZone` packets (type 506), each containing up to 8 zones
-- Extended multizone: Returns one or more `ExtendedStateMultiZone` packet (type 512) with with up to 82 zones
+- Standard multizone: Returns multiple `StateMultiZone` packets (type 506), each containing 8 zones
+- Extended multizone: Returns one or more `ExtendedStateMultiZone` packet (type 512), each containing 82 zones
 - Zone colors stored in `DeviceState.zone_colors` list indexed by zone number
+- The minimum number of zones for a multizone device is 8
+- There is no maximum number of zones for a multizone device
+- There is no correlation between number of zones and the extended multizone capability
 
 ### Tile Handling
 - Matrix devices support up to 5 tiles in a chain, but most only have 1.

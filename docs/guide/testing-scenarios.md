@@ -661,7 +661,7 @@ device.scenarios = SCENARIOS['flaky_network']
 
 ## Next Steps
 
-- **[Advanced Examples](../tutorials/03-advanced.md)** - See scenarios in action
+- **[Advanced Examples](../tutorials/04-advanced-scenarios.md)** - See scenarios in action
 - **[Integration Testing](integration-testing.md)** - Use scenarios in test suites
 - **[Best Practices](best-practices.md)** - Testing strategies
 - **[API Reference: Device](../api/device.md)** - Full device API documentation
