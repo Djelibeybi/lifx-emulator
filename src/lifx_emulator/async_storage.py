@@ -22,7 +22,7 @@ DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
 class AsyncDeviceStorage:
     """High-performance async storage with smart debouncing.
 
-    Implements AsyncStorageProtocol for non-blocking asynchronous I/O.
+    Non-blocking asynchronous I/O for device state persistence.
     Recommended for production use.
 
     Features:

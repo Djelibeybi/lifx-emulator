@@ -453,9 +453,7 @@ class DeviceState:
 
 
 class EmulatedLifxDevice:
-    """Emulated LIFX device with configurable scenarios"""
-
-    """Simulated LIFX device with configurable scenarios"""
+    """Emulated LIFX device with configurable scenarios and state management."""
 
     def __init__(
         self,
