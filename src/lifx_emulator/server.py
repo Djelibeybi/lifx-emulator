@@ -117,6 +117,12 @@ class EmulatedLifxServer:
         # Scenario manager (shared across all devices for runtime updates)
         self.scenario_manager = scenario_manager or HierarchicalScenarioManager()
 
+        # Share scenario manager with all initial devices
+        for device in devices:
+            if isinstance(device.scenario_manager, HierarchicalScenarioManager):
+                device.scenario_manager = self.scenario_manager
+                device.invalidate_scenario_cache()
+
         # Activity observer - defaults to ActivityLogger if track_activity=True
         if activity_observer is not None:
             self.activity_observer = activity_observer

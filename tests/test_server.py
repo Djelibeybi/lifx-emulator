@@ -195,8 +195,10 @@ class TestResponseDelays:
             color_device.state.serial,
             ScenarioConfig(response_delays={107: 0.1}),  # StateColor response
         )
-        color_device.scenario_manager = scenario_manager
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56700)
+        # Pass scenario_manager to server so it gets shared with all devices
+        server = EmulatedLifxServer(
+            [color_device], "127.0.0.1", 56700, scenario_manager=scenario_manager
+        )
 
         # StateColor response (107) has 100ms delay configured
         from lifx_emulator.constants import HEADER_SIZE
