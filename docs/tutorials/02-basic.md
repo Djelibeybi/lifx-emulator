@@ -333,8 +333,8 @@ async def test_device_responds(emulator):
 
 ## Next Steps
 
-- **[Advanced Examples](03-advanced.md)** - Complex scenarios with multizone, tiles, and error injection
-- **[Integration Examples](04-integration.md)** - Comprehensive pytest patterns and test fixtures
+- **[Integration Examples](03-integration.md)** - Comprehensive pytest patterns and test fixtures
+- **[Advanced Examples](04-advanced-scenarios.md)** - Complex scenarios with multizone, tiles, and error injection
 - **[API Reference: Device](../api/device.md)** - Full EmulatedLifxDevice API documentation
 - **[API Reference: Server](../api/server.md)** - Full EmulatedLifxServer API documentation
 

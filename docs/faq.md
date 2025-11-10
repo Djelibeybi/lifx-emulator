@@ -535,7 +535,7 @@ See also: [Troubleshooting Guide](reference/troubleshooting.md)
 
 - 📖 [Getting Started](getting-started/quickstart.md)
 - 📖 [Tutorials](tutorials/index.md)
-- 📖 [User Guide](guide/overview.md)
+- 📖 [User Guide](guide/index.md)
 - 📖 [API Reference](api/index.md)
 - 📖 [Troubleshooting](reference/troubleshooting.md)
 - 📖 [Glossary](reference/glossary.md)

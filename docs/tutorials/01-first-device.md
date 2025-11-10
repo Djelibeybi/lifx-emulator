@@ -226,8 +226,8 @@ python --version  # Should show 3.11 or higher
 Now that you have a basic device running, you can:
 
 1. **[Basic Usage Tutorial](02-basic.md)** - Learn more patterns (multiple devices, state queries, etc.)
-2. **[Advanced Scenarios](03-advanced.md)** - Explore multizone devices, tiles, and error injection
-3. **[Integration Testing](04-integration.md)** - Use the emulator in your pytest test suite
+2. **[Integration Testing](03-integration.md)** - Use the emulator in your pytest test suite
+3. **[Advanced Scenarios](04-advanced-scenarios.md)** - Explore multizone devices, tiles, and error injection
 
 ### Quick Wins
 

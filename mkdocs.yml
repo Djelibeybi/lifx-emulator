@@ -147,20 +147,21 @@ nav:
 
 - Home: index.md
 - Getting Started:
+  - getting-started/index.md
   - Installation: getting-started/installation.md
   - Quick Start: getting-started/quickstart.md
   - CLI Usage: getting-started/cli.md
 
 - Tutorials:
-  - Overview: tutorials/index.md
+  - tutorials/index.md
   - 01 - First Device: tutorials/01-first-device.md
   - 02 - Basic Usage: tutorials/02-basic.md
-  - 03 - Advanced Scenarios: tutorials/03-advanced.md
-  - 04 - Integration Testing: tutorials/04-integration.md
+  - 03 - Integration Testing: tutorials/03-integration.md
+  - 04 - Advanced Scenarios: tutorials/04-advanced-scenarios.md
   - 05 - CI/CD Integration: tutorials/05-cicd.md
 
 - User Guide:
-  - Overview: guide/overview.md
+  - guide/index.md
   - Device Types: guide/device-types.md
   - Products & Specs: guide/products-and-specs.md
   - Web Interface: guide/web-interface.md
@@ -169,7 +170,7 @@ nav:
   - Advanced Testing: guide/integration-testing.md
 
 - API Reference:
-  - Overview: api/index.md
+  - api/index.md
   - Factory Functions: api/factories.md
   - Device: api/device.md
   - Server: api/server.md
@@ -178,12 +179,14 @@ nav:
   - Product Registry: api/products.md
 
 - Advanced Topics:
-  - Device Management API: advanced/device-management-api.md
-  - Scenario Management API: advanced/scenario-api.md
+  - advanced/index.md
   - Persistent Storage: advanced/storage.md
+  - Device Management API: advanced/device-management-api.md
   - Custom Scenarios: advanced/scenarios.md
+  - Scenario Management API: advanced/scenario-api.md
 
 - Architecture:
+  - architecture/index.md
   - Overview: architecture/overview.md
   - Packet Flow: architecture/packet-flow.md
   - Protocol Layer: architecture/protocol.md

@@ -1,56 +1,122 @@
-# API Reference Overview
+# API Reference
 
-The LIFX Emulator provides a simple Python API for creating virtual LIFX devices in your tests.
+Complete Python API documentation for the LIFX Emulator.
+
+## Overview
+
+The LIFX Emulator API is designed for simplicity and ease of use. Most users only need the factory functions and server class.
+
+## Reading This Guide
+
+This reference is organized from most common to advanced usage:
+
+1. **[Factory Functions](factories.md)** ⭐ Start here - Creating devices (most common)
+2. **[Server](server.md)** - Server setup and configuration
+3. **[Device](device.md)** - Device API and state management
+4. **[Products](products.md)** - Product registry and specs
+5. **[Protocol](protocol.md)** - Low-level protocol types (advanced)
+6. **[Storage](storage.md)** - Persistent state (advanced)
+
+## Quick Start
+
+### Installation
+
+**Recommended:** Using [uv](https://astral.sh/uv):
+
+```bash
+uv add lifx-emulator
+```
+
+**Alternative:** Using pip:
+
+```bash
+pip install lifx-emulator
+```
+
+### Basic Usage
+
+```python
+import asyncio
+from lifx_emulator import EmulatedLifxServer, create_color_light
+
+async def main():
+    # Create a device
+    device = create_color_light("d073d5000001")
+
+    # Start server
+    async with EmulatedLifxServer([device], "127.0.0.1", 56700) as server:
+        # Server is running, test your LIFX library here
+        await asyncio.Event().wait()
+
+asyncio.run(main())
+```
 
 ## Core Components
 
-### Server
+### 1. Factory Functions (Most Common)
 
-The [`EmulatedLifxServer`](server.md) manages the UDP server and routes packets to devices.
+Use these to create devices easily:
+
+```python
+from lifx_emulator import (
+    create_color_light,           # RGB color lights
+    create_color_temperature_light, # White temperature lights
+    create_infrared_light,         # IR-capable lights
+    create_hev_light,             # HEV cleaning lights
+    create_multizone_light,       # Linear strips
+    create_tile_device,           # Matrix tiles
+)
+```
+
+👉 **[Full Factory Documentation](factories.md)**
+
+### 2. Server
+
+The server manages UDP communication and device routing:
 
 ```python
 from lifx_emulator import EmulatedLifxServer
 
-server = EmulatedLifxServer(devices, bind_address, port)
+# Create server
+server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+
+# Use as context manager (recommended)
+async with server:
+    # Server running
+    pass
+
+# Or manual lifecycle
 await server.start()
+await server.stop()
 ```
 
-### Device
+👉 **[Full Server Documentation](server.md)**
 
-The [`EmulatedLifxDevice`](device.md) represents a single virtual LIFX device with stateful behavior.
+### 3. Device (Advanced)
+
+For custom device creation:
 
 ```python
 from lifx_emulator.device import EmulatedLifxDevice, DeviceState
 
-state = DeviceState(serial="d073d5000001", label="Test Light")
+state = DeviceState(serial="d073d5000001", label="Custom Device")
 device = EmulatedLifxDevice(state)
 ```
 
-### Factory Functions
+👉 **[Full Device Documentation](device.md)**
 
-[Factory functions](factories.md) provide convenient device creation:
+### 4. Product Registry
 
-```python
-from lifx_emulator import (
-    create_color_light,
-    create_color_temperature_light,
-    create_infrared_light,
-    create_hev_light,
-    create_multizone_light,
-    create_tile_device,
-)
-```
-
-### Product Registry
-
-The [product registry](products.md) contains official LIFX product definitions:
+Access official LIFX product definitions:
 
 ```python
 from lifx_emulator.products.registry import get_product, get_registry
 
 product = get_product(27)  # LIFX A19
-registry = get_registry()  # Full registry
+all_products = get_registry()
 ```
+
+👉 **[Full Product Documentation](products.md)**
 
 ## Quick Reference
 

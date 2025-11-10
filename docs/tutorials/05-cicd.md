@@ -1,6 +1,6 @@
 # CI/CD Integration
 
-**Difficulty:** 🔴 Advanced | **Time:** ⏱️ 30 minutes | **Prerequisites:** [Integration Testing Tutorial](04-integration.md)
+**Difficulty:** 🔴 Advanced | **Time:** ⏱️ 30 minutes | **Prerequisites:** [Integration Testing Tutorial](03-integration.md)
 
 This tutorial shows how to integrate the LIFX Emulator into your CI/CD pipelines using GitHub Actions, GitLab CI, and Docker.
 
@@ -684,8 +684,8 @@ if sys.platform == 'win32':
 
 ## Next Steps
 
-- **[Integration Testing](04-integration.md)** - Review pytest patterns
-- **[Advanced Examples](03-advanced.md)** - Learn error injection for CI tests
+- **[Integration Testing](03-integration.md)** - Review pytest patterns
+- **[Advanced Examples](04-advanced-scenarios.md)** - Learn error injection for CI tests
 - **[Best Practices](../guide/best-practices.md)** - Testing best practices
 
 ## See Also

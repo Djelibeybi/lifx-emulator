@@ -685,7 +685,7 @@ Before writing a new test, ask:
 
 - **[Testing Scenarios](testing-scenarios.md)** - Error injection patterns
 - **[Integration Testing](integration-testing.md)** - pytest integration
-- **[Advanced Examples](../tutorials/03-advanced.md)** - Complex scenarios
+- **[Advanced Examples](../tutorials/04-advanced-scenarios.md)** - Complex scenarios
 - **[CI/CD Integration](../tutorials/05-cicd.md)** - Running in CI
 
 ## See Also

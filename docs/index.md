@@ -1,18 +1,31 @@
 # LIFX Emulator
 
-A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
+**Test your LIFX LAN protocol libraries without physical devices.**
 
-## Overview
+## What is LIFX Emulator?
 
-LIFX Emulator implements the complete binary UDP protocol documented at [lan.developer.lifx.com](https://lan.developer.lifx.com), providing virtual LIFX devices for testing without physical hardware.
+LIFX Emulator is a Python library and CLI tool that creates virtual LIFX devices for testing. It implements the complete binary UDP protocol from [lan.developer.lifx.com](https://lan.developer.lifx.com), allowing you to:
+
+- Test LIFX libraries without buying hardware
+- Run automated tests in CI/CD pipelines
+- Simulate error conditions and edge cases
+- Develop protocol features safely
+
+## Why Use an Emulator?
+
+- **💰 Cost-effective**: No need to purchase multiple physical LIFX devices
+- **⚡ Fast**: Instant device creation, no network delays
+- **🎯 Reliable**: Consistent behavior for repeatable tests
+- **🧪 Comprehensive**: Test scenarios impossible with real devices (packet loss, malformed data, etc.)
+- **🔄 Flexible**: Create/destroy devices on demand
 
 ## Key Features
 
-- **Complete Protocol Support**: Handles all packet types from the LIFX LAN protocol
-- **Multiple Device Types**: Emulate color lights, infrared, HEV, multizone strips, and matrix tiles
-- **Product Registry**: Built from official LIFX products.json with 40+ product definitions
-- **Testing Scenarios**: Built-in support for packet loss, delays, malformed responses, and more
-- **Easy Integration**: Simple Python API and CLI for both standalone and embedded use
+- **Complete Protocol Support**: All packet types from the LIFX LAN protocol
+- **Multiple Device Types**: Color lights, infrared, HEV, multizone strips, and matrix tiles
+- **Product Registry**: 137 official LIFX product definitions
+- **Testing Scenarios**: Configurable packet loss, delays, malformed responses, and more
+- **Easy Integration**: Simple Python API and CLI tool
 
 ## Quick Example
 
@@ -68,13 +81,86 @@ LIFX Emulator implements the complete binary UDP protocol documented at [lan.dev
 - **Error Simulation**: Test error handling with configurable scenarios
 - **Performance Testing**: Test concurrent device handling
 
-## Next Steps
+## Installation
 
-- [Installation Guide](getting-started/installation.md) - Get started with installation
-- [Quick Start](getting-started/quickstart.md) - Create your first emulated device
-- [CLI Usage](getting-started/cli.md) - Learn CLI commands and options
-- [Device Types](guide/device-types.md) - Explore all supported devices
-- [API Reference](api/server.md) - Detailed API documentation
+**Recommended:** Using [uv](https://astral.sh/uv) (automatically manages Python for you):
+
+```bash
+uv tool install lifx-emulator
+```
+
+**Alternative:** Using pip (requires Python 3.11+):
+
+```bash
+pip install lifx-emulator
+```
+
+## Getting Started
+
+New to LIFX Emulator? Start here:
+
+1. **[Installation](getting-started/installation.md)** - Install the package
+2. **[Quick Start](getting-started/quickstart.md)** - Create your first device in 5 minutes
+3. **[CLI Usage](getting-started/cli.md)** - Command-line reference
+
+## Learn More
+
+### 📖 User Guides
+
+Understand how to use the emulator effectively:
+
+- **[Overview](guide/index.md)** - High-level concepts and use cases
+- **[Device Types](guide/device-types.md)** - All supported LIFX devices
+- **[Web Interface](guide/web-interface.md)** - Visual monitoring and management
+- **[Integration Testing](guide/integration-testing.md)** - Using in your test suites
+- **[Testing Scenarios](guide/testing-scenarios.md)** - Simulate errors and edge cases
+- **[Best Practices](guide/best-practices.md)** - Tips for effective testing
+
+### 🎓 Tutorials
+
+Step-by-step tutorials from beginner to advanced:
+
+- **[First Device](tutorials/01-first-device.md)** - Your first emulated device
+- **[Basic Usage](tutorials/02-basic.md)** - Multiple devices and basic testing
+- **[Integration Testing](tutorials/03-integration.md)** - pytest integration
+- **[Advanced Scenarios](tutorials/04-advanced-scenarios.md)** - Error injection and complex tests
+- **[CI/CD Integration](tutorials/05-cicd.md)** - Automated testing pipelines
+
+### 🏗️ Architecture
+
+Understanding how it works:
+
+- **[Architecture Overview](architecture/overview.md)** - High-level system design
+- **[Packet Flow](architecture/packet-flow.md)** - How packets are processed
+- **[Device State](architecture/device-state.md)** - State management
+- **[Protocol Details](architecture/protocol.md)** - Binary protocol implementation
+
+### 📚 API Reference
+
+Detailed API documentation:
+
+- **[Factories](api/factories.md)** - Creating devices
+- **[Server](api/server.md)** - Server configuration
+- **[Device](api/device.md)** - Device API
+- **[Products](api/products.md)** - Product registry
+- **[Protocol](api/protocol.md)** - Protocol packets
+- **[Storage](api/storage.md)** - Persistent state
+
+### 🚀 Advanced Features
+
+Power-user features:
+
+- **[Persistent Storage](advanced/storage.md)** - Save device state across restarts
+- **[Device Management API](advanced/device-management-api.md)** - Runtime device management
+- **[Scenarios](advanced/scenarios.md)** - Comprehensive testing scenarios
+- **[Scenario API](advanced/scenario-api.md)** - Scenario REST API reference
+
+### 📋 Reference
+
+- **[Glossary](reference/glossary.md)** - Terms and definitions
+- **[Troubleshooting](reference/troubleshooting.md)** - Common issues and solutions
+- **[FAQ](faq.md)** - Frequently asked questions
+- **[Changelog](changelog.md)** - Version history
 
 ## Project Links
 

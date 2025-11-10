@@ -630,7 +630,7 @@ async def test_state_modification(test_devices):
 ## Next Steps
 
 - **[Basic Examples](02-basic.md)** - Review basic usage patterns
-- **[Advanced Examples](03-advanced.md)** - Complex scenarios and error injection
+- **[Advanced Examples](04-advanced-scenarios.md)** - Complex scenarios and error injection
 - **[Best Practices Guide](../guide/best-practices.md)** - Testing best practices
 - **[pytest Documentation](https://docs.pytest.org/)** - Official pytest docs
 
