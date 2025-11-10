@@ -12,28 +12,28 @@
         <meta name="author" content="Avi Miller <me@dje.li>">
       
       
-        <link rel="canonical" href="https://djelibeybi.github.io/lifx-emulator/architecture/protocol/">
+        <link rel="canonical" href="https://djelibeybi.github.io/lifx-emulator/advanced/">
       
       
-        <link rel="prev" href="../packet-flow/">
+        <link rel="prev" href="../api/products/">
       
       
-        <link rel="next" href="../device-state/">
+        <link rel="next" href="storage/">
       
       
-      <link rel="icon" href="../../assets/favicon.png">
+      <link rel="icon" href="../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
     
     
       
-        <title>Protocol Layer - LIFX Emulator</title>
+        <title>Advanced Features - LIFX Emulator</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -52,11 +52,11 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#protocol" class="md-skip">
+        <a href="#advanced-features" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="LIFX Emulator" class="md-header__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+    <a href=".." title="LIFX Emulator" class="md-header__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Protocol Layer
+              Advanced Features
             
           </span>
         </div>
@@ -234,7 +234,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -255,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../getting-started/" class="md-tabs__link">
+        <a href="../getting-started/" class="md-tabs__link">
           
   
   
@@ -277,7 +277,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../tutorials/" class="md-tabs__link">
+        <a href="../tutorials/" class="md-tabs__link">
           
   
   
@@ -299,7 +299,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/" class="md-tabs__link">
+        <a href="../guide/" class="md-tabs__link">
           
   
   
@@ -321,7 +321,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../api/" class="md-tabs__link">
+        <a href="../api/" class="md-tabs__link">
           
   
   
@@ -339,11 +339,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../advanced/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -361,13 +363,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
           
   
   
@@ -387,7 +387,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../faq/" class="md-tabs__link">
+      <a href="../faq/" class="md-tabs__link">
         
   
   
@@ -408,7 +408,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/troubleshooting/" class="md-tabs__link">
+        <a href="../reference/troubleshooting/" class="md-tabs__link">
           
   
   
@@ -428,7 +428,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../changelog/" class="md-tabs__link">
+      <a href="../changelog/" class="md-tabs__link">
         
   
   
@@ -471,7 +471,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="LIFX Emulator" class="md-nav__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+    <a href=".." title="LIFX Emulator" class="md-nav__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
@@ -501,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -554,7 +554,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../getting-started/" class="md-nav__link ">
+            <a href="../getting-started/" class="md-nav__link ">
               
   
   
@@ -589,7 +589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -612,7 +612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/quickstart/" class="md-nav__link">
+      <a href="../getting-started/quickstart/" class="md-nav__link">
         
   
   
@@ -635,7 +635,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/cli/" class="md-nav__link">
+      <a href="../getting-started/cli/" class="md-nav__link">
         
   
   
@@ -700,7 +700,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tutorials/" class="md-nav__link ">
+            <a href="../tutorials/" class="md-nav__link ">
               
   
   
@@ -735,7 +735,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/01-first-device/" class="md-nav__link">
+      <a href="../tutorials/01-first-device/" class="md-nav__link">
         
   
   
@@ -758,7 +758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/02-basic/" class="md-nav__link">
+      <a href="../tutorials/02-basic/" class="md-nav__link">
         
   
   
@@ -781,7 +781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/03-integration/" class="md-nav__link">
+      <a href="../tutorials/03-integration/" class="md-nav__link">
         
   
   
@@ -804,7 +804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/04-advanced-scenarios/" class="md-nav__link">
+      <a href="../tutorials/04-advanced-scenarios/" class="md-nav__link">
         
   
   
@@ -827,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/05-cicd/" class="md-nav__link">
+      <a href="../tutorials/05-cicd/" class="md-nav__link">
         
   
   
@@ -894,7 +894,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../guide/" class="md-nav__link ">
+            <a href="../guide/" class="md-nav__link ">
               
   
   
@@ -929,7 +929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/device-types/" class="md-nav__link">
+      <a href="../guide/device-types/" class="md-nav__link">
         
   
   
@@ -952,7 +952,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/products-and-specs/" class="md-nav__link">
+      <a href="../guide/products-and-specs/" class="md-nav__link">
         
   
   
@@ -975,7 +975,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/web-interface/" class="md-nav__link">
+      <a href="../guide/web-interface/" class="md-nav__link">
         
   
   
@@ -998,7 +998,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/testing-scenarios/" class="md-nav__link">
+      <a href="../guide/testing-scenarios/" class="md-nav__link">
         
   
   
@@ -1021,7 +1021,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/best-practices/" class="md-nav__link">
+      <a href="../guide/best-practices/" class="md-nav__link">
         
   
   
@@ -1044,7 +1044,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/integration-testing/" class="md-nav__link">
+      <a href="../guide/integration-testing/" class="md-nav__link">
         
   
   
@@ -1111,7 +1111,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../api/" class="md-nav__link ">
+            <a href="../api/" class="md-nav__link ">
               
   
   
@@ -1146,7 +1146,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/factories/" class="md-nav__link">
+      <a href="../api/factories/" class="md-nav__link">
         
   
   
@@ -1169,7 +1169,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/device/" class="md-nav__link">
+      <a href="../api/device/" class="md-nav__link">
         
   
   
@@ -1192,7 +1192,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/server/" class="md-nav__link">
+      <a href="../api/server/" class="md-nav__link">
         
   
   
@@ -1215,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/protocol/" class="md-nav__link">
+      <a href="../api/protocol/" class="md-nav__link">
         
   
   
@@ -1238,7 +1238,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/storage/" class="md-nav__link">
+      <a href="../api/storage/" class="md-nav__link">
         
   
   
@@ -1261,179 +1261,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/products/" class="md-nav__link">
+      <a href="../api/products/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     Product Registry
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../../advanced/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    Advanced Topics
-    
-  </span>
-  
-
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            Advanced Topics
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../advanced/storage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Persistent Storage
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../advanced/device-management-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Device Management API
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../advanced/scenarios/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Custom Scenarios
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../advanced/scenario-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Scenario Management API
     
   </span>
   
@@ -1490,11 +1323,178 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    Advanced Topics
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced Topics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Persistent Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="device-management-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device Management API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scenario-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../architecture/" class="md-nav__link ">
               
   
   
@@ -1507,13 +1507,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             Architecture
@@ -1529,7 +1529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+      <a href="../architecture/overview/" class="md-nav__link">
         
   
   
@@ -1552,7 +1552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../packet-flow/" class="md-nav__link">
+      <a href="../architecture/packet-flow/" class="md-nav__link">
         
   
   
@@ -1572,19 +1572,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../architecture/protocol/" class="md-nav__link">
         
   
   
@@ -1595,7 +1586,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1608,7 +1598,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../device-state/" class="md-nav__link">
+      <a href="../architecture/device-state/" class="md-nav__link">
         
   
   
@@ -1638,7 +1628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../faq/" class="md-nav__link">
         
   
   
@@ -1711,7 +1701,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/troubleshooting/" class="md-nav__link">
+      <a href="../reference/troubleshooting/" class="md-nav__link">
         
   
   
@@ -1734,7 +1724,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary/" class="md-nav__link">
+      <a href="../reference/glossary/" class="md-nav__link">
         
   
   
@@ -1764,7 +1754,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/" class="md-nav__link">
+      <a href="../changelog/" class="md-nav__link">
         
   
   
@@ -1798,8 +1788,158 @@
   
 
 
-<h1 id="protocol">Protocol<a class="headerlink" href="#protocol" title="Permanent link">&para;</a></h1>
-<p>Coming soon.</p>
+<h1 id="advanced-features">Advanced Features<a class="headerlink" href="#advanced-features" title="Permanent link">&para;</a></h1>
+<p>Power-user features for sophisticated testing scenarios.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This section covers advanced emulator features for complex testing needs. These features are optional but powerful for:</p>
+<ul>
+<li>Maintaining device state across test runs</li>
+<li>Runtime device management</li>
+<li>Comprehensive error simulation</li>
+<li>Complex multi-scenario testing</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Before exploring advanced features, you should:</p>
+<ul>
+<li>Be comfortable with basic emulator usage</li>
+<li>Have completed at least the first 2-3 tutorials</li>
+<li>Understand your testing requirements</li>
+<li>Be familiar with REST APIs (for API features)</li>
+</ul>
+<h2 id="learning-path">Learning Path<a class="headerlink" href="#learning-path" title="Permanent link">&para;</a></h2>
+<p>Read these guides in order from simple to complex:</p>
+<ol>
+<li><strong><a href="storage/">Persistent Storage</a></strong> - Save device state across restarts</li>
+<li><strong><a href="device-management-api/">Device Management API</a></strong> - Add/remove devices at runtime</li>
+<li><strong><a href="scenarios/">Scenarios</a></strong> - Comprehensive error simulation concepts</li>
+<li><strong><a href="scenario-api/">Scenario API</a></strong> - REST API for managing test scenarios</li>
+</ol>
+<h2 id="quick-concepts">Quick Concepts<a class="headerlink" href="#quick-concepts" title="Permanent link">&para;</a></h2>
+<h3 id="persistent-storage">Persistent Storage<a class="headerlink" href="#persistent-storage" title="Permanent link">&para;</a></h3>
+<p>Save device state (colors, labels, power) across emulator restarts:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>lifx-emulator<span class="w"> </span>--persistent
+</span></code></pre></div>
+<p>Device states are saved to <code>~/.lifx-emulator/</code> and automatically restored.</p>
+<p>👉 <strong><a href="storage/">Storage Guide</a></strong></p>
+<h3 id="device-management-api">Device Management API<a class="headerlink" href="#device-management-api" title="Permanent link">&para;</a></h3>
+<p>Enable the HTTP API to manage devices at runtime:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>lifx-emulator<span class="w"> </span>--api
+</span></code></pre></div>
+<p>Access the web dashboard at <code>http://localhost:8080</code> or use the REST API to add/remove devices dynamically.</p>
+<p>👉 <strong><a href="device-management-api/">Device Management Guide</a></strong></p>
+<h3 id="testing-scenarios">Testing Scenarios<a class="headerlink" href="#testing-scenarios" title="Permanent link">&para;</a></h3>
+<p>Configure error conditions for comprehensive testing:</p>
+<ul>
+<li>Packet loss (test retries)</li>
+<li>Response delays (test timeouts)</li>
+<li>Malformed data (test error handling)</li>
+<li>Firmware version overrides</li>
+</ul>
+<p>👉 <strong><a href="scenarios/">Scenarios Guide</a></strong></p>
+<h3 id="scenario-api">Scenario API<a class="headerlink" href="#scenario-api" title="Permanent link">&para;</a></h3>
+<p>Manage scenarios via REST API with hierarchical scoping:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Drop 100% of GetColor packets for all color devices</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/types/color<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span>
+</span></code></pre></div>
+<p>Supports device-specific, type-based, location-based, group-based, and global scenarios.</p>
+<p>👉 <strong><a href="scenario-api/">Scenario API Reference</a></strong></p>
+<h2 id="feature-comparison">Feature Comparison<a class="headerlink" href="#feature-comparison" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Basic</th>
+<th>Advanced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create devices</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Device discovery</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Control devices</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>State persistence</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Runtime management</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Error simulation</td>
+<td>Basic</td>
+<td>Comprehensive</td>
+</tr>
+<tr>
+<td>Web UI</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>REST API</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-use-advanced-features">When to Use Advanced Features<a class="headerlink" href="#when-to-use-advanced-features" title="Permanent link">&para;</a></h2>
+<h3 id="use-persistent-storage-when">Use Persistent Storage When:<a class="headerlink" href="#use-persistent-storage-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Running long test suites where state matters</li>
+<li>Testing state restoration after failures</li>
+<li>Developing iteratively and want to preserve state</li>
+<li>Simulating real-world device persistence</li>
+</ul>
+<h3 id="use-device-management-api-when">Use Device Management API When:<a class="headerlink" href="#use-device-management-api-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tests need dynamic device creation/removal</li>
+<li>Running multi-stage test scenarios</li>
+<li>Need visual monitoring during development</li>
+<li>Integrating with external test orchestration</li>
+</ul>
+<h3 id="use-scenarios-when">Use Scenarios When:<a class="headerlink" href="#use-scenarios-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Testing retry logic and error handling</li>
+<li>Simulating network issues (packet loss, delays)</li>
+<li>Testing edge cases (malformed data, timeouts)</li>
+<li>Validating firmware version compatibility</li>
+<li>Testing client resilience</li>
+</ul>
+<h2 id="combined-example">Combined Example<a class="headerlink" href="#combined-example" title="Permanent link">&para;</a></h2>
+<p>Use multiple advanced features together:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Start with persistence, API, and scenarios</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>lifx-emulator<span class="w"> </span>--persistent<span class="w"> </span>--api<span class="w"> </span>--color<span class="w"> </span><span class="m">2</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Configure global scenario for packet loss</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 0.3}}&#39;</span><span class="w">  </span><span class="c1"># 30% packet loss</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># Add device at runtime</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8080/api/devices<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;product_id&quot;: 32, &quot;zone_count&quot;: 16}&#39;</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># Run your tests...</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># State persists across restarts</span>
+</span></code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.</p>
 
 
 
@@ -1822,7 +1962,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2025 22:32:42 UTC">November 10, 2025</span>
   </span>
 
     
@@ -1832,7 +1972,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2025 22:32:42 UTC">November 10, 2025</span>
   </span>
 
     
@@ -1913,10 +2053,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
     
   </body>
