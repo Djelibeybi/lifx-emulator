@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.2 (2025-11-10)
+
+### Bug Fixes
+
+- Extended_multizone added to products correctly by generator
+  ([`b6c4f78`](https://github.com/Djelibeybi/lifx-emulator/commit/b6c4f78c7353313b961acdb4283023a595141151))
+
+
 ## v1.0.1 (2025-11-10)
 
 ### Bug Fixes
