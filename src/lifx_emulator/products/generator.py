@@ -97,16 +97,22 @@ def generate_product_definitions(
             if features.get("hev"):
                 capabilities.append("ProductCapability.HEV")
 
-            # Check for extended multizone in upgrades
+            # Check for extended multizone capability
             min_ext_mz_firmware = None
-            for upgrade in product.get("upgrades", []):
-                if upgrade.get("features", {}).get("extended_multizone"):
-                    capabilities.append("ProductCapability.EXTENDED_MULTIZONE")
-                    # Parse firmware version (major.minor format)
-                    major = upgrade.get("major", 0)
-                    minor = upgrade.get("minor", 0)
-                    min_ext_mz_firmware = (major << 16) | minor
-                    break
+
+            # First check if it's a native feature (no firmware requirement)
+            if features.get("extended_multizone"):
+                capabilities.append("ProductCapability.EXTENDED_MULTIZONE")
+            else:
+                # Check if it's available as an upgrade (requires minimum firmware)
+                for upgrade in product.get("upgrades", []):
+                    if upgrade.get("features", {}).get("extended_multizone"):
+                        capabilities.append("ProductCapability.EXTENDED_MULTIZONE")
+                        # Parse firmware version (major.minor format)
+                        major = upgrade.get("major", 0)
+                        minor = upgrade.get("minor", 0)
+                        min_ext_mz_firmware = (major << 16) | minor
+                        break
 
             # Build capabilities expression
             if capabilities:
@@ -357,16 +363,22 @@ class ProductRegistry:
                 if features.get("hev"):
                     capabilities |= ProductCapability.HEV
 
-                # Check for extended multizone in upgrades
+                # Check for extended multizone capability
                 min_ext_mz_firmware = None
-                for upgrade in product.get("upgrades", []):
-                    if upgrade.get("features", {}).get("extended_multizone"):
-                        capabilities |= ProductCapability.EXTENDED_MULTIZONE
-                        # Parse firmware version (major.minor format)
-                        major = upgrade.get("major", 0)
-                        minor = upgrade.get("minor", 0)
-                        min_ext_mz_firmware = (major << 16) | minor
-                        break
+
+                # First check if it's a native feature (no firmware requirement)
+                if features.get("extended_multizone"):
+                    capabilities |= ProductCapability.EXTENDED_MULTIZONE
+                else:
+                    # Check if it's available as an upgrade (requires minimum firmware)
+                    for upgrade in product.get("upgrades", []):
+                        if upgrade.get("features", {}).get("extended_multizone"):
+                            capabilities |= ProductCapability.EXTENDED_MULTIZONE
+                            # Parse firmware version (major.minor format)
+                            major = upgrade.get("major", 0)
+                            minor = upgrade.get("minor", 0)
+                            min_ext_mz_firmware = (major << 16) | minor
+                            break
 
                 # Parse temperature range
                 temp_range = None

@@ -102,10 +102,12 @@ def _format_product_capabilities(product: ProductInfo) -> str:
     # Add additional capabilities
     if product.has_infrared:
         caps.append("infrared")
-    if product.has_multizone:
-        caps.append("multizone")
+    # Extended multizone is backwards compatible with multizone,
+    # so only show multizone if extended multizone is not present
     if product.has_extended_multizone:
         caps.append("extended-multizone")
+    elif product.has_multizone:
+        caps.append("multizone")
     if product.has_matrix:
         caps.append("matrix")
     if product.has_hev:
