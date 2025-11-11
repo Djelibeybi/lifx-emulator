@@ -4,7 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from lifx_emulator.api import create_api_app
+from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import create_color_light, create_multizone_light
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 
 
@@ -15,7 +17,8 @@ def server_with_devices():
         create_color_light("d073d5000001"),
         create_multizone_light("d073d5000002", zone_count=16),
     ]
-    return EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    return EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
 
 @pytest.fixture
@@ -79,9 +82,10 @@ class TestAPIEndpoints:
         assert len(server_with_devices.get_all_devices()) == 3
 
     def test_create_device_with_invalid_product(self, api_client):
-        """Test POST /api/devices with invalid product ID fails."""
+        """Test POST /api/devices with invalid product ID fails validation."""
         response = api_client.post("/api/devices", json={"product_id": 99999})
-        assert response.status_code == 400
+        # 422 is the correct status for Pydantic validation errors
+        assert response.status_code == 422
 
     def test_create_device_duplicate_serial(self, api_client, server_with_devices):
         """Test POST /api/devices with duplicate serial fails."""
@@ -709,3 +713,89 @@ class TestScenarioConfiguration:
         assert 116 in resolved_scenario.response_delays
         assert "116" not in resolved_scenario.response_delays
         assert resolved_scenario.response_delays[116] == 1.0
+
+
+class TestRunAPIServer:
+    """Test the run_api_server function."""
+
+    @pytest.mark.asyncio
+    async def test_run_api_server_creates_app_and_server(
+        self, server_with_devices, monkeypatch
+    ):
+        """Test that run_api_server creates uvicorn server with correct config."""
+        from unittest.mock import AsyncMock, Mock
+
+        from lifx_emulator.api.app import run_api_server
+
+        # Mock uvicorn components
+        mock_server_instance = Mock()
+        mock_server_instance.serve = AsyncMock()
+        mock_server_class = Mock(return_value=mock_server_instance)
+        mock_config_class = Mock()
+
+        # Track what was passed to uvicorn.Server and uvicorn.Config
+        captured_config = None
+
+        def capture_config(*args, **kwargs):
+            nonlocal captured_config
+            captured_config = kwargs if kwargs else args[0] if args else None
+            return Mock()
+
+        mock_config_class.side_effect = capture_config
+
+        # Monkeypatch uvicorn
+        import uvicorn
+
+        monkeypatch.setattr(uvicorn, "Server", mock_server_class)
+        monkeypatch.setattr(uvicorn, "Config", mock_config_class)
+
+        # Call the function
+        await run_api_server(server_with_devices, host="0.0.0.0", port=9090)
+
+        # Verify Config was called
+        assert mock_config_class.called
+
+        # Verify Server was called
+        assert mock_server_class.called
+
+        # Verify serve was called
+        assert mock_server_instance.serve.called
+
+    @pytest.mark.asyncio
+    async def test_run_api_server_default_host_and_port(
+        self, server_with_devices, monkeypatch
+    ):
+        """Test that run_api_server uses default host and port."""
+        from unittest.mock import AsyncMock, Mock
+
+        from lifx_emulator.api.app import run_api_server
+
+        # Mock uvicorn components
+        mock_server_instance = Mock()
+        mock_server_instance.serve = AsyncMock()
+        mock_server_class = Mock(return_value=mock_server_instance)
+
+        # Capture the Config call
+        config_args = []
+
+        def capture_config(*args, **kwargs):
+            config_args.append((args, kwargs))
+            return Mock()
+
+        mock_config_class = Mock(side_effect=capture_config)
+
+        # Monkeypatch uvicorn
+        import uvicorn
+
+        monkeypatch.setattr(uvicorn, "Server", mock_server_class)
+        monkeypatch.setattr(uvicorn, "Config", mock_config_class)
+
+        # Call with default host/port
+        await run_api_server(server_with_devices)
+
+        # Verify Config was called
+        assert mock_config_class.called
+
+        # Verify Server and serve were called
+        assert mock_server_class.called
+        assert mock_server_instance.serve.called

@@ -69,7 +69,7 @@ Queues the device state for saving. The write is performed asynchronously with d
 **Example:**
 ```python
 import asyncio
-from lifx_emulator.device import DeviceState
+from lifx_emulator.devices import DeviceState
 from lifx_emulator.async_storage import AsyncDeviceStorage
 
 async def main():
@@ -263,7 +263,7 @@ Convert DeviceState to JSON-compatible dictionary.
 
 **Example:**
 ```python
-from lifx_emulator.device import DeviceState
+from lifx_emulator.devices import DeviceState
 from lifx_emulator.state_serializer import serialize_device_state
 
 state = DeviceState(serial="d073d5000001", label="Test Light")
@@ -355,7 +355,7 @@ Device state is automatically saved when:
 
 **Example with automatic saving:**
 ```python
-from lifx_emulator.device import EmulatedLifxDevice, DeviceState
+from lifx_emulator.devices import EmulatedLifxDevice, DeviceState
 from lifx_emulator.async_storage import AsyncDeviceStorage
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Light
@@ -449,7 +449,7 @@ with open("lifx-export.json", "w") as f:
 ```python
 import json
 from lifx_emulator.async_storage import AsyncDeviceStorage
-from lifx_emulator.device import DeviceState
+from lifx_emulator.devices import DeviceState
 
 storage = AsyncDeviceStorage()
 

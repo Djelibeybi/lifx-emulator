@@ -9,17 +9,18 @@ from collections import defaultdict
 from typing import Any
 
 from lifx_emulator.constants import LIFX_HEADER_SIZE, LIFX_UDP_PORT
-from lifx_emulator.device import EmulatedLifxDevice
-from lifx_emulator.observers import (
+from lifx_emulator.devices import (
     ActivityLogger,
     ActivityObserver,
+    EmulatedLifxDevice,
+    IDeviceManager,
     NullObserver,
     PacketEvent,
 )
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import get_packet_class
-from lifx_emulator.scenario_manager import HierarchicalScenarioManager
-from lifx_emulator.scenario_persistence import ScenarioPersistence
+from lifx_emulator.repositories import IScenarioStorageBackend
+from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ class EmulatedLifxServer:
     def __init__(
         self,
         devices: list[EmulatedLifxDevice],
+        device_manager: IDeviceManager,
         bind_address: str = "127.0.0.1",
         port: int = LIFX_UDP_PORT,
         track_activity: bool = True,
@@ -98,30 +100,35 @@ class EmulatedLifxServer:
         activity_observer: ActivityObserver | None = None,
         scenario_manager: HierarchicalScenarioManager | None = None,
         persist_scenarios: bool = False,
+        scenario_storage: IScenarioStorageBackend | None = None,
     ):
-        self.devices = {dev.state.serial: dev for dev in devices}
+        # Device manager (required dependency injection)
+        self._device_manager = device_manager
         self.bind_address = bind_address
         self.port = port
         self.transport = None
         self.storage = storage
 
-        # Scenario persistence (optional)
-        self.scenario_persistence: ScenarioPersistence | None = None
+        # Scenario storage backend (optional - only needed for persistence)
+        self.scenario_persistence: IScenarioStorageBackend | None = None
         if persist_scenarios:
-            self.scenario_persistence = ScenarioPersistence()
-            # Load scenarios from disk if available
+            if scenario_storage is None:
+                raise ValueError(
+                    "scenario_storage is required when persist_scenarios=True"
+                )
             if scenario_manager is None:
-                scenario_manager = self.scenario_persistence.load()
-                logger.info("Loaded scenarios from persistent storage")
+                raise ValueError(
+                    "scenario_manager is required when persist_scenarios=True "
+                    "(must be pre-loaded from storage before server initialization)"
+                )
+            self.scenario_persistence = scenario_storage
 
         # Scenario manager (shared across all devices for runtime updates)
         self.scenario_manager = scenario_manager or HierarchicalScenarioManager()
 
-        # Share scenario manager with all initial devices
+        # Add initial devices to the device manager
         for device in devices:
-            if isinstance(device.scenario_manager, HierarchicalScenarioManager):
-                device.scenario_manager = self.scenario_manager
-                device.invalidate_scenario_cache()
+            self._device_manager.add_device(device, self.scenario_manager)
 
         # Activity observer - defaults to ActivityLogger if track_activity=True
         if activity_observer is not None:
@@ -320,18 +327,8 @@ class EmulatedLifxServer:
                 )
             )
 
-            # Determine target devices
-            target_devices = []
-            if header.tagged or header.target == b"\x00" * 8:
-                # Broadcast to all devices
-                target_devices = list(self.devices.values())
-            else:
-                # Specific device - convert target bytes to serial string
-                # Target is 8 bytes: 6-byte MAC + 2 null bytes
-                target_serial = header.target[:6].hex()
-                device = self.devices.get(target_serial)
-                if device:
-                    target_devices = [device]
+            # Determine target devices using device manager
+            target_devices = self._device_manager.resolve_target_devices(header)
 
             # Process packet for each target device
             # Use parallel processing for broadcasts to improve scalability
@@ -361,18 +358,7 @@ class EmulatedLifxServer:
         Returns:
             True if added, False if device with same serial already exists
         """
-        serial = device.state.serial
-        if serial in self.devices:
-            return False
-
-        # If device is using HierarchicalScenarioManager, share the server's manager
-        if isinstance(device.scenario_manager, HierarchicalScenarioManager):
-            device.scenario_manager = self.scenario_manager
-            device.invalidate_scenario_cache()
-
-        self.devices[serial] = device
-        logger.info("Added device: %s (product=%s)", serial, device.state.product)
-        return True
+        return self._device_manager.add_device(device, self.scenario_manager)
 
     def remove_device(self, serial: str) -> bool:
         """Remove a device from the server.
@@ -383,16 +369,7 @@ class EmulatedLifxServer:
         Returns:
             True if removed, False if device not found
         """
-        if serial not in self.devices:
-            return False
-        self.devices.pop(serial)
-        logger.info("Removed device: %s", serial)
-
-        # Delete persistent storage if enabled
-        if self.storage:
-            self.storage.delete_device_state(serial)
-
-        return True
+        return self._device_manager.remove_device(serial, self.storage)
 
     def remove_all_devices(self, delete_storage: bool = False) -> int:
         """Remove all devices from the server.
@@ -403,18 +380,7 @@ class EmulatedLifxServer:
         Returns:
             Number of devices removed
         """
-        device_count = len(self.devices)
-
-        # Clear devices dict
-        self.devices.clear()
-        logger.info("Removed all %s device(s) from server", device_count)
-
-        # Delete persistent storage if requested
-        if delete_storage and self.storage:
-            deleted = self.storage.delete_all_device_states()
-            logger.info("Deleted %s device state(s) from persistent storage", deleted)
-
-        return device_count
+        return self._device_manager.remove_all_devices(delete_storage, self.storage)
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
         """Get a device by serial number.
@@ -425,7 +391,7 @@ class EmulatedLifxServer:
         Returns:
             Device if found, None otherwise
         """
-        return self.devices.get(serial)
+        return self._device_manager.get_device(serial)
 
     def get_all_devices(self) -> list[EmulatedLifxDevice]:
         """Get all devices.
@@ -433,7 +399,15 @@ class EmulatedLifxServer:
         Returns:
             List of all devices
         """
-        return list(self.devices.values())
+        return self._device_manager.get_all_devices()
+
+    def invalidate_all_scenario_caches(self) -> None:
+        """Invalidate scenario cache for all devices.
+
+        This should be called when scenario configuration changes to ensure
+        devices reload their scenario settings from the scenario manager.
+        """
+        self._device_manager.invalidate_all_scenario_caches()
 
     def get_stats(self) -> dict[str, Any]:
         """Get server statistics.
@@ -445,7 +419,7 @@ class EmulatedLifxServer:
         return {
             "uptime_seconds": uptime,
             "start_time": self.start_time,
-            "device_count": len(self.devices),
+            "device_count": self._device_manager.count_devices(),
             "packets_received": self.packets_received,
             "packets_sent": self.packets_sent,
             "packets_received_by_type": dict(self.packets_received_by_type),

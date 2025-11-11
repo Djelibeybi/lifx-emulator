@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import pytest
 
 from lifx_emulator.api import create_api_app
+from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
@@ -17,6 +18,7 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 
 
@@ -120,7 +122,10 @@ class TestServerConfiguration:
         """Create API app with test server."""
         # Create default color device
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
         return app, server
 
@@ -147,7 +152,10 @@ class TestServerConfiguration:
             create_color_light("d073d5000001"),
             create_color_light("d073d5000002"),
         ]
-        server = EmulatedLifxServer(devices, "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            devices, device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -163,7 +171,10 @@ class TestServerConfiguration:
     def test_multizone_device_with_zone_count(self):
         """Test multizone device with custom zone count."""
         device = create_multizone_light("d073d5000001", zone_count=24)
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -179,7 +190,10 @@ class TestServerConfiguration:
     def test_custom_serial_prefix(self):
         """Test device with custom serial prefix."""
         device = create_color_light("cafe00000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -198,7 +212,10 @@ class TestServerConfiguration:
             create_multizone_light("d073d5000002", zone_count=16),
             create_tile_device("d073d5000003", tile_count=1),
         ]
-        server = EmulatedLifxServer(devices, "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            devices, device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -225,7 +242,10 @@ class TestServerConfiguration:
         device = create_tile_device(
             "d073d5000001", tile_count=1, tile_width=16, tile_height=8
         )
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -241,7 +261,10 @@ class TestServerConfiguration:
     def test_infrared_device(self):
         """Test infrared device creation."""
         device = create_infrared_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -255,7 +278,10 @@ class TestServerConfiguration:
     def test_hev_device(self):
         """Test HEV device creation."""
         device = create_hev_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -269,7 +295,10 @@ class TestServerConfiguration:
     def test_color_temperature_device(self):
         """Test color temperature device creation."""
         device = create_color_temperature_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -285,7 +314,10 @@ class TestServerConfiguration:
         device = create_multizone_light(
             "d073d5000001", zone_count=82, extended_multizone=True
         )
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -303,7 +335,10 @@ class TestServerConfiguration:
         device = create_multizone_light(
             "d073d5000001", zone_count=16, extended_multizone=False
         )
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -318,7 +353,10 @@ class TestServerConfiguration:
     def test_verbose_flag(self):
         """Test verbose logging flag (just verify server starts)."""
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -330,13 +368,19 @@ class TestServerConfiguration:
     def test_custom_bind_address(self):
         """Test custom bind address (verify config)."""
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         assert server.bind_address == "127.0.0.1"
 
     def test_api_flag_enabled(self):
         """Test API flag enables HTTP API."""
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -352,7 +396,10 @@ class TestServerConfiguration:
 
         # Product 27 is LIFX A19
         device = create_device(product_id=27)
-        server = EmulatedLifxServer([device], "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient
@@ -373,7 +420,10 @@ class TestServerConfiguration:
             create_device(product_id=32),  # Z strip
             create_device(product_id=55),  # Tile
         ]
-        server = EmulatedLifxServer(devices, "127.0.0.1", find_free_port())
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            devices, device_manager, "127.0.0.1", find_free_port()
+        )
         app = create_api_app(server)
 
         from fastapi.testclient import TestClient

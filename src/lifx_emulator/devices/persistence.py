@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from lifx_emulator.state_serializer import (
+from lifx_emulator.devices.state_serializer import (
     deserialize_device_state,
     serialize_device_state,
 )
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
 
 
-class AsyncDeviceStorage:
+class DevicePersistenceAsyncFile:
     """High-performance async storage with smart debouncing.
 
     Non-blocking asynchronous I/O for device state persistence.

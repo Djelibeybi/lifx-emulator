@@ -5,96 +5,12 @@ test scenarios at multiple scopes with precedence-based resolution.
 """
 
 import random
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+from lifx_emulator.scenarios.models import ScenarioConfig
 
 if TYPE_CHECKING:
-    from lifx_emulator.device import EmulatedLifxDevice
-
-
-@dataclass
-class ScenarioConfig:
-    """Individual scenario configuration.
-
-    Scenarios define testing behaviors for the emulator, such as:
-    - Dropping specific packet types (no response)
-    - Adding response delays
-    - Sending malformed/corrupted responses
-    - Overriding firmware version
-    """
-
-    drop_packets: dict[int, float] = field(default_factory=dict)
-    """Packet types to drop with drop rates (0.1-1.0).
-
-    Maps packet type to drop rate where:
-    - 1.0 = always drop (100%)
-    - 0.5 = drop 50% of packets
-    - 0.1 = drop 10% of packets
-    Examples: {101: 1.0} (always drop), {102: 0.6} (drop 60% of packets)
-    """
-
-    response_delays: dict[int, float] = field(default_factory=dict)
-    """Response delays in seconds by packet type"""
-
-    malformed_packets: list[int] = field(default_factory=list)
-    """Packet types to send truncated/corrupted"""
-
-    invalid_field_values: list[int] = field(default_factory=list)
-    """Packet types to send with all 0xFF bytes"""
-
-    firmware_version: tuple[int, int] | None = None
-    """Override firmware version (major, minor)"""
-
-    partial_responses: list[int] = field(default_factory=list)
-    """Packet types to send incomplete multizone/tile data"""
-
-    send_unhandled: bool = False
-    """Send StateUnhandled for unknown packet types"""
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary for API serialization."""
-        return {
-            "drop_packets": {str(k): v for k, v in self.drop_packets.items()},
-            "response_delays": {str(k): v for k, v in self.response_delays.items()},
-            "malformed_packets": self.malformed_packets,
-            "invalid_field_values": self.invalid_field_values,
-            "firmware_version": self.firmware_version,
-            "partial_responses": self.partial_responses,
-            "send_unhandled": self.send_unhandled,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ScenarioConfig":
-        """Create from dictionary (API input)."""
-        firmware = data.get("firmware_version")
-        if firmware and not isinstance(firmware, tuple):
-            firmware = tuple(firmware)
-
-        # Convert drop_packets keys from string to int
-        drop_packets_input = data.get("drop_packets", {})
-        drop_packets = (
-            {int(k): v for k, v in drop_packets_input.items()}
-            if isinstance(drop_packets_input, dict)
-            else {}
-        )
-
-        # Convert response_delays keys from string to int
-        response_delays_input = data.get("response_delays", {})
-        response_delays = (
-            {int(k): v for k, v in response_delays_input.items()}
-            if isinstance(response_delays_input, dict)
-            else {}
-        )
-
-        return cls(
-            drop_packets=drop_packets,
-            response_delays=response_delays,
-            malformed_packets=data.get("malformed_packets", []),
-            invalid_field_values=data.get("invalid_field_values", []),
-            firmware_version=firmware,
-            partial_responses=data.get("partial_responses", []),
-            send_unhandled=data.get("send_unhandled", False),
-        )
+    from lifx_emulator.devices import EmulatedLifxDevice
 
 
 def get_device_type(device: "EmulatedLifxDevice") -> str:
@@ -144,7 +60,9 @@ class HierarchicalScenarioManager:
         self.type_scenarios: dict[str, ScenarioConfig] = {}  # type → config
         self.location_scenarios: dict[str, ScenarioConfig] = {}  # location → config
         self.group_scenarios: dict[str, ScenarioConfig] = {}  # group → config
-        self.global_scenario: ScenarioConfig = ScenarioConfig()
+        self.global_scenario: ScenarioConfig = ScenarioConfig(
+            firmware_version=None, send_unhandled=False
+        )
 
     def set_device_scenario(self, serial: str, config: ScenarioConfig):
         """Set scenario for specific device by serial."""
@@ -184,7 +102,9 @@ class HierarchicalScenarioManager:
 
     def clear_global_scenario(self):
         """Clear global scenario (reset to empty)."""
-        self.global_scenario = ScenarioConfig()
+        self.global_scenario = ScenarioConfig(
+            firmware_version=None, send_unhandled=False
+        )
 
     def get_global_scenario(self) -> ScenarioConfig:
         """Get global scenario configuration."""
@@ -265,7 +185,7 @@ class HierarchicalScenarioManager:
             Merged ScenarioConfig
         """
         # Start with empty config
-        merged = ScenarioConfig()
+        merged = ScenarioConfig(firmware_version=None, send_unhandled=False)
 
         # Layer in each scope (general to specific)
         # Later scopes override or merge with earlier ones

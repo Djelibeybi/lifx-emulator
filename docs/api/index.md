@@ -97,7 +97,7 @@ await server.stop()
 For custom device creation:
 
 ```python
-from lifx_emulator.device import EmulatedLifxDevice, DeviceState
+from lifx_emulator.devices import EmulatedLifxDevice, DeviceState
 
 state = DeviceState(serial="d073d5000001", label="Custom Device")
 device = EmulatedLifxDevice(state)

@@ -180,7 +180,7 @@ Optional scenario manager for test scenario configuration.
 
 **Example:**
 ```python
-from lifx_emulator.scenario_manager import HierarchicalScenarioManager
+from lifx_emulator.scenarios.manager import HierarchicalScenarioManager
 
 manager = HierarchicalScenarioManager()
 server = EmulatedLifxServer(

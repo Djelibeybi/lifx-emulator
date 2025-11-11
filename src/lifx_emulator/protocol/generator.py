@@ -300,7 +300,9 @@ def generate_enum_code(enums: dict[str, Any]) -> str:
 
 
 def convert_type_to_python(
-    field_type: str, type_aliases: dict[str, str] | None = None
+    field_type: str,
+    type_aliases: dict[str, str] | None = None,
+    field_name: str | None = None,
 ) -> str:
     """Convert a protocol field type to Python type annotation.
 
@@ -308,6 +310,8 @@ def convert_type_to_python(
         field_type: Protocol field type string
         type_aliases: Optional dict mapping type names to their aliases
                      (for collision resolution)
+        field_name: Optional field name for semantic type detection
+                   (e.g., "Label" fields are strings, not bytes)
 
     Returns:
         Python type annotation string
@@ -323,7 +327,10 @@ def convert_type_to_python(
             type_name = type_aliases.get(base_type, base_type)
             return f"list[{type_name}]"
         elif base_type in ("uint8", "byte"):
-            # Special case: byte arrays
+            # Check if this is a string field (Label fields are UTF-8 strings)
+            if field_name and field_name.lower() == "label":
+                return "str"
+            # Regular byte arrays
             return "bytes"
         else:
             return "list[int]"
@@ -664,7 +671,9 @@ def generate_field_code(
                     protocol_name = field_item["name"]
                     attr_type = field_item["type"]
                     python_name = to_snake_case(protocol_name)
-                    python_type = convert_type_to_python(attr_type)
+                    python_type = convert_type_to_python(
+                        attr_type, field_name=protocol_name
+                    )
 
                     code.append(f"    {python_name}: {python_type}")
                     field_map[python_name] = protocol_name
@@ -673,7 +682,9 @@ def generate_field_code(
             # Convert to new format for pack/unpack generation
             for protocol_name, attr_type in field_def.items():
                 python_name = to_snake_case(protocol_name)
-                python_type = convert_type_to_python(attr_type)
+                python_type = convert_type_to_python(
+                    attr_type, field_name=protocol_name
+                )
                 code.append(f"    {python_name}: {python_type}")
                 field_map[python_name] = protocol_name
                 # Build fields_data for old format
@@ -832,7 +843,9 @@ def generate_nested_packet_code(
                     protocol_name = field_item["name"]
                     field_type = field_item["type"]
                     python_name = to_snake_case(protocol_name)
-                    python_type = convert_type_to_python(field_type, type_aliases)
+                    python_type = convert_type_to_python(
+                        field_type, type_aliases, field_name=protocol_name
+                    )
                     code.append(f"        {python_name}: {python_type}")
                     has_fields = True
 

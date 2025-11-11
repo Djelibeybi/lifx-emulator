@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
     create_color_light,
     create_device,
@@ -19,10 +19,10 @@ from lifx_emulator.protocol.protocol_types import LightHsbk
 async def temp_storage():
     """Create temporary storage directory for testing."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        yield AsyncDeviceStorage(tmpdir)
+        yield DevicePersistenceAsyncFile(tmpdir)
 
 
-class TestAsyncDeviceStorage:
+class TestDevicePersistenceAsyncFile:
     """Test asynchronous device storage."""
 
     async def test_device_storage_save_and_load(self, temp_storage):
@@ -207,7 +207,7 @@ class TestAsyncDeviceStorage:
     async def test_storage_batch_size_threshold(self, temp_storage):
         """Test flush triggered by batch size threshold."""
         # Create storage with low threshold
-        small_threshold_storage = AsyncDeviceStorage(
+        small_threshold_storage = DevicePersistenceAsyncFile(
             temp_storage.storage_dir, debounce_ms=10000, batch_size_threshold=2
         )
 

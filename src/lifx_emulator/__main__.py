@@ -8,8 +8,12 @@ from typing import Annotated
 import cyclopts
 from rich.logging import RichHandler
 
-from lifx_emulator.async_storage import AsyncDeviceStorage
 from lifx_emulator.constants import LIFX_UDP_PORT
+from lifx_emulator.devices import (
+    DEFAULT_STORAGE_DIR,
+    DeviceManager,
+    DevicePersistenceAsyncFile,
+)
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
@@ -19,7 +23,9 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
-from lifx_emulator.products.registry import ProductInfo, get_registry
+from lifx_emulator.products.registry import get_registry
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioPersistenceAsyncFile
 from lifx_emulator.server import EmulatedLifxServer
 
 app = cyclopts.App(
@@ -78,49 +84,6 @@ def _format_capabilities(device) -> str:
     return ", ".join(capabilities)
 
 
-def _format_product_capabilities(product: ProductInfo) -> str:
-    """Format product capabilities as a human-readable string."""
-    caps = []
-
-    # Determine base light type
-    if product.has_relays:
-        # Devices with relays are switches, not lights
-        caps.append("switch")
-    elif product.has_color:
-        caps.append("full color")
-    else:
-        # Check temperature range to determine white light type
-        if product.temperature_range:
-            if product.temperature_range.min != product.temperature_range.max:
-                caps.append("color temperature")
-            else:
-                caps.append("brightness only")
-        else:
-            # No temperature range info, assume basic brightness
-            caps.append("brightness only")
-
-    # Add additional capabilities
-    if product.has_infrared:
-        caps.append("infrared")
-    # Extended multizone is backwards compatible with multizone,
-    # so only show multizone if extended multizone is not present
-    if product.has_extended_multizone:
-        caps.append("extended-multizone")
-    elif product.has_multizone:
-        caps.append("multizone")
-    if product.has_matrix:
-        caps.append("matrix")
-    if product.has_hev:
-        caps.append("HEV")
-    if product.has_chain:
-        caps.append("chain")
-    if product.has_buttons and not product.has_relays:
-        # Only show buttons if not already identified as switch
-        caps.append("buttons")
-
-    return ", ".join(caps) if caps else "unknown"
-
-
 @app.command
 def list_products(
     filter_type: str | None = None,
@@ -177,8 +140,7 @@ def list_products(
     print("─" * 4 + "─┼─" + "─" * 40 + "─┼─" + "─" * 40)
 
     for product in all_products:
-        caps = _format_product_capabilities(product)
-        print(f"{product.pid:>4} │ {product.name:<40} │ {caps}")
+        print(f"{product.pid:>4} │ {product.name:<40} │ {product.caps}")
 
     print()
     print("Use --product <PID> to emulate a specific product")
@@ -213,13 +175,11 @@ def clear_storage(
     """
     from pathlib import Path
 
-    from lifx_emulator.async_storage import DEFAULT_STORAGE_DIR, AsyncDeviceStorage
-
     # Use default storage directory if not specified
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
 
     # Create storage instance
-    storage = AsyncDeviceStorage(storage_path)
+    storage = DevicePersistenceAsyncFile(storage_path)
 
     # List devices
     devices = storage.list_devices()
@@ -369,7 +329,7 @@ async def run(
         return False
 
     # Initialize storage if persistence is enabled
-    storage = AsyncDeviceStorage() if persistent else None
+    storage = DevicePersistenceAsyncFile() if persistent else None
     if persistent and storage:
         logger.info("Persistent storage enabled at %s", storage.storage_dir)
 
@@ -531,14 +491,29 @@ async def run(
         caps = _format_capabilities(device)
         logger.info("  • %s (%s) - %s", label, serial, caps)
 
+    # Create device manager with repository
+    device_repository = DeviceRepository()
+    device_manager = DeviceManager(device_repository)
+
+    # Load scenarios from storage if persistence is enabled
+    scenario_manager = None
+    scenario_storage = None
+    if persistent_scenarios:
+        scenario_storage = ScenarioPersistenceAsyncFile()
+        scenario_manager = await scenario_storage.load()
+        logger.info("Loaded scenarios from persistent storage")
+
     # Start LIFX server
     server = EmulatedLifxServer(
         devices,
+        device_manager,
         bind,
         port,
         track_activity=api_activity if api else False,
         storage=storage,
+        scenario_manager=scenario_manager,
         persist_scenarios=persistent_scenarios,
+        scenario_storage=scenario_storage,
     )
     await server.start()
 

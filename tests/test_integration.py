@@ -405,8 +405,7 @@ class TestDeviceInfo:
 
             payload = data[HEADER_SIZE:]
             state_label = Device.StateLabel.unpack(payload)
-            label_str = state_label.label.rstrip(b"\x00").decode("utf-8")
-            assert "Integration Test" in label_str
+            assert "Integration Test" in state_label.label
 
             sock.close()
 

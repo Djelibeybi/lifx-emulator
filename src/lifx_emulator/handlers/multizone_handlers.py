@@ -15,7 +15,7 @@ from lifx_emulator.protocol.protocol_types import (
 )
 
 if TYPE_CHECKING:
-    from lifx_emulator.device import DeviceState
+    from lifx_emulator.devices import DeviceState
 
 logger = logging.getLogger(__name__)
 

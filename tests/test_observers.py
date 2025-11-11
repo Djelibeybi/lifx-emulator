@@ -2,7 +2,7 @@
 
 import time
 
-from lifx_emulator.observers import ActivityLogger, NullObserver, PacketEvent
+from lifx_emulator.devices.observers import ActivityLogger, NullObserver, PacketEvent
 
 
 class TestNullObserver:

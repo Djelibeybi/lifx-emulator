@@ -5,8 +5,9 @@ import time
 
 import pytest
 
-from lifx_emulator.device import DeviceState
-from lifx_emulator.device_states import (
+from lifx_emulator.devices.device import DeviceState
+from lifx_emulator.devices.manager import DeviceManager
+from lifx_emulator.devices.states import (
     CoreDeviceState,
     GroupState,
     LocationState,
@@ -22,6 +23,7 @@ from lifx_emulator.factories import (
     create_tile_device,
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 
 
@@ -123,21 +125,22 @@ def white_device():
 def server_with_devices(color_device, multizone_device, tile_device):
     """Create a server with multiple device types."""
     devices = [color_device, multizone_device, tile_device]
-    return EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    return EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
 
 @pytest.fixture
 def device_with_scenarios():
     """Create a device with test scenarios configured."""
-    from lifx_emulator.device import DeviceState, EmulatedLifxDevice
-    from lifx_emulator.device_states import (
+    from lifx_emulator.devices.device import DeviceState, EmulatedLifxDevice
+    from lifx_emulator.devices.states import (
         CoreDeviceState,
         GroupState,
         LocationState,
         NetworkState,
         WaveformState,
     )
-    from lifx_emulator.scenario_manager import (
+    from lifx_emulator.scenarios.manager import (
         HierarchicalScenarioManager,
         ScenarioConfig,
     )
@@ -225,7 +228,8 @@ def integration_server(integration_devices):
     """Function-scoped fixture that creates a server instance."""
     devices, port = integration_devices
     # Return server instance (not started - tests will use 'async with')
-    return EmulatedLifxServer(devices, "127.0.0.1", port)
+    device_manager = DeviceManager(DeviceRepository())
+    return EmulatedLifxServer(devices, device_manager, "127.0.0.1", port)
 
 
 @pytest.fixture

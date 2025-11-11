@@ -294,7 +294,7 @@ Inject test scenarios (packet loss, delays, etc.) for error testing:
 
 ```python
 from lifx_emulator import create_color_light
-from lifx_emulator.scenario_manager import HierarchicalScenarioManager, ScenarioConfig
+from lifx_emulator.scenarios.manager import HierarchicalScenarioManager, ScenarioConfig
 
 # Create scenario manager
 manager = HierarchicalScenarioManager()

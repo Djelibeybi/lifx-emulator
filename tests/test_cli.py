@@ -7,7 +7,6 @@ import pytest
 
 from lifx_emulator.__main__ import (
     _format_capabilities,
-    _format_product_capabilities,
     _setup_logging,
     list_products,
     run,
@@ -123,7 +122,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "switch" in caps
         # Buttons shouldn't be listed separately for switches
         assert "buttons" not in caps
@@ -140,7 +139,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "full color" in caps
 
     def test_format_color_temperature_product(self):
@@ -153,7 +152,7 @@ class TestFormatProductCapabilities:
             temperature_range=TemperatureRange(min=2700, max=6500),
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "color temperature" in caps
 
     def test_format_brightness_only_product_fixed_temp(self):
@@ -166,7 +165,7 @@ class TestFormatProductCapabilities:
             temperature_range=TemperatureRange(min=2700, max=2700),
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "brightness only" in caps
 
     def test_format_brightness_only_product_no_temp(self):
@@ -179,7 +178,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "brightness only" in caps
 
     def test_format_product_with_infrared(self):
@@ -194,7 +193,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "infrared" in caps
 
     def test_format_product_with_multizone(self):
@@ -209,7 +208,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "multizone" in caps
 
     def test_format_product_with_extended_multizone(self):
@@ -226,7 +225,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "extended-multizone" in caps
 
     def test_format_product_with_matrix(self):
@@ -241,7 +240,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "matrix" in caps
 
     def test_format_product_with_hev(self):
@@ -256,7 +255,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "HEV" in caps
 
     def test_format_product_with_chain(self):
@@ -273,7 +272,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "chain" in caps
 
     def test_format_product_with_buttons_not_switch(self):
@@ -288,7 +287,7 @@ class TestFormatProductCapabilities:
             temperature_range=None,
             min_ext_mz_firmware=None,
         )
-        caps = _format_product_capabilities(product)
+        caps = product.caps
         assert "buttons" in caps
 
 
@@ -626,7 +625,7 @@ class TestRunCommand:
 
     @pytest.mark.asyncio
     @patch("lifx_emulator.__main__.EmulatedLifxServer")
-    @patch("lifx_emulator.__main__.AsyncDeviceStorage")
+    @patch("lifx_emulator.__main__.DevicePersistenceAsyncFile")
     @patch("lifx_emulator.__main__._setup_logging")
     async def test_run_with_persistence(
         self, mock_setup_logging, mock_storage_class, mock_server_class
@@ -679,8 +678,8 @@ class TestRunCommand:
 
         # Verify server was created with correct bind and port
         call_args = mock_server_class.call_args[0]
-        assert call_args[1] == "192.168.1.100"
-        assert call_args[2] == 12345
+        assert call_args[2] == "192.168.1.100"
+        assert call_args[3] == 12345
 
     @pytest.mark.asyncio
     @patch("lifx_emulator.__main__.EmulatedLifxServer")
