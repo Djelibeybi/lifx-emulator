@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from lifx_emulator.device import DeviceState
+from lifx_emulator.devices.device import DeviceState
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class StateRestorer:
         """Initialize state restorer.
 
         Args:
-            storage: Storage instance (DeviceStorage or AsyncDeviceStorage)
+            storage: Storage instance (DeviceStorage or DevicePersistenceAsyncFile)
         """
         self.storage = storage
 

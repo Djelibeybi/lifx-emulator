@@ -83,19 +83,18 @@ class SpecsRegistry:
 
         # Parse product specs
         for pid, specs_data in data["products"].items():
-            if isinstance(specs_data, dict):
-                self._specs[int(pid)] = ProductSpecs(
-                    product_id=int(pid),
-                    default_zone_count=specs_data.get("default_zone_count"),
-                    min_zone_count=specs_data.get("min_zone_count"),
-                    max_zone_count=specs_data.get("max_zone_count"),
-                    default_tile_count=specs_data.get("default_tile_count"),
-                    min_tile_count=specs_data.get("min_tile_count"),
-                    max_tile_count=specs_data.get("max_tile_count"),
-                    tile_width=specs_data.get("tile_width"),
-                    tile_height=specs_data.get("tile_height"),
-                    notes=specs_data.get("notes"),
-                )
+            self._specs[int(pid)] = ProductSpecs(
+                product_id=int(pid),
+                default_zone_count=specs_data.get("default_zone_count"),
+                min_zone_count=specs_data.get("min_zone_count"),
+                max_zone_count=specs_data.get("max_zone_count"),
+                default_tile_count=specs_data.get("default_tile_count"),
+                min_tile_count=specs_data.get("min_tile_count"),
+                max_tile_count=specs_data.get("max_tile_count"),
+                tile_width=specs_data.get("tile_width"),
+                tile_height=specs_data.get("tile_height"),
+                notes=specs_data.get("notes"),
+            )
 
         self._loaded = True
 

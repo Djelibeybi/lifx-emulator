@@ -5,7 +5,7 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
-from lifx_emulator.scenario_manager import (
+from lifx_emulator.scenarios.manager import (
     HierarchicalScenarioManager,
     ScenarioConfig,
     get_device_type,

@@ -234,7 +234,7 @@ class Device(Packet):
         _requires_response: ClassVar[bool] = False
 
         group: bytes
-        label: bytes
+        label: str
         updated_at: int
 
     @dataclass
@@ -251,7 +251,7 @@ class Device(Packet):
         _requires_ack: ClassVar[bool] = True
         _requires_response: ClassVar[bool] = False
 
-        label: bytes
+        label: str
 
     @dataclass
     class SetLocation(Packet):
@@ -270,7 +270,7 @@ class Device(Packet):
         _requires_response: ClassVar[bool] = False
 
         location: bytes
-        label: bytes
+        label: str
         updated_at: int
 
     @dataclass
@@ -320,7 +320,7 @@ class Device(Packet):
         _requires_response: ClassVar[bool] = False
 
         group: bytes
-        label: bytes
+        label: str
         updated_at: int
 
     @dataclass
@@ -378,7 +378,7 @@ class Device(Packet):
         _requires_ack: ClassVar[bool] = False
         _requires_response: ClassVar[bool] = False
 
-        label: bytes
+        label: str
 
     @dataclass
     class StateLocation(Packet):
@@ -397,7 +397,7 @@ class Device(Packet):
         _requires_response: ClassVar[bool] = False
 
         location: bytes
-        label: bytes
+        label: str
         updated_at: int
 
     @dataclass
@@ -768,7 +768,7 @@ class Light(Packet):
 
         color: LightHsbk
         power: int
-        label: bytes
+        label: str
 
     @dataclass
     class StateHevCycle(Packet):

@@ -22,7 +22,7 @@ Configure a simple scenario via Python API:
 
 ```python
 from lifx_emulator import create_color_light
-from lifx_emulator.scenario_manager import ScenarioConfig
+from lifx_emulator.scenarios.manager import ScenarioConfig
 
 device = create_color_light("d073d5000001")
 
@@ -56,7 +56,7 @@ curl -X PUT http://localhost:8080/api/scenarios/global \
 Simulate packet loss by dropping incoming packets:
 
 ```python
-from lifx_emulator.scenario_manager import ScenarioConfig
+from lifx_emulator.scenarios.manager import ScenarioConfig
 
 # Drop 100% of GetColor packets
 config = ScenarioConfig(drop_packets={"101": 1.0})
@@ -133,7 +133,7 @@ config = ScenarioConfig(firmware_version=(3, 90))
 Apply to all devices:
 
 ```python
-from lifx_emulator.scenario_manager import HierarchicalScenarioManager
+from lifx_emulator.scenarios.manager import HierarchicalScenarioManager
 
 manager = HierarchicalScenarioManager()
 

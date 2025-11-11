@@ -10,7 +10,7 @@ from lifx_emulator.protocol.packets import Light
 from lifx_emulator.protocol.protocol_types import LightLastHevCycleResult
 
 if TYPE_CHECKING:
-    from lifx_emulator.device import DeviceState
+    from lifx_emulator.devices import DeviceState
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,11 @@ class GetColorHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
-        label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
         return [
             Light.StateColor(
                 color=device_state.color,
                 power=device_state.power_level,
-                label=label_bytes,
+                label=device_state.label,
             )
         ]
 
@@ -53,12 +52,11 @@ class SetColorHandler(PacketHandler):
             )
 
         if res_required:
-            label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
             return [
                 Light.StateColor(
                     color=device_state.color,
                     power=device_state.power_level,
-                    label=label_bytes,
+                    label=device_state.label,
                 )
             ]
         return []
@@ -129,12 +127,11 @@ class SetWaveformHandler(PacketHandler):
             )
 
         if res_required:
-            label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
             return [
                 Light.StateColor(
                     color=device_state.color,
                     power=device_state.power_level,
-                    label=label_bytes,
+                    label=device_state.label,
                 )
             ]
         return []
@@ -183,12 +180,11 @@ class SetWaveformOptionalHandler(PacketHandler):
             )
 
         if res_required:
-            label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
             return [
                 Light.StateColor(
                     color=device_state.color,
                     power=device_state.power_level,
-                    label=label_bytes,
+                    label=device_state.label,
                 )
             ]
         return []

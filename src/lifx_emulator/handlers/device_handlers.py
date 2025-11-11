@@ -11,7 +11,7 @@ from lifx_emulator.protocol.packets import Device
 from lifx_emulator.protocol.protocol_types import DeviceService as ProtocolDeviceService
 
 if TYPE_CHECKING:
-    from lifx_emulator.device import DeviceState
+    from lifx_emulator.devices import DeviceState
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +75,7 @@ class GetLabelHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
-        label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
-        return [Device.StateLabel(label=label_bytes)]
+        return [Device.StateLabel(label=device_state.label)]
 
 
 class SetLabelHandler(PacketHandler):
@@ -91,14 +90,11 @@ class SetLabelHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
-            device_state.label = packet.label.rstrip(b"\x00").decode(
-                "utf-8", errors="replace"
-            )
+            device_state.label = packet.label
             logger.info("Label set to '%s'", device_state.label)
 
         if res_required:
-            label_bytes = device_state.label.encode("utf-8")[:32].ljust(32, b"\x00")
-            return [Device.StateLabel(label=label_bytes)]
+            return [Device.StateLabel(label=device_state.label)]
         return []
 
 
@@ -169,13 +165,10 @@ class GetLocationHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
-        label_bytes = device_state.location_label.encode("utf-8")[:32].ljust(
-            32, b"\x00"
-        )
         return [
             Device.StateLocation(
                 location=device_state.location_id,
-                label=label_bytes,
+                label=device_state.location_label,
                 updated_at=device_state.location_updated_at,
             )
         ]
@@ -194,9 +187,7 @@ class SetLocationHandler(PacketHandler):
     ) -> list[Any]:
         if packet:
             device_state.location_id = packet.location
-            device_state.location_label = packet.label.rstrip(b"\x00").decode(
-                "utf-8", errors="replace"
-            )
+            device_state.location_label = packet.label
             device_state.location_updated_at = packet.updated_at
             loc_id = packet.location.hex()[:8]
             logger.info(
@@ -204,13 +195,10 @@ class SetLocationHandler(PacketHandler):
             )
 
         if res_required:
-            label_bytes = device_state.location_label.encode("utf-8")[:32].ljust(
-                32, b"\x00"
-            )
             return [
                 Device.StateLocation(
                     location=device_state.location_id,
-                    label=label_bytes,
+                    label=device_state.location_label,
                     updated_at=device_state.location_updated_at,
                 )
             ]
@@ -225,11 +213,10 @@ class GetGroupHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
-        label_bytes = device_state.group_label.encode("utf-8")[:32].ljust(32, b"\x00")
         return [
             Device.StateGroup(
                 group=device_state.group_id,
-                label=label_bytes,
+                label=device_state.group_label,
                 updated_at=device_state.group_updated_at,
             )
         ]
@@ -248,9 +235,7 @@ class SetGroupHandler(PacketHandler):
     ) -> list[Any]:
         if packet:
             device_state.group_id = packet.group
-            device_state.group_label = packet.label.rstrip(b"\x00").decode(
-                "utf-8", errors="replace"
-            )
+            device_state.group_label = packet.label
             device_state.group_updated_at = packet.updated_at
             grp_id = packet.group.hex()[:8]
             logger.info(
@@ -258,13 +243,10 @@ class SetGroupHandler(PacketHandler):
             )
 
         if res_required:
-            label_bytes = device_state.group_label.encode("utf-8")[:32].ljust(
-                32, b"\x00"
-            )
             return [
                 Device.StateGroup(
                     group=device_state.group_id,
-                    label=label_bytes,
+                    label=device_state.group_label,
                     updated_at=device_state.group_updated_at,
                 )
             ]

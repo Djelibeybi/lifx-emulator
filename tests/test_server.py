@@ -7,7 +7,9 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from lifx_emulator.constants import HEADER_SIZE
+from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 
 
@@ -25,25 +27,28 @@ class TestServerInitialization:
     def test_server_init_with_devices(self, color_device, multizone_device):
         """Test server initializes with device list."""
         devices = [color_device, multizone_device]
-        server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
         assert server.bind_address == "127.0.0.1"
         assert server.port == 56700
-        assert len(server.devices) == 2
-        assert color_device.state.serial in server.devices
-        assert multizone_device.state.serial in server.devices
+        assert len(server.get_all_devices()) == 2
+        assert server.get_device(color_device.state.serial) == color_device
+        assert server.get_device(multizone_device.state.serial) == multizone_device
 
     def test_server_init_default_params(self, color_device):
         """Test server initialization with default parameters."""
-        server = EmulatedLifxServer([color_device])
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager)
         assert server.bind_address == "127.0.0.1"
         assert server.port == 56700
 
     def test_server_device_lookup_by_mac(self, color_device):
         """Test devices are indexed by serial string."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56700)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
         serial = color_device.state.serial
-        assert server.devices[serial] == color_device
+        assert server.get_device(serial) == color_device
 
 
 class TestPacketRouting:
@@ -61,7 +66,8 @@ class TestPacketRouting:
     @pytest.mark.asyncio
     async def test_handle_packet_broadcast_tagged(self, color_device):
         """Test broadcast packets (tagged=True) route to all devices."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56700)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
 
         # Create broadcast GetService packet
         header = LifxHeader(
@@ -88,8 +94,9 @@ class TestPacketRouting:
     @pytest.mark.asyncio
     async def test_handle_packet_specific_target(self, color_device, multizone_device):
         """Test packet routes to specific device by MAC address."""
+        device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
-            [color_device, multizone_device], "127.0.0.1", 56700
+            [color_device, multizone_device], device_manager, "127.0.0.1", 56700
         )
 
         # Create targeted GetLabel packet for color_device
@@ -123,7 +130,8 @@ class TestPacketRouting:
     @pytest.mark.asyncio
     async def test_handle_packet_unknown_target(self, color_device):
         """Test packet to unknown device MAC is ignored."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56700)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
 
         # Create packet for non-existent device
         header = LifxHeader(
@@ -152,8 +160,9 @@ class TestPacketRouting:
         self, color_device, multizone_device
     ):
         """Test null target (all zeros) broadcasts to all devices."""
+        device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
-            [color_device, multizone_device], "127.0.0.1", 56700
+            [color_device, multizone_device], device_manager, "127.0.0.1", 56700
         )
 
         header = LifxHeader(
@@ -183,7 +192,7 @@ class TestResponseDelays:
     @pytest.mark.asyncio
     async def test_response_delay_applied(self, color_device):
         """Test server applies response delays from device scenarios."""
-        from lifx_emulator.scenario_manager import (
+        from lifx_emulator.scenarios.manager import (
             HierarchicalScenarioManager,
             ScenarioConfig,
         )
@@ -196,8 +205,13 @@ class TestResponseDelays:
             ScenarioConfig(response_delays={107: 0.1}),  # StateColor response
         )
         # Pass scenario_manager to server so it gets shared with all devices
+        device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
-            [color_device], "127.0.0.1", 56700, scenario_manager=scenario_manager
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56700,
+            scenario_manager=scenario_manager,
         )
 
         # StateColor response (107) has 100ms delay configured
@@ -236,7 +250,8 @@ class TestResponseDelays:
     @pytest.mark.asyncio
     async def test_no_delay_by_default(self, color_device):
         """Test server sends responses immediately when no delay configured."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56700)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
 
         header = LifxHeader(
             source=12345,
@@ -269,7 +284,8 @@ class TestServerLifecycle:
     async def test_server_start(self, color_device):
         """Test server starts and creates UDP endpoint."""
         port = find_free_port()
-        server = EmulatedLifxServer([color_device], "127.0.0.1", port)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", port)
 
         await server.start()
 
@@ -282,7 +298,8 @@ class TestServerLifecycle:
     async def test_server_stop(self, color_device):
         """Test server stops and closes transport."""
         port = find_free_port()
-        server = EmulatedLifxServer([color_device], "127.0.0.1", port)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", port)
 
         await server.start()
         assert server.transport is not None
@@ -293,7 +310,8 @@ class TestServerLifecycle:
     async def test_server_stop_without_start(self, color_device):
         """Test stopping server that was never started doesn't raise exception."""
         port = find_free_port()
-        server = EmulatedLifxServer([color_device], "127.0.0.1", port)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", port)
 
         # Should not raise exception
         await server.stop()
@@ -305,7 +323,8 @@ class TestProtocolClass:
     def test_protocol_connection_made(self, color_device):
         """Test LifxProtocol.connection_made sets up transport."""
         port = find_free_port()
-        server = EmulatedLifxServer([color_device], "127.0.0.1", port)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", port)
         protocol = server.LifxProtocol(server)
 
         mock_transport = Mock()
@@ -318,7 +337,8 @@ class TestProtocolClass:
     async def test_protocol_datagram_received(self, color_device):
         """Test LifxProtocol.datagram_received creates async task."""
         port = find_free_port()
-        server = EmulatedLifxServer([color_device], "127.0.0.1", port)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", port)
         protocol = server.LifxProtocol(server)
 
         # Mock handle_packet
@@ -350,7 +370,8 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_handle_invalid_packet_type(self, color_device):
         """Test server handles invalid packet type gracefully."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56706)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56706)
 
         # Create packet with invalid type
         header = LifxHeader(
@@ -373,7 +394,8 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_handle_malformed_payload(self, color_device):
         """Test server handles malformed payload gracefully."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56707)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56707)
 
         # Create header for SetColor but with truncated payload
         header = LifxHeader(
@@ -403,8 +425,12 @@ class TestMultiDeviceScenarios:
         self, color_device, infrared_device, tile_device
     ):
         """Test broadcast packet generates responses from all devices."""
+        device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
-            [color_device, infrared_device, tile_device], "127.0.0.1", 56708
+            [color_device, infrared_device, tile_device],
+            device_manager,
+            "127.0.0.1",
+            56708,
         )
 
         header = LifxHeader(
@@ -430,7 +456,10 @@ class TestMultiDeviceScenarios:
     @pytest.mark.asyncio
     async def test_targeted_packet_to_one_device(self, color_device, infrared_device):
         """Test targeted packet only affects one device."""
-        server = EmulatedLifxServer([color_device, infrared_device], "127.0.0.1", 56709)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device, infrared_device], device_manager, "127.0.0.1", 56709
+        )
 
         # Target only color_device
         header = LifxHeader(
@@ -464,7 +493,8 @@ class TestSequenceHandling:
     @pytest.mark.asyncio
     async def test_response_preserves_sequence(self, color_device):
         """Test response packet has same sequence number as request."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56710)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56710)
 
         header = LifxHeader(
             source=12345,
@@ -490,7 +520,8 @@ class TestSequenceHandling:
     @pytest.mark.asyncio
     async def test_response_preserves_source(self, color_device):
         """Test response packet has same source as request."""
-        server = EmulatedLifxServer([color_device], "127.0.0.1", 56711)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56711)
 
         header = LifxHeader(
             source=99999,  # Specific source

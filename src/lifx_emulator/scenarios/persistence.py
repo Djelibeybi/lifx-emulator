@@ -1,45 +1,74 @@
-"""Persistence layer for scenario configurations.
+"""Async persistent storage for scenario configurations.
 
-This module provides JSON serialization and deserialization for scenarios,
-allowing them to persist across emulator restarts.
+This module provides async JSON serialization and deserialization for scenarios,
+allowing them to persist across emulator restarts without blocking the event loop.
 """
 
+from __future__ import annotations
+
+import asyncio
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from lifx_emulator.scenario_manager import HierarchicalScenarioManager, ScenarioConfig
+from lifx_emulator.scenarios.manager import HierarchicalScenarioManager, ScenarioConfig
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
 
-class ScenarioPersistence:
-    """Handles scenario persistence to disk.
 
+class ScenarioPersistenceAsyncFile:
+    """Async persistent storage for scenario configurations.
+
+    Non-blocking asynchronous I/O for scenario persistence.
     Scenarios are stored in JSON format at ~/.lifx-emulator/scenarios.json
     with separate sections for each scope level.
+
+    Features:
+    - Async I/O operations (no event loop blocking)
+    - Executor-based I/O for file operations
+    - Atomic writes (write to temp file, then rename)
+    - Graceful error handling and recovery
     """
 
-    def __init__(self, storage_path: Path | None = None):
-        """Initialize scenario persistence.
+    def __init__(self, storage_path: Path | str | None = None):
+        """Initialize async scenario persistence.
 
         Args:
             storage_path: Directory to store scenarios.json
                          Defaults to ~/.lifx-emulator
         """
         if storage_path is None:
-            storage_path = Path.home() / ".lifx-emulator"
+            storage_path = DEFAULT_STORAGE_DIR
 
         self.storage_path = Path(storage_path)
         self.scenario_file = self.storage_path / "scenarios.json"
 
-    def load(self) -> HierarchicalScenarioManager:
-        """Load scenarios from disk.
+        # Single-thread executor for serialized I/O operations
+        self.executor = ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix="scenario-io"
+        )
+
+        logger.debug("Async scenario storage initialized at %s", self.storage_path)
+
+    async def load(self) -> HierarchicalScenarioManager:
+        """Load scenarios from disk (async).
 
         Returns:
             HierarchicalScenarioManager with loaded scenarios.
             If file doesn't exist, returns empty manager.
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(self.executor, self._sync_load)
+
+    def _sync_load(self) -> HierarchicalScenarioManager:
+        """Synchronous load operation (runs in executor).
+
+        Returns:
+            HierarchicalScenarioManager with loaded scenarios
         """
         manager = HierarchicalScenarioManager()
 
@@ -53,12 +82,14 @@ class ScenarioPersistence:
 
             # Load global scenario
             if "global" in data and data["global"]:
-                manager.global_scenario = ScenarioConfig.from_dict(data["global"])
+                manager.global_scenario = ScenarioConfig.model_validate(data["global"])
                 logger.debug("Loaded global scenario")
 
             # Load device-specific scenarios
             for serial, config_data in data.get("devices", {}).items():
-                manager.device_scenarios[serial] = ScenarioConfig.from_dict(config_data)
+                manager.device_scenarios[serial] = ScenarioConfig.model_validate(
+                    config_data
+                )
             if manager.device_scenarios:
                 logger.debug(
                     "Loaded %s device scenario(s)", len(manager.device_scenarios)
@@ -66,7 +97,7 @@ class ScenarioPersistence:
 
             # Load type-specific scenarios
             for device_type, config_data in data.get("types", {}).items():
-                manager.type_scenarios[device_type] = ScenarioConfig.from_dict(
+                manager.type_scenarios[device_type] = ScenarioConfig.model_validate(
                     config_data
                 )
             if manager.type_scenarios:
@@ -74,7 +105,7 @@ class ScenarioPersistence:
 
             # Load location-specific scenarios
             for location, config_data in data.get("locations", {}).items():
-                manager.location_scenarios[location] = ScenarioConfig.from_dict(
+                manager.location_scenarios[location] = ScenarioConfig.model_validate(
                     config_data
                 )
             if manager.location_scenarios:
@@ -84,7 +115,9 @@ class ScenarioPersistence:
 
             # Load group-specific scenarios
             for group, config_data in data.get("groups", {}).items():
-                manager.group_scenarios[group] = ScenarioConfig.from_dict(config_data)
+                manager.group_scenarios[group] = ScenarioConfig.model_validate(
+                    config_data
+                )
             if manager.group_scenarios:
                 logger.debug(
                     "Loaded %s group scenario(s)", len(manager.group_scenarios)
@@ -100,8 +133,17 @@ class ScenarioPersistence:
             logger.error("Failed to load scenarios from %s: %s", self.scenario_file, e)
             return manager
 
-    def save(self, manager: HierarchicalScenarioManager) -> None:
-        """Save scenarios to disk.
+    async def save(self, manager: HierarchicalScenarioManager) -> None:
+        """Save scenarios to disk (async).
+
+        Args:
+            manager: HierarchicalScenarioManager to save
+        """
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(self.executor, self._sync_save, manager)
+
+    def _sync_save(self, manager: HierarchicalScenarioManager) -> None:
+        """Synchronous save operation (runs in executor).
 
         Args:
             manager: HierarchicalScenarioManager to save
@@ -156,8 +198,17 @@ class ScenarioPersistence:
             logger.error("Failed to save scenarios to %s: %s", self.scenario_file, e)
             raise
 
-    def delete(self) -> bool:
-        """Delete the scenario file.
+    async def delete(self) -> bool:
+        """Delete the scenario file (async).
+
+        Returns:
+            True if file was deleted, False if it didn't exist
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(self.executor, self._sync_delete)
+
+    def _sync_delete(self) -> bool:
+        """Synchronous delete operation (runs in executor).
 
         Returns:
             True if file was deleted, False if it didn't exist
@@ -172,35 +223,19 @@ class ScenarioPersistence:
                 raise
         return False
 
+    async def shutdown(self) -> None:
+        """Gracefully shutdown executor.
 
-def _deserialize_response_delays(data: dict[str, Any]) -> dict[int, float]:
-    """Convert string keys back to integers for response_delays.
+        This should be called before the application exits.
+        """
+        logger.info("Shutting down async scenario storage...")
 
-    JSON only supports string keys, so we convert them back to ints.
+        # Shutdown executor (non-blocking to avoid hanging on Windows)
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.executor.shutdown, True)
 
-    Args:
-        data: Dictionary with string keys
-
-    Returns:
-        Dictionary with integer keys
-    """
-    if not data:
-        return {}
-    return {int(k): v for k, v in data.items()}
+        logger.info("Async scenario storage shutdown complete")
 
 
-# Monkey-patch ScenarioConfig.from_dict to handle string keys
-_original_from_dict = ScenarioConfig.from_dict
-
-
-@classmethod
-def _from_dict_with_conversion(cls, data: dict[str, Any]) -> ScenarioConfig:
-    """Create from dictionary with int key conversion."""
-    # Convert response_delays string keys to ints
-    if "response_delays" in data and data["response_delays"]:
-        data = data.copy()
-        data["response_delays"] = _deserialize_response_delays(data["response_delays"])
-    return _original_from_dict(data)
-
-
-ScenarioConfig.from_dict = _from_dict_with_conversion  # type: ignore
+# Note: Pydantic's field_validators in ScenarioConfig handle string-to-int
+# key conversion automatically, so no additional deserialization logic is needed.

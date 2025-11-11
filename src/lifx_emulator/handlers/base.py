@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from lifx_emulator.device import DeviceState
+    from lifx_emulator.devices import DeviceState
 
 
 class PacketHandler(ABC):

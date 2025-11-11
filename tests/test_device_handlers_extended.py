@@ -165,17 +165,15 @@ class TestLabelHandlers:
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 25  # StateLabel
         assert isinstance(resp_packet, Device.StateLabel)
-        # Label is returned as bytes, padded to 32 bytes
         # Default label is auto-generated from product name and serial suffix
-        assert resp_packet.label.rstrip(b"\x00").decode("utf-8") == "LIFX Color 000001"
+        assert resp_packet.label == "LIFX Color 000001"
 
     def test_set_label_ascii(self, color_device):
         """Test SetLabel with ASCII string."""
         device = color_device
 
-        # SetLabel expects bytes, padded to 32 bytes
-        label_bytes = b"Living Room".ljust(32, b"\x00")
-        packet = Device.SetLabel(label=label_bytes)
+        # SetLabel expects a string
+        packet = Device.SetLabel(label="Living Room")
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),
@@ -192,8 +190,7 @@ class TestLabelHandlers:
         """Test SetLabel with Unicode characters."""
         device = color_device
 
-        label_bytes = "Café Light ☀".encode().ljust(32, b"\x00")
-        packet = Device.SetLabel(label=label_bytes)
+        packet = Device.SetLabel(label="Café Light ☀")
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),
@@ -211,8 +208,7 @@ class TestLabelHandlers:
         device = color_device
         device.state.label = "Original"
 
-        label_bytes = b"".ljust(32, b"\x00")
-        packet = Device.SetLabel(label=label_bytes)
+        packet = Device.SetLabel(label="")
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),
@@ -229,8 +225,7 @@ class TestLabelHandlers:
         """Test SetLabel with res_required returns StateLabel."""
         device = color_device
 
-        label_bytes = b"Test Label".ljust(32, b"\x00")
-        packet = Device.SetLabel(label=label_bytes)
+        packet = Device.SetLabel(label="Test Label")
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),
@@ -435,8 +430,8 @@ class TestLocationHandlers:
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 50  # StateLocation
         assert isinstance(resp_packet, Device.StateLocation)
-        # Label is returned as bytes, padded to 32 bytes (default "Test Location")
-        assert resp_packet.label.rstrip(b"\x00").decode("utf-8") == "Test Location"
+        # Default location label is "Test Location"
+        assert resp_packet.label == "Test Location"
 
     def test_set_location(self, color_device):
         """Test SetLocation updates location."""
@@ -445,9 +440,8 @@ class TestLocationHandlers:
         location_guid = (
             b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10"
         )
-        label_bytes = b"Home".ljust(32, b"\x00")
         packet = Device.SetLocation(
-            location=location_guid, label=label_bytes, updated_at=1234567890000000000
+            location=location_guid, label="Home", updated_at=1234567890000000000
         )
         header = LifxHeader(
             source=12345,
@@ -468,9 +462,8 @@ class TestLocationHandlers:
         device = color_device
 
         location_guid = b"\xff" * 16
-        label_bytes = b"Office".ljust(32, b"\x00")
         packet = Device.SetLocation(
-            location=location_guid, label=label_bytes, updated_at=9876543210000000000
+            location=location_guid, label="Office", updated_at=9876543210000000000
         )
         header = LifxHeader(
             source=12345,
@@ -487,17 +480,14 @@ class TestLocationHandlers:
 
         resp_header, resp_packet = state_location_responses[0]
         assert resp_packet.location == location_guid
-        assert resp_packet.label.rstrip(b"\x00").decode("utf-8") == "Office"
+        assert resp_packet.label == "Office"
 
     def test_set_location_empty_label(self, color_device):
         """Test SetLocation with empty label."""
         device = color_device
 
         location_guid = b"\x00" * 16
-        label_bytes = b"".ljust(32, b"\x00")
-        packet = Device.SetLocation(
-            location=location_guid, label=label_bytes, updated_at=0
-        )
+        packet = Device.SetLocation(location=location_guid, label="", updated_at=0)
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),
@@ -531,17 +521,16 @@ class TestGroupHandlers:
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 53  # StateGroup
         assert isinstance(resp_packet, Device.StateGroup)
-        # Label is returned as bytes, padded to 32 bytes (default "Test Group")
-        assert resp_packet.label.rstrip(b"\x00").decode("utf-8") == "Test Group"
+        # Default group label is "Test Group"
+        assert resp_packet.label == "Test Group"
 
     def test_set_group(self, color_device):
         """Test SetGroup updates group."""
         device = color_device
 
         group_guid = b"\xaa\xbb\xcc\xdd\xee\xff\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99"
-        label_bytes = b"Living Room".ljust(32, b"\x00")
         packet = Device.SetGroup(
-            group=group_guid, label=label_bytes, updated_at=5555555555000000000
+            group=group_guid, label="Living Room", updated_at=5555555555000000000
         )
         header = LifxHeader(
             source=12345,
@@ -562,9 +551,8 @@ class TestGroupHandlers:
         device = color_device
 
         group_guid = b"\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff\x00"
-        label_bytes = b"Bedroom".ljust(32, b"\x00")
         packet = Device.SetGroup(
-            group=group_guid, label=label_bytes, updated_at=7777777777000000000
+            group=group_guid, label="Bedroom", updated_at=7777777777000000000
         )
         header = LifxHeader(
             source=12345,
@@ -581,15 +569,18 @@ class TestGroupHandlers:
 
         resp_header, resp_packet = state_group_responses[0]
         assert resp_packet.group == group_guid
-        assert resp_packet.label.rstrip(b"\x00").decode("utf-8") == "Bedroom"
+        assert resp_packet.label == "Bedroom"
 
     def test_set_group_unicode_label(self, color_device):
         """Test SetGroup with Unicode label."""
         device = color_device
 
         group_guid = b"\x00" * 16
-        label_bytes = "Salle à manger 🍽".encode().ljust(32, b"\x00")  # codespell:ignore
-        packet = Device.SetGroup(group=group_guid, label=label_bytes, updated_at=0)
+        packet = Device.SetGroup(
+            group=group_guid,
+            label="Salle à manger 🍽",  # codespell:ignore
+            updated_at=0,
+        )
         header = LifxHeader(
             source=12345,
             target=device.state.get_target_bytes(),

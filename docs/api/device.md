@@ -148,7 +148,7 @@ Create a new emulated LIFX device.
 
 **Example:**
 ```python
-from lifx_emulator.device import DeviceState, EmulatedLifxDevice
+from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 
 # Create basic device
 state = DeviceState(serial="d073d5000001", product=27, label="Living Room")

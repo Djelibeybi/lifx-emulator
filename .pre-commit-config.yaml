@@ -50,7 +50,7 @@ repos:
   - id: ruff-format
     types_or: [python, pyi]
 
-      # Run the linter
+      # Run the linter with complexity checks (configured in pyproject.toml)
   - id: ruff
     types_or: [python, pyi]
     args: [--fix, --exit-non-zero-on-fix]

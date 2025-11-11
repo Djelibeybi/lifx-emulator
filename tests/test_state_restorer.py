@@ -1,5 +1,6 @@
 """Tests for state restoration."""
 
+from lifx_emulator.devices.state_restorer import NullStateRestorer, StateRestorer
 from lifx_emulator.factories import (
     create_color_light,
     create_hev_light,
@@ -8,7 +9,6 @@ from lifx_emulator.factories import (
     create_tile_device,
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
-from lifx_emulator.state_restorer import NullStateRestorer, StateRestorer
 
 
 class MockStorage:

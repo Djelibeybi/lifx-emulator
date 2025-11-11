@@ -17,6 +17,119 @@ import yaml
 from lifx_emulator.constants import PRODUCTS_URL
 
 
+def _build_capabilities(features: dict[str, Any]) -> list[str]:
+    """Build list of capability flags from product features.
+
+    Args:
+        features: Product features dictionary
+
+    Returns:
+        List of ProductCapability enum names
+    """
+    capabilities = []
+    if features.get("color"):
+        capabilities.append("ProductCapability.COLOR")
+    if features.get("infrared"):
+        capabilities.append("ProductCapability.INFRARED")
+    if features.get("multizone"):
+        capabilities.append("ProductCapability.MULTIZONE")
+    if features.get("chain"):
+        capabilities.append("ProductCapability.CHAIN")
+    if features.get("matrix"):
+        capabilities.append("ProductCapability.MATRIX")
+    if features.get("relays"):
+        capabilities.append("ProductCapability.RELAYS")
+    if features.get("buttons"):
+        capabilities.append("ProductCapability.BUTTONS")
+    if features.get("hev"):
+        capabilities.append("ProductCapability.HEV")
+    return capabilities
+
+
+def _check_extended_multizone(
+    product: dict[str, Any], features: dict[str, Any]
+) -> tuple[bool, int | None]:
+    """Check if product supports extended multizone and get minimum firmware.
+
+    Args:
+        product: Product dictionary with upgrades
+        features: Product features dictionary
+
+    Returns:
+        Tuple of (has_extended_multizone, min_firmware_version)
+    """
+    # First check if it's a native feature (no firmware requirement)
+    if features.get("extended_multizone"):
+        return True, None
+
+    # Check if it's available as an upgrade (requires minimum firmware)
+    for upgrade in product.get("upgrades", []):
+        if upgrade.get("features", {}).get("extended_multizone"):
+            # Parse firmware version (major.minor format)
+            major = upgrade.get("major", 0)
+            minor = upgrade.get("minor", 0)
+            min_ext_mz_firmware = (major << 16) | minor
+            return True, min_ext_mz_firmware
+
+    return False, None
+
+
+def _format_temperature_range(features: dict[str, Any]) -> str:
+    """Format temperature range as Python code.
+
+    Args:
+        features: Product features dictionary
+
+    Returns:
+        Temperature range expression as string
+    """
+    if "temperature_range" not in features:
+        return "None"
+
+    temp_list = features["temperature_range"]
+    if len(temp_list) >= 2:
+        return f"TemperatureRange(min={temp_list[0]}, max={temp_list[1]})"
+
+    return "None"
+
+
+def _generate_product_code(
+    pid: int,
+    name: str,
+    vendor_id: int,
+    capabilities_expr: str,
+    temp_range_expr: str,
+    min_ext_mz_firmware: int | None,
+) -> list[str]:
+    """Generate Python code lines for a single ProductInfo instance.
+
+    Args:
+        pid: Product ID
+        name: Product name
+        vendor_id: Vendor ID
+        capabilities_expr: Capabilities bitfield expression
+        temp_range_expr: Temperature range expression
+        min_ext_mz_firmware: Minimum firmware for extended multizone
+
+    Returns:
+        List of code lines
+    """
+    min_ext_mz_firmware_expr = (
+        str(min_ext_mz_firmware) if min_ext_mz_firmware is not None else "None"
+    )
+
+    return [
+        f"    {pid}: ProductInfo(",
+        f"        pid={pid},",
+        f"        name={repr(name)},",
+        f"        vendor={vendor_id},",
+        f"        capabilities={capabilities_expr},",
+        f"        temperature_range={temp_range_expr},",
+        f"        min_ext_mz_firmware={min_ext_mz_firmware_expr},",
+        "    ),",
+    ]
+
+
 def download_products() -> dict[str, Any] | list[dict[str, Any]]:
     """Download and parse products.json from LIFX GitHub repository.
 
@@ -52,10 +165,8 @@ def generate_product_definitions(
     # Handle both array and object formats
     all_vendors = []
     if isinstance(products_data, list):
-        # Array format - multiple vendors
         all_vendors = products_data
     else:
-        # Object format - single vendor
         all_vendors = [products_data]
 
     # Generate product definitions
@@ -63,10 +174,9 @@ def generate_product_definitions(
     code_lines.append("PRODUCTS: dict[int, ProductInfo] = {")
 
     product_count = 0
+    skipped_count = 0
     for vendor_data in all_vendors:
         vendor_id = vendor_data.get("vid", 1)
-
-        # Get default features
         defaults = vendor_data.get("defaults", {})
         default_features = defaults.get("features", {})
 
@@ -74,84 +184,47 @@ def generate_product_definitions(
         for product in vendor_data.get("products", []):
             pid = product["pid"]
             name = product["name"]
-
-            # Merge features with defaults
             features = {**default_features, **product.get("features", {})}
 
-            # Build capabilities bitfield
-            capabilities = []
-            if features.get("color"):
-                capabilities.append("ProductCapability.COLOR")
-            if features.get("infrared"):
-                capabilities.append("ProductCapability.INFRARED")
-            if features.get("multizone"):
-                capabilities.append("ProductCapability.MULTIZONE")
-            if features.get("chain"):
-                capabilities.append("ProductCapability.CHAIN")
-            if features.get("matrix"):
-                capabilities.append("ProductCapability.MATRIX")
+            # Skip switch products (devices with relays) - these are not lights
             if features.get("relays"):
-                capabilities.append("ProductCapability.RELAYS")
-            if features.get("buttons"):
-                capabilities.append("ProductCapability.BUTTONS")
-            if features.get("hev"):
-                capabilities.append("ProductCapability.HEV")
+                skipped_count += 1
+                continue
 
-            # Check for extended multizone capability
-            min_ext_mz_firmware = None
+            # Build capabilities
+            capabilities = _build_capabilities(features)
 
-            # First check if it's a native feature (no firmware requirement)
-            if features.get("extended_multizone"):
+            # Check for extended multizone
+            has_ext_mz, min_ext_mz_firmware = _check_extended_multizone(
+                product, features
+            )
+            if has_ext_mz:
                 capabilities.append("ProductCapability.EXTENDED_MULTIZONE")
-            else:
-                # Check if it's available as an upgrade (requires minimum firmware)
-                for upgrade in product.get("upgrades", []):
-                    if upgrade.get("features", {}).get("extended_multizone"):
-                        capabilities.append("ProductCapability.EXTENDED_MULTIZONE")
-                        # Parse firmware version (major.minor format)
-                        major = upgrade.get("major", 0)
-                        minor = upgrade.get("minor", 0)
-                        min_ext_mz_firmware = (major << 16) | minor
-                        break
 
             # Build capabilities expression
-            if capabilities:
-                capabilities_expr = " | ".join(capabilities)
-            else:
-                capabilities_expr = "0"
+            capabilities_expr = " | ".join(capabilities) if capabilities else "0"
 
-            # Parse temperature range
-            temp_range_expr = "None"
-            if "temperature_range" in features:
-                temp_list = features["temperature_range"]
-                if len(temp_list) >= 2:
-                    temp_range_expr = (
-                        f"TemperatureRange(min={temp_list[0]}, max={temp_list[1]})"
-                    )
+            # Format temperature range
+            temp_range_expr = _format_temperature_range(features)
 
-            # Format firmware version
-            min_ext_mz_firmware_expr = (
-                str(min_ext_mz_firmware) if min_ext_mz_firmware is not None else "None"
+            # Generate code for this product
+            product_code = _generate_product_code(
+                pid,
+                name,
+                vendor_id,
+                capabilities_expr,
+                temp_range_expr,
+                min_ext_mz_firmware,
             )
-
-            # Generate ProductInfo instantiation
-            code_lines.append(f"    {pid}: ProductInfo(")
-            code_lines.append(f"        pid={pid},")
-            code_lines.append(f"        name={repr(name)},")
-            code_lines.append(f"        vendor={vendor_id},")
-            code_lines.append(f"        capabilities={capabilities_expr},")
-            code_lines.append(f"        temperature_range={temp_range_expr},")
-            code_lines.append(
-                f"        min_ext_mz_firmware={min_ext_mz_firmware_expr},"
-            )
-            code_lines.append("    ),")
-
+            code_lines.extend(product_code)
             product_count += 1
 
     code_lines.append("}")
     code_lines.append("")
 
     print(f"Generated {product_count} product definitions")
+    if skipped_count > 0:
+        print(f"Skipped {skipped_count} switch products (relays only)")
     return "\n".join(code_lines)
 
 
@@ -177,6 +250,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
+from functools import cached_property
 
 
 class ProductCapability(IntEnum):
@@ -294,6 +368,53 @@ class ProductInfo:
             return True
         return firmware_version >= self.min_ext_mz_firmware
 
+    @cached_property
+    def caps(self) -> str:
+        """Format product capabilities as a human-readable string.
+
+        Returns:
+            Comma-separated capability string (e.g., "full color, infrared, multizone")
+        """
+        caps = []
+
+        # Determine base light type
+        if self.has_relays:
+            # Devices with relays are switches, not lights
+            caps.append("switch")
+        elif self.has_color:
+            caps.append("full color")
+        else:
+            # Check temperature range to determine white light type
+            if self.temperature_range:
+                if self.temperature_range.min != self.temperature_range.max:
+                    caps.append("color temperature")
+                else:
+                    caps.append("brightness only")
+            else:
+                # No temperature range info, assume basic brightness
+                caps.append("brightness only")
+
+        # Add additional capabilities
+        if self.has_infrared:
+            caps.append("infrared")
+        # Extended multizone is backwards compatible with multizone,
+        # so only show multizone if extended multizone is not present
+        if self.has_extended_multizone:
+            caps.append("extended-multizone")
+        elif self.has_multizone:
+            caps.append("multizone")
+        if self.has_matrix:
+            caps.append("matrix")
+        if self.has_hev:
+            caps.append("HEV")
+        if self.has_chain:
+            caps.append("chain")
+        if self.has_buttons and not self.has_relays:
+            # Only show buttons if not already identified as switch
+            caps.append("buttons")
+
+        return ", ".join(caps) if caps else "unknown"
+
 
 '''
 
@@ -343,6 +464,10 @@ class ProductRegistry:
                 # Merge features with defaults
                 prod_features = product.get("features", {})
                 features: dict[str, Any] = {**default_features, **prod_features}
+
+                # Skip switch products (devices with relays) - these are not lights
+                if features.get("relays"):
+                    continue
 
                 # Build capabilities bitfield
                 capabilities = 0
@@ -518,32 +643,45 @@ def get_device_class_name(pid: int, firmware_version: int | None = None) -> str:
     return header + products_code + helper_functions
 
 
-def update_specs_file(
-    products_data: dict[str, Any] | list[dict[str, Any]], specs_path: Path
-) -> None:
-    """Update specs.yml with templates for new products and sort all entries by PID.
+def _load_existing_specs(specs_path: Path) -> dict[int, dict[str, Any]]:
+    """Load existing specs from YAML file.
+
+    Args:
+        specs_path: Path to specs.yml file
+
+    Returns:
+        Dictionary of product specs keyed by PID
+    """
+    if not specs_path.exists():
+        return {}
+
+    with open(specs_path) as f:
+        specs_data = yaml.safe_load(f)
+        if specs_data and "products" in specs_data:
+            return specs_data["products"]
+
+    return {}
+
+
+def _discover_new_products(
+    products_data: dict[str, Any] | list[dict[str, Any]],
+    existing_specs: dict[int, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Find new multizone or matrix products that need specs templates.
 
     Args:
         products_data: Parsed products.json data
-        specs_path: Path to specs.yml file
-    """
-    # Load existing specs
-    existing_specs = {}
-    if specs_path.exists():
-        with open(specs_path) as f:
-            specs_data = yaml.safe_load(f)
-            if specs_data and "products" in specs_data:
-                existing_specs = specs_data["products"]
+        existing_specs: Existing product specs
 
-    # Extract all product IDs from products.json
-    all_product_ids = set()
+    Returns:
+        List of new product dictionaries with metadata
+    """
     all_vendors = []
     if isinstance(products_data, list):
         all_vendors = products_data
     else:
         all_vendors = [products_data]
 
-    # Collect all products with their features for template generation
     new_products = []
     for vendor_data in all_vendors:
         defaults = vendor_data.get("defaults", {})
@@ -551,46 +689,46 @@ def update_specs_file(
 
         for product in vendor_data.get("products", []):
             pid = product["pid"]
-            all_product_ids.add(pid)
+            features = {**default_features, **product.get("features", {})}
+
+            # Skip switch products (devices with relays) - these are not lights
+            if features.get("relays"):
+                continue
 
             # Check if this product needs specs template
             if pid not in existing_specs:
-                features = {**default_features, **product.get("features", {})}
-
-                # Determine if this product needs specs
                 is_multizone = features.get("multizone", False)
                 is_matrix = features.get("matrix", False)
 
                 if is_multizone or is_matrix:
-                    new_products.append(
-                        {
-                            "pid": pid,
-                            "name": product["name"],
-                            "multizone": is_multizone,
-                            "matrix": is_matrix,
-                            "extended_multizone": False,  # Will check upgrades
-                        }
-                    )
+                    new_product = {
+                        "pid": pid,
+                        "name": product["name"],
+                        "multizone": is_multizone,
+                        "matrix": is_matrix,
+                        "extended_multizone": False,
+                    }
 
                     # Check for extended multizone in upgrades
                     for upgrade in product.get("upgrades", []):
                         if upgrade.get("features", {}).get("extended_multizone"):
-                            new_products[-1]["extended_multizone"] = True
+                            new_product["extended_multizone"] = True
                             break
 
-    if not new_products:
-        print("No new multizone or matrix products found - specs.yml is up to date")
-        # Still need to sort existing entries
-        if existing_specs:
-            print("Sorting existing specs entries by product ID...")
-        else:
-            return
-    else:
-        print(f"\nFound {len(new_products)} new products that need specs:")
-        for product in new_products:
-            print(f"  PID {product['pid']:>3}: {product['name']}")
+                    new_products.append(new_product)
 
-    # Add new products to existing specs with placeholder values
+    return new_products
+
+
+def _add_product_templates(
+    new_products: list[dict[str, Any]], existing_specs: dict[int, dict[str, Any]]
+) -> None:
+    """Add templates for new products to existing specs.
+
+    Args:
+        new_products: List of new product dictionaries
+        existing_specs: Existing product specs (modified in place)
+    """
     for product in new_products:
         product_name = product["name"].replace('"', '\\"')
 
@@ -611,8 +749,18 @@ def update_specs_file(
                 "notes": product_name,
             }
 
-    # Now regenerate the entire file with sorted entries
-    # Separate multizone and matrix products
+
+def _categorize_products(
+    existing_specs: dict[int, dict[str, Any]],
+) -> tuple[list[int], list[int]]:
+    """Categorize products into multizone and matrix.
+
+    Args:
+        existing_specs: Product specs dictionary
+
+    Returns:
+        Tuple of (sorted_multizone_pids, sorted_matrix_pids)
+    """
     multizone_pids = []
     matrix_pids = []
 
@@ -625,8 +773,16 @@ def update_specs_file(
     multizone_pids.sort()
     matrix_pids.sort()
 
-    # Build the new YAML content
-    lines = [
+    return multizone_pids, matrix_pids
+
+
+def _generate_yaml_header() -> list[str]:
+    """Generate YAML file header with documentation.
+
+    Returns:
+        List of header lines
+    """
+    return [
         "# LIFX Product Specs and Defaults",
         "# =================================",
         "#",
@@ -659,72 +815,135 @@ def update_specs_file(
         "products:",
     ]
 
-    # Add multizone section
-    if multizone_pids:
-        lines.extend(
-            [
-                "  # ========================================",
-                "  # Multizone Products (Linear Strips)",
-                "  # ========================================",
-                "",
-            ]
-        )
 
-        for pid in multizone_pids:
-            specs = existing_specs[pid]
-            # Get product name from comment or notes
-            name = specs.get("notes", f"Product {pid}").split(" - ")[0]
+def _generate_multizone_section(
+    multizone_pids: list[int], existing_specs: dict[int, dict[str, Any]]
+) -> list[str]:
+    """Generate YAML lines for multizone products section.
 
-            lines.append(f"  {pid}:  # {name}")
-            lines.append(f"    default_zone_count: {specs['default_zone_count']}")
-            lines.append(f"    min_zone_count: {specs['min_zone_count']}")
-            lines.append(f"    max_zone_count: {specs['max_zone_count']}")
+    Args:
+        multizone_pids: Sorted list of multizone product IDs
+        existing_specs: Product specs dictionary
 
-            notes = specs.get("notes", "")
-            if notes:
-                # Escape quotes in notes
-                notes_escaped = notes.replace('"', '\\"')
-                lines.append(f'    notes: "{notes_escaped}"')
-            lines.append("")
+    Returns:
+        List of YAML lines
+    """
+    if not multizone_pids:
+        return []
 
-    # Add matrix section
-    if matrix_pids:
-        lines.extend(
-            [
-                "  # ========================================",
-                "  # Matrix Products (Tiles, Candles, etc.)",
-                "  # ========================================",
-                "",
-            ]
-        )
+    lines = [
+        "  # ========================================",
+        "  # Multizone Products (Linear Strips)",
+        "  # ========================================",
+        "",
+    ]
 
-        for pid in matrix_pids:
-            specs = existing_specs[pid]
-            # Get product name from notes
-            name = specs.get("notes", f"Product {pid}").split(" - ")[0]
+    for pid in multizone_pids:
+        specs = existing_specs[pid]
+        name = specs.get("notes", f"Product {pid}").split(" - ")[0]
 
-            lines.append(f"  {pid}:  # {name}")
-            lines.append(f"    default_tile_count: {specs['default_tile_count']}")
-            lines.append(f"    min_tile_count: {specs['min_tile_count']}")
-            lines.append(f"    max_tile_count: {specs['max_tile_count']}")
-            lines.append(f"    tile_width: {specs['tile_width']}")
-            lines.append(f"    tile_height: {specs['tile_height']}")
+        lines.append(f"  {pid}:  # {name}")
+        lines.append(f"    default_zone_count: {specs['default_zone_count']}")
+        lines.append(f"    min_zone_count: {specs['min_zone_count']}")
+        lines.append(f"    max_zone_count: {specs['max_zone_count']}")
 
-            notes = specs.get("notes", "")
-            if notes:
-                # Escape quotes in notes
-                notes_escaped = notes.replace('"', '\\"')
-                lines.append(f'    notes: "{notes_escaped}"')
-            lines.append("")
+        notes = specs.get("notes", "")
+        if notes:
+            notes_escaped = notes.replace('"', '\\"')
+            lines.append(f'    notes: "{notes_escaped}"')
+        lines.append("")
+
+    return lines
+
+
+def _generate_matrix_section(
+    matrix_pids: list[int], existing_specs: dict[int, dict[str, Any]]
+) -> list[str]:
+    """Generate YAML lines for matrix products section.
+
+    Args:
+        matrix_pids: Sorted list of matrix product IDs
+        existing_specs: Product specs dictionary
+
+    Returns:
+        List of YAML lines
+    """
+    if not matrix_pids:
+        return []
+
+    lines = [
+        "  # ========================================",
+        "  # Matrix Products (Tiles, Candles, etc.)",
+        "  # ========================================",
+        "",
+    ]
+
+    for pid in matrix_pids:
+        specs = existing_specs[pid]
+        name = specs.get("notes", f"Product {pid}").split(" - ")[0]
+
+        lines.append(f"  {pid}:  # {name}")
+        lines.append(f"    default_tile_count: {specs['default_tile_count']}")
+        lines.append(f"    min_tile_count: {specs['min_tile_count']}")
+        lines.append(f"    max_tile_count: {specs['max_tile_count']}")
+        lines.append(f"    tile_width: {specs['tile_width']}")
+        lines.append(f"    tile_height: {specs['tile_height']}")
+
+        notes = specs.get("notes", "")
+        if notes:
+            notes_escaped = notes.replace('"', '\\"')
+            lines.append(f'    notes: "{notes_escaped}"')
+        lines.append("")
+
+    return lines
+
+
+def update_specs_file(
+    products_data: dict[str, Any] | list[dict[str, Any]], specs_path: Path
+) -> None:
+    """Update specs.yml with templates for new products and sort all entries by PID.
+
+    Args:
+        products_data: Parsed products.json data
+        specs_path: Path to specs.yml file
+    """
+    # Load existing specs
+    existing_specs = _load_existing_specs(specs_path)
+
+    # Find new products that need specs
+    new_products = _discover_new_products(products_data, existing_specs)
+
+    # Print status
+    if not new_products:
+        print("No new multizone or matrix products found - specs.yml is up to date")
+        if existing_specs:
+            print("Sorting existing specs entries by product ID...")
+        else:
+            return
+    else:
+        print(f"\nFound {len(new_products)} new products that need specs:")
+        for product in new_products:
+            print(f"  PID {product['pid']:>3}: {product['name']}")
+
+    # Add templates for new products
+    _add_product_templates(new_products, existing_specs)
+
+    # Categorize products and sort
+    multizone_pids, matrix_pids = _categorize_products(existing_specs)
+
+    # Build YAML content
+    lines = _generate_yaml_header()
+    lines.extend(_generate_multizone_section(multizone_pids, existing_specs))
+    lines.extend(_generate_matrix_section(matrix_pids, existing_specs))
 
     # Write the new file
     with open(specs_path, "w") as f:
         f.write("\n".join(lines))
 
+    # Print completion message
     if new_products:
-        num_products = len(new_products)
         print(
-            f"\n✓ Added {num_products} new product templates "
+            f"\n✓ Added {len(new_products)} new product templates "
             f"and sorted all entries by PID"
         )
         print(

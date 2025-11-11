@@ -137,7 +137,7 @@ class Packet:
 
             # Unpack field value
             value, current_offset = cls._unpack_field_value(
-                data, field_type, size_bytes, current_offset
+                data, field_type, size_bytes, current_offset, field_name
             )
             field_values[field_name] = value
 
@@ -195,7 +195,10 @@ class Packet:
                     result += item.pack()
                 return result
             elif base_type in ("uint8", "byte"):
-                # Byte array
+                # Check if value is a string (Label fields)
+                if isinstance(value, str):
+                    return serializer.pack_string(value, size_bytes)
+                # Regular byte array
                 return serializer.pack_bytes(value, size_bytes)
             else:
                 # Array of primitives
@@ -211,11 +214,105 @@ class Packet:
             return serializer.pack_value(value, base_type)
 
     @classmethod
-    def _unpack_field_value(
-        cls, data: bytes, field_type: str, size_bytes: int, offset: int
+    def _unpack_array_field(
+        cls,
+        data: bytes,
+        base_type: str,
+        array_count: int,
+        size_bytes: int,
+        offset: int,
+        field_name: str,
+        is_nested: bool,
+        enum_types: dict,
     ) -> tuple[Any, int]:
-        """Unpack a single field value based on its type."""
+        """Unpack an array field value."""
         from lifx_emulator.protocol import serializer
+
+        is_enum = is_nested and base_type in enum_types
+
+        if is_enum:
+            result = []
+            current_offset = offset
+            enum_class = enum_types[base_type]
+            for _ in range(array_count):
+                item_raw, current_offset = serializer.unpack_value(
+                    data, "uint8", current_offset
+                )
+                result.append(enum_class(item_raw))
+            return result, current_offset
+        elif is_nested:
+            from lifx_emulator.protocol import protocol_types
+
+            struct_class = getattr(protocol_types, base_type)
+            result = []
+            current_offset = offset
+            for _ in range(array_count):
+                if issubclass(struct_class, cls):
+                    item, current_offset = struct_class._unpack_internal(
+                        data, current_offset
+                    )
+                else:
+                    item_result = struct_class.unpack(data, current_offset)
+                    item, current_offset = item_result  # type: ignore[misc]
+                result.append(item)
+            return result, current_offset
+        elif base_type in ("uint8", "byte"):
+            if field_name.lower().endswith("label"):
+                return serializer.unpack_string(data, size_bytes, offset)
+            return serializer.unpack_bytes(data, size_bytes, offset)
+        else:
+            return serializer.unpack_array(data, base_type, array_count, offset)
+
+    @classmethod
+    def _unpack_single_field(
+        cls,
+        data: bytes,
+        base_type: str,
+        offset: int,
+        is_nested: bool,
+        enum_types: dict,
+    ) -> tuple[Any, int]:
+        """Unpack a non-array field value."""
+        from lifx_emulator.protocol import serializer
+
+        is_enum = is_nested and base_type in enum_types
+
+        if is_enum:
+            enum_class = enum_types[base_type]
+            value_raw, new_offset = serializer.unpack_value(data, "uint8", offset)
+            return enum_class(value_raw), new_offset
+        elif is_nested:
+            from lifx_emulator.protocol import protocol_types
+
+            struct_class = getattr(protocol_types, base_type)
+            if issubclass(struct_class, cls):
+                return struct_class._unpack_internal(data, offset)
+            else:
+                return struct_class.unpack(data, offset)
+        else:
+            return serializer.unpack_value(data, base_type, offset)
+
+    @classmethod
+    def _unpack_field_value(
+        cls,
+        data: bytes,
+        field_type: str,
+        size_bytes: int,
+        offset: int,
+        field_name: str = "",
+    ) -> tuple[Any, int]:
+        """Unpack a single field value based on its type.
+
+        Args:
+            data: Bytes to unpack from
+            field_type: Protocol field type string
+            size_bytes: Size in bytes
+            offset: Offset in bytes
+            field_name: Optional field name for semantic type detection
+
+        Returns:
+            Tuple of (value, new_offset)
+        """
         from lifx_emulator.protocol.protocol_types import (
             DeviceService,
             LightLastHevCycleResult,
@@ -225,10 +322,8 @@ class Packet:
             MultiZoneExtendedApplicationRequest,
         )
 
-        # Parse field type
         base_type, array_count, is_nested = cls._parse_field_type(field_type)
 
-        # Check if it's an enum (Button/Relay enums excluded)
         enum_types = {
             "DeviceService": DeviceService,
             "LightLastHevCycleResult": LightLastHevCycleResult,
@@ -237,63 +332,22 @@ class Packet:
             "MultiZoneEffectType": MultiZoneEffectType,
             "MultiZoneExtendedApplicationRequest": MultiZoneExtendedApplicationRequest,
         }
-        is_enum = is_nested and base_type in enum_types
 
-        # Handle different field types
         if array_count:
-            if is_enum:
-                # Array of enums
-                result = []
-                current_offset = offset
-                enum_class = enum_types[base_type]
-                for _ in range(array_count):
-                    item_raw, current_offset = serializer.unpack_value(
-                        data, "uint8", current_offset
-                    )
-                    result.append(enum_class(item_raw))
-                return result, current_offset
-            elif is_nested:
-                # Array of nested structures - need to import dynamically
-                from lifx_emulator.protocol import protocol_types
-
-                struct_class = getattr(protocol_types, base_type)
-                result = []
-                current_offset = offset
-                for _ in range(array_count):
-                    # Check if it's a Packet subclass or protocol_types class
-                    if issubclass(struct_class, cls):
-                        item, current_offset = struct_class._unpack_internal(
-                            data, current_offset
-                        )
-                    else:
-                        item_result = struct_class.unpack(data, current_offset)
-                        item, current_offset = item_result  # type: ignore[misc]
-                    result.append(item)
-                return result, current_offset
-            elif base_type in ("uint8", "byte"):
-                # Byte array
-                return serializer.unpack_bytes(data, size_bytes, offset)
-            else:
-                # Array of primitives
-                return serializer.unpack_array(data, base_type, array_count, offset)
-        elif is_enum:
-            # Single enum
-            enum_class = enum_types[base_type]
-            value_raw, new_offset = serializer.unpack_value(data, "uint8", offset)
-            return enum_class(value_raw), new_offset
-        elif is_nested:
-            # Nested structure - import dynamically
-            from lifx_emulator.protocol import protocol_types
-
-            struct_class = getattr(protocol_types, base_type)
-            # Check if it's a Packet subclass or protocol_types class
-            if issubclass(struct_class, cls):
-                return struct_class._unpack_internal(data, offset)
-            else:
-                return struct_class.unpack(data, offset)
+            return cls._unpack_array_field(
+                data,
+                base_type,
+                array_count,
+                size_bytes,
+                offset,
+                field_name,
+                is_nested,
+                enum_types,
+            )
         else:
-            # Primitive type
-            return serializer.unpack_value(data, base_type, offset)
+            return cls._unpack_single_field(
+                data, base_type, offset, is_nested, enum_types
+            )
 
     @staticmethod
     def _parse_field_type(field_type: str) -> tuple[str, int | None, bool]:

@@ -211,7 +211,7 @@ Combine persistent storage with test scenarios:
 ```python
 from lifx_emulator import create_color_light
 from lifx_emulator.async_storage import AsyncDeviceStorage
-from lifx_emulator.scenario_manager import ScenarioConfig
+from lifx_emulator.scenarios.manager import ScenarioConfig
 
 storage = AsyncDeviceStorage()
 device = create_color_light("d073d5000001", storage=storage)

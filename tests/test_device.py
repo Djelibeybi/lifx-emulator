@@ -108,12 +108,11 @@ class TestDevicePacketHandlers:
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 25
         assert isinstance(resp_packet, Device.StateLabel)
-        label = resp_packet.label.rstrip(b"\x00").decode("utf-8")
-        assert label == color_device.state.label
+        assert resp_packet.label == color_device.state.label
 
     def test_set_label_handler(self, color_device):
         """Test DeviceSetLabel (24) updates device label."""
-        new_label = b"New Label".ljust(32, b"\x00")
+        new_label = "New Label"
         packet = Device.SetLabel(label=new_label)
         header = LifxHeader(
             source=12345,

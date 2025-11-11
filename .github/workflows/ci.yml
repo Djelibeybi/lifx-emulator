@@ -36,7 +36,7 @@ jobs:
     - name: Run Ruff format check
       run: uv run ruff format --check .
 
-    - name: Run Ruff linter
+    - name: Run Ruff linter (with complexity checks)
       run: uv run ruff check .
 
     - name: Run Pyright type checker
@@ -74,8 +74,8 @@ jobs:
     - name: Install dependencies
       run: uv sync --frozen
 
-    - name: Run unit tests
-      run: uv run --frozen pytest
+    - name: Run unit tests with coverage threshold
+      run: uv run --frozen pytest --cov-fail-under=80
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'

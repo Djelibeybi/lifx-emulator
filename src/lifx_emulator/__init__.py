@@ -6,7 +6,7 @@ Implements the binary UDP protocol documented at https://lan.developer.lifx.com
 
 from importlib.metadata import version as get_version
 
-from lifx_emulator.device import EmulatedLifxDevice
+from lifx_emulator.devices import EmulatedLifxDevice
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
