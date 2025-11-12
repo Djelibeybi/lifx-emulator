@@ -4,7 +4,6 @@ import asyncio
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from lifx_emulator.__main__ import (
     _format_capabilities,
     _setup_logging,

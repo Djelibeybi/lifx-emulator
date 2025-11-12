@@ -7,7 +7,6 @@ import sys
 from contextlib import contextmanager
 
 import pytest
-
 from lifx_emulator.api import create_api_app
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import (

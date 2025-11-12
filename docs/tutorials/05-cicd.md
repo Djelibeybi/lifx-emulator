@@ -53,12 +53,29 @@ jobs:
 
 ### With Explicit Emulator Installation
 
-If the emulator is a separate dependency:
+If the emulator is a separate dependency (library only):
 
 ```yaml
     - name: Install LIFX Emulator
       run: |
         pip install lifx-emulator
+
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v --tb=short
+```
+
+For CLI features in CI:
+
+```yaml
+    - name: Install LIFX Emulator CLI
+      run: |
+        pip install lifx-emulator-cli
+
+    - name: Start emulator in background
+      run: |
+        lifx-emulator --color 3 &
+        sleep 2  # Wait for server to start
 
     - name: Run integration tests
       run: |

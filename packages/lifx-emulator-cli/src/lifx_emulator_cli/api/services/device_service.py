@@ -13,9 +13,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator.api.mappers import DeviceMapper
-from lifx_emulator.api.models import DeviceCreateRequest, DeviceInfo
 from lifx_emulator.factories import create_device
+
+from lifx_emulator_cli.api.mappers import DeviceMapper
+from lifx_emulator_cli.api.models import DeviceCreateRequest, DeviceInfo
 
 logger = logging.getLogger(__name__)
 
