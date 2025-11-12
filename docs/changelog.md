@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v2.0.0 (2025-11-12)
+
+### Documentation
+
+- Restructure docs to improve logical flow
+  ([`3b412c0`](https://github.com/Djelibeybi/lifx-emulator/commit/3b412c00ddde0b4ee6218c0a37a098f5ff123c2e))
+
+### Refactoring
+
+- Implement layered architecture with repository pattern and modular organization
+  ([`53bf62e`](https://github.com/Djelibeybi/lifx-emulator/commit/53bf62ed36871f147ae1f6ff1dfdef95c556a8b8))
+
+### Breaking Changes
+
+- `EmulatedLifxServer` now requires `DeviceManager` as second parameter instead of
+  `DeviceRepository`
+
+
 ## v1.0.2 (2025-11-10)
 
 ### Bug Fixes
