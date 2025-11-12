@@ -51,6 +51,7 @@ dev = [
     "mkdocs-material>=9.6.0",
     "mkdocstrings[python]>=0.27.0",
     "mkdocs-git-revision-date-localized-plugin>=1.4.0",
+    "mkdocs-llmstxt>=0.3.0",
 ]
 
 [build-system]

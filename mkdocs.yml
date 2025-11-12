@@ -49,6 +49,57 @@ theme:
 plugins:
 - search:
     lang: en
+- llmstxt:
+    markdown_description: |
+      A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
+
+      This emulator implements the binary UDP protocol from https://lan.developer.lifx.com
+      and emulates various LIFX device types including color lights, multizone strips,
+      tiles, infrared, and HEV devices. It provides a complete testing environment with
+      persistent storage, HTTP management API, and advanced scenario testing capabilities
+      for simulating protocol edge cases, packet loss, delays, and malformed responses.
+    full_output: llms-full.txt
+    sections:
+      Getting Started:
+      - getting-started/index.md: Overview of getting started with the emulator
+      - getting-started/installation.md: Installation instructions
+      - getting-started/quickstart.md: Quick start guide
+      - getting-started/cli.md: Command-line interface usage
+      Tutorials:
+      - tutorials/index.md: Tutorial overview
+      - tutorials/01-first-device.md: Creating your first emulated device
+      - tutorials/02-basic.md: Basic usage patterns
+      - tutorials/03-integration.md: Integration testing
+      - tutorials/04-advanced-scenarios.md: Advanced testing scenarios
+      - tutorials/05-cicd.md: CI/CD integration
+      User Guide:
+      - guide/index.md: User guide overview
+      - guide/device-types.md: Available device types
+      - guide/products-and-specs.md: Product registry and specifications
+      - guide/web-interface.md: HTTP management API and web interface
+      - guide/testing-scenarios.md: Testing scenario capabilities
+      - guide/best-practices.md: Best practices
+      - guide/integration-testing.md: Advanced testing patterns
+      API Reference:
+      - api/index.md: API reference overview
+      - api/factories.md: Device factory functions
+      - api/device.md: Device API
+      - api/server.md: Server API
+      - api/protocol.md: Protocol types
+      - api/storage.md: Storage and persistence
+      - api/products.md: Product registry
+      Advanced Topics:
+      - advanced/index.md: Advanced topics overview
+      - advanced/storage.md: Persistent storage
+      - advanced/device-management-api.md: Device management API
+      - advanced/scenarios.md: Custom scenarios
+      - advanced/scenario-api.md: Scenario management API
+      Architecture:
+      - architecture/index.md: Architecture overview
+      - architecture/overview.md: System architecture
+      - architecture/packet-flow.md: Packet flow and processing
+      - architecture/protocol.md: Protocol layer details
+      - architecture/device-state.md: Device state management
 - mkdocstrings:
     handlers:
       python:
