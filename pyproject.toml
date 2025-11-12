@@ -1,41 +1,9 @@
-[project]
-name = "lifx-emulator"
-version = "2.0.0"
-description = "LIFX Emulator for testing LIFX LAN protocol libraries"
-readme = "README.md"
-requires-python = ">=3.11"
-dependencies = [
-    "cyclopts>=4.2.0",
-    "fastapi>=0.115.0",
-    "pyyaml>=6.0.3",
-    "rich>=14.2.0",
-    "uvicorn>=0.34.0",
-]
-license = "UPL-1.0"
-license-files = ["LICENSE"]
-authors = [
-    {name = "Avi Miller", email = "me@dje.li"}
-]
-maintainers = [
-    {name = "Avi Miller", email = "me@dje.li"}
-]
-classifiers = [
-    "Framework :: AsyncIO",
-    "Framework :: Pytest",
-    "Intended Audience :: Developers",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Typing :: Typed"
-]
+# Workspace root configuration
+[tool.uv.workspace]
+members = ["packages/*"]
 
-[project.scripts]
-lifx-emulator = "lifx_emulator.__main__:main"
+[tool.uv.sources]
+lifx-emulator = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -53,13 +21,6 @@ dev = [
     "mkdocs-git-revision-date-localized-plugin>=1.4.0",
     "mkdocs-llmstxt>=0.3.0",
 ]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/lifx_emulator"]
 
 [tool.ruff]
 line-length = 88
@@ -86,23 +47,23 @@ max-branches = 12
 max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
-"src/lifx_emulator/__main__.py" = ["C901"]
-"src/lifx_emulator/devices/state_restorer.py" = ["C901"]
-"src/lifx_emulator/protocol/generator.py" = ["E501", "C901"]
-"src/lifx_emulator/protocol/packets.py" = ["E501"]
-"src/lifx_emulator/products/registry.py" = ["C901"]
-"src/lifx_emulator/scenarios/persistence.py" = ["C901"]
+"packages/lifx-emulator-cli/src/lifx_emulator_cli/__main__.py" = ["C901"]
+"packages/lifx-emulator/src/lifx_emulator/devices/state_restorer.py" = ["C901"]
+"packages/lifx-emulator/src/lifx_emulator/protocol/generator.py" = ["E501", "C901"]
+"packages/lifx-emulator/src/lifx_emulator/protocol/packets.py" = ["E501"]
+"packages/lifx-emulator/src/lifx_emulator/products/registry.py" = ["C901"]
+"packages/lifx-emulator/src/lifx_emulator/scenarios/persistence.py" = ["C901"]
 
 
 [tool.pyright]
 typeCheckingMode = "standard"
 pythonVersion = "3.11"
-include = ["src"]
+include = ["packages/*/src"]
 exclude = ["**/__pycache__"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["packages/lifx-emulator/src"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -120,10 +81,10 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 omit = [
-    "src/lifx_emulator/protocol/generator.py",
-    "src/lifx_emulator/protocol/protocol_types.py",
-    "src/lifx_emulator/products/generator.py",
-    "src/lifx_emulator/products/registry.py",
+    "packages/lifx-emulator/src/lifx_emulator/protocol/generator.py",
+    "packages/lifx-emulator/src/lifx_emulator/protocol/protocol_types.py",
+    "packages/lifx-emulator/src/lifx_emulator/products/generator.py",
+    "packages/lifx-emulator/src/lifx_emulator/products/registry.py",
 ]
 
 [tool.coverage.report]
@@ -136,11 +97,15 @@ exclude_lines = [
 ]
 
 [tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
+version_toml = [
+    "packages/lifx-emulator/pyproject.toml:project.version",
+    "packages/lifx-emulator-cli/pyproject.toml:project.version"
+]
 build_command = """
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
-    uv build
+    uv build --package lifx-emulator
+    uv build --package lifx-emulator-cli
 """
 
 [tool.semantic_release.branches.main]

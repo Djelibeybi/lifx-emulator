@@ -2,7 +2,6 @@
 
 import pytest
 from fastapi.testclient import TestClient
-
 from lifx_emulator.api import create_api_app
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import create_color_light, create_multizone_light

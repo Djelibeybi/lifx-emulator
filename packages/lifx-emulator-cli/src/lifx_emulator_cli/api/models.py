@@ -1,9 +1,8 @@
 """Pydantic models for API requests and responses."""
 
-from pydantic import BaseModel, Field, field_validator
-
 # Import shared domain models
 from lifx_emulator.scenarios import ScenarioConfig
+from pydantic import BaseModel, Field, field_validator
 
 
 class DeviceCreateRequest(BaseModel):

@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator.api.models import ScenarioConfig, ScenarioResponse
+from lifx_emulator_cli.api.models import ScenarioConfig, ScenarioResponse
 
 
 def _validate_device_serial(serial: str) -> bool:

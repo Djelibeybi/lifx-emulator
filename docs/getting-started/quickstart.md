@@ -71,7 +71,11 @@ Use the emulator in your Python tests:
         device = create_color_light("d073d5000001")
 
         # Start server
-        server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+        repo = DeviceRepository()
+
+        manager = DeviceManager(repo)
+
+        server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
         await server.start()
 
         print(f"Server running with device: {device.state.label}")
@@ -106,7 +110,11 @@ Use the emulator in your Python tests:
         ]
 
         # Start server
-        server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+        repo = DeviceRepository()
+
+        manager = DeviceManager(repo)
+
+        server = EmulatedLifxServer(devices, manager, "127.0.0.1", 56700)
         await server.start()
 
         print(f"Server running with {len(devices)} devices")
@@ -132,7 +140,11 @@ Use the emulator in your Python tests:
     async def test_discover_devices():
         # Create emulated devices
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+        repo = DeviceRepository()
+
+        manager = DeviceManager(repo)
+
+        server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
         async with server:
             # Use your LIFX library
@@ -146,7 +158,11 @@ Use the emulator in your Python tests:
     @pytest.mark.asyncio
     async def test_set_color():
         device = create_color_light("d073d5000001")
-        server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+        repo = DeviceRepository()
+
+        manager = DeviceManager(repo)
+
+        server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
         async with server:
             client = LifxClient()

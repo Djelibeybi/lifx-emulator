@@ -2,6 +2,29 @@ version = 1
 revision = 3
 requires-python = ">=3.11"
 
+[manifest]
+members = [
+    "lifx-emulator",
+    "lifx-emulator-cli",
+]
+
+[manifest.dependency-groups]
+dev = [
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.0" },
+    { name = "mkdocs", specifier = ">=1.6.0" },
+    { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.4.0" },
+    { name = "mkdocs-llmstxt", specifier = ">=0.3.0" },
+    { name = "mkdocs-material", specifier = ">=9.6.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27.0" },
+    { name = "pyright", specifier = ">=1.1.407" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "pytest-sugar", specifier = ">=1.1.1" },
+    { name = "ruff", specifier = ">=0.14.2" },
+]
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.3"
@@ -455,56 +478,33 @@ wheels = [
 [[package]]
 name = "lifx-emulator"
 version = "2.0.0"
-source = { editable = "." }
+source = { editable = "packages/lifx-emulator" }
+dependencies = [
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyyaml", specifier = ">=6.0.3" }]
+
+[[package]]
+name = "lifx-emulator-cli"
+version = "2.0.0"
+source = { editable = "packages/lifx-emulator-cli" }
 dependencies = [
     { name = "cyclopts" },
     { name = "fastapi" },
-    { name = "pyyaml" },
+    { name = "lifx-emulator" },
     { name = "rich" },
     { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "hatchling" },
-    { name = "httpx" },
-    { name = "mkdocs" },
-    { name = "mkdocs-git-revision-date-localized-plugin" },
-    { name = "mkdocs-llmstxt" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "pytest-sugar" },
-    { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cyclopts", specifier = ">=4.2.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
-    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "lifx-emulator", editable = "packages/lifx-emulator" },
     { name = "rich", specifier = ">=14.2.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "httpx", specifier = ">=0.28.0" },
-    { name = "mkdocs", specifier = ">=1.6.0" },
-    { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.4.0" },
-    { name = "mkdocs-llmstxt", specifier = ">=0.3.0" },
-    { name = "mkdocs-material", specifier = ">=9.6.0" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27.0" },
-    { name = "pyright", specifier = ">=1.1.407" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-asyncio", specifier = ">=0.24.0" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "pytest-sugar", specifier = ">=1.1.1" },
-    { name = "ruff", specifier = ">=0.14.2" },
 ]
 
 [[package]]

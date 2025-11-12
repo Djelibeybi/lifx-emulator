@@ -5,7 +5,6 @@ import socket
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from lifx_emulator.constants import HEADER_SIZE
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.protocol.header import LifxHeader

@@ -4,7 +4,6 @@ import asyncio
 import tempfile
 
 import pytest
-
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
     create_color_light,

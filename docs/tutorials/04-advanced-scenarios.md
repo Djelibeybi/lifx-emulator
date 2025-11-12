@@ -9,6 +9,8 @@ Standard multizone devices like LIFX Z support up to 16 zones:
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_multizone_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
 async def main():
@@ -26,7 +28,13 @@ async def main():
             kelvin=3500
         )
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print(f"Multizone device running with {len(device.state.zone_colors)} zones")
@@ -62,7 +70,13 @@ async def main():
     print(f"  Extended: {device.state.extended_multizone}")
     print(f"  Product ID: {device.state.product_id}")
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         await asyncio.sleep(60)
@@ -95,7 +109,13 @@ async def main():
     for i in range(64):
         device.state.tile_devices[0].colors[i] = red
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Tile device running")
@@ -121,7 +141,13 @@ async def main():
         'drop_packets': [101]  # Drop all GetColor requests
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device will silently drop GetColor packets")
@@ -152,7 +178,13 @@ async def main():
         }
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device configured with response delays:")
@@ -181,7 +213,13 @@ async def main():
         'malformed_packets': [107]  # Corrupt StateColor responses
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device will send malformed StateColor packets")
@@ -208,7 +246,13 @@ async def main():
         'invalid_field_values': [107]  # Invalid StateColor data
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device will send StateColor with invalid field values")
@@ -234,7 +278,13 @@ async def main():
         'partial_responses': [107]  # Truncate StateColor
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device will send partial StateColor responses")
@@ -265,7 +315,13 @@ async def main():
         'malformed_packets': [107],  # Corrupt StateColor
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device configured with multiple error scenarios:")
@@ -317,7 +373,13 @@ async def main():
     devices[3].state.label = "Hallway Beam"
     devices[4].state.label = "Office Tiles"
 
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer(devices, manager, "127.0.0.1", 56700)
 
     async with server:
         print(f"Running {len(devices)} devices:")
@@ -377,7 +439,13 @@ async def main():
     # State changes are automatically queued for async save with debouncing
     await storage.save_device_state(device.state)
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Device state will persist across restarts")
@@ -404,7 +472,13 @@ async def main():
         'firmware_version': (3, 70)  # Version 3.70
     }
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print(f"Device reporting firmware version: {device.scenarios['firmware_version']}")
@@ -441,7 +515,11 @@ async def simulate_client(client_id, port):
 
 async def main():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+    manager = DeviceManager(repo)
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("Server running, simulating concurrent clients...")
@@ -472,7 +550,13 @@ async def main():
     device.state.hev_cycle_config_indication = True
     device.state.last_hev_cycle_result = 0  # Success
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     async with server:
         print("HEV light capabilities:")
@@ -510,7 +594,13 @@ async def main():
 
         devices.append(device)
 
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+
+    manager = DeviceManager(repo)
+
+
+    server = EmulatedLifxServer(devices, manager, "127.0.0.1", 56700)
 
     async with server:
         print(f"\nRunning {len(devices)} different product types")
@@ -533,7 +623,11 @@ from lifx_emulator.api import run_api_server
 async def main():
     # Start with one device
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+    manager = DeviceManager(repo)
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
 
     # Run both emulator and API server
     async with server:

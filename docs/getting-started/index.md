@@ -31,11 +31,11 @@ By the end of this section, you'll be able to:
 Here's what you'll be able to do after completing this section:
 
 ```bash
-# Install (recommended: using uv)
-uv tool install lifx-emulator
+# Install CLI (recommended: using uv)
+uv tool install lifx-emulator-cli
 
 # Or using pip
-pip install lifx-emulator
+pip install lifx-emulator-cli
 
 # Run with one color light
 lifx-emulator
@@ -44,15 +44,19 @@ lifx-emulator
 lifx-emulator --color 2 --multizone 1 --tile 1 --verbose
 ```
 
-Or in Python:
+Or in Python (core library only):
 
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 async def main():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+    manager = DeviceManager(repo)
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
     await server.start()
     await asyncio.Event().wait()
 

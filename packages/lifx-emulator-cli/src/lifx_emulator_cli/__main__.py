@@ -6,8 +6,6 @@ import signal
 from typing import Annotated
 
 import cyclopts
-from rich.logging import RichHandler
-
 from lifx_emulator.constants import LIFX_UDP_PORT
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
@@ -27,6 +25,7 @@ from lifx_emulator.products.registry import get_registry
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.scenarios import ScenarioPersistenceAsyncFile
 from lifx_emulator.server import EmulatedLifxServer
+from rich.logging import RichHandler
 
 app = cyclopts.App(
     name="lifx-emulator",
@@ -520,7 +519,7 @@ async def run(
     # Start API server if enabled
     api_task = None
     if api:
-        from lifx_emulator.api import run_api_server
+        from lifx_emulator_cli.api import run_api_server
 
         logger.info("Starting HTTP API server on http://%s:%s", api_host, api_port)
         api_task = asyncio.create_task(run_api_server(server, api_host, api_port))

@@ -77,7 +77,7 @@ repos:
   hooks:
   - id: codespell
     args:
-    - --ignore-words-list=ommit,ser,nd,hass
+    - --ignore-words-list=ommit,ser,nd,hass,automaticall
     - --skip="*.json,*.csv,*.xml"
 
   # YAML formatting

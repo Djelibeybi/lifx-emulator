@@ -38,13 +38,19 @@ pip install lifx-emulator
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 async def main():
     # Create a device
     device = create_color_light("d073d5000001")
 
+    # Create repository and manager
+    repo = DeviceRepository()
+    manager = DeviceManager(repo)
+
     # Start server
-    async with EmulatedLifxServer([device], "127.0.0.1", 56700) as server:
+    async with EmulatedLifxServer([device], manager, "127.0.0.1", 56700) as server:
         # Server is running, test your LIFX library here
         await asyncio.Event().wait()
 
@@ -76,9 +82,15 @@ The server manages UDP communication and device routing:
 
 ```python
 from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+# Create repository and manager
+repo = DeviceRepository()
+manager = DeviceManager(repo)
 
 # Create server
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+server = EmulatedLifxServer(devices, manager, "127.0.0.1", 56700)
 
 # Use as context manager (recommended)
 async with server:
@@ -136,7 +148,13 @@ all_products = get_registry()
 The server can be used as an async context manager:
 
 ```python
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+repo = DeviceRepository()
+manager = DeviceManager(repo)
+
+async with EmulatedLifxServer(devices, manager, "127.0.0.1", 56700) as server:
     # Server is running
     # Your test code here
     pass
@@ -148,7 +166,13 @@ async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
 Manual server lifecycle management:
 
 ```python
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+repo = DeviceRepository()
+manager = DeviceManager(repo)
+
+server = EmulatedLifxServer(devices, manager, "127.0.0.1", 56700)
 await server.start()  # Start listening
 # ... do work ...
 await server.stop()   # Stop server
@@ -203,11 +227,16 @@ from lifx_emulator import (
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 async def test_basic():
     device = create_color_light("d073d5000001")
 
-    async with EmulatedLifxServer([device], "127.0.0.1", 56700) as server:
+    repo = DeviceRepository()
+    manager = DeviceManager(repo)
+
+    async with EmulatedLifxServer([device], manager, "127.0.0.1", 56700) as server:
         # Your test code using your LIFX library
         pass
 ```
@@ -220,6 +249,8 @@ from lifx_emulator import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 devices = [
     create_color_light("d073d5000001"),
@@ -227,7 +258,10 @@ devices = [
     create_tile_device("d073d9000001", tile_count=5),
 ]
 
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+repo = DeviceRepository()
+manager = DeviceManager(repo)
+
+async with EmulatedLifxServer(devices, manager, "127.0.0.1", 56700) as server:
     # Test with multiple device types
     pass
 ```

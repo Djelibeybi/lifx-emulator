@@ -28,6 +28,8 @@ Or from Python:
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.async_storage import AsyncDeviceStorage
 
 async def main():
@@ -42,7 +44,11 @@ async def main():
     device.state.color.hue = 21845  # 120 degrees
 
     # Start server
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    repo = DeviceRepository()
+
+    manager = DeviceManager(repo)
+
+    server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
     await server.start()
 
     # Device state will be restored on next run with same serial

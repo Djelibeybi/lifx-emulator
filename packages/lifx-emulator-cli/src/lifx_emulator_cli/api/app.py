@@ -19,9 +19,9 @@ from fastapi.templating import Jinja2Templates
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator.api.routers.devices import create_devices_router
-from lifx_emulator.api.routers.monitoring import create_monitoring_router
-from lifx_emulator.api.routers.scenarios import create_scenarios_router
+from lifx_emulator_cli.api.routers.devices import create_devices_router
+from lifx_emulator_cli.api.routers.monitoring import create_monitoring_router
+from lifx_emulator_cli.api.routers.scenarios import create_scenarios_router
 
 logger = logging.getLogger(__name__)
 

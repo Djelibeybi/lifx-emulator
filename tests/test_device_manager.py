@@ -1,7 +1,6 @@
 """Tests for DeviceManager class."""
 
 import pytest
-
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import create_color_light, create_multizone_light
 from lifx_emulator.protocol.header import LifxHeader

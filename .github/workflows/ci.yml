@@ -45,7 +45,7 @@ jobs:
     - name: Check for security issues
       run: |
         uv pip install bandit
-        uv run bandit -r src/
+        uv run bandit -r packages/lifx-emulator/src/ packages/lifx-emulator-cli/src/
 
   # Testing matrix across Python versions and platforms
   test:

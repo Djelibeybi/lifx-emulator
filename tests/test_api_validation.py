@@ -1,9 +1,8 @@
 """Tests for API input validation using Pydantic models."""
 
 import pytest
-from pydantic import ValidationError
-
 from lifx_emulator.api.models import ColorHsbk, DeviceCreateRequest
+from pydantic import ValidationError
 
 
 class TestDeviceCreateRequestValidation:

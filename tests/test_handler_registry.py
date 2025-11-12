@@ -1,7 +1,6 @@
 """Tests for handler registry functionality."""
 
 import pytest
-
 from lifx_emulator.handlers.device_handlers import GetPowerHandler, GetServiceHandler
 from lifx_emulator.handlers.light_handlers import SetColorHandler
 from lifx_emulator.handlers.registry import HandlerRegistry

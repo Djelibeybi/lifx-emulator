@@ -34,13 +34,19 @@ LIFX Emulator is a Python library and CLI tool that creates virtual LIFX devices
     ```python
     import asyncio
     from lifx_emulator import EmulatedLifxServer, create_color_light
+    from lifx_emulator.devices import DeviceManager
+    from lifx_emulator.repositories import DeviceRepository
 
     async def main():
         # Create a color light device
         device = create_color_light("d073d5000001")
 
+        # Create repository and manager
+        repo = DeviceRepository()
+        manager = DeviceManager(repo)
+
         # Start server on port 56700
-        server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+        server = EmulatedLifxServer([device], manager, "127.0.0.1", 56700)
         await server.start()
 
         # Your test code here
@@ -83,17 +89,31 @@ LIFX Emulator is a Python library and CLI tool that creates virtual LIFX devices
 
 ## Installation
 
-**Recommended:** Using [uv](https://astral.sh/uv) (automatically manages Python for you):
+**For the CLI tool** (recommended if you want the `lifx-emulator` command):
 
+Using [uv](https://astral.sh/uv):
 ```bash
-uv tool install lifx-emulator
+uv tool install lifx-emulator-cli
 ```
 
-**Alternative:** Using pip (requires Python 3.11+):
+Using pip (requires Python 3.11+):
+```bash
+pip install lifx-emulator-cli
+```
 
+**For library use only** (minimal dependencies):
+
+Using uv:
+```bash
+uv add lifx-emulator
+```
+
+Using pip:
 ```bash
 pip install lifx-emulator
 ```
+
+See the [Installation Guide](getting-started/installation.md) for more details.
 
 ## Getting Started
 

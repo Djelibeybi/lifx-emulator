@@ -334,7 +334,11 @@ See also: [Testing Scenarios Guide](guide/testing-scenarios.md#6-custom-firmware
 ```python
 # Emulator side
 device = create_color_light("d073d5000001")
-server = EmulatedLifxServer([device], "0.0.0.0", 56700)  # Bind to all interfaces
+repo = DeviceRepository()
+
+manager = DeviceManager(repo)
+
+server = EmulatedLifxServer([device], manager, "0.0.0.0", 56700)  # Bind to all interfaces
 
 # Client side (using any LIFX library)
 # Discovery will find the emulated device

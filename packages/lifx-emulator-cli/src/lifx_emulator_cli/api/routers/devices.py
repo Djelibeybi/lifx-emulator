@@ -9,8 +9,8 @@ from fastapi import APIRouter, HTTPException
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator.api.models import DeviceCreateRequest, DeviceInfo
-from lifx_emulator.api.services.device_service import (
+from lifx_emulator_cli.api.models import DeviceCreateRequest, DeviceInfo
+from lifx_emulator_cli.api.services.device_service import (
     DeviceAlreadyExistsError,
     DeviceCreationError,
     DeviceNotFoundError,
