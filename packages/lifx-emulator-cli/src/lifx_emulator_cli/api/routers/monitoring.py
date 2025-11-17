@@ -9,7 +9,7 @@ from fastapi import APIRouter
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator.api.models import ActivityEvent, ServerStats
+from lifx_emulator_cli.api.models import ActivityEvent, ServerStats
 
 
 def create_monitoring_router(server: EmulatedLifxServer) -> APIRouter:

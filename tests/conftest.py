@@ -4,7 +4,6 @@ import socket
 import time
 
 import pytest
-
 from lifx_emulator.devices.device import DeviceState
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.devices.states import (

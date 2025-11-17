@@ -6,7 +6,8 @@ on:
     - main
     paths:
     - docs/**
-    - src/lifx_emulator/**
+    - packages/lifx-emulator/src/**
+    - packages/lifx-emulator-cli/src/**
     - mkdocs.yml
     - .github/workflows/docs.yml
   pull_request:

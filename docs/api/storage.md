@@ -663,9 +663,9 @@ for file_path in storage_dir.glob("*.json"):
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/storage.py` - Storage implementation
-- `src/lifx_emulator/state_serializer.py` - State serialization
-- `src/lifx_emulator/async_storage.py` - Async storage variant
+- `packages/lifx-emulator/src/lifx_emulator/storage.py` - Storage implementation
+- `packages/lifx-emulator/src/lifx_emulator/state_serializer.py` - State serialization
+- `packages/lifx-emulator/src/lifx_emulator/async_storage.py` - Async storage variant
 
 **Related Documentation:**
 - [Device API](device.md) - Device state structure

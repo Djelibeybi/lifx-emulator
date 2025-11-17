@@ -3,7 +3,6 @@
 import struct
 
 import pytest
-
 from lifx_emulator.protocol.serializer import (
     FieldSerializer,
     get_type_size,

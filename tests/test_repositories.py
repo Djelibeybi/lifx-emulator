@@ -1,7 +1,6 @@
 """Tests for repository implementations."""
 
 import pytest
-
 from lifx_emulator.factories import create_color_light, create_multizone_light
 from lifx_emulator.repositories import DeviceRepository
 

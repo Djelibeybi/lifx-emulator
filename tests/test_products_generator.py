@@ -7,7 +7,6 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from lifx_emulator.products.generator import (
     download_products,
     generate_product_definitions,

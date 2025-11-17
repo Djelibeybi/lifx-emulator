@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from lifx_emulator.devices import EmulatedLifxDevice
 
-from lifx_emulator.api.models import ColorHsbk, DeviceInfo
+from lifx_emulator_cli.api.models import ColorHsbk, DeviceInfo
 
 
 class DeviceMapper:

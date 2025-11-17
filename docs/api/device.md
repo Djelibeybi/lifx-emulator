@@ -480,7 +480,7 @@ graph TD
 
 ## References
 
-**Source:** `src/lifx_emulator/device.py`
+**Source:** `packages/lifx-emulator/src/lifx_emulator/device.py`
 
 **Related Documentation:**
 - [Getting Started](../getting-started/quickstart.md) - Quick start guide

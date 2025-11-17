@@ -503,9 +503,9 @@ list_products(filter_capability="matrix")
 The product registry is auto-generated from the official LIFX product database:
 
 - **Source:** [LIFX/products on GitHub](https://github.com/LIFX/products)
-- **Generator:** `src/lifx_emulator/products/generator.py`
-- **Registry:** `src/lifx_emulator/products/registry.py` (auto-generated)
-- **Specs:** `src/lifx_emulator/specs/` (manually curated device specifications)
+- **Generator:** `packages/lifx-emulator/src/lifx_emulator/products/generator.py`
+- **Registry:** `packages/lifx-emulator/src/lifx_emulator/products/registry.py` (auto-generated)
+- **Specs:** `packages/lifx-emulator/src/lifx_emulator/specs/` (manually curated device specifications)
 
 ### Updating Products
 
@@ -516,7 +516,7 @@ To update the product registry with the latest LIFX products:
 python -m lifx_emulator.products.generator
 
 # Verify changes
-git diff src/lifx_emulator/products/registry.py
+git diff packages/lifx-emulator/src/lifx_emulator/products/registry.py
 ```
 
 ---
@@ -524,9 +524,9 @@ git diff src/lifx_emulator/products/registry.py
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/products/registry.py` - Product registry (auto-generated)
-- `src/lifx_emulator/products/generator.py` - Registry generator
-- `src/lifx_emulator/specs/` - Product specifications
+- `packages/lifx-emulator/src/lifx_emulator/products/registry.py` - Product registry (auto-generated)
+- `packages/lifx-emulator/src/lifx_emulator/products/generator.py` - Registry generator
+- `packages/lifx-emulator/src/lifx_emulator/specs/` - Product specifications
 
 **Related Documentation:**
 - [Factories API](factories.md) - Device creation from product IDs

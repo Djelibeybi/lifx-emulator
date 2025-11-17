@@ -700,11 +700,11 @@ def uint16_to_percent(value: int) -> float:
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/protocol/header.py` - Header implementation
-- `src/lifx_emulator/protocol/packets.py` - Packet definitions (auto-generated)
-- `src/lifx_emulator/protocol/protocol_types.py` - Type definitions (auto-generated)
-- `src/lifx_emulator/protocol/serializer.py` - Serialization utilities
-- `src/lifx_emulator/protocol/generator.py` - Code generator from YAML spec
+- `packages/lifx-emulator/src/lifx_emulator/protocol/header.py` - Header implementation
+- `packages/lifx-emulator/src/lifx_emulator/protocol/packets.py` - Packet definitions (auto-generated)
+- `packages/lifx-emulator/src/lifx_emulator/protocol/protocol_types.py` - Type definitions (auto-generated)
+- `packages/lifx-emulator/src/lifx_emulator/protocol/serializer.py` - Serialization utilities
+- `packages/lifx-emulator/src/lifx_emulator/protocol/generator.py` - Code generator from YAML spec
 
 **Related Documentation:**
 - [Device API](device.md) - Device state and packet processing
@@ -714,5 +714,5 @@ def uint16_to_percent(value: int) -> float:
 
 **Protocol Specification:**
 - Auto-generated from [LIFX public-protocol](https://github.com/LIFX/public-protocol)
-- Generator: `src/lifx_emulator/protocol/generator.py`
+- Generator: `packages/lifx-emulator/src/lifx_emulator/protocol/generator.py`
 - Source: `protocol.yml` from LIFX/public-protocol repository

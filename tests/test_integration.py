@@ -7,7 +7,6 @@ import asyncio
 import socket
 
 import pytest
-
 from lifx_emulator.constants import HEADER_SIZE
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, Light, MultiZone, Tile
