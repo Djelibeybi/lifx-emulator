@@ -83,6 +83,32 @@ class MultiZoneState:
 
 
 @dataclass
+class TileFramebuffers:
+    """Internal storage for non-visible tile framebuffers (1-7).
+
+    Framebuffer 0 is stored in tile_devices[i]["colors"] (the visible buffer).
+    Framebuffers 1-7 are stored here for Set64/CopyFrameBuffer operations.
+    Each framebuffer is a list of LightHsbk colors with length = width * height.
+    """
+
+    tile_index: int  # Which tile this belongs to
+    framebuffers: dict[int, list[LightHsbk]] = field(default_factory=dict)
+
+    def get_framebuffer(
+        self, fb_index: int, width: int, height: int
+    ) -> list[LightHsbk]:
+        """Get framebuffer by index, creating it if needed."""
+        if fb_index not in self.framebuffers:
+            # Initialize with default black color
+            pixels = width * height
+            self.framebuffers[fb_index] = [
+                LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+                for _ in range(pixels)
+            ]
+        return self.framebuffers[fb_index]
+
+
+@dataclass
 class MatrixState:
     """Matrix (tile/candle) capability state."""
 
@@ -101,6 +127,9 @@ class MatrixState:
     effect_cloud_sat_max: int = (
         0  # Max cloud saturation 0-200 (only when effect_type=5)
     )
+    # Internal storage for non-visible framebuffers (1-7) per tile
+    # Framebuffer 0 remains in tile_devices[i]["colors"]
+    tile_framebuffers: list[TileFramebuffers] = field(default_factory=list)
 
 
 @dataclass
@@ -215,6 +244,7 @@ class DeviceState:
         "tile_effect_sky_type": ("matrix", "effect_sky_type"),
         "tile_effect_cloud_sat_min": ("matrix", "effect_cloud_sat_min"),
         "tile_effect_cloud_sat_max": ("matrix", "effect_cloud_sat_max"),
+        "tile_framebuffers": "matrix",
     }
 
     # Default values for optional state attributes when state object is None
@@ -240,6 +270,7 @@ class DeviceState:
         "tile_effect_sky_type": 0,
         "tile_effect_cloud_sat_min": 0,
         "tile_effect_cloud_sat_max": 0,
+        "tile_framebuffers": [],
     }
 
     def get_target_bytes(self) -> bytes:

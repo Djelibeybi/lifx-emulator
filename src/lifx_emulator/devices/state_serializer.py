@@ -97,6 +97,17 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
             }
             for t in device_state.tile_devices
         ]
+        # Serialize tile framebuffers (non-visible framebuffers 1-7)
+        state_dict["tile_framebuffers"] = [
+            {
+                "tile_index": fb.tile_index,
+                "framebuffers": {
+                    str(fb_idx): [serialize_hsbk(c) for c in colors]
+                    for fb_idx, colors in fb.framebuffers.items()
+                },
+            }
+            for fb in device_state.tile_framebuffers
+        ]
 
     return state_dict
 
@@ -126,5 +137,21 @@ def deserialize_device_state(state_dict: dict[str, Any]) -> dict[str, Any]:
     if "tile_devices" in state_dict:
         for tile_dict in state_dict["tile_devices"]:
             tile_dict["colors"] = [deserialize_hsbk(c) for c in tile_dict["colors"]]
+
+    # Deserialize tile framebuffers if present (for backwards compatibility)
+    if "tile_framebuffers" in state_dict:
+        from lifx_emulator.devices.states import TileFramebuffers
+
+        deserialized_fbs = []
+        for fb_dict in state_dict["tile_framebuffers"]:
+            tile_fb = TileFramebuffers(tile_index=fb_dict["tile_index"])
+            # Deserialize each framebuffer's colors
+            for fb_idx_str, colors_list in fb_dict["framebuffers"].items():
+                fb_idx = int(fb_idx_str)
+                tile_fb.framebuffers[fb_idx] = [
+                    deserialize_hsbk(c) for c in colors_list
+                ]
+            deserialized_fbs.append(tile_fb)
+        state_dict["tile_framebuffers"] = deserialized_fbs
 
     return state_dict
