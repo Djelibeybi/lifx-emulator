@@ -217,7 +217,7 @@ class EmulatedLifxServer:
             resp_packet_name = _get_packet_type_name(resp_header.pkt_type)
             resp_fields_str = _format_packet_fields(resp_packet)
             logger.debug(
-                "→ TX %s to %s:%s (device=%s, seq=%s) [%s]",
+                "→ TX %s to %s:%s (target=%s, seq=%s) [%s]",
                 resp_packet_name,
                 addr[0],
                 addr[1],
@@ -303,7 +303,9 @@ class EmulatedLifxServer:
 
             # Log received packet with details
             packet_name = _get_packet_type_name(header.pkt_type)
-            target_str = "broadcast" if header.tagged else header.target.hex()
+            target_str = (
+                "broadcast" if header.tagged else header.target.hex().rstrip("0000")
+            )
             fields_str = _format_packet_fields(packet)
             logger.debug(
                 "← RX %s from %s:%s (target=%s, seq=%s) [%s]",

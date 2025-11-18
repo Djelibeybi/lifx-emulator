@@ -90,10 +90,17 @@ class MatrixState:
     tile_devices: list[dict[str, Any]]
     tile_width: int
     tile_height: int
-    effect_type: int = 0  # 0=OFF, 2=MORPH, 3=FLAME
+    effect_type: int = 0  # 0=OFF, 2=MORPH, 3=FLAME, 5=SKY
     effect_speed: int = 5  # Duration of one cycle in seconds
     effect_palette_count: int = 0
     effect_palette: list[LightHsbk] = field(default_factory=list)
+    effect_sky_type: int = 0  # 0=SUNRISE, 1=SUNSET, 2=CLOUDS (only when effect_type=5)
+    effect_cloud_sat_min: int = (
+        0  # Min cloud saturation 0-200 (only when effect_type=5)
+    )
+    effect_cloud_sat_max: int = (
+        0  # Max cloud saturation 0-200 (only when effect_type=5)
+    )
 
 
 @dataclass
@@ -205,6 +212,9 @@ class DeviceState:
         "tile_effect_speed": ("matrix", "effect_speed"),
         "tile_effect_palette_count": ("matrix", "effect_palette_count"),
         "tile_effect_palette": ("matrix", "effect_palette"),
+        "tile_effect_sky_type": ("matrix", "effect_sky_type"),
+        "tile_effect_cloud_sat_min": ("matrix", "effect_cloud_sat_min"),
+        "tile_effect_cloud_sat_max": ("matrix", "effect_cloud_sat_max"),
     }
 
     # Default values for optional state attributes when state object is None
@@ -227,6 +237,9 @@ class DeviceState:
         "tile_effect_speed": 0,
         "tile_effect_palette_count": 0,
         "tile_effect_palette": [],
+        "tile_effect_sky_type": 0,
+        "tile_effect_cloud_sat_min": 0,
+        "tile_effect_cloud_sat_max": 0,
     }
 
     def get_target_bytes(self) -> bytes:

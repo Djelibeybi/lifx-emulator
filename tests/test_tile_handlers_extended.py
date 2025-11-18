@@ -7,6 +7,7 @@ from lifx_emulator.protocol.protocol_types import (
     TileBufferRect,
     TileEffectParameter,
     TileEffectSettings,
+    TileEffectSkyType,
     TileEffectType,
 )
 
@@ -478,14 +479,9 @@ class TestTileEffects:
             palette.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
         parameter = TileEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=0,
+            cloud_saturation_max=0,
         )
 
         settings = TileEffectSettings(
@@ -522,14 +518,9 @@ class TestTileEffects:
             LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
         ]
         parameter = TileEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=0,
+            cloud_saturation_max=0,
         )
 
         settings = TileEffectSettings(
@@ -584,14 +575,9 @@ class TestTileEffects:
             LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
         ]
         parameter = TileEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=0,
+            cloud_saturation_max=0,
         )
         settings = TileEffectSettings(
             instanceid=1,
@@ -629,14 +615,9 @@ class TestTileEffects:
             palette.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
         parameter = TileEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=0,
+            cloud_saturation_max=0,
         )
 
         settings = TileEffectSettings(

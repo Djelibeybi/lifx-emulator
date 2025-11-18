@@ -237,16 +237,24 @@ class GetEffectHandler(PacketHandler):
         while len(palette) < 16:
             palette.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
-        # Create effect settings
+        # Create effect settings with Sky parameters
+        from lifx_emulator.protocol.protocol_types import TileEffectSkyType
+
+        # Use defaults for SKY effect (type=5), otherwise use stored values
+        effect_type = device_state.tile_effect_type
+        if effect_type == 5:  # SKY effect
+            sky_type = device_state.tile_effect_sky_type or 2  # Default to CLOUDS
+            cloud_sat_min = device_state.tile_effect_cloud_sat_min or 50
+            cloud_sat_max = device_state.tile_effect_cloud_sat_max or 180
+        else:
+            sky_type = device_state.tile_effect_sky_type
+            cloud_sat_min = device_state.tile_effect_cloud_sat_min
+            cloud_sat_max = device_state.tile_effect_cloud_sat_max
+
         parameter = TileEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
+            sky_type=TileEffectSkyType(sky_type),
+            cloud_saturation_min=cloud_sat_min,
+            cloud_saturation_max=cloud_sat_max,
         )
         settings = TileEffectSettings(
             instanceid=0,
@@ -285,10 +293,22 @@ class SetEffectHandler(PacketHandler):
             )
             device_state.tile_effect_palette_count = packet.settings.palette_count
 
+            # Save Sky effect parameters
+            device_state.tile_effect_sky_type = int(packet.settings.parameter.sky_type)
+            device_state.tile_effect_cloud_sat_min = (
+                packet.settings.parameter.cloud_saturation_min
+            )
+            device_state.tile_effect_cloud_sat_max = (
+                packet.settings.parameter.cloud_saturation_max
+            )
+
             logger.info(
                 f"Tile effect set: type={packet.settings.type}, "
                 f"speed={packet.settings.speed}ms, "
-                f"palette_count={packet.settings.palette_count}"
+                f"palette_count={packet.settings.palette_count}, "
+                f"sky_type={packet.settings.parameter.sky_type}, "
+                f"cloud_sat=[{packet.settings.parameter.cloud_saturation_min}, "
+                f"{packet.settings.parameter.cloud_saturation_max}]"
             )
 
         if res_required:
