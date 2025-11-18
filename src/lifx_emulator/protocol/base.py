@@ -10,9 +10,12 @@ Performance optimizations:
 
 from __future__ import annotations
 
+import logging
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, ClassVar
+
+_LOGGER = logging.getLogger(__name__)
 
 # Performance optimization: Pre-compiled regex patterns
 _CAMEL_TO_SNAKE_PATTERN = re.compile(r"(?<!^)(?=[A-Z])")
@@ -38,6 +41,11 @@ class Packet:
     PKT_TYPE: ClassVar[int]
     _fields: ClassVar[list[dict[str, Any]]]
     _field_info: ClassVar[list[tuple[str, str, int]] | None] = None
+
+    @property
+    def as_dict(self) -> dict[str, Any]:
+        """Return packet as dictionary."""
+        return asdict(self)
 
     def pack(self) -> bytes:
         """Pack packet to bytes using field metadata.
@@ -76,9 +84,25 @@ class Packet:
             offset: Offset in bytes to start unpacking
 
         Returns:
-            Packet instance
+            Packet instance with label fields decoded to strings
         """
         packet, _ = cls._unpack_internal(data, offset)
+
+        # Decode label fields from bytes to string in-place
+        # This ensures all State packets have human-readable labels
+        cls._decode_labels_inplace(packet)
+
+        # Log packet values after unpacking and decoding labels
+        packet_values = asdict(packet)
+        _LOGGER.debug(
+            {
+                "class": "Packet",
+                "method": "unpack",
+                "packet_type": type(packet).__name__,
+                "values": packet_values,
+            }
+        )
+
         return packet
 
     @classmethod
@@ -177,6 +201,9 @@ class Packet:
             "MultiZoneApplicationRequest",
             "MultiZoneEffectType",
             "MultiZoneExtendedApplicationRequest",
+            "TileEffectSkyPalette",
+            "TileEffectSkyType",
+            "TileEffectType",
         }
         is_enum = is_nested and base_type in enum_types
 
@@ -320,6 +347,9 @@ class Packet:
             MultiZoneApplicationRequest,
             MultiZoneEffectType,
             MultiZoneExtendedApplicationRequest,
+            TileEffectSkyPalette,
+            TileEffectSkyType,
+            TileEffectType,
         )
 
         base_type, array_count, is_nested = cls._parse_field_type(field_type)
@@ -331,6 +361,9 @@ class Packet:
             "MultiZoneApplicationRequest": MultiZoneApplicationRequest,
             "MultiZoneEffectType": MultiZoneEffectType,
             "MultiZoneExtendedApplicationRequest": MultiZoneExtendedApplicationRequest,
+            "TileEffectSkyPalette": TileEffectSkyPalette,
+            "TileEffectSkyType": TileEffectSkyType,
+            "TileEffectType": TileEffectType,
         }
 
         if array_count:
@@ -386,3 +419,28 @@ class Packet:
         # Cache the result
         _FIELD_TYPE_CACHE[field_type] = result
         return result
+
+    @staticmethod
+    def _decode_labels_inplace(packet: object) -> None:
+        """Decode label fields from bytes to string in-place.
+
+        Automatically finds and decodes any field named 'label' or ending with '_label'
+        for all State packets. This ensures human-readable labels in all contexts.
+
+        Args:
+            packet: Packet instance to process (modified in-place)
+        """
+        from dataclasses import fields, is_dataclass
+
+        if not is_dataclass(packet):
+            return
+
+        for field_info in fields(packet):
+            # Check if this looks like a label field
+            if field_info.name == "label" or field_info.name.endswith("_label"):
+                value = getattr(packet, field_info.name)
+                if isinstance(value, bytes):
+                    # Decode: strip null terminator, decode UTF-8
+                    decoded = value.rstrip(b"\x00").decode("utf-8")
+                    # Use object.__setattr__ to bypass frozen dataclass if needed
+                    object.__setattr__(packet, field_info.name, decoded)
