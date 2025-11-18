@@ -240,12 +240,25 @@ class GetEffectHandler(PacketHandler):
         # Create effect settings with Sky parameters
         from lifx_emulator.protocol.protocol_types import TileEffectSkyType
 
-        # Use defaults for SKY effect (type=5), otherwise use stored values
+        # Use defaults for SKY effect when values are None, otherwise use stored values
+        # NOTE: Must check for None explicitly, not use 'or', because SUNRISE=0 is falsy
         effect_type = TileEffectType(device_state.tile_effect_type)
         if effect_type == TileEffectType.SKY:
-            sky_type = device_state.tile_effect_sky_type or TileEffectSkyType.CLOUDS
-            cloud_sat_min = device_state.tile_effect_cloud_sat_min or 50
-            cloud_sat_max = device_state.tile_effect_cloud_sat_max or 180
+            sky_type = (
+                device_state.tile_effect_sky_type
+                if device_state.tile_effect_sky_type is not None
+                else TileEffectSkyType.CLOUDS
+            )
+            cloud_sat_min = (
+                device_state.tile_effect_cloud_sat_min
+                if device_state.tile_effect_cloud_sat_min is not None
+                else 50
+            )
+            cloud_sat_max = (
+                device_state.tile_effect_cloud_sat_max
+                if device_state.tile_effect_cloud_sat_max is not None
+                else 180
+            )
         else:
             sky_type = device_state.tile_effect_sky_type
             cloud_sat_min = device_state.tile_effect_cloud_sat_min

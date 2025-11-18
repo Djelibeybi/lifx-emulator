@@ -645,6 +645,74 @@ class TestTileEffects:
         # Palette should be stored with only the specified count
         assert device.state.tile_effect_palette_count == 10
 
+    def test_sky_effect_sunrise_preserved(self):
+        """Test that SKY effect with SUNRISE (value=0) is properly preserved.
+
+        Regression test: SUNRISE has value 0, which is falsy. The code must
+        check for None explicitly, not use 'or' operator which treats 0 as falsy.
+        """
+        # Create a LIFX Ceiling device (supports SKY effect with firmware 4.4+)
+        device = create_device(176, tile_count=1, firmware_version=(4, 4))
+
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.SUNRISE,  # Value = 0 (falsy!)
+            cloud_saturation_min=100,
+            cloud_saturation_max=200,
+        )
+
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=5000,
+            duration=0,
+            parameter=parameter,
+            palette_count=1,
+            palette=palette,
+        )
+
+        # Set the effect
+        set_packet = Tile.SetEffect(settings=settings)
+        set_header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+        device.process_packet(set_header, set_packet)
+
+        # Verify state was stored correctly
+        assert device.state.tile_effect_type == int(TileEffectType.SKY)
+        assert device.state.tile_effect_sky_type == int(TileEffectSkyType.SUNRISE)
+        assert device.state.tile_effect_cloud_sat_min == 100
+        assert device.state.tile_effect_cloud_sat_max == 200
+
+        # Get the effect - should return SUNRISE, not default to CLOUDS
+        get_packet = Tile.GetEffect()
+        get_header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=2,
+            pkt_type=718,
+            res_required=True,
+        )
+        responses = device.process_packet(get_header, get_packet)
+
+        # Should return StateEffect
+        state_effect_responses = [r for r in responses if r[0].pkt_type == 720]
+        assert len(state_effect_responses) == 1
+
+        resp_header, resp_packet = state_effect_responses[0]
+        assert resp_packet.settings.type == TileEffectType.SKY
+        assert (
+            resp_packet.settings.parameter.sky_type == TileEffectSkyType.SUNRISE
+        )  # Must be SUNRISE, not CLOUDS!
+        assert resp_packet.settings.parameter.cloud_saturation_min == 100
+        assert resp_packet.settings.parameter.cloud_saturation_max == 200
+
 
 class TestSkyEffectRestrictions:
     """Test that SKY effect is only supported on Ceiling devices with firmware 4.4+."""
