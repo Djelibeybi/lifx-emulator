@@ -128,8 +128,8 @@ lifx-emulator --help
 - `--multizone-extended`: Enable extended multizone support (default: True, use --no-multizone-extended to disable)
 - `--tile`: Number of tile devices
 - `--tile-count`: Tiles per device (uses product default if not specified)
-- `--tile-width`: Width of each tile in pixels (uses product default if not specified)
-- `--tile-height`: Height of each tile in pixels (uses product default if not specified)
+- `--tile-width`: Width of each tile in zones (uses product default if not specified)
+- `--tile-height`: Height of each tile in zones (uses product default if not specified)
 - `--serial-prefix`: serial prefix (6 hex chars, default: d073d5)
 - `--serial-start`: Starting serial suffix (default: 1)
 - `--api`: Enable HTTP API server for monitoring and management (default: False)
@@ -140,9 +140,9 @@ lifx-emulator --help
 **Product Defaults:**
 Device parameters like `--multizone-zones` and `--tile-count` automatically use product-specific defaults from the specs system when not specified:
 - LIFX Beam: Extended multizone support enabled and 80 zones by default
-- LIFX Tile: 5 tiles of 8x8 pixels by default
-- LIFX Candle: 1 tile of 5x6 pixels by default
-- LIFX Ceiling: 1 tile of 8x8 pixels by default
+- LIFX Tile: 5 tiles of 8x8 zones by default
+- LIFX Candle: 1 tile of 5x6 zones by default
+- LIFX Ceiling: 1 tile of 8x8 zones by default
 - These defaults can be overridden with command-line parameters
 
 **Firmware Version:**

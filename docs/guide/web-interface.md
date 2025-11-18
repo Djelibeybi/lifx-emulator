@@ -142,7 +142,7 @@ For matrix/tile devices:
 ```
 ▸ Show tiles (5)  (click to expand)
   ┌──────────┐
-  │ T1       │  (8×8 pixel grid)
+  │ T1       │  (8×8 zone grid)
   │ ████████ │
   │ ████████ │
   │ ████████ │
@@ -249,8 +249,8 @@ For matrix devices (tiles, candles, ceiling):
 
 1. Locate device in Devices section
 2. Click "▸ Show tiles" to expand
-3. Grid display shows pixel colors
-4. Each small square is one pixel
+3. Grid display shows zone colors
+4. Each small square is one zone
 5. Tiles labeled T1, T2, etc.
 6. Click again to collapse
 

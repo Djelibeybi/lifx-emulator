@@ -25,10 +25,10 @@ class DeviceCreateRequest(BaseModel):
         None, description="Number of tiles for matrix devices", ge=0, le=100
     )
     tile_width: int | None = Field(
-        None, description="Width of each tile in pixels", ge=1, le=256
+        None, description="Width of each tile in zones", ge=1, le=256
     )
     tile_height: int | None = Field(
-        None, description="Height of each tile in pixels", ge=1, le=256
+        None, description="Height of each tile in zones", ge=1, le=256
     )
     firmware_major: int | None = Field(
         None, description="Firmware major version", ge=0, le=255

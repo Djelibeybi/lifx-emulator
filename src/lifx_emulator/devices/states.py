@@ -100,10 +100,10 @@ class TileFramebuffers:
         """Get framebuffer by index, creating it if needed."""
         if fb_index not in self.framebuffers:
             # Initialize with default black color
-            pixels = width * height
+            zones = width * height
             self.framebuffers[fb_index] = [
                 LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
-                for _ in range(pixels)
+                for _ in range(zones)
             ]
         return self.framebuffers[fb_index]
 

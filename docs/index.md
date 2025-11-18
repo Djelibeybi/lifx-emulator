@@ -71,7 +71,7 @@ LIFX Emulator is a Python library and CLI tool that creates virtual LIFX devices
 | Infrared | LIFX A19 Night Vision | IR brightness control |
 | HEV | LIFX Clean | HEV cleaning cycle |
 | Multizone | LIFX Z, LIFX Beam | Linear zones (up to 82) |
-| Matrix | LIFX Tile, LIFX Candle | 2D pixel arrays |
+| Matrix | LIFX Tile, LIFX Candle | 2D zone arrays |
 
 ## Use Cases
 

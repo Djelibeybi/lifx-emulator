@@ -154,7 +154,7 @@ class TestGet64:
         """Test Get64 for matrix devices >64 zones with partial row extraction."""
         device = large_matrix_device
 
-        # Request first 4 rows (16 pixels wide × 4 rows = 64 pixels)
+        # Request first 4 rows (16 zones wide × 4 rows = 64 zones)
         rect = TileBufferRect(x=0, y=0, width=16, fb_index=0)
         packet = Tile.Get64(tile_index=0, length=1, rect=rect)
 
@@ -1227,7 +1227,7 @@ class TestFramebufferHandling:
         assert tile_colors[1].hue == 32768  # (1,0)
         assert tile_colors[8].hue == 32768  # (0,1)
         assert tile_colors[9].hue == 32768  # (1,1)
-        # Verify pixel outside is still default
+        # Verify zone outside is still default
         assert tile_colors[2].hue == 0
 
     def test_multiple_framebuffers_independent(self, tile_device):

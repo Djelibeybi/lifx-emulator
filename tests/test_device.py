@@ -475,7 +475,7 @@ class TestTileHandlers:
         assert resp_packet.tile_devices_count == 5
         assert len(resp_packet.tile_devices) == 16  # Padded to 16
 
-    def test_get_64_pixels(self, tile_device):
+    def test_get_64_zones(self, tile_device):
         """Test TileGet64 (707) returns State64 (711)."""
         from lifx_emulator.protocol.protocol_types import TileBufferRect
 

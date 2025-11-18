@@ -253,7 +253,7 @@ Devices advertise capabilities through boolean flags:
 | `has_infrared` | IR brightness | LIFX A19 Night Vision |
 | `has_multizone` | Linear zones | LIFX Z, LIFX Beam |
 | `has_extended_multizone` | >16 zones | LIFX Beam |
-| `has_matrix` | 2D pixel grid | LIFX Tile, LIFX Candle |
+| `has_matrix` | 2D zone grid | LIFX Tile, LIFX Candle |
 | `has_hev` | HEV cleaning | LIFX Clean |
 
 ## Packet Types

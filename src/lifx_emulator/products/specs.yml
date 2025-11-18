@@ -21,8 +21,8 @@
 #     default_tile_count: <number>      # Default number of tiles in chain
 #     min_tile_count: <number>          # Minimum tiles supported
 #     max_tile_count: <number>          # Maximum tiles supported
-#     tile_width: <number>              # Width of each tile in pixels
-#     tile_height: <number>             # Height of each tile in pixels
+#     tile_width: <number>              # Width of each tile in zones
+#     tile_height: <number>             # Height of each tile in zones
 #
 #     # Host firmware version (optional, overrides automatic firmware selection)
 #     default_firmware_major: <number>  # Firmware major version (e.g., 3)
@@ -167,29 +167,29 @@ products:
   # Matrix Products (Tiles, Candles, etc.)
   # ========================================
 
-  55:  # LIFX Tile, 8x8 pixel matrix, chainable up to 5
+  55:  # LIFX Tile, 8x8 zone matrix, chainable up to 5
     default_tile_count: 5
     min_tile_count: 1
     max_tile_count: 5
     tile_width: 8
     tile_height: 8
-    notes: LIFX Tile, 8x8 pixel matrix, chainable up to 5
+    notes: LIFX Tile, 8x8 zone matrix, chainable up to 5
 
-  57:  # LIFX Candle, 5x6 pixel matrix, single unit
+  57:  # LIFX Candle, 5x6 zone matrix, single unit
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
     tile_width: 5
     tile_height: 6
-    notes: LIFX Candle, 5x6 pixel matrix, single unit
+    notes: LIFX Candle, 5x6 zone matrix, single unit
 
-  68:  # LIFX Candle variant, 5x6 pixel matrix
+  68:  # LIFX Candle variant, 5x6 zone matrix
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
     tile_width: 5
     tile_height: 6
-    notes: LIFX Candle variant, 5x6 pixel matrix
+    notes: LIFX Candle variant, 5x6 zone matrix
 
   137:  # LIFX Candle Color US 5x6 variant
     default_tile_count: 1

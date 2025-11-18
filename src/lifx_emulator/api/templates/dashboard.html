@@ -163,7 +163,7 @@
             gap: 2px;
             margin-top: 4px;
         }
-        .tile-pixel {
+        .tile-zone {
             width: 8px;
             height: 8px;
             border-radius: 1px;
@@ -644,7 +644,7 @@
                     `;
                 } else if (dev.has_matrix && dev.tile_devices &&
                            dev.tile_devices.length > 0) {
-                    // Render actual tile pixels
+                    // Render actual tile zones
                     const tilesHtml = dev.tile_devices.map((tile, tileIndex) => {
                         if (!tile.colors || tile.colors.length === 0) {
                             return '<div style="color: #666;">No color data</div>';
@@ -652,14 +652,14 @@
 
                         const width = tile.width || 8;
                         const height = tile.height || 8;
-                        const totalPixels = width * height;
+                        const totalzones = width * height;
 
-                        // Create grid of pixels
-                        const slicedColors = tile.colors.slice(0, totalPixels);
-                        const pixelsHtml = slicedColors.map(color => {
+                        // Create grid of zones
+                        const slicedColors = tile.colors.slice(0, totalzones);
+                        const zonesHtml = slicedColors.map(color => {
                             const rgb = hsbkToRgb(color);
                             const bgStyle = `background: ${rgb};`;
-                            return `<div class="tile-pixel" style="${bgStyle}"></div>`;
+                            return `<div class="tile-zone" style="${bgStyle}"></div>`;
                         }).join('');
 
                         const labelStyle = (
@@ -675,7 +675,7 @@
                                     T${tileIndex + 1}
                                 </div>
                                 <div class="tile-grid" style="${gridStyle}">
-                                    ${pixelsHtml}
+                                    ${zonesHtml}
                                 </div>
                             </div>
                         `;

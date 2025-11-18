@@ -90,8 +90,8 @@ Dataclass holding all stateful information for an emulated LIFX device.
 
 - **`tile_count`** (`int` = `0`) - Number of tiles in chain
 - **`tile_devices`** (`list[dict]` = `[]`) - Per-tile state (position, colors)
-- **`tile_width`** (`int` = `8`) - Width of each tile in pixels
-- **`tile_height`** (`int` = `8`) - Height of each tile in pixels
+- **`tile_width`** (`int` = `8`) - Width of each tile in zones
+- **`tile_height`** (`int` = `8`) - Height of each tile in zones
 
 #### Effects (Waveforms & Animations)
 
