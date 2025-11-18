@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v2.1.0 (2025-11-18)
+
+### Documentation
+
+- Add mkdocs-llmstxt to generate llms.txt and llms-full.txt
+  ([`4ddea81`](https://github.com/Djelibeybi/lifx-emulator/commit/4ddea813cf269991857d4871554839b5447404ae))
+
+### Features
+
+- **protocol**: Add Sky Effect support and protocol quirks
+  ([`09422ab`](https://github.com/Djelibeybi/lifx-emulator/commit/09422ab8ab200b555ff7308c37ba087ff2e848e3))
+
+
 ## v2.0.0 (2025-11-12)
 
 ### Documentation
