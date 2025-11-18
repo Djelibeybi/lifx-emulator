@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.2.1 (2025-11-18)
+
+### Bug Fixes
+
+- **tile**: Preserve SUNRISE sky type in GetEffect responses
+  ([`70b2d48`](https://github.com/Djelibeybi/lifx-emulator/commit/70b2d48c1ee037591688abb345020e0cd515d2f1))
+
+
 ## v2.2.0 (2025-11-18)
 
 ### Features
