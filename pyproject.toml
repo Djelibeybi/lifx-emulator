@@ -1,6 +1,6 @@
 [project]
 name = "lifx-emulator"
-version = "2.2.1"
+version = "2.3.0"
 description = "LIFX Emulator for testing LIFX LAN protocol libraries"
 readme = "README.md"
 requires-python = ">=3.11"

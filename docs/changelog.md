@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.3.0 (2025-11-18)
+
+### Features
+
+- **tile**: Implement multi-framebuffer support for matrix devices
+  ([`16a69ca`](https://github.com/Djelibeybi/lifx-emulator/commit/16a69cacbdf0472d8f7116eb0acfda9808431c5c))
+
+
 ## v2.2.1 (2025-11-18)
 
 ### Bug Fixes
