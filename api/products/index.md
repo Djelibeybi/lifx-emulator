@@ -257,8 +257,8 @@ Get detailed specifications for a product.
 - `zone_count`: Number of zones (multizone devices)
 - `extended_multizone`: Extended multizone support flag
 - `tile_count`: Default number of tiles (matrix devices)
-- `tile_width`: Tile width in pixels (matrix devices)
-- `tile_height`: Tile height in pixels (matrix devices)
+- `tile_width`: Tile width in zones (matrix devices)
+- `tile_height`: Tile height in zones (matrix devices)
 
 **Example:**
 

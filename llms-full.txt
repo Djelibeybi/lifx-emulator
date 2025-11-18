@@ -642,16 +642,16 @@ Number of tiles per tile device. If not specified, uses product default (5 for L
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-count 10`
 
-### `--tile-width <PIXELS>`
+### `--tile-width <zones>`
 
-Width of each tile in pixels. If not specified, uses product default (typically 8).
+Width of each tile in zones. If not specified, uses product default (typically 8).
 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-width 16`
 
-### `--tile-height <PIXELS>`
+### `--tile-height <zones>`
 
-Height of each tile in pixels. If not specified, uses product default (typically 8).
+Height of each tile in zones. If not specified, uses product default (typically 8).
 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-height 8`
@@ -2373,7 +2373,7 @@ async def main():
     # Create a LIFX Tile with 5 tiles in the chain
     device = create_tile_device("d073d9000001", tile_count=5)
 
-    # Each tile is 8x8 pixels (64 zones)
+    # Each tile is 8x8 zones (64 zones)
     print(f"Tile device configuration:")
     print(f"  Tiles: {len(device.state.tile_devices)}")
     for i, tile in enumerate(device.state.tile_devices):
@@ -3965,7 +3965,7 @@ print(f"Tile height: {device.state.tile_height}")  # 8
 
 # Access tile devices
 for i, tile in enumerate(device.state.tile_devices):
-    print(f"Tile {i}: {tile.width}x{tile.height} pixels")
+    print(f"Tile {i}: {tile.width}x{tile.height} zones")
 ```
 
 ### Matrix Packet Types
@@ -4063,7 +4063,7 @@ Contains product-specific details not available in the upstream catalog:
 - Min/max zone counts
 - Default tile counts for matrix devices
 - Min/max tile counts
-- Tile dimensions (width x height in pixels)
+- Tile dimensions (width x height in zones)
 - Product-specific notes
 
 ### `specs.py`
@@ -4119,8 +4119,8 @@ products:
     default_tile_count: <number>    # Typical number of tiles in chain
     min_tile_count: <number>        # Minimum tiles supported
     max_tile_count: <number>        # Maximum tiles supported
-    tile_width: <pixels>            # Width of each tile
-    tile_height: <pixels>           # Height of each tile
+    tile_width: <zones>            # Width of each tile
+    tile_height: <zones>           # Height of each tile
     notes: "<description>"
 ```
 
@@ -4134,7 +4134,7 @@ products:
     max_tile_count: 5
     tile_width: 8
     tile_height: 8
-    notes: "LIFX Tile, 8x8 pixel matrix, chainable up to 5"
+    notes: "LIFX Tile, 8x8 zone matrix, chainable up to 5"
 ```
 
 **Example - LIFX Candle:**
@@ -4147,7 +4147,7 @@ products:
     max_tile_count: 1
     tile_width: 5
     tile_height: 6
-    notes: "LIFX Candle, 5x6 pixel matrix, single unit"
+    notes: "LIFX Candle, 5x6 zone matrix, single unit"
 ```
 
 **Example - LIFX Ceiling:**
@@ -4160,7 +4160,7 @@ products:
     max_tile_count: 1
     tile_width: 22
     tile_height: 22
-    notes: "LIFX Ceiling, 22x22 pixel matrix"
+    notes: "LIFX Ceiling, 22x22 zone matrix"
 ```
 
 ## How Specifications Are Used
@@ -4190,16 +4190,16 @@ When creating a matrix device:
 1. **Tile count**: From `specs.yml` if not specified by user
 
 ```python
-# Uses specification: 5 tiles of 8x8 pixels
+# Uses specification: 5 tiles of 8x8 zones
 device = create_device(55)
 
 # Custom tile count, specification dimensions
-device = create_device(55, tile_count=3)  # 3 tiles of 8x8 pixels
+device = create_device(55, tile_count=3)  # 3 tiles of 8x8 zones
 
-# Candle: 1 tile of 5x5 pixels (from specification)
+# Candle: 1 tile of 5x5 zones (from specification)
 device = create_device(57)
 
-# Ceiling: 1 tile of 22x22 pixels (from specification)
+# Ceiling: 1 tile of 22x22 zones (from specification)
 device = create_device(176)
 ```
 
@@ -4423,7 +4423,7 @@ For matrix/tile devices:
 ```text
 ▸ Show tiles (5)  (click to expand)
   ┌──────────┐
-  │ T1       │  (8×8 pixel grid)
+  │ T1       │  (8×8 zone grid)
   │ ████████ │
   │ ████████ │
   │ ████████ │
@@ -4534,8 +4534,8 @@ For matrix devices (tiles, candles, ceiling):
 
 1. Locate device in Devices section
 1. Click "▸ Show tiles" to expand
-1. Grid display shows pixel colors
-1. Each small square is one pixel
+1. Grid display shows zone colors
+1. Each small square is one zone
 1. Tiles labeled T1, T2, etc.
 1. Click again to collapse
 
@@ -7475,8 +7475,8 @@ Create a tile device (LIFX Tile)
 | ------------------ | -------------------------------------------------------------------------- |
 | `serial`           | Optional serial **TYPE:** \`str                                            |
 | `tile_count`       | Optional tile count (uses product default) **TYPE:** \`int                 |
-| `tile_width`       | Optional tile width in pixels (uses product default) **TYPE:** \`int       |
-| `tile_height`      | Optional tile height in pixels (uses product default) **TYPE:** \`int      |
+| `tile_width`       | Optional tile width in zones (uses product default) **TYPE:** \`int        |
+| `tile_height`      | Optional tile height in zones (uses product default) **TYPE:** \`int       |
 | `firmware_version` | Optional firmware version tuple (major, minor) **TYPE:** \`tuple[int, int] |
 | `storage`          | Optional storage for persistence **TYPE:** \`DevicePersistenceAsyncFile    |
 | `scenario_manager` | Optional scenario manager **TYPE:** \`HierarchicalScenarioManager          |
@@ -7498,8 +7498,8 @@ def create_tile_device(
     Args:
         serial: Optional serial
         tile_count: Optional tile count (uses product default)
-        tile_width: Optional tile width in pixels (uses product default)
-        tile_height: Optional tile height in pixels (uses product default)
+        tile_width: Optional tile width in zones (uses product default)
+        tile_height: Optional tile height in zones (uses product default)
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
@@ -7544,8 +7544,8 @@ This function uses the DeviceBuilder pattern to construct devices with clean sep
 | `zone_count`         | Number of zones for multizone devices (auto-determined) **TYPE:** \`int                                                                          |
 | `extended_multizone` | Enable extended multizone requests **TYPE:** \`bool                                                                                              |
 | `tile_count`         | Number of tiles for matrix devices (default: 5) **TYPE:** \`int                                                                                  |
-| `tile_width`         | Width of each tile in pixels (default: 8) **TYPE:** \`int                                                                                        |
-| `tile_height`        | Height of each tile in pixels (default: 8) **TYPE:** \`int                                                                                       |
+| `tile_width`         | Width of each tile in zones (default: 8) **TYPE:** \`int                                                                                         |
+| `tile_height`        | Height of each tile in zones (default: 8) **TYPE:** \`int                                                                                        |
 | `firmware_version`   | Optional firmware version tuple (major, minor). If not specified, uses 3.70 for extended_multizone or 2.60 otherwise **TYPE:** \`tuple[int, int] |
 | `storage`            | Optional storage for persistence **TYPE:** \`DevicePersistenceAsyncFile                                                                          |
 | `scenario_manager`   | Optional scenario manager for testing **TYPE:** \`HierarchicalScenarioManager                                                                    |
@@ -7595,8 +7595,8 @@ def create_device(
         zone_count: Number of zones for multizone devices (auto-determined)
         extended_multizone: Enable extended multizone requests
         tile_count: Number of tiles for matrix devices (default: 5)
-        tile_width: Width of each tile in pixels (default: 8)
-        tile_height: Height of each tile in pixels (default: 8)
+        tile_width: Width of each tile in zones (default: 8)
+        tile_height: Height of each tile in zones (default: 8)
         firmware_version: Optional firmware version tuple (major, minor).
                          If not specified, uses 3.70 for extended_multizone
                          or 2.60 otherwise
@@ -8064,8 +8064,8 @@ Dataclass holding all stateful information for an emulated LIFX device.
 
 - **`tile_count`** (`int` = `0`) - Number of tiles in chain
 - **`tile_devices`** (`list[dict]` = `[]`) - Per-tile state (position, colors)
-- **`tile_width`** (`int` = `8`) - Width of each tile in pixels
-- **`tile_height`** (`int` = `8`) - Height of each tile in pixels
+- **`tile_width`** (`int` = `8`) - Width of each tile in zones
+- **`tile_height`** (`int` = `8`) - Height of each tile in zones
 
 #### Effects (Waveforms & Animations)
 
@@ -9393,8 +9393,8 @@ class TileStateDevice:
     accel_meas_z: int
     user_x: float         # User-configured X position
     user_y: float         # User-configured Y position
-    width: int            # Tile width in pixels (e.g., 8)
-    height: int           # Tile height in pixels (e.g., 8)
+    width: int            # Tile width in zones (e.g., 8)
+    height: int           # Tile height in zones (e.g., 8)
     device_version_vendor: int
     device_version_product: int
     device_version_version: int
@@ -10752,8 +10752,8 @@ Get detailed specifications for a product.
 - `zone_count`: Number of zones (multizone devices)
 - `extended_multizone`: Extended multizone support flag
 - `tile_count`: Default number of tiles (matrix devices)
-- `tile_width`: Tile width in pixels (matrix devices)
-- `tile_height`: Tile height in pixels (matrix devices)
+- `tile_width`: Tile width in zones (matrix devices)
+- `tile_height`: Tile height in zones (matrix devices)
 
 **Example:**
 
@@ -11776,8 +11776,8 @@ Creates a new emulated device by product ID. The device will be added to the emu
 - `serial` (optional): Device serial (auto-generated if not provided)
 - `zone_count` (optional): Number of zones for multizone devices
 - `tile_count` (optional): Number of tiles for matrix devices
-- `tile_width` (optional): Width of each tile in pixels
-- `tile_height` (optional): Height of each tile in pixels
+- `tile_width` (optional): Width of each tile in zones
+- `tile_height` (optional): Height of each tile in zones
 - `firmware_major` (optional): Firmware major version
 - `firmware_minor` (optional): Firmware minor version
 
@@ -13415,8 +13415,8 @@ jobs:
 | 506  | StateMultiZone         | Response with zone colors     |
 | 512  | ExtendedStateMultiZone | Response with extended zones  |
 | 701  | GetDeviceChain         | Get tile chain info           |
-| 707  | Get64                  | Get tile pixel data           |
-| 715  | Set64                  | Set tile pixel data           |
+| 707  | Get64                  | Get tile zone data            |
+| 715  | Set64                  | Set tile zone data            |
 
 ## Tips and Best Practices
 
@@ -13765,7 +13765,7 @@ Devices advertise capabilities through boolean flags:
 | `has_infrared`           | IR brightness  | LIFX A19 Night Vision  |
 | `has_multizone`          | Linear zones   | LIFX Z, LIFX Beam      |
 | `has_extended_multizone` | >16 zones      | LIFX Beam              |
-| `has_matrix`             | 2D pixel grid  | LIFX Tile, LIFX Candle |
+| `has_matrix`             | 2D zone grid   | LIFX Tile, LIFX Candle |
 | `has_hev`                | HEV cleaning   | LIFX Clean             |
 
 ## Packet Types

@@ -235,8 +235,8 @@ Create a tile device (LIFX Tile)
 | ------------------ | -------------------------------------------------------------------------- |
 | `serial`           | Optional serial **TYPE:** \`str                                            |
 | `tile_count`       | Optional tile count (uses product default) **TYPE:** \`int                 |
-| `tile_width`       | Optional tile width in pixels (uses product default) **TYPE:** \`int       |
-| `tile_height`      | Optional tile height in pixels (uses product default) **TYPE:** \`int      |
+| `tile_width`       | Optional tile width in zones (uses product default) **TYPE:** \`int        |
+| `tile_height`      | Optional tile height in zones (uses product default) **TYPE:** \`int       |
 | `firmware_version` | Optional firmware version tuple (major, minor) **TYPE:** \`tuple[int, int] |
 | `storage`          | Optional storage for persistence **TYPE:** \`DevicePersistenceAsyncFile    |
 | `scenario_manager` | Optional scenario manager **TYPE:** \`HierarchicalScenarioManager          |
@@ -258,8 +258,8 @@ def create_tile_device(
     Args:
         serial: Optional serial
         tile_count: Optional tile count (uses product default)
-        tile_width: Optional tile width in pixels (uses product default)
-        tile_height: Optional tile height in pixels (uses product default)
+        tile_width: Optional tile width in zones (uses product default)
+        tile_height: Optional tile height in zones (uses product default)
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
@@ -304,8 +304,8 @@ This function uses the DeviceBuilder pattern to construct devices with clean sep
 | `zone_count`         | Number of zones for multizone devices (auto-determined) **TYPE:** \`int                                                                          |
 | `extended_multizone` | Enable extended multizone requests **TYPE:** \`bool                                                                                              |
 | `tile_count`         | Number of tiles for matrix devices (default: 5) **TYPE:** \`int                                                                                  |
-| `tile_width`         | Width of each tile in pixels (default: 8) **TYPE:** \`int                                                                                        |
-| `tile_height`        | Height of each tile in pixels (default: 8) **TYPE:** \`int                                                                                       |
+| `tile_width`         | Width of each tile in zones (default: 8) **TYPE:** \`int                                                                                         |
+| `tile_height`        | Height of each tile in zones (default: 8) **TYPE:** \`int                                                                                        |
 | `firmware_version`   | Optional firmware version tuple (major, minor). If not specified, uses 3.70 for extended_multizone or 2.60 otherwise **TYPE:** \`tuple[int, int] |
 | `storage`            | Optional storage for persistence **TYPE:** \`DevicePersistenceAsyncFile                                                                          |
 | `scenario_manager`   | Optional scenario manager for testing **TYPE:** \`HierarchicalScenarioManager                                                                    |
@@ -355,8 +355,8 @@ def create_device(
         zone_count: Number of zones for multizone devices (auto-determined)
         extended_multizone: Enable extended multizone requests
         tile_count: Number of tiles for matrix devices (default: 5)
-        tile_width: Width of each tile in pixels (default: 8)
-        tile_height: Height of each tile in pixels (default: 8)
+        tile_width: Width of each tile in zones (default: 8)
+        tile_height: Height of each tile in zones (default: 8)
         firmware_version: Optional firmware version tuple (major, minor).
                          If not specified, uses 3.70 for extended_multizone
                          or 2.60 otherwise

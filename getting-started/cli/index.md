@@ -200,16 +200,16 @@ Number of tiles per tile device. If not specified, uses product default (5 for L
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-count 10`
 
-### `--tile-width <PIXELS>`
+### `--tile-width <zones>`
 
-Width of each tile in pixels. If not specified, uses product default (typically 8).
+Width of each tile in zones. If not specified, uses product default (typically 8).
 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-width 16`
 
-### `--tile-height <PIXELS>`
+### `--tile-height <zones>`
 
-Height of each tile in pixels. If not specified, uses product default (typically 8).
+Height of each tile in zones. If not specified, uses product default (typically 8).
 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-height 8`
