@@ -136,8 +136,8 @@ class DeviceBuilder:
         """Set tile dimensions for matrix devices.
 
         Args:
-            width: Tile width in pixels
-            height: Tile height in pixels
+            width: Tile width in zones
+            height: Tile height in zones
 
         Returns:
             Self for method chaining

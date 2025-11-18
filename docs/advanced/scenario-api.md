@@ -788,8 +788,8 @@ jobs:
 | 506 | StateMultiZone | Response with zone colors |
 | 512 | ExtendedStateMultiZone | Response with extended zones |
 | 701 | GetDeviceChain | Get tile chain info |
-| 707 | Get64 | Get tile pixel data |
-| 715 | Set64 | Set tile pixel data |
+| 707 | Get64 | Get tile zone data |
+| 715 | Set64 | Set tile zone data |
 
 ## Tips and Best Practices
 

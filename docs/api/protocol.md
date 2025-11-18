@@ -322,8 +322,8 @@ class TileStateDevice:
     accel_meas_z: int
     user_x: float         # User-configured X position
     user_y: float         # User-configured Y position
-    width: int            # Tile width in pixels (e.g., 8)
-    height: int           # Tile height in pixels (e.g., 8)
+    width: int            # Tile width in zones (e.g., 8)
+    height: int           # Tile height in zones (e.g., 8)
     device_version_vendor: int
     device_version_product: int
     device_version_version: int

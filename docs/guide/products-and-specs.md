@@ -31,7 +31,7 @@ Contains product-specific details not available in the upstream catalog:
 - Min/max zone counts
 - Default tile counts for matrix devices
 - Min/max tile counts
-- Tile dimensions (width x height in pixels)
+- Tile dimensions (width x height in zones)
 - Product-specific notes
 
 ### `specs.py`
@@ -81,8 +81,8 @@ products:
     default_tile_count: <number>    # Typical number of tiles in chain
     min_tile_count: <number>        # Minimum tiles supported
     max_tile_count: <number>        # Maximum tiles supported
-    tile_width: <pixels>            # Width of each tile
-    tile_height: <pixels>           # Height of each tile
+    tile_width: <zones>            # Width of each tile
+    tile_height: <zones>           # Height of each tile
     notes: "<description>"
 ```
 
@@ -95,7 +95,7 @@ products:
     max_tile_count: 5
     tile_width: 8
     tile_height: 8
-    notes: "LIFX Tile, 8x8 pixel matrix, chainable up to 5"
+    notes: "LIFX Tile, 8x8 zone matrix, chainable up to 5"
 ```
 
 **Example - LIFX Candle:**
@@ -107,7 +107,7 @@ products:
     max_tile_count: 1
     tile_width: 5
     tile_height: 6
-    notes: "LIFX Candle, 5x6 pixel matrix, single unit"
+    notes: "LIFX Candle, 5x6 zone matrix, single unit"
 ```
 
 **Example - LIFX Ceiling:**
@@ -119,7 +119,7 @@ products:
     max_tile_count: 1
     tile_width: 22
     tile_height: 22
-    notes: "LIFX Ceiling, 22x22 pixel matrix"
+    notes: "LIFX Ceiling, 22x22 zone matrix"
 ```
 
 ## How Specifications Are Used
@@ -149,16 +149,16 @@ When creating a matrix device:
 2. **Tile count**: From `specs.yml` if not specified by user
 
 ```python
-# Uses specification: 5 tiles of 8x8 pixels
+# Uses specification: 5 tiles of 8x8 zones
 device = create_device(55)
 
 # Custom tile count, specification dimensions
-device = create_device(55, tile_count=3)  # 3 tiles of 8x8 pixels
+device = create_device(55, tile_count=3)  # 3 tiles of 8x8 zones
 
-# Candle: 1 tile of 5x5 pixels (from specification)
+# Candle: 1 tile of 5x5 zones (from specification)
 device = create_device(57)
 
-# Ceiling: 1 tile of 22x22 pixels (from specification)
+# Ceiling: 1 tile of 22x22 zones (from specification)
 device = create_device(176)
 ```
 

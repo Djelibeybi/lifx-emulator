@@ -266,8 +266,8 @@ Creates a new emulated device by product ID. The device will be added to the emu
 - `serial` (optional): Device serial (auto-generated if not provided)
 - `zone_count` (optional): Number of zones for multizone devices
 - `tile_count` (optional): Number of tiles for matrix devices
-- `tile_width` (optional): Width of each tile in pixels
-- `tile_height` (optional): Height of each tile in pixels
+- `tile_width` (optional): Width of each tile in zones
+- `tile_height` (optional): Height of each tile in zones
 - `firmware_major` (optional): Firmware major version
 - `firmware_minor` (optional): Firmware minor version
 

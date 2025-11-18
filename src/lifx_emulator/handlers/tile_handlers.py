@@ -142,13 +142,13 @@ class Get64Handler(PacketHandler):
         # regardless of which fb_index is in the request
         tile_colors = tile["colors"]
 
-        # Calculate how many rows fit in 64 pixels
+        # Calculate how many rows fit in 64 zones
         rows_to_return = 64 // rect.width if rect.width > 0 else 1
         rows_to_return = min(rows_to_return, tile_height - rect.y)
 
         # Extract colors from the requested rectangle
         colors = []
-        pixels_extracted = 0
+        zones_extracted = 0
 
         for row in range(rows_to_return):
             y = rect.y + row
@@ -157,22 +157,22 @@ class Get64Handler(PacketHandler):
 
             for col in range(rect.width):
                 x = rect.x + col
-                if x >= tile_width or pixels_extracted >= 64:
+                if x >= tile_width or zones_extracted >= 64:
                     colors.append(
                         LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
                     )
-                    pixels_extracted += 1
+                    zones_extracted += 1
                     continue
 
-                # Calculate pixel index in flat color array
-                pixel_idx = y * tile_width + x
-                if pixel_idx < len(tile_colors):
-                    colors.append(tile_colors[pixel_idx])
+                # Calculate zone index in flat color array
+                zone_idx = y * tile_width + x
+                if zone_idx < len(tile_colors):
+                    colors.append(tile_colors[zone_idx])
                 else:
                     colors.append(
                         LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
                     )
-                pixels_extracted += 1
+                zones_extracted += 1
 
         # Pad to exactly 64 colors
         while len(colors) < 64:
@@ -226,11 +226,11 @@ class Set64Handler(PacketHandler):
                 return []
 
         # Update colors in the specified rectangle
-        # Calculate how many rows fit in 64 pixels
+        # Calculate how many rows fit in 64 zones
         rows_to_write = 64 // rect.width if rect.width > 0 else 1
         rows_to_write = min(rows_to_write, tile_height - rect.y)
 
-        pixels_written = 0
+        zones_written = 0
         for row in range(rows_to_write):
             y = rect.y + row
             if y >= tile_height:
@@ -238,20 +238,18 @@ class Set64Handler(PacketHandler):
 
             for col in range(rect.width):
                 x = rect.x + col
-                if x >= tile_width or pixels_written >= 64:
-                    pixels_written += 1
+                if x >= tile_width or zones_written >= 64:
+                    zones_written += 1
                     continue
 
-                # Calculate pixel index in flat color array
-                pixel_idx = y * tile_width + x
-                if pixel_idx < len(target_colors) and pixels_written < len(
-                    packet.colors
-                ):
-                    target_colors[pixel_idx] = packet.colors[pixels_written]
-                pixels_written += 1
+                # Calculate zone index in flat color array
+                zone_idx = y * tile_width + x
+                if zone_idx < len(target_colors) and zones_written < len(packet.colors):
+                    target_colors[zone_idx] = packet.colors[zones_written]
+                zones_written += 1
 
         logger.info(
-            f"Tile {tile_index} FB{fb_index} set {pixels_written} colors at "
+            f"Tile {tile_index} FB{fb_index} set {zones_written} colors at "
             f"({rect.x},{rect.y}), duration={packet.duration}ms"
         )
 
@@ -316,7 +314,7 @@ class CopyFrameBufferHandler(PacketHandler):
         width = packet.width
         height = packet.height
 
-        pixels_copied = 0
+        zones_copied = 0
         for row in range(height):
             src_row = src_y + row
             dst_row = dst_y + row
@@ -336,10 +334,10 @@ class CopyFrameBufferHandler(PacketHandler):
 
                 if src_idx < len(src_colors) and dst_idx < len(dst_colors):
                     dst_colors[dst_idx] = src_colors[src_idx]
-                    pixels_copied += 1
+                    zones_copied += 1
 
         logger.info(
-            f"Tile {tile_index} copied {pixels_copied} pixels from "
+            f"Tile {tile_index} copied {zones_copied} zones from "
             f"FB{src_fb_index}({src_x},{src_y}) to "
             f"FB{dst_fb_index}({dst_x},{dst_y}), "
             f"size={width}x{height}, duration={packet.duration}ms"

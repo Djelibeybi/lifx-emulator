@@ -286,9 +286,9 @@ async def run(
         tile: Number of tile/matrix chain devices.
         tile_count: Number of tiles per device. Uses product defaults if not
             specified (5 for Tile, 1 for Candle/Ceiling).
-        tile_width: Width of each tile in pixels. Uses product defaults if not
+        tile_width: Width of each tile in zones. Uses product defaults if not
             specified (8 for most devices).
-        tile_height: Height of each tile in pixels. Uses product defaults if
+        tile_height: Height of each tile in zones. Uses product defaults if
             not specified (8 for most devices).
         serial_prefix: Serial number prefix as 6 hex characters.
         serial_start: Starting serial suffix for auto-incrementing device serials.

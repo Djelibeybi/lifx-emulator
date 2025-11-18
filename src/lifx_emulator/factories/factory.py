@@ -104,8 +104,8 @@ def create_tile_device(
     Args:
         serial: Optional serial
         tile_count: Optional tile count (uses product default)
-        tile_width: Optional tile width in pixels (uses product default)
-        tile_height: Optional tile height in pixels (uses product default)
+        tile_width: Optional tile width in zones (uses product default)
+        tile_height: Optional tile height in zones (uses product default)
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
@@ -164,8 +164,8 @@ def create_device(
         zone_count: Number of zones for multizone devices (auto-determined)
         extended_multizone: Enable extended multizone requests
         tile_count: Number of tiles for matrix devices (default: 5)
-        tile_width: Width of each tile in pixels (default: 8)
-        tile_height: Height of each tile in pixels (default: 8)
+        tile_width: Width of each tile in zones (default: 8)
+        tile_height: Height of each tile in zones (default: 8)
         firmware_version: Optional firmware version tuple (major, minor).
                          If not specified, uses 3.70 for extended_multizone
                          or 2.60 otherwise

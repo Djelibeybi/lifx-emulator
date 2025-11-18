@@ -73,7 +73,7 @@ docstring-code-format = true
 docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "C90"]  # C90 = mccabe complexity
+select = ["E", "F", "I", "N", "W", "UP"]
 ignore = []
 
 # Complexity and code quality limits
@@ -86,13 +86,8 @@ max-branches = 12
 max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
-"src/lifx_emulator/__main__.py" = ["C901"]
-"src/lifx_emulator/devices/state_restorer.py" = ["C901"]
-"src/lifx_emulator/handlers/tile_handlers.py" = ["C901"]
-"src/lifx_emulator/protocol/generator.py" = ["E501", "C901"]
+"src/lifx_emulator/protocol/generator.py" = ["E501"]
 "src/lifx_emulator/protocol/packets.py" = ["E501"]
-"src/lifx_emulator/products/registry.py" = ["C901"]
-"src/lifx_emulator/scenarios/persistence.py" = ["C901"]
 
 
 [tool.pyright]

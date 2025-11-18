@@ -84,7 +84,7 @@ async def main():
     # Create a LIFX Tile with 5 tiles in the chain
     device = create_tile_device("d073d9000001", tile_count=5)
 
-    # Each tile is 8x8 pixels (64 zones)
+    # Each tile is 8x8 zones (64 zones)
     print(f"Tile device configuration:")
     print(f"  Tiles: {len(device.state.tile_devices)}")
     for i, tile in enumerate(device.state.tile_devices):

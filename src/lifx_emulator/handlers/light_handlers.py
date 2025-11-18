@@ -7,12 +7,78 @@ from typing import TYPE_CHECKING, Any
 
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import Light
-from lifx_emulator.protocol.protocol_types import LightLastHevCycleResult
+from lifx_emulator.protocol.protocol_types import LightHsbk, LightLastHevCycleResult
 
 if TYPE_CHECKING:
     from lifx_emulator.devices import DeviceState
 
 logger = logging.getLogger(__name__)
+
+
+def _compute_average_color(colors: list[LightHsbk]) -> LightHsbk:
+    """Compute average HSBK color from a list of LightHsbk colors.
+
+    Uses circular mean for hue to correctly handle hue wraparound
+    (e.g., average of 10° and 350° is 0°, not 180°).
+
+    Args:
+        colors: List of LightHsbk colors to average
+
+    Returns:
+        LightHsbk with averaged values using circular mean for hue
+    """
+    import math
+
+    if not colors:
+        return LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+
+    # Convert uint16 values to proper ranges and calculate circular mean
+    hue_x_total = 0.0
+    hue_y_total = 0.0
+    saturation_total = 0.0
+    brightness_total = 0.0
+    kelvin_total = 0
+
+    for color in colors:
+        # Convert uint16 hue (0-65535) to degrees (0-360)
+        hue_deg = round(float(color.hue) * 360 / 0x10000, 2)
+
+        # Convert uint16 sat/bright (0-65535) to float (0-1)
+        sat_float = round(float(color.saturation) / 0xFFFF, 4)
+        bright_float = round(float(color.brightness) / 0xFFFF, 4)
+
+        # Circular mean calculation for hue using sin/cos
+        hue_x_total += math.sin(hue_deg * 2.0 * math.pi / 360)
+        hue_y_total += math.cos(hue_deg * 2.0 * math.pi / 360)
+
+        # Regular sums for other components
+        saturation_total += sat_float
+        brightness_total += bright_float
+        kelvin_total += color.kelvin
+
+    # Calculate circular mean for hue
+    hue = math.atan2(hue_x_total, hue_y_total) / (2.0 * math.pi)
+    if hue < 0.0:
+        hue += 1.0
+    hue *= 360
+    hue = round(hue, 4)
+
+    # Calculate arithmetic means for other components
+    saturation = round(saturation_total / len(colors), 4)
+    brightness = round(brightness_total / len(colors), 4)
+    kelvin = round(kelvin_total / len(colors))
+
+    # Convert back to uint16 values
+    uint16_hue = int(round(0x10000 * hue) / 360) % 0x10000
+    uint16_saturation = int(round(0xFFFF * saturation))
+    uint16_brightness = int(round(0xFFFF * brightness))
+
+    return LightHsbk(
+        hue=uint16_hue,
+        saturation=uint16_saturation,
+        brightness=uint16_brightness,
+        kelvin=kelvin,
+    )
 
 
 class GetColorHandler(PacketHandler):
@@ -23,9 +89,24 @@ class GetColorHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
+        # For multizone/matrix devices, compute average color from all zones
+        # This provides backwards compatibility with clients that don't use
+        # zone-specific or tile-specific packets
+        color_to_return = device_state.color
+
+        if device_state.has_multizone and device_state.zone_colors:
+            # Return average of all zone colors
+            color_to_return = _compute_average_color(device_state.zone_colors)
+        elif device_state.has_matrix and device_state.tile_devices:
+            # Collect all zone colors from all tiles
+            all_zones = []
+            for tile in device_state.tile_devices:
+                all_zones.extend(tile["colors"])
+            color_to_return = _compute_average_color(all_zones)
+
         return [
             Light.StateColor(
-                color=device_state.color,
+                color=color_to_return,
                 power=device_state.power_level,
                 label=device_state.label,
             )
@@ -46,10 +127,36 @@ class SetColorHandler(PacketHandler):
         if packet:
             device_state.color = packet.color
             c = packet.color
-            logger.info(
-                f"Color set to HSBK({c.hue}, {c.saturation}, "
-                f"{c.brightness}, {c.kelvin}), duration={packet.duration}ms"
-            )
+
+            # For backwards compatibility: propagate color to all zones
+            # Multizone devices: update all zone colors
+            if device_state.has_multizone and device_state.zone_colors:
+                for i in range(len(device_state.zone_colors)):
+                    device_state.zone_colors[i] = packet.color
+                logger.info(
+                    f"Color set to HSBK({c.hue}, {c.saturation}, "
+                    f"{c.brightness}, {c.kelvin}) across all "
+                    f"{len(device_state.zone_colors)} zones, "
+                    f"duration={packet.duration}ms"
+                )
+            # Matrix devices: update all tile zones
+            elif device_state.has_matrix and device_state.tile_devices:
+                total_zones = 0
+                for tile in device_state.tile_devices:
+                    for i in range(len(tile["colors"])):
+                        tile["colors"][i] = packet.color
+                    total_zones += len(tile["colors"])
+                logger.info(
+                    f"Color set to HSBK({c.hue}, {c.saturation}, "
+                    f"{c.brightness}, {c.kelvin}) across all {total_zones} zones, "
+                    f"duration={packet.duration}ms"
+                )
+            else:
+                # Simple color device
+                logger.info(
+                    f"Color set to HSBK({c.hue}, {c.saturation}, "
+                    f"{c.brightness}, {c.kelvin}), duration={packet.duration}ms"
+                )
 
         if res_required:
             return [
@@ -120,6 +227,17 @@ class SetWaveformHandler(PacketHandler):
             if not packet.transient:
                 device_state.color = packet.color
 
+                # For backwards compatibility: propagate color to all zones
+                # Multizone devices: update all zone colors
+                if device_state.has_multizone and device_state.zone_colors:
+                    for i in range(len(device_state.zone_colors)):
+                        device_state.zone_colors[i] = packet.color
+                # Matrix devices: update all tile zones
+                elif device_state.has_matrix and device_state.tile_devices:
+                    for tile in device_state.tile_devices:
+                        for i in range(len(tile["colors"])):
+                            tile["colors"][i] = packet.color
+
             logger.info(
                 f"Waveform set: type={packet.waveform}, "
                 f"transient={packet.transient}, period={packet.period}ms, "
@@ -127,13 +245,9 @@ class SetWaveformHandler(PacketHandler):
             )
 
         if res_required:
-            return [
-                Light.StateColor(
-                    color=device_state.color,
-                    power=device_state.power_level,
-                    label=device_state.label,
-                )
-            ]
+            # Use GetColorHandler to get proper averaged color if needed
+            handler = GetColorHandler()
+            return handler.handle(device_state, None, res_required)
         return []
 
 
@@ -168,6 +282,31 @@ class SetWaveformOptionalHandler(PacketHandler):
                 if packet.set_kelvin:
                     device_state.color.kelvin = packet.color.kelvin
 
+                # Backwards compatibility propagates color changes to zones
+                # Multizone devices: update all zone colors
+                if device_state.has_multizone and device_state.zone_colors:
+                    for zone_color in device_state.zone_colors:
+                        if packet.set_hue:
+                            zone_color.hue = packet.color.hue
+                        if packet.set_saturation:
+                            zone_color.saturation = packet.color.saturation
+                        if packet.set_brightness:
+                            zone_color.brightness = packet.color.brightness
+                        if packet.set_kelvin:
+                            zone_color.kelvin = packet.color.kelvin
+                # Matrix devices: update all tile zones
+                elif device_state.has_matrix and device_state.tile_devices:
+                    for tile in device_state.tile_devices:
+                        for zone_color in tile["colors"]:
+                            if packet.set_hue:
+                                zone_color.hue = packet.color.hue
+                            if packet.set_saturation:
+                                zone_color.saturation = packet.color.saturation
+                            if packet.set_brightness:
+                                zone_color.brightness = packet.color.brightness
+                            if packet.set_kelvin:
+                                zone_color.kelvin = packet.color.kelvin
+
             # Store the waveform color (all components)
             device_state.waveform_color = packet.color
 
@@ -180,13 +319,9 @@ class SetWaveformOptionalHandler(PacketHandler):
             )
 
         if res_required:
-            return [
-                Light.StateColor(
-                    color=device_state.color,
-                    power=device_state.power_level,
-                    label=device_state.label,
-                )
-            ]
+            # Use GetColorHandler to get proper averaged color if needed
+            handler = GetColorHandler()
+            return handler.handle(device_state, None, res_required)
         return []
 
 

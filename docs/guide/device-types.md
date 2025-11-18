@@ -297,7 +297,7 @@ print(f"Tile height: {device.state.tile_height}")  # 8
 
 # Access tile devices
 for i, tile in enumerate(device.state.tile_devices):
-    print(f"Tile {i}: {tile.width}x{tile.height} pixels")
+    print(f"Tile {i}: {tile.width}x{tile.height} zones")
 ```
 
 ### Matrix Packet Types

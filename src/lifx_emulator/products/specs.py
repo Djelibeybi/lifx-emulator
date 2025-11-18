@@ -25,8 +25,8 @@ class ProductSpecs:
         default_tile_count: Default number of tiles in chain
         min_tile_count: Minimum tiles supported
         max_tile_count: Maximum tiles supported
-        tile_width: Width of each tile in pixels
-        tile_height: Height of each tile in pixels
+        tile_width: Width of each tile in zones
+        tile_height: Height of each tile in zones
         default_firmware_major: Default firmware major version
         default_firmware_minor: Default firmware minor version
         notes: Human-readable notes about this product

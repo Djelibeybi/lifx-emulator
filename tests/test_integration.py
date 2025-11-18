@@ -296,10 +296,10 @@ class TestTile:
             sock.close()
 
     @pytest.mark.asyncio
-    async def test_get_tile_pixels(
+    async def test_get_tile_zones(
         self, integration_server, integration_port, device_lookup
     ):
-        """Test getting tile pixels."""
+        """Test getting tile zones."""
         async with integration_server:
             tile_device = device_lookup["d073d5000006"]
             target = tile_device.state.get_target_bytes()

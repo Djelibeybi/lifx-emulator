@@ -90,10 +90,10 @@ class EmulatedLifxDevice:
         if self.state.has_matrix and self.state.tile_count > 0:
             if not self.state.tile_devices:
                 for i in range(self.state.tile_count):
-                    pixels = self.state.tile_width * self.state.tile_height
+                    zones = self.state.tile_width * self.state.tile_height
                     tile_colors = [
                         LightHsbk(hue=0, saturation=0, brightness=32768, kelvin=3500)
-                        for _ in range(pixels)
+                        for _ in range(zones)
                     ]
 
                     self.state.tile_devices.append(
