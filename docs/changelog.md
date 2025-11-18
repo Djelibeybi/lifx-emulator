@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.3.1 (2025-11-18)
+
+### Bug Fixes
+
+- **tile**: Implement backwards compatibility on tile and multizone devices
+  ([`be473f7`](https://github.com/Djelibeybi/lifx-emulator/commit/be473f74f9a49be7f07082d5bfba16f5d74f46f6))
+
+
 ## v2.3.0 (2025-11-18)
 
 ### Features
