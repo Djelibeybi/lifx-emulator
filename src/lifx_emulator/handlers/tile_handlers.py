@@ -241,9 +241,9 @@ class GetEffectHandler(PacketHandler):
         from lifx_emulator.protocol.protocol_types import TileEffectSkyType
 
         # Use defaults for SKY effect (type=5), otherwise use stored values
-        effect_type = device_state.tile_effect_type
-        if effect_type == 5:  # SKY effect
-            sky_type = device_state.tile_effect_sky_type or 2  # Default to CLOUDS
+        effect_type = TileEffectType(device_state.tile_effect_type)
+        if effect_type == TileEffectType.SKY:
+            sky_type = device_state.tile_effect_sky_type or TileEffectSkyType.CLOUDS
             cloud_sat_min = device_state.tile_effect_cloud_sat_min or 50
             cloud_sat_max = device_state.tile_effect_cloud_sat_max or 180
         else:
@@ -284,6 +284,27 @@ class SetEffectHandler(PacketHandler):
             return []
 
         if packet:
+            # Sky effect is only supported on LIFX Ceiling devices (176, 177, 201, 202)
+            # running firmware 4.4 or higher
+            if packet.settings.type == TileEffectType.SKY:
+                ceiling_product_ids = {176, 177, 201, 202}
+                is_ceiling = device_state.product in ceiling_product_ids
+
+                # Check firmware version >= 4.4
+                firmware_supported = device_state.version_major > 4 or (
+                    device_state.version_major == 4 and device_state.version_minor >= 4
+                )
+
+                if not (is_ceiling and firmware_supported):
+                    logger.debug(
+                        f"Ignoring SKY effect request: "
+                        f"product={device_state.product}, "
+                        f"firmware={device_state.version_major}."
+                        f"{device_state.version_minor} "
+                        f"(requires Ceiling product and firmware >= 4.4)"
+                    )
+                    return []
+
             device_state.tile_effect_type = int(packet.settings.type)
             device_state.tile_effect_speed = (
                 packet.settings.speed // 1000

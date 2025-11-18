@@ -788,7 +788,7 @@ def _generate_yaml_header() -> list[str]:
         "#",
         "# This file contains product-specific details that are not available in the",
         "# upstream LIFX products.json catalog, such as default zone counts, tile",
-        "# configurations, and other device-specific defaults.",
+        "# configurations, firmware versions, and other device-specific defaults.",
         "#",
         "# These values are used by the emulator to create realistic device",
         "# configurations when specific parameters are not provided by the user.",
@@ -809,8 +809,25 @@ def _generate_yaml_header() -> list[str]:
         "#     tile_width: <number>              # Width of each tile in pixels",
         "#     tile_height: <number>             # Height of each tile in pixels",
         "#",
+        "#     # Host firmware version (optional, overrides auto firmware selection)",
+        "#     default_firmware_major: <number>  # Firmware major version (e.g., 3)",
+        "#     default_firmware_minor: <number>  # Firmware minor version (e.g., 70)",
+        "#",
         "#     # Other device-specific defaults",
         '#     notes: "<string>"                 # Notes about product',
+        "#",
+        "# Firmware Version Notes:",
+        "# ----------------------",
+        "# If default_firmware_major and default_firmware_minor are both specified ",
+        "# they will be used as the default firmware version when creating devices",
+        "# of that type. This overrides the automatic firmware version selection",
+        "# based on extended_multizone capability (which defaults to 3.70 for extended",
+        "# multizone or 2.60 for non-extended).",
+        "#",
+        "# Precedence order for firmware version:",
+        "# 1. Explicit firmware_version parameter to create_device()",
+        "# 2. Product-specific default from this specs.yml file",
+        "# 3. Automatic selection based on extended_multizone flag",
         "",
         "products:",
     ]
@@ -846,6 +863,15 @@ def _generate_multizone_section(
         lines.append(f"    default_zone_count: {specs['default_zone_count']}")
         lines.append(f"    min_zone_count: {specs['min_zone_count']}")
         lines.append(f"    max_zone_count: {specs['max_zone_count']}")
+
+        # Add firmware version if present
+        if "default_firmware_major" in specs and "default_firmware_minor" in specs:
+            lines.append(
+                f"    default_firmware_major: {specs['default_firmware_major']}"
+            )
+            lines.append(
+                f"    default_firmware_minor: {specs['default_firmware_minor']}"
+            )
 
         notes = specs.get("notes", "")
         if notes:
@@ -888,6 +914,15 @@ def _generate_matrix_section(
         lines.append(f"    max_tile_count: {specs['max_tile_count']}")
         lines.append(f"    tile_width: {specs['tile_width']}")
         lines.append(f"    tile_height: {specs['tile_height']}")
+
+        # Add firmware version if present
+        if "default_firmware_major" in specs and "default_firmware_minor" in specs:
+            lines.append(
+                f"    default_firmware_major: {specs['default_firmware_major']}"
+            )
+            lines.append(
+                f"    default_firmware_minor: {specs['default_firmware_minor']}"
+            )
 
         notes = specs.get("notes", "")
         if notes:
