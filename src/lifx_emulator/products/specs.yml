@@ -3,7 +3,7 @@
 #
 # This file contains product-specific details that are not available in the
 # upstream LIFX products.json catalog, such as default zone counts, tile
-# configurations, and other device-specific defaults.
+# configurations, firmware versions, and other device-specific defaults.
 #
 # These values are used by the emulator to create realistic device
 # configurations when specific parameters are not provided by the user.
@@ -24,8 +24,25 @@
 #     tile_width: <number>              # Width of each tile in pixels
 #     tile_height: <number>             # Height of each tile in pixels
 #
+#     # Host firmware version (optional, overrides automatic firmware selection)
+#     default_firmware_major: <number>  # Firmware major version (e.g., 3)
+#     default_firmware_minor: <number>  # Firmware minor version (e.g., 70)
+#
 #     # Other device-specific defaults
 #     notes: "<string>"                 # Notes about product
+#
+# Firmware Version Notes:
+# ----------------------
+# If default_firmware_major and default_firmware_minor are both specified for a
+# product, they will be used as the default firmware version when creating devices
+# of that product type. This overrides the automatic firmware version selection
+# based on extended_multizone capability (which defaults to 3.70 for extended
+# multizone or 2.60 for non-extended).
+#
+# Precedence order for firmware version:
+# 1. Explicit firmware_version parameter to create_device()
+# 2. Product-specific default from this specs.yml file
+# 3. Automatic selection based on extended_multizone flag
 
 products:
   # ========================================
@@ -220,15 +237,19 @@ products:
     max_tile_count: 1
     tile_width: 8
     tile_height: 8
+    default_firmware_major: 4
+    default_firmware_minor: 10
     notes: 'LIFX Ceiling, 8x8 matrix, zones 1-63: downlight, zone 64: uplight'
 
-  177:  # LIFX Tube Intl
+  177:  # LIFX Ceiling Intl
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
-    tile_width: 5
-    tile_height: 11
-    notes: LIFX Tube Intl
+    tile_width: 8
+    tile_height: 8
+    default_firmware_major: 4
+    default_firmware_minor: 10
+    notes: LIFX Ceiling Intl
 
   185:  # LIFX Candle Color US
     default_tile_count: 1
@@ -252,6 +273,8 @@ products:
     max_tile_count: 1
     tile_width: 16
     tile_height: 8
+    default_firmware_major: 4
+    default_firmware_minor: 10
     notes: LIFX Ceiling 13x26" US
 
   202:  # LIFX Ceiling 13x26" Intl
@@ -260,6 +283,8 @@ products:
     max_tile_count: 1
     tile_width: 16
     tile_height: 8
+    default_firmware_major: 4
+    default_firmware_minor: 10
     notes: LIFX Ceiling 13x26" Intl
 
   215:  # LIFX Candle Color US

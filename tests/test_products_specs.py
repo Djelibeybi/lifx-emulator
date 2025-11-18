@@ -3,6 +3,7 @@
 import tempfile
 from pathlib import Path
 
+from lifx_emulator.factories.firmware_config import FirmwareConfig
 from lifx_emulator.products.specs import (
     ProductSpecs,
     SpecsRegistry,
@@ -41,6 +42,28 @@ class TestProductSpecs:
         """Test has_matrix_specs returns False when both width and height are None."""
         specs = ProductSpecs(product_id=27)
         assert specs.has_matrix_specs is False
+
+    def test_has_firmware_specs_true(self):
+        """Test has_firmware_specs returns True when both major and minor are set."""
+        specs = ProductSpecs(
+            product_id=27, default_firmware_major=3, default_firmware_minor=70
+        )
+        assert specs.has_firmware_specs is True
+
+    def test_has_firmware_specs_false_no_major(self):
+        """Test has_firmware_specs returns False when major is None."""
+        specs = ProductSpecs(product_id=27, default_firmware_minor=70)
+        assert specs.has_firmware_specs is False
+
+    def test_has_firmware_specs_false_no_minor(self):
+        """Test has_firmware_specs returns False when minor is None."""
+        specs = ProductSpecs(product_id=27, default_firmware_major=3)
+        assert specs.has_firmware_specs is False
+
+    def test_has_firmware_specs_false_both_none(self):
+        """Test has_firmware_specs returns False when both are None."""
+        specs = ProductSpecs(product_id=27)
+        assert specs.has_firmware_specs is False
 
 
 class TestSpecsRegistry:
@@ -184,6 +207,61 @@ products:
         registry.load_from_file(Path("nonexistent.yml"))
         assert registry.get_tile_dimensions(999) is None
 
+    def test_get_default_firmware_version_found(self):
+        """Test get_default_firmware_version when both fields are set."""
+        registry = SpecsRegistry()
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(
+                """
+products:
+  27:
+    default_firmware_major: 3
+    default_firmware_minor: 70
+"""
+            )
+            temp_path = Path(f.name)
+
+        try:
+            registry.load_from_file(temp_path)
+            result = registry.get_default_firmware_version(27)
+            assert result == (3, 70)
+        finally:
+            temp_path.unlink()
+
+    def test_get_default_firmware_version_missing_minor(self):
+        """Test get_default_firmware_version returns None when minor is missing."""
+        registry = SpecsRegistry()
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(
+                """
+products:
+  27:
+    default_firmware_major: 3
+"""
+            )
+            temp_path = Path(f.name)
+
+        try:
+            registry.load_from_file(temp_path)
+            result = registry.get_default_firmware_version(27)
+            assert result is None
+        finally:
+            temp_path.unlink()
+
+    def test_get_default_firmware_version_not_found(self):
+        """Test get_default_firmware_version returns None for non-existent product."""
+        registry = SpecsRegistry()
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write("products:\n  27:\n    notes: Test\n")
+            temp_path = Path(f.name)
+
+        try:
+            registry.load_from_file(temp_path)
+            result = registry.get_default_firmware_version(999)
+            assert result is None
+        finally:
+            temp_path.unlink()
+
     def test_len_triggers_lazy_load(self):
         """Test __len__ triggers lazy loading."""
         registry = SpecsRegistry()
@@ -220,3 +298,69 @@ class TestModuleLevelFunctions:
         """Test get_tile_dimensions module function."""
         result = get_tile_dimensions(55)
         assert result is None or isinstance(result, tuple)
+
+    def test_get_default_firmware_version(self):
+        """Test get_default_firmware_version module function."""
+        from lifx_emulator.products.specs import get_default_firmware_version
+
+        result = get_default_firmware_version(27)
+        assert result is None or isinstance(result, tuple)
+
+
+class TestFirmwareConfigWithProductSpecs:
+    """Test FirmwareConfig with product-specific defaults."""
+
+    def test_firmware_version_with_product_specs(self):
+        """Test firmware version uses specs when product_id provided."""
+        from lifx_emulator.products.specs import get_specs_registry
+
+        # Create temp specs file with firmware version
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            yaml_content = """
+products:
+  27:
+    default_firmware_major: 4
+    default_firmware_minor: 50
+"""
+            f.write(yaml_content)
+            temp_path = Path(f.name)
+
+        try:
+            # Load specs into global registry
+            registry = get_specs_registry()
+            registry.load_from_file(temp_path)
+
+            # Test with product_id - should use specs from global registry
+            config = FirmwareConfig()
+            version = config.get_firmware_version(product_id=27)
+            assert version == (4, 50), f"Expected (4, 50) from specs, got {version}"
+
+        finally:
+            temp_path.unlink()
+
+    def test_firmware_version_precedence_override_wins(self):
+        """Test explicit override takes precedence over specs."""
+        config = FirmwareConfig()
+        version = config.get_firmware_version(
+            product_id=27, extended_multizone=True, override=(5, 0)
+        )
+        assert version == (5, 0)
+
+    def test_firmware_version_precedence_no_specs(self):
+        """Test fallback to extended_multizone when no specs."""
+        config = FirmwareConfig()
+
+        # No product_id, extended=True -> 3.70
+        version = config.get_firmware_version(extended_multizone=True)
+        assert version == (3, 70)
+
+        # No product_id, extended=False -> 2.60
+        version = config.get_firmware_version(extended_multizone=False)
+        assert version == (2, 60)
+
+    def test_firmware_version_product_not_in_specs(self):
+        """Test fallback to extended_multizone when product not in specs."""
+        config = FirmwareConfig()
+        # Product 999 won't have specs, should fall back
+        version = config.get_firmware_version(product_id=999, extended_multizone=True)
+        assert version == (3, 70)

@@ -1,5 +1,6 @@
 """Extended tests for tile packet handlers to improve coverage."""
 
+from lifx_emulator.factories import create_device
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import (
@@ -643,3 +644,259 @@ class TestTileEffects:
 
         # Palette should be stored with only the specified count
         assert device.state.tile_effect_palette_count == 10
+
+
+class TestSkyEffectRestrictions:
+    """Test that SKY effect is only supported on Ceiling devices with firmware 4.4+."""
+
+    def test_sky_effect_on_non_ceiling_tile_device(self):
+        """Test SKY effect on non-Ceiling tile device (should be ignored)."""
+        # Create a LIFX Tile (product 55, not a Ceiling) with firmware 4.4
+        device = create_device(55, tile_count=1, firmware_version=(4, 4))
+
+        # Create SKY effect packet
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=1000,
+            cloud_saturation_max=5000,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=3000,
+            duration=0,
+            parameter=parameter,
+            palette_count=1,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        # Process the packet
+        device.process_packet(header, packet)
+
+        # Effect should NOT be set (still default OFF)
+        assert device.state.tile_effect_type == int(TileEffectType.OFF)
+
+    def test_sky_effect_on_ceiling_with_old_firmware(self):
+        """Test SKY effect on Ceiling device with firmware < 4.4 (should be ignored)."""
+        # Create a LIFX Ceiling US (product 176) with firmware 4.3
+        device = create_device(176, tile_count=1, firmware_version=(4, 3))
+
+        # Create SKY effect packet
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.CLOUDS,
+            cloud_saturation_min=2000,
+            cloud_saturation_max=8000,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=5000,
+            duration=0,
+            parameter=parameter,
+            palette_count=1,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        # Process the packet
+        device.process_packet(header, packet)
+
+        # Effect should NOT be set (still default OFF)
+        assert device.state.tile_effect_type == int(TileEffectType.OFF)
+
+    def test_sky_effect_on_ceiling_with_valid_firmware(self):
+        """Test SKY effect on Ceiling device with firmware >= 4.4 (should work)."""
+        # Create a LIFX Ceiling US (product 176) with firmware 4.4
+        device = create_device(176, tile_count=1, firmware_version=(4, 4))
+
+        # Create SKY effect packet
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=1500,
+            cloud_saturation_max=6000,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=4000,
+            duration=0,
+            parameter=parameter,
+            palette_count=2,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        # Process the packet
+        device.process_packet(header, packet)
+
+        # Effect SHOULD be set
+        assert device.state.tile_effect_type == int(TileEffectType.SKY)
+        assert device.state.tile_effect_speed == 4  # Converted to seconds
+        assert device.state.tile_effect_sky_type == int(TileEffectSkyType.SUNRISE)
+        assert device.state.tile_effect_cloud_sat_min == 1500
+        assert device.state.tile_effect_cloud_sat_max == 6000
+
+    def test_sky_effect_on_ceiling_with_newer_firmware(self):
+        """Test SKY effect on Ceiling device with firmware > 4.4 (should work)."""
+        # Create a LIFX Ceiling Intl (product 177) with firmware 5.0
+        device = create_device(177, tile_count=1, firmware_version=(5, 0))
+
+        # Create SKY effect packet
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.CLOUDS,
+            cloud_saturation_min=3000,
+            cloud_saturation_max=7000,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=2000,
+            duration=0,
+            parameter=parameter,
+            palette_count=1,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        # Process the packet
+        device.process_packet(header, packet)
+
+        # Effect SHOULD be set
+        assert device.state.tile_effect_type == int(TileEffectType.SKY)
+        assert device.state.tile_effect_speed == 2
+        assert device.state.tile_effect_sky_type == int(TileEffectSkyType.CLOUDS)
+
+    def test_other_effects_on_non_ceiling_still_work(self):
+        """Test non-SKY effects still work on non-Ceiling devices."""
+        # Create a LIFX Tile (product 55) with firmware 4.4
+        device = create_device(55, tile_count=1, firmware_version=(4, 4))
+
+        # Create MORPH effect packet (not SKY)
+        palette = [
+            LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500),
+            LightHsbk(hue=21845, saturation=65535, brightness=65535, kelvin=3500),
+        ]
+        # Pad to 16
+        while len(palette) < 16:
+            palette.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
+
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=0,
+            cloud_saturation_max=0,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.MORPH,
+            speed=3000,
+            duration=0,
+            parameter=parameter,
+            palette_count=2,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        # Process the packet
+        device.process_packet(header, packet)
+
+        # Effect SHOULD be set (MORPH is allowed on all matrix devices)
+        assert device.state.tile_effect_type == int(TileEffectType.MORPH)
+        assert device.state.tile_effect_speed == 3
+
+    def test_sky_effect_on_all_ceiling_products(self):
+        """Test SKY effect on all 4 Ceiling product IDs."""
+        ceiling_product_ids = [176, 177, 201, 202]
+
+        for product_id in ceiling_product_ids:
+            # Create Ceiling device with firmware 4.4
+            device = create_device(product_id, tile_count=1, firmware_version=(4, 4))
+
+            # Create SKY effect packet
+            palette = [
+                LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+                for _ in range(16)
+            ]
+            parameter = TileEffectParameter(
+                sky_type=TileEffectSkyType.SUNRISE,
+                cloud_saturation_min=1000,
+                cloud_saturation_max=5000,
+            )
+            settings = TileEffectSettings(
+                instanceid=1,
+                type=TileEffectType.SKY,
+                speed=3000,
+                duration=0,
+                parameter=parameter,
+                palette_count=1,
+                palette=palette,
+            )
+
+            packet = Tile.SetEffect(settings=settings)
+            header = LifxHeader(
+                source=12345,
+                target=device.state.get_target_bytes(),
+                sequence=1,
+                pkt_type=719,
+                res_required=False,
+            )
+
+            # Process the packet
+            device.process_packet(header, packet)
+
+            # Effect SHOULD be set for all Ceiling products
+            assert device.state.tile_effect_type == int(TileEffectType.SKY), (
+                f"Product {product_id} should support SKY effect"
+            )

@@ -211,7 +211,9 @@ class DeviceBuilder:
 
         # 3. Determine firmware version
         version_major, version_minor = self._firmware_config.get_firmware_version(
-            extended_multizone=self._extended_multizone, override=self._firmware_version
+            product_id=self._product_info.pid,
+            extended_multizone=self._extended_multizone,
+            override=self._firmware_version,
         )
 
         # 4. Get default color

@@ -27,6 +27,8 @@ class ProductSpecs:
         max_tile_count: Maximum tiles supported
         tile_width: Width of each tile in pixels
         tile_height: Height of each tile in pixels
+        default_firmware_major: Default firmware major version
+        default_firmware_minor: Default firmware minor version
         notes: Human-readable notes about this product
     """
 
@@ -39,6 +41,8 @@ class ProductSpecs:
     max_tile_count: int | None = None
     tile_width: int | None = None
     tile_height: int | None = None
+    default_firmware_major: int | None = None
+    default_firmware_minor: int | None = None
     notes: str | None = None
 
     @property
@@ -50,6 +54,14 @@ class ProductSpecs:
     def has_matrix_specs(self) -> bool:
         """Check if this product has matrix-specific specs."""
         return self.tile_width is not None or self.tile_height is not None
+
+    @property
+    def has_firmware_specs(self) -> bool:
+        """Check if this product has firmware version specs."""
+        return (
+            self.default_firmware_major is not None
+            and self.default_firmware_minor is not None
+        )
 
 
 class SpecsRegistry:
@@ -93,6 +105,8 @@ class SpecsRegistry:
                 max_tile_count=specs_data.get("max_tile_count"),
                 tile_width=specs_data.get("tile_width"),
                 tile_height=specs_data.get("tile_height"),
+                default_firmware_major=specs_data.get("default_firmware_major"),
+                default_firmware_minor=specs_data.get("default_firmware_minor"),
                 notes=specs_data.get("notes"),
             )
 
@@ -169,6 +183,23 @@ class SpecsRegistry:
             return (specs.tile_width, specs.tile_height)
         return None
 
+    def get_default_firmware_version(self, product_id: int) -> tuple[int, int] | None:
+        """Get default firmware version for a product.
+
+        Args:
+            product_id: Product ID
+
+        Returns:
+            Tuple of (major, minor) if defined, None otherwise
+        """
+        specs = self.get_specs(product_id)
+        if specs and specs.has_firmware_specs:
+            # has_firmware_specs ensures both values are not None
+            assert specs.default_firmware_major is not None  # nosec
+            assert specs.default_firmware_minor is not None  # nosec
+            return (specs.default_firmware_major, specs.default_firmware_minor)
+        return None
+
     def __len__(self) -> int:
         """Get number of products with specs."""
         if not self._loaded:
@@ -239,3 +270,15 @@ def get_tile_dimensions(product_id: int) -> tuple[int, int] | None:
         Tuple of (width, height) if defined, None otherwise
     """
     return _specs_registry.get_tile_dimensions(product_id)
+
+
+def get_default_firmware_version(product_id: int) -> tuple[int, int] | None:
+    """Get default firmware version for a product.
+
+    Args:
+        product_id: Product ID
+
+    Returns:
+        Tuple of (major, minor) if defined, None otherwise
+    """
+    return _specs_registry.get_default_firmware_version(product_id)
