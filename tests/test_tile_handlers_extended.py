@@ -968,3 +968,298 @@ class TestSkyEffectRestrictions:
             assert device.state.tile_effect_type == int(TileEffectType.SKY), (
                 f"Product {product_id} should support SKY effect"
             )
+
+
+class TestFramebufferHandling:
+    """Test framebuffer handling for Set64, Get64, and CopyFrameBuffer."""
+
+    def test_set64_to_framebuffer_0(self, tile_device):
+        """Test Set64 updates framebuffer 0 (visible buffer)."""
+        device = tile_device
+
+        # Create a Set64 packet targeting framebuffer 0
+        red_color = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
+        colors = [red_color] * 64
+
+        rect = TileBufferRect(fb_index=0, x=0, y=0, width=8)
+        packet = Tile.Set64(
+            tile_index=0,
+            length=1,
+            rect=rect,
+            duration=0,
+            colors=colors,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=715,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        # Verify framebuffer 0 (visible buffer) was updated
+        tile_colors = device.state.tile_devices[0]["colors"]
+        assert tile_colors[0].hue == 0
+        assert tile_colors[0].saturation == 65535
+        assert tile_colors[0].brightness == 65535
+
+    def test_set64_to_framebuffer_1(self, tile_device):
+        """Test Set64 updates framebuffer 1 (non-visible buffer)."""
+        device = tile_device
+
+        # Create a Set64 packet targeting framebuffer 1
+        blue_color = LightHsbk(
+            hue=43690, saturation=65535, brightness=65535, kelvin=3500
+        )
+        colors = [blue_color] * 64
+
+        rect = TileBufferRect(fb_index=1, x=0, y=0, width=8)
+        packet = Tile.Set64(
+            tile_index=0,
+            length=1,
+            rect=rect,
+            duration=0,
+            colors=colors,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=715,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        # Verify framebuffer 1 was updated (not visible in tile_devices)
+        fb_storage = device.state.tile_framebuffers[0]
+        fb1_colors = fb_storage.get_framebuffer(1, 8, 8)
+        assert fb1_colors[0].hue == 43690
+        assert fb1_colors[0].saturation == 65535
+
+        # Verify framebuffer 0 was NOT changed
+        tile_colors = device.state.tile_devices[0]["colors"]
+        assert tile_colors[0].hue == 0  # Default color
+
+    def test_get64_always_returns_framebuffer_0(self, tile_device):
+        """Test Get64 always returns framebuffer 0 regardless of request."""
+        device = tile_device
+
+        # Set different colors in FB0 and FB1
+        green_color = LightHsbk(
+            hue=21845, saturation=65535, brightness=65535, kelvin=3500
+        )
+        device.state.tile_devices[0]["colors"][0] = green_color
+
+        blue_color = LightHsbk(
+            hue=43690, saturation=65535, brightness=65535, kelvin=3500
+        )
+        fb_storage = device.state.tile_framebuffers[0]
+        fb1_colors = fb_storage.get_framebuffer(1, 8, 8)
+        fb1_colors[0] = blue_color
+
+        # Request with fb_index=1 (should still return FB0)
+        rect = TileBufferRect(fb_index=1, x=0, y=0, width=8)
+        packet = Tile.Get64(tile_index=0, length=1, rect=rect)
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=707,
+            res_required=True,
+        )
+
+        responses = device.process_packet(header, packet)
+
+        # Find State64 response
+        state64_response = None
+        for resp_header, resp_packet in responses:
+            if resp_header.pkt_type == 711:
+                state64_response = resp_packet
+                break
+
+        assert state64_response is not None
+        # Should return FB0 colors (green), not FB1 (blue)
+        assert state64_response.colors[0].hue == 21845  # Green
+        # Response should explicitly say fb_index=0
+        assert state64_response.rect.fb_index == 0
+
+    def test_copy_framebuffer_1_to_0(self, tile_device):
+        """Test CopyFrameBuffer copies from FB1 to FB0 (making it visible)."""
+        device = tile_device
+
+        # Set up FB1 with distinct colors
+        yellow_color = LightHsbk(
+            hue=10922, saturation=65535, brightness=65535, kelvin=3500
+        )
+        fb_storage = device.state.tile_framebuffers[0]
+        fb1_colors = fb_storage.get_framebuffer(1, 8, 8)
+        for i in range(64):
+            fb1_colors[i] = yellow_color
+
+        # Verify FB0 starts with default colors
+        assert device.state.tile_devices[0]["colors"][0].hue == 0
+
+        # Copy entire tile from FB1 to FB0
+        packet = Tile.CopyFrameBuffer(
+            tile_index=0,
+            length=1,
+            src_fb_index=1,
+            dst_fb_index=0,
+            src_x=0,
+            src_y=0,
+            dst_x=0,
+            dst_y=0,
+            width=8,
+            height=8,
+            duration=0,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=716,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        # Verify FB0 now has the yellow colors from FB1
+        tile_colors = device.state.tile_devices[0]["colors"]
+        assert tile_colors[0].hue == 10922  # Yellow
+        assert tile_colors[63].hue == 10922
+
+    def test_copy_framebuffer_partial_rectangle(self, tile_device):
+        """Test CopyFrameBuffer with partial rectangle copy."""
+        device = tile_device
+
+        # Set up FB2 with magenta in top-left 4x4 area
+        magenta_color = LightHsbk(
+            hue=54613, saturation=65535, brightness=65535, kelvin=3500
+        )
+        fb_storage = device.state.tile_framebuffers[0]
+        fb2_colors = fb_storage.get_framebuffer(2, 8, 8)
+        for y in range(4):
+            for x in range(4):
+                fb2_colors[y * 8 + x] = magenta_color
+
+        # Copy 4x4 rectangle from FB2 to FB0
+        packet = Tile.CopyFrameBuffer(
+            tile_index=0,
+            length=1,
+            src_fb_index=2,
+            dst_fb_index=0,
+            src_x=0,
+            src_y=0,
+            dst_x=0,
+            dst_y=0,
+            width=4,
+            height=4,
+            duration=0,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=716,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        # Verify top-left 4x4 is magenta
+        tile_colors = device.state.tile_devices[0]["colors"]
+        assert tile_colors[0].hue == 54613  # Top-left
+        assert tile_colors[3].hue == 54613  # Top-right of 4x4
+        # Verify rest is still default
+        assert tile_colors[4].hue == 0  # Outside copied area
+
+    def test_copy_framebuffer_with_offset(self, tile_device):
+        """Test CopyFrameBuffer with source and destination offsets."""
+        device = tile_device
+
+        # Set up FB3 bottom-right corner
+        cyan_color = LightHsbk(
+            hue=32768, saturation=65535, brightness=65535, kelvin=3500
+        )
+        fb_storage = device.state.tile_framebuffers[0]
+        fb3_colors = fb_storage.get_framebuffer(3, 8, 8)
+        # Set bottom-right 2x2
+        for y in range(6, 8):
+            for x in range(6, 8):
+                fb3_colors[y * 8 + x] = cyan_color
+
+        # Copy from bottom-right of FB3 to top-left of FB0
+        packet = Tile.CopyFrameBuffer(
+            tile_index=0,
+            length=1,
+            src_fb_index=3,
+            dst_fb_index=0,
+            src_x=6,
+            src_y=6,
+            dst_x=0,
+            dst_y=0,
+            width=2,
+            height=2,
+            duration=0,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=716,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        # Verify top-left 2x2 of FB0 now has cyan
+        tile_colors = device.state.tile_devices[0]["colors"]
+        assert tile_colors[0].hue == 32768  # (0,0)
+        assert tile_colors[1].hue == 32768  # (1,0)
+        assert tile_colors[8].hue == 32768  # (0,1)
+        assert tile_colors[9].hue == 32768  # (1,1)
+        # Verify pixel outside is still default
+        assert tile_colors[2].hue == 0
+
+    def test_multiple_framebuffers_independent(self, tile_device):
+        """Test that multiple framebuffers maintain independent state."""
+        device = tile_device
+
+        # Set different colors in FB0, FB1, FB2, FB3
+        colors_by_fb = {
+            0: LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500),  # Red
+            1: LightHsbk(
+                hue=21845, saturation=65535, brightness=65535, kelvin=3500
+            ),  # Green
+            2: LightHsbk(
+                hue=43690, saturation=65535, brightness=65535, kelvin=3500
+            ),  # Blue
+            3: LightHsbk(
+                hue=10922, saturation=65535, brightness=65535, kelvin=3500
+            ),  # Yellow
+        }
+
+        fb_storage = device.state.tile_framebuffers[0]
+
+        # Set FB0 (visible)
+        device.state.tile_devices[0]["colors"][0] = colors_by_fb[0]
+
+        # Set FB1, FB2, FB3
+        for fb_idx in [1, 2, 3]:
+            fb_colors = fb_storage.get_framebuffer(fb_idx, 8, 8)
+            fb_colors[0] = colors_by_fb[fb_idx]
+
+        # Verify each framebuffer has its own color
+        assert device.state.tile_devices[0]["colors"][0].hue == 0  # FB0: Red
+        assert fb_storage.get_framebuffer(1, 8, 8)[0].hue == 21845  # FB1: Green
+        assert fb_storage.get_framebuffer(2, 8, 8)[0].hue == 43690  # FB2: Blue
+        assert fb_storage.get_framebuffer(3, 8, 8)[0].hue == 10922  # FB3: Yellow

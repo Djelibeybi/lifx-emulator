@@ -9,7 +9,7 @@ import time
 from typing import Any
 
 from lifx_emulator.constants import LIFX_HEADER_SIZE
-from lifx_emulator.devices.states import DeviceState
+from lifx_emulator.devices.states import DeviceState, TileFramebuffers
 from lifx_emulator.handlers import HandlerRegistry, create_default_registry
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import (
@@ -113,6 +113,12 @@ class EmulatedLifxDevice:
                             "colors": tile_colors,
                         }
                     )
+
+            # Initialize framebuffer storage for each tile (framebuffers 1-7)
+            # Framebuffer 0 is stored in tile_devices[i]["colors"]
+            if not self.state.tile_framebuffers:
+                for i in range(self.state.tile_count):
+                    self.state.tile_framebuffers.append(TileFramebuffers(tile_index=i))
 
         # Save initial state if persistence is enabled
         # This ensures newly created devices are immediately persisted

@@ -12,6 +12,7 @@ from lifx_emulator.protocol.protocol_types import (
     DeviceStateVersion,
     LightHsbk,
     TileAccelMeas,
+    TileBufferRect,
     TileEffectParameter,
     TileEffectSettings,
     TileEffectType,
@@ -137,6 +138,10 @@ class Get64Handler(PacketHandler):
         tile_width = tile["width"]
         tile_height = tile["height"]
 
+        # Get64 always returns framebuffer 0 (the visible buffer)
+        # regardless of which fb_index is in the request
+        tile_colors = tile["colors"]
+
         # Calculate how many rows fit in 64 pixels
         rows_to_return = 64 // rect.width if rect.width > 0 else 1
         rows_to_return = min(rows_to_return, tile_height - rect.y)
@@ -161,8 +166,8 @@ class Get64Handler(PacketHandler):
 
                 # Calculate pixel index in flat color array
                 pixel_idx = y * tile_width + x
-                if pixel_idx < len(tile["colors"]):
-                    colors.append(tile["colors"][pixel_idx])
+                if pixel_idx < len(tile_colors):
+                    colors.append(tile_colors[pixel_idx])
                 else:
                     colors.append(
                         LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
@@ -173,7 +178,14 @@ class Get64Handler(PacketHandler):
         while len(colors) < 64:
             colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
-        return [Tile.State64(tile_index=tile_index, rect=rect, colors=colors)]
+        # Return with fb_index forced to 0 (visible buffer)
+        return_rect = TileBufferRect(
+            fb_index=0,  # Always return FB0
+            x=rect.x,
+            y=rect.y,
+            width=rect.width,
+        )
+        return [Tile.State64(tile_index=tile_index, rect=return_rect, colors=colors)]
 
 
 class Set64Handler(PacketHandler):
@@ -188,16 +200,60 @@ class Set64Handler(PacketHandler):
             return []
 
         tile_index = packet.tile_index
+        fb_index = packet.rect.fb_index
 
-        if tile_index < len(device_state.tile_devices):
-            # Update colors from packet
-            for i, color in enumerate(packet.colors[:64]):
-                if i < len(device_state.tile_devices[tile_index]["colors"]):
-                    device_state.tile_devices[tile_index]["colors"][i] = color
+        if tile_index >= len(device_state.tile_devices):
+            return []
 
-            logger.info(
-                f"Tile {tile_index} set 64 colors, duration={packet.duration}ms"
-            )
+        tile = device_state.tile_devices[tile_index]
+        tile_width = tile["width"]
+        tile_height = tile["height"]
+        rect = packet.rect
+
+        # Determine which framebuffer to update
+        if fb_index == 0:
+            # Update visible framebuffer (stored in tile_devices)
+            target_colors = tile["colors"]
+        else:
+            # Update non-visible framebuffer (stored in tile_framebuffers)
+            if tile_index < len(device_state.tile_framebuffers):
+                fb_storage = device_state.tile_framebuffers[tile_index]
+                target_colors = fb_storage.get_framebuffer(
+                    fb_index, tile_width, tile_height
+                )
+            else:
+                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
+                return []
+
+        # Update colors in the specified rectangle
+        # Calculate how many rows fit in 64 pixels
+        rows_to_write = 64 // rect.width if rect.width > 0 else 1
+        rows_to_write = min(rows_to_write, tile_height - rect.y)
+
+        pixels_written = 0
+        for row in range(rows_to_write):
+            y = rect.y + row
+            if y >= tile_height:
+                break
+
+            for col in range(rect.width):
+                x = rect.x + col
+                if x >= tile_width or pixels_written >= 64:
+                    pixels_written += 1
+                    continue
+
+                # Calculate pixel index in flat color array
+                pixel_idx = y * tile_width + x
+                if pixel_idx < len(target_colors) and pixels_written < len(
+                    packet.colors
+                ):
+                    target_colors[pixel_idx] = packet.colors[pixels_written]
+                pixels_written += 1
+
+        logger.info(
+            f"Tile {tile_index} FB{fb_index} set {pixels_written} colors at "
+            f"({rect.x},{rect.y}), duration={packet.duration}ms"
+        )
 
         # Tiles never return a response to Set64 regardless of res_required
         # https://lan.developer.lifx.com/docs/changing-a-device#set64---packet-715
@@ -212,12 +268,83 @@ class CopyFrameBufferHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
-        if not device_state.has_matrix:
+        if not device_state.has_matrix or not packet:
             return []
 
-        logger.debug("Tile copy frame buffer command received (no-op in emulator)")
-        # In a real device, this would copy the frame buffer to display
-        # In emulator, we don't need to do anything special
+        tile_index = packet.tile_index
+        if tile_index >= len(device_state.tile_devices):
+            return []
+
+        tile = device_state.tile_devices[tile_index]
+        tile_width = tile["width"]
+        tile_height = tile["height"]
+
+        src_fb_index = packet.src_fb_index
+        dst_fb_index = packet.dst_fb_index
+
+        # Get source framebuffer
+        if src_fb_index == 0:
+            src_colors = tile["colors"]
+        else:
+            if tile_index < len(device_state.tile_framebuffers):
+                fb_storage = device_state.tile_framebuffers[tile_index]
+                src_colors = fb_storage.get_framebuffer(
+                    src_fb_index, tile_width, tile_height
+                )
+            else:
+                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
+                return []
+
+        # Get destination framebuffer
+        if dst_fb_index == 0:
+            dst_colors = tile["colors"]
+        else:
+            if tile_index < len(device_state.tile_framebuffers):
+                fb_storage = device_state.tile_framebuffers[tile_index]
+                dst_colors = fb_storage.get_framebuffer(
+                    dst_fb_index, tile_width, tile_height
+                )
+            else:
+                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
+                return []
+
+        # Copy the specified rectangle from source to destination
+        src_x = packet.src_x
+        src_y = packet.src_y
+        dst_x = packet.dst_x
+        dst_y = packet.dst_y
+        width = packet.width
+        height = packet.height
+
+        pixels_copied = 0
+        for row in range(height):
+            src_row = src_y + row
+            dst_row = dst_y + row
+
+            if src_row >= tile_height or dst_row >= tile_height:
+                break
+
+            for col in range(width):
+                src_col = src_x + col
+                dst_col = dst_x + col
+
+                if src_col >= tile_width or dst_col >= tile_width:
+                    continue
+
+                src_idx = src_row * tile_width + src_col
+                dst_idx = dst_row * tile_width + dst_col
+
+                if src_idx < len(src_colors) and dst_idx < len(dst_colors):
+                    dst_colors[dst_idx] = src_colors[src_idx]
+                    pixels_copied += 1
+
+        logger.info(
+            f"Tile {tile_index} copied {pixels_copied} pixels from "
+            f"FB{src_fb_index}({src_x},{src_y}) to "
+            f"FB{dst_fb_index}({dst_x},{dst_y}), "
+            f"size={width}x{height}, duration={packet.duration}ms"
+        )
+
         return []
 
 

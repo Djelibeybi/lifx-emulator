@@ -523,6 +523,9 @@ delay = manager.get_response_delay(502, merged)  # 1.0s
 - Dataclass holding all device state (color, power, zones, tiles, firmware version, etc.)
 - Capability flags: `has_color`, `has_infrared`, `has_multizone`, `has_matrix`, `has_hev`
 - Initialized differently per device type via factory functions
+- **TileFramebuffers**: Internal dataclass for storing non-visible framebuffers (1-7) per tile
+  - Provides `get_framebuffer(fb_index, width, height)` for lazy initialization
+  - Framebuffer 0 remains in protocol-defined `tile_devices[i]["colors"]`
 
 ### Protocol Layer
 
@@ -747,6 +750,19 @@ product.supports_extended_multizone(131148)  # False (below requirement)
 - `Get64`/`Set64` packets transfer up to 64 zones at a time using a rectangle specification
 - Tiles with more than 64 zones (16×8) require multiple Get64 requests with different y coordinates
 - Tile state stored in `DeviceState.tile_devices` list, each with `colors` array
+
+#### Framebuffer Support
+Matrix devices support 8 framebuffers (0-7) for advanced rendering:
+- **Framebuffer 0**: The visible buffer, stored in `tile_devices[i]["colors"]`
+- **Framebuffers 1-7**: Non-visible buffers, stored in `MatrixState.tile_framebuffers`
+- **Set64**: Respects `rect.fb_index` to update the specified framebuffer
+- **Get64**: Always returns framebuffer 0 (visible buffer) regardless of request `fb_index`
+- **CopyFrameBuffer**: Copies rectangular zones from one framebuffer to another
+  - Can copy from any FB (0-7) to any other FB (0-7)
+  - Supports source/destination offsets and partial rectangles
+  - Use to make non-visible buffers visible by copying to FB0
+- Framebuffers are lazily initialized on first access
+- Non-visible framebuffers are persisted with device state
 
 ### Testing Scenarios
 Configure via ScenarioConfig in HierarchicalScenarioManager:

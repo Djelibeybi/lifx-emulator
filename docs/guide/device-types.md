@@ -329,6 +329,17 @@ single tile.
 # split either by row or column.
 ```
 
+### Framebuffers (v2.3+)
+
+Matrix devices support **8 framebuffers (0-7)** to enable atomic updates of tiles with more than 64 zones:
+
+- **Framebuffer 0**: Visible buffer (displayed on device)
+- **Framebuffers 1-7**: Non-visible buffers for preparing content off-screen
+
+For large tiles (>64 zones), prepare all zones in a non-visible framebuffer, then use `CopyFrameBuffer` to atomically display them without flicker.
+
+See [Framebuffer Guide](framebuffers.md) for complete documentation and examples.
+
 
 ## Using Generic create_device()
 
