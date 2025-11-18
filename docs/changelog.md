@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.2.0 (2025-11-18)
+
+### Features
+
+- **products**: Add per-product firmware version defaults to specs.yml
+  ([`336692c`](https://github.com/Djelibeybi/lifx-emulator/commit/336692c381b94956ab29235d81e358fcb2c91089))
+
+
 ## v2.1.0 (2025-11-18)
 
 ### Documentation
