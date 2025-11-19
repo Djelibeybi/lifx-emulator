@@ -211,6 +211,16 @@ Height of each tile in zones. If not specified, uses product default (typically 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-height 8`
 
+### `--switch <COUNT>`
+
+Number of LIFX Switch devices to emulate (relay-based switches with no lighting).
+
+- **Default:** `0`
+- **Product:** 70 (LIFX Switch)
+- **Example:** `--switch 2`
+
+Switch devices have `has_relays=True` and `has_buttons=True` capabilities but do not support Light, MultiZone, or Tile protocol packets. They respond with `StateUnhandled` (packet 223) to unsupported requests.
+
 ## serial Options
 
 ### `--serial-prefix <PREFIX>`
@@ -291,8 +301,8 @@ lifx-emulator --serial-prefix cafe00 --serial-start 100 --color 3
 ### Only Specific Types
 
 ```bash
-# No default devices, only infrared and HEV
-lifx-emulator --color 0 --infrared 3 --HEV 2
+# No default devices, only infrared, HEV, and switches
+lifx-emulator --color 0 --infrared 3 --HEV 2 --switch 2
 ```
 
 ### Discovery Testing

@@ -24,7 +24,7 @@
 #     tile_width: <number>              # Width of each tile in zones
 #     tile_height: <number>             # Height of each tile in zones
 #
-#     # Host firmware version (optional, overrides automatic firmware selection)
+#     # Host firmware version (optional, overrides auto firmware selection)
 #     default_firmware_major: <number>  # Firmware major version (e.g., 3)
 #     default_firmware_minor: <number>  # Firmware minor version (e.g., 70)
 #
@@ -33,9 +33,9 @@
 #
 # Firmware Version Notes:
 # ----------------------
-# If default_firmware_major and default_firmware_minor are both specified for a
-# product, they will be used as the default firmware version when creating devices
-# of that product type. This overrides the automatic firmware version selection
+# If default_firmware_major and default_firmware_minor are both specified
+# they will be used as the default firmware version when creating devices
+# of that type. This overrides the automatic firmware version selection
 # based on extended_multizone capability (which defaults to 3.70 for extended
 # multizone or 2.60 for non-extended).
 #
@@ -350,3 +350,37 @@ products:
     tile_width: 3
     tile_height: 2
     notes: LIFX Round Path Intl
+
+  # ========================================
+  # Switch Products (Relays)
+  # ========================================
+
+  70:  # LIFX Switch
+    relay_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
+    notes: LIFX Switch
+
+  71:  # LIFX Switch
+    relay_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
+    notes: LIFX Switch
+
+  89:  # LIFX Switch
+    relay_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
+    notes: LIFX Switch
+
+  115:  # LIFX Switch
+    relay_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
+    notes: LIFX Switch
+
+  116:  # LIFX Switch
+    relay_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
+    notes: LIFX Switch

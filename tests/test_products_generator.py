@@ -206,7 +206,7 @@ class TestGenerateProductDefinitions:
         assert "ProductCapability.HEV" in code
 
     def test_generate_switch_product(self):
-        """Test that switch (relay) products are skipped."""
+        """Test that switch (relay) products are generated correctly."""
         products_data = [
             {
                 "vid": 1,
@@ -225,10 +225,10 @@ class TestGenerateProductDefinitions:
 
         code = generate_product_definitions(products_data)
 
-        # Switch products should be skipped since they're not lights
-        assert "70: ProductInfo(" not in code
-        assert "ProductCapability.RELAYS" not in code
-        # Verify empty result
+        # Switch products should now be included in the registry
+        assert "70: ProductInfo(" in code
+        assert "ProductCapability.RELAYS" in code
+        assert "ProductCapability.BUTTONS" in code
         assert "PRODUCTS: dict[int, ProductInfo] = {" in code
 
     def test_generate_multiple_products(self):
@@ -860,8 +860,7 @@ class TestGeneratedCodeExecution:
     def test_all_capability_flags_covered(self):
         """Test product definitions handle all capability flags.
 
-        Note: RELAYS capability is intentionally excluded because products
-        with relays (switches) are not lights and are filtered out.
+        Note: Both light and switch products are now included in the registry.
         """
         products_data = [
             {
@@ -903,9 +902,9 @@ class TestGeneratedCodeExecution:
         assert "ProductCapability.BUTTONS" in code
         assert "ProductCapability.HEV" in code
 
-        # Switch (relay) products should be filtered out
-        assert "998: ProductInfo(" not in code
-        assert "ProductCapability.RELAYS" not in code
+        # Switch (relay) products should now be included
+        assert "998: ProductInfo(" in code
+        assert "ProductCapability.RELAYS" in code
 
 
 class TestDownloadProducts:

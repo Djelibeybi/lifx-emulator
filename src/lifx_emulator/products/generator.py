@@ -174,7 +174,6 @@ def generate_product_definitions(
     code_lines.append("PRODUCTS: dict[int, ProductInfo] = {")
 
     product_count = 0
-    skipped_count = 0
     for vendor_data in all_vendors:
         vendor_id = vendor_data.get("vid", 1)
         defaults = vendor_data.get("defaults", {})
@@ -185,11 +184,6 @@ def generate_product_definitions(
             pid = product["pid"]
             name = product["name"]
             features = {**default_features, **product.get("features", {})}
-
-            # Skip switch products (devices with relays) - these are not lights
-            if features.get("relays"):
-                skipped_count += 1
-                continue
 
             # Build capabilities
             capabilities = _build_capabilities(features)
@@ -223,8 +217,6 @@ def generate_product_definitions(
     code_lines.append("")
 
     print(f"Generated {product_count} product definitions")
-    if skipped_count > 0:
-        print(f"Skipped {skipped_count} switch products (relays only)")
     return "\n".join(code_lines)
 
 
@@ -373,16 +365,17 @@ class ProductInfo:
         """Format product capabilities as a human-readable string.
 
         Returns:
-            Comma-separated capability string (e.g., "full color, infrared, multizone")
+            Comma-separated capability string (e.g., "color, infrared, multizone")
         """
         caps = []
 
-        # Determine base light type
+        if self.has_buttons:
+            caps.append("buttons")
+
         if self.has_relays:
-            # Devices with relays are switches, not lights
-            caps.append("switch")
+            caps.append("relays")
         elif self.has_color:
-            caps.append("full color")
+            caps.append("color")
         else:
             # Check temperature range to determine white light type
             if self.temperature_range:
@@ -409,9 +402,7 @@ class ProductInfo:
             caps.append("HEV")
         if self.has_chain:
             caps.append("chain")
-        if self.has_buttons and not self.has_relays:
-            # Only show buttons if not already identified as switch
-            caps.append("buttons")
+
 
         return ", ".join(caps) if caps else "unknown"
 
@@ -464,10 +455,6 @@ class ProductRegistry:
                 # Merge features with defaults
                 prod_features = product.get("features", {})
                 features: dict[str, Any] = {**default_features, **prod_features}
-
-                # Skip switch products (devices with relays) - these are not lights
-                if features.get("relays"):
-                    continue
 
                 # Build capabilities bitfield
                 capabilities = 0
@@ -667,7 +654,7 @@ def _discover_new_products(
     products_data: dict[str, Any] | list[dict[str, Any]],
     existing_specs: dict[int, dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """Find new multizone or matrix products that need specs templates.
+    """Find new multizone, matrix, or switch products that need specs templates.
 
     Args:
         products_data: Parsed products.json data
@@ -691,21 +678,19 @@ def _discover_new_products(
             pid = product["pid"]
             features = {**default_features, **product.get("features", {})}
 
-            # Skip switch products (devices with relays) - these are not lights
-            if features.get("relays"):
-                continue
-
             # Check if this product needs specs template
             if pid not in existing_specs:
                 is_multizone = features.get("multizone", False)
                 is_matrix = features.get("matrix", False)
+                is_switch = features.get("relays", False)
 
-                if is_multizone or is_matrix:
+                if is_multizone or is_matrix or is_switch:
                     new_product = {
                         "pid": pid,
                         "name": product["name"],
                         "multizone": is_multizone,
                         "matrix": is_matrix,
+                        "switch": is_switch,
                         "extended_multizone": False,
                     }
 
@@ -732,7 +717,12 @@ def _add_product_templates(
     for product in new_products:
         product_name = product["name"].replace('"', '\\"')
 
-        if product["multizone"]:
+        if product["switch"]:
+            existing_specs[product["pid"]] = {
+                "relay_count": 2,
+                "notes": product_name,
+            }
+        elif product["multizone"]:
             existing_specs[product["pid"]] = {
                 "default_zone_count": 16,
                 "min_zone_count": 1,
@@ -752,28 +742,32 @@ def _add_product_templates(
 
 def _categorize_products(
     existing_specs: dict[int, dict[str, Any]],
-) -> tuple[list[int], list[int]]:
-    """Categorize products into multizone and matrix.
+) -> tuple[list[int], list[int], list[int]]:
+    """Categorize products into switch, multizone, and matrix.
 
     Args:
         existing_specs: Product specs dictionary
 
     Returns:
-        Tuple of (sorted_multizone_pids, sorted_matrix_pids)
+        Tuple of (sorted_switch_pids, sorted_multizone_pids, sorted_matrix_pids)
     """
+    switch_pids = []
     multizone_pids = []
     matrix_pids = []
 
     for pid, specs in existing_specs.items():
-        if "tile_width" in specs or "tile_height" in specs:
+        if "relay_count" in specs:
+            switch_pids.append(pid)
+        elif "tile_width" in specs or "tile_height" in specs:
             matrix_pids.append(pid)
         elif "default_zone_count" in specs:
             multizone_pids.append(pid)
 
+    switch_pids.sort()
     multizone_pids.sort()
     matrix_pids.sort()
 
-    return multizone_pids, matrix_pids
+    return switch_pids, multizone_pids, matrix_pids
 
 
 def _generate_yaml_header() -> list[str]:
@@ -831,6 +825,53 @@ def _generate_yaml_header() -> list[str]:
         "",
         "products:",
     ]
+
+
+def _generate_switch_section(
+    switch_pids: list[int], existing_specs: dict[int, dict[str, Any]]
+) -> list[str]:
+    """Generate YAML lines for switch products section.
+
+    Args:
+        switch_pids: Sorted list of switch product IDs
+        existing_specs: Product specs dictionary
+
+    Returns:
+        List of YAML lines
+    """
+    if not switch_pids:
+        return []
+
+    lines = [
+        "  # ========================================",
+        "  # Switch Products (Relays)",
+        "  # ========================================",
+        "",
+    ]
+
+    for pid in switch_pids:
+        specs = existing_specs[pid]
+        name = specs.get("notes", f"Product {pid}").split(" - ")[0]
+
+        lines.append(f"  {pid}:  # {name}")
+        lines.append(f"    relay_count: {specs['relay_count']}")
+
+        # Add firmware version if present
+        if "default_firmware_major" in specs and "default_firmware_minor" in specs:
+            lines.append(
+                f"    default_firmware_major: {specs['default_firmware_major']}"
+            )
+            lines.append(
+                f"    default_firmware_minor: {specs['default_firmware_minor']}"
+            )
+
+        notes = specs.get("notes", "")
+        if notes:
+            notes_escaped = notes.replace('"', '\\"')
+            lines.append(f'    notes: "{notes_escaped}"')
+        lines.append("")
+
+    return lines
 
 
 def _generate_multizone_section(
@@ -964,12 +1005,13 @@ def update_specs_file(
     _add_product_templates(new_products, existing_specs)
 
     # Categorize products and sort
-    multizone_pids, matrix_pids = _categorize_products(existing_specs)
+    switch_pids, multizone_pids, matrix_pids = _categorize_products(existing_specs)
 
     # Build YAML content
     lines = _generate_yaml_header()
     lines.extend(_generate_multizone_section(multizone_pids, existing_specs))
     lines.extend(_generate_matrix_section(matrix_pids, existing_specs))
+    lines.extend(_generate_switch_section(switch_pids, existing_specs))
 
     # Write the new file
     with open(specs_path, "w") as f:

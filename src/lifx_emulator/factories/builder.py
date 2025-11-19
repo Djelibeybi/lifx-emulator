@@ -257,6 +257,8 @@ class DeviceBuilder:
             has_extended_multizone=has_extended_multizone,
             has_matrix=self._product_info.has_matrix,
             has_hev=self._product_info.has_hev,
+            has_relays=self._product_info.has_relays,
+            has_buttons=self._product_info.has_buttons,
         )
 
         # 10. Restore saved state if persistence enabled
