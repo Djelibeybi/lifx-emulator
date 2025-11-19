@@ -656,6 +656,16 @@ Height of each tile in zones. If not specified, uses product default (typically 
 - **Default:** `None` (uses product defaults)
 - **Example:** `--tile-height 8`
 
+### `--switch <COUNT>`
+
+Number of LIFX Switch devices to emulate (relay-based switches with no lighting).
+
+- **Default:** `0`
+- **Product:** 70 (LIFX Switch)
+- **Example:** `--switch 2`
+
+Switch devices have `has_relays=True` and `has_buttons=True` capabilities but do not support Light, MultiZone, or Tile protocol packets. They respond with `StateUnhandled` (packet 223) to unsupported requests.
+
 ## serial Options
 
 ### `--serial-prefix <PREFIX>`
@@ -736,8 +746,8 @@ lifx-emulator --serial-prefix cafe00 --serial-start 100 --color 3
 ### Only Specific Types
 
 ```bash
-# No default devices, only infrared and HEV
-lifx-emulator --color 0 --infrared 3 --HEV 2
+# No default devices, only infrared, HEV, and switches
+lifx-emulator --color 0 --infrared 3 --HEV 2 --switch 2
 ```
 
 ### Discovery Testing
@@ -4004,6 +4014,84 @@ Matrix devices support **8 framebuffers (0-7)** to enable atomic updates of tile
 For large tiles (>64 zones), prepare all zones in a non-visible framebuffer, then use `CopyFrameBuffer` to atomically display them without flicker.
 
 See [Framebuffer Guide](../framebuffers/) for complete documentation and examples.
+
+## Switch Devices
+
+LIFX Switch devices are relay-based switches with no lighting capabilities. They respond with `StateUnhandled` (packet 223) to all lighting-related protocol requests.
+
+### Example Products
+
+- **LIFX Switch** (product IDs 70, 71, 89, 115, 116) - 2 relay switches
+
+### Capabilities
+
+- **Relays**: Physical relay switches for controlling external loads
+- **Buttons**: Physical buttons for manual control
+- **No lighting**: No color, brightness, or zone control
+- Basic device operations (GetVersion, GetLabel, EchoRequest, etc.)
+
+### Factory Function
+
+```python
+from lifx_emulator import create_switch
+
+# Create LIFX Switch (default product 70)
+switch = create_switch("d073d7000001")
+
+# Or specify a different switch product
+switch = create_switch("d073d7000002", product_id=89)
+```
+
+### Switch Behavior
+
+```python
+switch = create_switch("d073d7000001")
+
+# Check capabilities
+print(f"Has relays: {switch.state.has_relays}")  # True
+print(f"Has buttons: {switch.state.has_buttons}")  # True
+print(f"Has color: {switch.state.has_color}")  # False
+print(f"Has multizone: {switch.state.has_multizone}")  # False
+```
+
+### Packet Handling
+
+**Supported (Device.\* packets 2-59):**
+
+- `GetVersion` (32) → `StateVersion` (33)
+- `GetLabel` (23) → `StateLabel` (25)
+- `SetLabel` (24)
+- `EchoRequest` (58) → `EchoResponse` (59)
+- All other Device.\* packets
+
+**Rejected with StateUnhandled (223):**
+
+- **Light.\* packets (101-149)**: GetColor, SetColor, GetPower, SetPower, etc.
+- **MultiZone.\* packets (501-512)**: GetColorZones, SetColorZones, etc.
+- **Tile.\* packets (701-720)**: Get64, Set64, GetTileEffect, etc.
+
+### StateUnhandled Response
+
+When a switch receives an unsupported packet type, it responds with:
+
+```python
+# Client sends Light.GetColor (101) to switch
+# Switch responds with:
+# - StateUnhandled (223) with unhandled_type=101
+# - Acknowledgement (45) if ack_required=True
+```
+
+The `StateUnhandled` packet includes the rejected packet type in the `unhandled_type` field, allowing clients to detect and handle unsupported operations gracefully.
+
+### Limitations
+
+**Note**: Button and relay control protocol packets are not currently implemented in the emulator.
+
+The switch emulation is primarily for testing client libraries' handling of:
+
+- Device capability detection
+- StateUnhandled response handling
+- Graceful degradation when lighting features are unavailable
 
 ## Using Generic create_device()
 

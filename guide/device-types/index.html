@@ -1351,6 +1351,84 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#switch-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Switch Devices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Switch Devices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-products_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Products
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capabilities_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#factory-function_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Factory Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switch-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Switch Behavior
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#packet-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Packet Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateunhandled-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      StateUnhandled Response
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#using-generic-create_device" class="md-nav__link">
     <span class="md-ellipsis">
       Using Generic create_device()
@@ -2497,18 +2575,74 @@ single tile.</p>
 </ul>
 <p>For large tiles (&gt;64 zones), prepare all zones in a non-visible framebuffer, then use <code>CopyFrameBuffer</code> to atomically display them without flicker.</p>
 <p>See <a href="../framebuffers/">Framebuffer Guide</a> for complete documentation and examples.</p>
+<h2 id="switch-devices">Switch Devices<a class="headerlink" href="#switch-devices" title="Permanent link">&para;</a></h2>
+<p>LIFX Switch devices are relay-based switches with no lighting capabilities. They respond with <code>StateUnhandled</code> (packet 223) to all lighting-related protocol requests.</p>
+<h3 id="example-products_6">Example Products<a class="headerlink" href="#example-products_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>LIFX Switch</strong> (product IDs 70, 71, 89, 115, 116) - 2 relay switches</li>
+</ul>
+<h3 id="capabilities_6">Capabilities<a class="headerlink" href="#capabilities_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Relays</strong>: Physical relay switches for controlling external loads</li>
+<li><strong>Buttons</strong>: Physical buttons for manual control</li>
+<li><strong>No lighting</strong>: No color, brightness, or zone control</li>
+<li>Basic device operations (GetVersion, GetLabel, EchoRequest, etc.)</li>
+</ul>
+<h3 id="factory-function_5">Factory Function<a class="headerlink" href="#factory-function_5" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_switch</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># Create LIFX Switch (default product 70)</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">switch</span> <span class="o">=</span> <span class="n">create_switch</span><span class="p">(</span><span class="s2">&quot;d073d7000001&quot;</span><span class="p">)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Or specify a different switch product</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">switch</span> <span class="o">=</span> <span class="n">create_switch</span><span class="p">(</span><span class="s2">&quot;d073d7000002&quot;</span><span class="p">,</span> <span class="n">product_id</span><span class="o">=</span><span class="mi">89</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="switch-behavior">Switch Behavior<a class="headerlink" href="#switch-behavior" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">switch</span> <span class="o">=</span> <span class="n">create_switch</span><span class="p">(</span><span class="s2">&quot;d073d7000001&quot;</span><span class="p">)</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="c1"># Check capabilities</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has relays: </span><span class="si">{</span><span class="n">switch</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_relays</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># True</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has buttons: </span><span class="si">{</span><span class="n">switch</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_buttons</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># True</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has color: </span><span class="si">{</span><span class="n">switch</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_color</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># False</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has multizone: </span><span class="si">{</span><span class="n">switch</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_multizone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># False</span>
+</span></code></pre></div>
+<h3 id="packet-handling">Packet Handling<a class="headerlink" href="#packet-handling" title="Permanent link">&para;</a></h3>
+<p><strong>Supported (Device.* packets 2-59):</strong>
+- <code>GetVersion</code> (32) → <code>StateVersion</code> (33)
+- <code>GetLabel</code> (23) → <code>StateLabel</code> (25)
+- <code>SetLabel</code> (24)
+- <code>EchoRequest</code> (58) → <code>EchoResponse</code> (59)
+- All other Device.* packets</p>
+<p><strong>Rejected with StateUnhandled (223):</strong>
+- <strong>Light.* packets (101-149)</strong>: GetColor, SetColor, GetPower, SetPower, etc.
+- <strong>MultiZone.* packets (501-512)</strong>: GetColorZones, SetColorZones, etc.
+- <strong>Tile.* packets (701-720)</strong>: Get64, Set64, GetTileEffect, etc.</p>
+<h3 id="stateunhandled-response">StateUnhandled Response<a class="headerlink" href="#stateunhandled-response" title="Permanent link">&para;</a></h3>
+<p>When a switch receives an unsupported packet type, it responds with:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Client sends Light.GetColor (101) to switch</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># Switch responds with:</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1"># - StateUnhandled (223) with unhandled_type=101</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># - Acknowledgement (45) if ack_required=True</span>
+</span></code></pre></div>
+<p>The <code>StateUnhandled</code> packet includes the rejected packet type in the <code>unhandled_type</code> field, allowing clients to detect and handle unsupported operations gracefully.</p>
+<h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
+<p><strong>Note</strong>: Button and relay control protocol packets are not currently implemented in the emulator.</p>
+<p>The switch emulation is primarily for testing client libraries' handling of:
+- Device capability detection
+- StateUnhandled response handling
+- Graceful degradation when lighting features are unavailable</p>
 <h2 id="using-generic-create_device">Using Generic create_device()<a class="headerlink" href="#using-generic-create_device" title="Permanent link">&para;</a></h2>
 <p>All factory functions use <code>create_device()</code> internally. You can use it directly:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_device</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># Create by product ID</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">a19</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">27</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">z_strip</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d8000001&quot;</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="n">tiles</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d9000001&quot;</span><span class="p">,</span> <span class="n">tile_count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">candle</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">57</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d9000002&quot;</span><span class="p">)</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="c1"># Product defaults are automatically loaded</span>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Candle size: </span><span class="si">{</span><span class="n">candle</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">tile_width</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">candle</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">tile_height</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 5x6</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_device</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1"># Create by product ID</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">a19</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">27</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">z_strip</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d8000001&quot;</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="n">tiles</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d9000001&quot;</span><span class="p">,</span> <span class="n">tile_count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="n">candle</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="mi">57</span><span class="p">,</span> <span class="n">serial</span><span class="o">=</span><span class="s2">&quot;d073d9000002&quot;</span><span class="p">)</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="c1"># Product defaults are automatically loaded</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Candle size: </span><span class="si">{</span><span class="n">candle</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">tile_width</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">candle</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">tile_height</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 5x6</span>
 </span></code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2539,7 +2673,7 @@ single tile.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 18, 2025 08:11:35 UTC">November 18, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 19, 2025 14:47:24 UTC">November 19, 2025</span>
   </span>
 
     
