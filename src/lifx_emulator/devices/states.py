@@ -183,6 +183,8 @@ class DeviceState:
     has_extended_multizone: bool = False
     has_matrix: bool = False
     has_hev: bool = False
+    has_relays: bool = False
+    has_buttons: bool = False
 
     # Attribute routing map: maps attribute prefixes to state objects
     # This eliminates ~360 lines of property boilerplate
@@ -347,6 +349,8 @@ class DeviceState:
             "has_extended_multizone",
             "has_matrix",
             "has_hev",
+            "has_relays",
+            "has_buttons",
         } or name.startswith("_"):
             object.__setattr__(self, name, value)
             return

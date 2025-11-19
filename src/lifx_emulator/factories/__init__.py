@@ -15,6 +15,7 @@ from lifx_emulator.factories.factory import (
     create_hev_light,
     create_infrared_light,
     create_multizone_light,
+    create_switch,
     create_tile_device,
 )
 from lifx_emulator.factories.firmware_config import FirmwareConfig
@@ -32,6 +33,7 @@ __all__ = [
     "create_infrared_light",
     "create_hev_light",
     "create_multizone_light",
+    "create_switch",
     "create_tile_device",
     "create_color_temperature_light",
 ]

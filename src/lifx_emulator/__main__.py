@@ -21,6 +21,7 @@ from lifx_emulator.factories import (
     create_hev_light,
     create_infrared_light,
     create_multizone_light,
+    create_switch,
     create_tile_device,
 )
 from lifx_emulator.products.registry import get_registry
@@ -239,6 +240,7 @@ async def run(
     hev: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
     multizone: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
     tile: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
+    switch: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
     # Multizone Options
     multizone_zones: Annotated[
         int | None, cyclopts.Parameter(group=multizone_group)
@@ -284,6 +286,7 @@ async def run(
         multizone_extended: Enable extended multizone support (Beam).
             Set --no-multizone-extended for basic multizone (Z) devices.
         tile: Number of tile/matrix chain devices.
+        switch: Number of LIFX Switch devices (relays, no lighting).
         tile_count: Number of tiles per device. Uses product defaults if not
             specified (5 for Tile, 1 for Candle/Ceiling).
         tile_width: Width of each tile in zones. Uses product defaults if not
@@ -310,7 +313,7 @@ async def run(
             lifx-emulator --color 2 --multizone 1 --tile 1 --api --verbose
 
         Create only specific device types:
-            lifx-emulator --color 0 --infrared 3 --hev 2
+            lifx-emulator --color 0 --infrared 3 --hev 2 --switch 2
 
         Custom serial prefix:
             lifx-emulator --serial-prefix cafe00 --color 5
@@ -410,6 +413,7 @@ async def run(
                 and infrared == 0
                 and hev == 0
                 and multizone == 0
+                and switch == 0
             ):
                 color = 0
 
@@ -423,6 +427,7 @@ async def run(
             and hev == 0
             and multizone == 0
             and tile == 0
+            and switch == 0
         ):
             color = 0
 
@@ -467,13 +472,17 @@ async def run(
                 )
             )
 
+        # Create switch devices
+        for _ in range(switch):
+            devices.append(create_switch(get_serial(), storage=storage))
+
     if not devices:
         if persistent:
             logger.warning("No devices configured. Server will run with no devices.")
             logger.info("Use API (--api) or restart with device flags to add devices.")
         else:
             logger.error(
-                "No devices configured. Use --color, --multizone, --tile, "
+                "No devices configured. Use --color, --multizone, --tile, --switch, "
                 "etc. to add devices."
             )
             return

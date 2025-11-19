@@ -70,7 +70,7 @@ lifx-emulator --bind 192.168.1.100 --port 56700
 lifx-emulator --color 2 --multizone 1 --tile 1 --verbose
 
 # Create only specific device types
-lifx-emulator --color 0 --infrared 3 --hev 2
+lifx-emulator --color 0 --infrared 3 --hev 2 --switch 2
 
 # Mix product IDs with device types
 lifx-emulator --product 27 --color 2 --multizone 1
@@ -130,6 +130,7 @@ lifx-emulator --help
 - `--tile-count`: Tiles per device (uses product default if not specified)
 - `--tile-width`: Width of each tile in zones (uses product default if not specified)
 - `--tile-height`: Height of each tile in zones (uses product default if not specified)
+- `--switch`: Number of LIFX Switch devices (relays, no lighting, default: 0)
 - `--serial-prefix`: serial prefix (6 hex chars, default: d073d5)
 - `--serial-start`: Starting serial suffix (default: 1)
 - `--api`: Enable HTTP API server for monitoring and management (default: False)
@@ -521,7 +522,7 @@ delay = manager.get_response_delay(502, merged)  # 1.0s
 
 **DeviceState** (`src/lifx_emulator/devices/states.py`):
 - Dataclass holding all device state (color, power, zones, tiles, firmware version, etc.)
-- Capability flags: `has_color`, `has_infrared`, `has_multizone`, `has_matrix`, `has_hev`
+- Capability flags: `has_color`, `has_infrared`, `has_multizone`, `has_matrix`, `has_hev`, `has_relays`, `has_buttons`
 - Initialized differently per device type via factory functions
 - **TileFramebuffers**: Internal dataclass for storing non-visible framebuffers (1-7) per tile
   - Provides `get_framebuffer(fb_index, width, height)` for lazy initialization
@@ -562,6 +563,10 @@ delay = manager.get_response_delay(502, merged)  # 1.0s
   - Zone count uses product defaults from specs if not specified
 - `create_tile_device(tile_count=None)`: Tile chain (product=55)
   - Tile count and dimensions use product defaults from specs if not specified
+- `create_switch(product_id=70)`: LIFX Switch device (product=70)
+  - Has `has_relays=True` and `has_buttons=True` capabilities
+  - No lighting control (responds with StateUnhandled to Light/MultiZone/Tile packets)
+  - Supports all Device.* packets for basic device information
 - `create_device(product_id, zone_count=None, tile_count=None)`: Universal factory
   - Creates any device by product ID from the registry
   - Automatically uses product defaults from specs system
@@ -763,6 +768,18 @@ Matrix devices support 8 framebuffers (0-7) for advanced rendering:
   - Use to make non-visible buffers visible by copying to FB0
 - Framebuffers are lazily initialized on first access
 - Non-visible framebuffers are persisted with device state
+
+### Switch Handling
+- LIFX Switch devices have `has_relays=True` and `has_buttons=True` capabilities
+- Switches do not support lighting operations (no color, brightness, or zone control)
+- **Capability-based packet filtering**: Switches automatically return `StateUnhandled` (packet 223) for:
+  - Light.* packets (types 101-149): GetColor, SetColor, SetWaveform, etc.
+  - MultiZone.* packets (types 501-512): GetColorZones, SetColorZones, etc.
+  - Tile.* packets (types 701-720): Get64, Set64, GetTileEffect, etc.
+- Switches handle Device.* packets (types 2-59) normally: GetVersion, GetLabel, EchoRequest, etc.
+- StateUnhandled response includes the `unhandled_type` field indicating which packet type was rejected
+- Acknowledgments (packet 45) are still sent if `ack_required=True` flag is set
+- **Note**: Button and relay protocol packets are not currently implemented (requires cloud/Matter infrastructure)
 
 ### Testing Scenarios
 Configure via ScenarioConfig in HierarchicalScenarioManager:

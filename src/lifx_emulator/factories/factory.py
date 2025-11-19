@@ -141,6 +141,37 @@ def create_color_temperature_light(
     )  # LIFX Mini White to Warm
 
 
+def create_switch(
+    serial: str | None = None,
+    product_id: int = 70,
+    firmware_version: tuple[int, int] | None = None,
+    storage: DevicePersistenceAsyncFile | None = None,
+    scenario_manager: HierarchicalScenarioManager | None = None,
+) -> EmulatedLifxDevice:
+    """Create a LIFX Switch device.
+
+    Switches have has_relays and has_buttons capabilities but no lighting.
+    They respond with StateUnhandled (223) to Light, MultiZone, and Tile packets.
+
+    Args:
+        serial: Device serial number (auto-generated if None)
+        product_id: Switch product ID (default: 70 - LIFX Switch)
+        firmware_version: Optional firmware version (major, minor)
+        storage: Optional persistence backend
+        scenario_manager: Optional scenario manager for testing
+
+    Returns:
+        EmulatedLifxDevice configured as a switch
+    """
+    return create_device(
+        product_id,
+        serial=serial,
+        firmware_version=firmware_version,
+        storage=storage,
+        scenario_manager=scenario_manager,
+    )
+
+
 def create_device(
     product_id: int,
     serial: str | None = None,

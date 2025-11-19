@@ -123,9 +123,9 @@ class TestFormatProductCapabilities:
             min_ext_mz_firmware=None,
         )
         caps = product.caps
-        assert "switch" in caps
-        # Buttons shouldn't be listed separately for switches
-        assert "buttons" not in caps
+        # Switches show individual capabilities (buttons, relays)
+        assert "buttons" in caps
+        assert "relays" in caps
 
     def test_format_full_color_product(self):
         """Test formatting for full color products."""
@@ -140,7 +140,7 @@ class TestFormatProductCapabilities:
             min_ext_mz_firmware=None,
         )
         caps = product.caps
-        assert "full color" in caps
+        assert "color" in caps
 
     def test_format_color_temperature_product(self):
         """Test formatting for color temperature products."""

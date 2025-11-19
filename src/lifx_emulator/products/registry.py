@@ -134,16 +134,17 @@ class ProductInfo:
         """Format product capabilities as a human-readable string.
 
         Returns:
-            Comma-separated capability string (e.g., "full color, infrared, multizone")
+            Comma-separated capability string (e.g., "color, infrared, multizone")
         """
         caps = []
 
-        # Determine base light type
+        if self.has_buttons:
+            caps.append("buttons")
+
         if self.has_relays:
-            # Devices with relays are switches, not lights
-            caps.append("switch")
+            caps.append("relays")
         elif self.has_color:
-            caps.append("full color")
+            caps.append("color")
         else:
             # Check temperature range to determine white light type
             if self.temperature_range:
@@ -170,9 +171,6 @@ class ProductInfo:
             caps.append("HEV")
         if self.has_chain:
             caps.append("chain")
-        if self.has_buttons and not self.has_relays:
-            # Only show buttons if not already identified as switch
-            caps.append("buttons")
 
         return ", ".join(caps) if caps else "unknown"
 
@@ -505,6 +503,22 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    70: ProductInfo(
+        pid=70,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
+        min_ext_mz_firmware=None,
+    ),
+    71: ProductInfo(
+        pid=71,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
+        min_ext_mz_firmware=None,
+    ),
     81: ProductInfo(
         pid=81,
         name="LIFX Candle White to Warm",
@@ -543,6 +557,14 @@ PRODUCTS: dict[int, ProductInfo] = {
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
+        min_ext_mz_firmware=None,
+    ),
+    89: ProductInfo(
+        pid=89,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
         min_ext_mz_firmware=None,
     ),
     90: ProductInfo(
@@ -679,6 +701,22 @@ PRODUCTS: dict[int, ProductInfo] = {
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    115: ProductInfo(
+        pid=115,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
+        min_ext_mz_firmware=None,
+    ),
+    116: ProductInfo(
+        pid=116,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
         min_ext_mz_firmware=None,
     ),
     117: ProductInfo(
@@ -1320,10 +1358,6 @@ class ProductRegistry:
                 # Merge features with defaults
                 prod_features = product.get("features", {})
                 features: dict[str, Any] = {**default_features, **prod_features}
-
-                # Skip switch products (devices with relays) - these are not lights
-                if features.get("relays"):
-                    continue
 
                 # Build capabilities bitfield
                 capabilities = 0

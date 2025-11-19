@@ -215,6 +215,35 @@ class EmulatedLifxDevice:
         header.size = LIFX_HEADER_SIZE + payload_size
         return header
 
+    def _should_handle_packet(self, pkt_type: int) -> bool:
+        """Check if device should handle a packet type based on capabilities.
+
+        Args:
+            pkt_type: Packet type number
+
+        Returns:
+            True if device should handle, False if should return StateUnhandled
+        """
+        # Device.* packets are always handled (2-59)
+        if 2 <= pkt_type <= 59:
+            return True
+
+        # Light.* packets (101-149) require light capabilities
+        # Switches (devices with relays) don't support light operations
+        if 101 <= pkt_type <= 149:
+            return not self.state.has_relays
+
+        # MultiZone.* packets (501-512) require multizone capability
+        if 501 <= pkt_type <= 512:
+            return self.state.has_multizone
+
+        # Tile.* packets (701-720) require matrix capability
+        if 701 <= pkt_type <= 720:
+            return self.state.has_matrix
+
+        # Unknown packets - let handler decide
+        return True
+
     def process_packet(
         self, header: LifxHeader, packet: Any | None
     ) -> list[tuple[LifxHeader, Any]]:
@@ -227,6 +256,33 @@ class EmulatedLifxDevice:
         # Check if packet should be dropped (with probabilistic drops)
         if not self.scenario_manager.should_respond(header.pkt_type, scenario):
             logger.info("Dropping packet type %s per scenario", header.pkt_type)
+            return responses
+
+        # Check if device should handle this packet type (capability-based filtering)
+        if not self._should_handle_packet(header.pkt_type):
+            # Return StateUnhandled for unsupported packet types
+            state_unhandled = Device.StateUnhandled(unhandled_type=header.pkt_type)
+            unhandled_payload = state_unhandled.pack()
+            unhandled_header = self._create_response_header(
+                header.source,
+                header.sequence,
+                state_unhandled.PKT_TYPE,
+                len(unhandled_payload),
+            )
+            responses.append((unhandled_header, state_unhandled))
+
+            # Still send acknowledgment if requested
+            if header.ack_required:
+                ack_packet = Device.Acknowledgement()
+                ack_payload = ack_packet.pack()
+                ack_header = self._create_response_header(
+                    header.source,
+                    header.sequence,
+                    ack_packet.PKT_TYPE,
+                    len(ack_payload),
+                )
+                responses.append((ack_header, ack_packet))
+
             return responses
 
         # Update uptime
