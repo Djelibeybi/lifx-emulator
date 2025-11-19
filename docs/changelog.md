@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.4.0 (2025-11-19)
+
+### Features
+
+- Implement LIFX Switch device emulation with StateUnhandled responses
+  ([`e2f9114`](https://github.com/Djelibeybi/lifx-emulator/commit/e2f911420db1d27d916247a9b3fdb50f31276b48))
+
+
 ## v2.3.1 (2025-11-18)
 
 ### Bug Fixes
