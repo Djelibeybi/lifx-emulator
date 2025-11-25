@@ -142,13 +142,20 @@ async def stop(self):
 ### Basic Server
 
 ```python
-from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.devices import DeviceManager
 
 # Create devices
 devices = [create_color_light("d073d5000001")]
 
+# Set up repository and manager (required)
+device_repository = DeviceRepository()
+device_manager = DeviceManager(device_repository)
+
 # Create server
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
 # Start server
 await server.start()
@@ -164,7 +171,15 @@ await server.stop()
 The recommended way to use the server:
 
 ```python
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.devices import DeviceManager
+
+devices = [create_color_light("d073d5000001")]
+device_manager = DeviceManager(DeviceRepository())
+
+async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     # Server automatically starts
     # Your test code here
     pass
@@ -174,11 +189,14 @@ async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
 ### Multiple Devices
 
 ```python
-from lifx_emulator import (
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.factories import (
     create_color_light,
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.devices import DeviceManager
 
 devices = [
     create_color_light("d073d5000001"),
@@ -186,7 +204,9 @@ devices = [
     create_tile_device("d073d9000001", tile_count=5),
 ]
 
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+device_manager = DeviceManager(DeviceRepository())
+
+async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     # All devices are discoverable and controllable
     pass
 ```
@@ -198,6 +218,30 @@ async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
 List of `EmulatedLifxDevice` instances to emulate.
 
 **Type:** `list[EmulatedLifxDevice]`
+
+### `device_manager`
+
+The device manager handling device lifecycle and packet routing.
+
+**Type:** `DeviceManager`
+
+**Required:** Yes
+
+**Notes:**
+
+- The server delegates all device management operations to this manager
+- Must be created with a `DeviceRepository` instance
+- This is a **required** parameter in v2.0.0+
+
+**Example:**
+
+```python
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.devices import DeviceManager
+
+device_repository = DeviceRepository()
+device_manager = DeviceManager(device_repository)
+```
 
 ### `bind_address`
 
@@ -247,9 +291,9 @@ server = EmulatedLifxServer(
 
 ### `storage`
 
-Optional persistent storage for device state.
+Optional persistent storage backend for device state.
 
-**Type:** `AsyncDeviceStorage | None`
+**Type:** `DevicePersistenceAsyncFile | None`
 
 **Default:** `None`
 
@@ -263,14 +307,18 @@ Optional persistent storage for device state.
 **Example:**
 
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 device = create_color_light("d073d5000001", storage=storage)
+
+device_manager = DeviceManager(DeviceRepository())
 
 # Create server with storage support
 server = EmulatedLifxServer(
     [device],
+    device_manager,
     "127.0.0.1",
     56700,
     storage=storage
@@ -309,11 +357,16 @@ Optional scenario manager for test scenario configuration.
 **Example:**
 
 ```python
-from lifx_emulator.scenarios.manager import HierarchicalScenarioManager
+from lifx_emulator.scenarios import HierarchicalScenarioManager
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 manager = HierarchicalScenarioManager()
+device_manager = DeviceManager(DeviceRepository())
+
 server = EmulatedLifxServer(
     devices,
+    device_manager,
     "127.0.0.1",
     56700,
     scenario_manager=manager
@@ -341,8 +394,10 @@ Enable persistent storage of scenario configurations.
 
 ```python
 # Enable both state and scenario persistence
+device_manager = DeviceManager(DeviceRepository())
 server = EmulatedLifxServer(
     devices,
+    device_manager,
     "127.0.0.1",
     56700,
     storage=storage,
@@ -369,7 +424,8 @@ Start the UDP server and begin accepting connections.
 **Example:**
 
 ```python
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+device_manager = DeviceManager(DeviceRepository())
+server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 await server.start()
 try:
     # Use server
@@ -404,7 +460,8 @@ Exit async context manager - automatically calls `stop()`.
 **Recommended Usage:**
 
 ```python
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+device_manager = DeviceManager(DeviceRepository())
+async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     # Server is automatically started
     # Perform your tests
     pass
@@ -428,7 +485,8 @@ Get the server uptime in nanoseconds since startup.
 **Example:**
 
 ```python
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+device_manager = DeviceManager(DeviceRepository())
+async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     await asyncio.sleep(1)
     uptime_ns = server.get_uptime_ns()
     uptime_ms = uptime_ns / 1_000_000
@@ -449,8 +507,13 @@ Clear the internal scenario precedence cache.
 **Example:**
 
 ```python
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
 manager = HierarchicalScenarioManager()
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700, scenario_manager=manager)
+device_manager = DeviceManager(DeviceRepository())
+server = EmulatedLifxServer(
+    devices, device_manager, "127.0.0.1", 56700, scenario_manager=manager
+)
 
 async with server:
     # Update scenarios externally
@@ -546,12 +609,19 @@ The server handles errors gracefully:
 
 ```python
 import pytest
-from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.devices import DeviceManager
 
 @pytest.fixture
-async def lifx_server():
+def device_manager():
+    return DeviceManager(DeviceRepository())
+
+@pytest.fixture
+async def lifx_server(device_manager):
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -568,9 +638,13 @@ For faster tests, use module scope:
 
 ```python
 @pytest.fixture(scope="module")
-async def lifx_server():
+def device_manager():
+    return DeviceManager(DeviceRepository())
+
+@pytest.fixture(scope="module")
+async def lifx_server(device_manager):
     devices = [create_color_light(f"d073d500000{i}") for i in range(5)]
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server

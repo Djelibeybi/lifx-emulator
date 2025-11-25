@@ -1348,6 +1348,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#device_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      device_manager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bind_address" class="md-nav__link">
     <span class="md-ellipsis">
       bind_address
@@ -2499,51 +2508,86 @@
 
 </div><h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <h3 id="basic-server">Basic Server<a class="headerlink" href="#basic-server" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span><span class="p">,</span> <span class="n">create_color_light</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Create devices</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_color_light</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Create server</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Create devices</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)]</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Start server</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># ... do work ...</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Stop server</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Set up repository and manager (required)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">device_repository</span> <span class="o">=</span> <span class="n">DeviceRepository</span><span class="p">()</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">device_repository</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Create server</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># Start server</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># ... do work ...</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># Stop server</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div>
 <h3 id="context-manager">Context Manager<a class="headerlink" href="#context-manager" title="Permanent link">&para;</a></h3>
 <p>The recommended way to use the server:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="c1"># Server automatically starts</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="c1"># Your test code here</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">pass</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Server automatically stops</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_color_light</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)]</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="c1"># Server automatically starts</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="c1"># Your test code here</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="k">pass</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Server automatically stops</span>
 </span></code></pre></div>
 <h3 id="multiple-devices">Multiple Devices<a class="headerlink" href="#multiple-devices" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">create_color_light</span><span class="p">,</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">create_multizone_light</span><span class="p">,</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">create_tile_device</span><span class="p">,</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">)</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">),</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">create_multizone_light</span><span class="p">(</span><span class="s2">&quot;d073d8000001&quot;</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">16</span><span class="p">),</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">create_tile_device</span><span class="p">(</span><span class="s2">&quot;d073d9000001&quot;</span><span class="p">,</span> <span class="n">tile_count</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">]</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="c1"># All devices are discoverable and controllable</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="k">pass</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">create_color_light</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">create_multizone_light</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">create_tile_device</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">)</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">),</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">create_multizone_light</span><span class="p">(</span><span class="s2">&quot;d073d8000001&quot;</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">16</span><span class="p">),</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">create_tile_device</span><span class="p">(</span><span class="s2">&quot;d073d9000001&quot;</span><span class="p">,</span> <span class="n">tile_count</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">]</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>    <span class="c1"># All devices are discoverable and controllable</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="k">pass</span>
 </span></code></pre></div>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <h3 id="devices"><code>devices</code><a class="headerlink" href="#devices" title="Permanent link">&para;</a></h3>
 <p>List of <code>EmulatedLifxDevice</code> instances to emulate.</p>
 <p><strong>Type:</strong> <code>list[EmulatedLifxDevice]</code></p>
+<h3 id="device_manager"><code>device_manager</code><a class="headerlink" href="#device_manager" title="Permanent link">&para;</a></h3>
+<p>The device manager handling device lifecycle and packet routing.</p>
+<p><strong>Type:</strong> <code>DeviceManager</code></p>
+<p><strong>Required:</strong> Yes</p>
+<p><strong>Notes:</strong>
+- The server delegates all device management operations to this manager
+- Must be created with a <code>DeviceRepository</code> instance
+- This is a <strong>required</strong> parameter in v2.0.0+</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">device_repository</span> <span class="o">=</span> <span class="n">DeviceRepository</span><span class="p">()</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">device_repository</span><span class="p">)</span>
+</span></code></pre></div></p>
 <h3 id="bind_address"><code>bind_address</code><a class="headerlink" href="#bind_address" title="Permanent link">&para;</a></h3>
 <p>IP address to bind the UDP server to.</p>
 <p><strong>Type:</strong> <code>str</code></p>
@@ -2564,17 +2608,17 @@
 - Disable to reduce memory usage in production or CI environments
 - Activity tracking is independent of packet logging (controlled by <code>--verbose</code> CLI flag)</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Disable activity tracking</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">devices</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="mi">56700</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">track_activity</span><span class="o">=</span><span class="kc">False</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Disable activity tracking</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">devices</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="mi">56700</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">track_activity</span><span class="o">=</span><span class="kc">False</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">)</span>
 </span></code></pre></div></p>
 <h3 id="storage"><code>storage</code><a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
-<p>Optional persistent storage for device state.</p>
-<p><strong>Type:</strong> <code>AsyncDeviceStorage | None</code></p>
+<p>Optional persistent storage backend for device state.</p>
+<p><strong>Type:</strong> <code>DevicePersistenceAsyncFile | None</code></p>
 <p><strong>Default:</strong> <code>None</code></p>
 <p><strong>Notes:</strong>
 - When provided, device state changes are automatically saved asynchronously
@@ -2582,18 +2626,22 @@
 - Must be used with devices created with the same storage instance
 - See <a href="../../advanced/storage/">Persistent Storage Guide</a> for details</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.async_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncDeviceStorage</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">storage</span> <span class="o">=</span> <span class="n">AsyncDeviceStorage</span><span class="p">()</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">)</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Create server with storage support</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="p">[</span><span class="n">device</span><span class="p">],</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="mi">56700</span><span class="p">,</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">storage</span><span class="o">=</span><span class="n">storage</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DevicePersistenceAsyncFile</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_color_light</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">storage</span> <span class="o">=</span> <span class="n">DevicePersistenceAsyncFile</span><span class="p">()</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Create server with storage support</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="p">[</span><span class="n">device</span><span class="p">],</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">device_manager</span><span class="p">,</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="mi">56700</span><span class="p">,</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">storage</span><span class="o">=</span><span class="n">storage</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="p">)</span>
 </span></code></pre></div></p>
 <h3 id="activity_observer"><code>activity_observer</code><a class="headerlink" href="#activity_observer" title="Permanent link">&para;</a></h3>
 <p>Optional observer for packet activity events.</p>
@@ -2613,17 +2661,22 @@
 - Scenarios control packet dropping, delays, malformed responses, etc.
 - See <a href="../../advanced/scenarios/">Testing Scenarios Guide</a> for detailed examples</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.scenarios.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">HierarchicalScenarioManager</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">manager</span> <span class="o">=</span> <span class="n">HierarchicalScenarioManager</span><span class="p">()</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">devices</span><span class="p">,</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="mi">56700</span><span class="p">,</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">)</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1"># Now scenario management API is available</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.scenarios</span><span class="w"> </span><span class="kn">import</span> <span class="n">HierarchicalScenarioManager</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">manager</span> <span class="o">=</span> <span class="n">HierarchicalScenarioManager</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">devices</span><span class="p">,</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="n">device_manager</span><span class="p">,</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="mi">56700</span><span class="p">,</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">)</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="c1"># Now scenario management API is available</span>
 </span></code></pre></div></p>
 <h3 id="persist_scenarios"><code>persist_scenarios</code><a class="headerlink" href="#persist_scenarios" title="Permanent link">&para;</a></h3>
 <p>Enable persistent storage of scenario configurations.</p>
@@ -2635,15 +2688,17 @@
 - Requires <code>scenario_manager</code> to be provided
 - Ignored if <code>scenario_manager</code> is <code>None</code></p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Enable both state and scenario persistence</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">devices</span><span class="p">,</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="mi">56700</span><span class="p">,</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">,</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">persist_scenarios</span><span class="o">=</span><span class="kc">True</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Enable both state and scenario persistence</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">devices</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">device_manager</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="mi">56700</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">,</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">persist_scenarios</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">)</span>
 </span></code></pre></div></p>
 <h2 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h2>
 <h3 id="lifecycle-methods">Lifecycle Methods<a class="headerlink" href="#lifecycle-methods" title="Permanent link">&para;</a></h3>
@@ -2655,13 +2710,14 @@
 - Logs server startup information
 - Required if not using context manager</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="c1"># Use server</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">pass</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">finally</span><span class="p">:</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="c1"># Use server</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="k">pass</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">finally</span><span class="p">:</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="k">await</span> <span class="n">server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></code></pre></div></p>
 <h4 id="async-stop"><code>async stop()</code><a class="headerlink" href="#async-stop" title="Permanent link">&para;</a></h4>
 <p>Stop the UDP server and clean up resources.</p>
@@ -2677,11 +2733,12 @@
 <h4 id="async-__aexit__"><code>async __aexit__()</code><a class="headerlink" href="#async-__aexit__" title="Permanent link">&para;</a></h4>
 <p>Exit async context manager - automatically calls <code>stop()</code>.</p>
 <p><strong>Recommended Usage:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="c1"># Server is automatically started</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="c1"># Perform your tests</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="k">pass</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Server is automatically stopped</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="c1"># Server is automatically started</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="c1"># Perform your tests</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="k">pass</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># Server is automatically stopped</span>
 </span></code></pre></div></p>
 <h3 id="utility-methods">Utility Methods<a class="headerlink" href="#utility-methods" title="Permanent link">&para;</a></h3>
 <h4 id="get_uptime_ns"><code>get_uptime_ns()</code><a class="headerlink" href="#get_uptime_ns" title="Permanent link">&para;</a></h4>
@@ -2692,11 +2749,12 @@
 - Useful for performance testing and benchmarking
 - Uses monotonic clock for accurate timing</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="n">uptime_ns</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">get_uptime_ns</span><span class="p">()</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">uptime_ms</span> <span class="o">=</span> <span class="n">uptime_ns</span> <span class="o">/</span> <span class="mi">1_000_000</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Server uptime: </span><span class="si">{</span><span class="n">uptime_ms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ms&quot;</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">async</span> <span class="k">with</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">uptime_ns</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">get_uptime_ns</span><span class="p">()</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">uptime_ms</span> <span class="o">=</span> <span class="n">uptime_ns</span> <span class="o">/</span> <span class="mi">1_000_000</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Server uptime: </span><span class="si">{</span><span class="n">uptime_ms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ms&quot;</span><span class="p">)</span>
 </span></code></pre></div></p>
 <h4 id="invalidate_scenario_cache"><code>invalidate_scenario_cache()</code><a class="headerlink" href="#invalidate_scenario_cache" title="Permanent link">&para;</a></h4>
 <p>Clear the internal scenario precedence cache.</p>
@@ -2706,30 +2764,35 @@
 - Safe to call - no side effects
 - Non-blocking operation</p>
 <p><strong>Example:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">manager</span> <span class="o">=</span> <span class="n">HierarchicalScenarioManager</span><span class="p">()</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">,</span> <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="c1"># Update scenarios externally</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="n">manager</span><span class="o">.</span><span class="n">set_global_scenario</span><span class="p">(</span><span class="n">ScenarioConfig</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="c1"># Invalidate cache to apply changes immediately</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">server</span><span class="o">.</span><span class="n">invalidate_scenario_cache</span><span class="p">()</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.scenarios</span><span class="w"> </span><span class="kn">import</span> <span class="n">HierarchicalScenarioManager</span><span class="p">,</span> <span class="n">ScenarioConfig</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">manager</span> <span class="o">=</span> <span class="n">HierarchicalScenarioManager</span><span class="p">()</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">,</span> <span class="n">scenario_manager</span><span class="o">=</span><span class="n">manager</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="p">)</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="c1"># Update scenarios externally</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="n">manager</span><span class="o">.</span><span class="n">set_global_scenario</span><span class="p">(</span><span class="n">ScenarioConfig</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="c1"># Invalidate cache to apply changes immediately</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="n">server</span><span class="o">.</span><span class="n">invalidate_scenario_cache</span><span class="p">()</span>
 </span></code></pre></div></p>
 <h2 id="packet-routing">Packet Routing<a class="headerlink" href="#packet-routing" title="Permanent link">&para;</a></h2>
 <h3 id="broadcast-packets">Broadcast Packets<a class="headerlink" href="#broadcast-packets" title="Permanent link">&para;</a></h3>
 <p>Packets with <code>tagged=True</code> or <code>target=000000000000</code> are forwarded to all devices:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># GetService broadcasts are answered by all devices</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1"># Client discovers all emulated devices</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># GetService broadcasts are answered by all devices</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># Client discovers all emulated devices</span>
 </span></code></pre></div>
 <h3 id="targeted-packets">Targeted Packets<a class="headerlink" href="#targeted-packets" title="Permanent link">&para;</a></h3>
 <p>Packets with a specific target serial are routed to that device:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># LightSetColor for d073d5000001 goes only to that device</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># Other devices don&#39;t see the packet</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># LightSetColor for d073d5000001 goes only to that device</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># Other devices don&#39;t see the packet</span>
 </span></code></pre></div>
 <h3 id="unknown-targets">Unknown Targets<a class="headerlink" href="#unknown-targets" title="Permanent link">&para;</a></h3>
 <p>Packets for unknown serial addresses are silently dropped:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Packet for d073d5999999 (not in server) is ignored</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># No error or response generated</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Packet for d073d5999999 (not in server) is ignored</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># No error or response generated</span>
 </span></code></pre></div>
 <h2 id="response-handling">Response Handling<a class="headerlink" href="#response-handling" title="Permanent link">&para;</a></h2>
 <p>The server handles responses automatically:</p>
@@ -2741,9 +2804,9 @@
 </ol>
 <h2 id="concurrency">Concurrency<a class="headerlink" href="#concurrency" title="Permanent link">&para;</a></h2>
 <p>The server uses asyncio for concurrent operation:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Multiple clients can send packets concurrently</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># Each device processes packets independently</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1"># Responses are sent asynchronously</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Multiple clients can send packets concurrently</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># Each device processes packets independently</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1"># Responses are sent asynchronously</span>
 </span></code></pre></div>
 <h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
 <p>The server handles errors gracefully:</p>
@@ -2778,31 +2841,42 @@
 </ol>
 <h2 id="testing-integration">Testing Integration<a class="headerlink" href="#testing-integration" title="Permanent link">&para;</a></h2>
 <h3 id="pytest-asyncio">pytest-asyncio<a class="headerlink" href="#pytest-asyncio" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span><span class="p">,</span> <span class="n">create_color_light</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifx_server</span><span class="p">():</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">([</span><span class="n">device</span><span class="p">],</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>        <span class="k">yield</span> <span class="n">server</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_discovery</span><span class="p">(</span><span class="n">lifx_server</span><span class="p">):</span>
-</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>    <span class="c1"># Test code using the server</span>
-</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>    <span class="k">pass</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmulatedLifxServer</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_color_light</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceRepository</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.devices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceManager</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">device_manager</span><span class="p">():</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>    <span class="k">return</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifx_server</span><span class="p">(</span><span class="n">device_manager</span><span class="p">):</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">device</span> <span class="o">=</span> <span class="n">create_color_light</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">([</span><span class="n">device</span><span class="p">],</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>        <span class="k">yield</span> <span class="n">server</span>
+</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>
+</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_discovery</span><span class="p">(</span><span class="n">lifx_server</span><span class="p">):</span>
+</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>    <span class="c1"># Test code using the server</span>
+</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>    <span class="k">pass</span>
 </span></code></pre></div>
 <h3 id="module-scoped-fixture">Module-Scoped Fixture<a class="headerlink" href="#module-scoped-fixture" title="Permanent link">&para;</a></h3>
 <p>For faster tests, use module scope:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;module&quot;</span><span class="p">)</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifx_server</span><span class="p">():</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_color_light</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d073d500000</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>        <span class="k">yield</span> <span class="n">server</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;module&quot;</span><span class="p">)</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">device_manager</span><span class="p">():</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="k">return</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">DeviceRepository</span><span class="p">())</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;module&quot;</span><span class="p">)</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifx_server</span><span class="p">(</span><span class="n">device_manager</span><span class="p">):</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_color_light</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d073d500000</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="n">server</span> <span class="o">=</span> <span class="n">EmulatedLifxServer</span><span class="p">(</span><span class="n">devices</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">56700</span><span class="p">)</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">server</span><span class="p">:</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>        <span class="k">yield</span> <span class="n">server</span>
 </span></code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2832,7 +2906,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 11, 2025 07:55:42 UTC">November 11, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 25, 2025 22:37:45 UTC">November 25, 2025</span>
   </span>
 
     
