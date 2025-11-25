@@ -318,179 +318,39 @@ The emulator supports comprehensive test scenario management for simulating prot
 
 **REST API Endpoints:**
 
-See the [Scenario REST API Documentation](docs/guide/scenario-api.md) for comprehensive REST API reference with detailed examples, shell scripts, and integration patterns.
+See the [Scenario REST API Documentation](docs/guide/scenario-api.md) for comprehensive REST API reference.
 
-Quick reference - Global scenarios:
+Quick reference:
 ```bash
-# Get global scenario
-curl http://localhost:8080/api/scenarios/global
+# Scenarios API endpoints (all support GET, PUT, DELETE)
+/api/scenarios/global                    # Global scenarios
+/api/scenarios/devices/{serial}          # Device-specific scenarios
+/api/scenarios/types/{type}              # Type scenarios (color, multizone, matrix, hev, infrared)
+/api/scenarios/locations/{location}      # Location scenarios
+/api/scenarios/groups/{group}            # Group scenarios
 
-# Set global scenario
-curl -X PUT http://localhost:8080/api/scenarios/global \
-  -H "Content-Type: application/json" \
-  -d '{
-    "drop_packets": {"101": 1.0, "102": 0.6},
-    "response_delays": {"101": 0.5, "116": 1.0},
-    "malformed_packets": [],
-    "invalid_field_values": [],
-    "firmware_version": null,
-    "partial_responses": [],
-    "send_unhandled": false
-  }'
-
-# Clear global scenario
-curl -X DELETE http://localhost:8080/api/scenarios/global
-```
-
-Device-specific scenarios:
-```bash
-# Get scenario for device by serial
-curl http://localhost:8080/api/scenarios/devices/d073d5000001
-
-# Set scenario for specific device (drop 100% of packet 101, 60% of packet 102)
+# Example: Drop 100% of GetColor packets for a device
 curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
-  -H "Content-Type: application/json" \
-  -d '{"drop_packets": {"101": 1.0, "102": 0.6}}'
-
-# Clear device scenario
-curl -X DELETE http://localhost:8080/api/scenarios/devices/d073d5000001
-```
-
-Type-specific scenarios:
-```bash
-# Set scenario for all multizone devices
-curl -X PUT http://localhost:8080/api/scenarios/types/multizone \
-  -H "Content-Type: application/json" \
-  -d '{"response_delays": {"502": 1.0}}'
-
-# Set scenario for all color devices (drop 60% of GetColor packets)
-curl -X PUT http://localhost:8080/api/scenarios/types/color \
-  -H "Content-Type: application/json" \
-  -d '{"drop_packets": {"101": 0.6}}'
-
-# Supported types: color, multizone, extended_multizone, matrix, hev, infrared, basic
-```
-
-Location and group scenarios:
-```bash
-# Set scenario for all devices in "Kitchen" location
-curl -X PUT http://localhost:8080/api/scenarios/locations/Kitchen \
-  -H "Content-Type: application/json" \
-  -d '{"response_delays": {"116": 0.5}}'
-
-# Set scenario for all devices in "Bedroom Lights" group
-curl -X PUT http://localhost:8080/api/scenarios/groups/"Bedroom Lights" \
-  -H "Content-Type: application/json" \
-  -d '{"malformed_packets": [506]}'
-```
-
-**Usage Examples:**
-
-Simulate packet loss for testing retries:
-```bash
-# Always drop GetColor packets (100% drop rate) for all color devices
-curl -X PUT http://localhost:8080/api/scenarios/types/color \
   -H "Content-Type: application/json" \
   -d '{"drop_packets": {"101": 1.0}}'
-
-# Or drop 30% probabilistically (simulating flaky network)
-curl -X PUT http://localhost:8080/api/scenarios/types/color \
-  -H "Content-Type: application/json" \
-  -d '{"drop_packets": {"101": 0.3}}'
 ```
 
-Simulate network latency:
-```bash
-# Add 500ms delay to all responses for one device
-curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
-  -H "Content-Type: application/json" \
-  -d '{"response_delays": {"101": 0.5, "102": 0.5, "103": 0.5}}'
-```
-
-Test firmware version handling:
-```bash
-# Override firmware version for device
-curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
-  -H "Content-Type: application/json" \
-  -d '{"firmware_version": [2, 60]}'
-```
-
-Simulate malformed responses:
-```bash
-# Send corrupted StateColor packets to test error handling
-curl -X PUT http://localhost:8080/api/scenarios/types/color \
-  -H "Content-Type: application/json" \
-  -d '{"malformed_packets": [107]}'
-```
-
-**Scenario Precedence Example:**
-
-If you have:
-- Global: drop packets {101: 1.0}
-- Type (multizone): response_delays {502: 1.0}
-- Device (d073d5000001): drop packets {102: 0.5}
-
-Then device `d073d5000001` of type `multizone` would:
-- Drop packet 101 with 100% rate (from global)
-- Drop packet 102 with 50% rate (from device-specific)
-- Have 1.0s delay for packet type 502 (from type scenario)
-
-**Persistence:**
-```bash
-# Enable scenario persistence (saved to ~/.lifx-emulator/scenarios.json)
-lifx-emulator --api --persistent --persistent-scenarios
-```
+**Scenario Precedence**: device-specific > type > location > group > global
 
 **Programmatic API:**
 ```python
 from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
-# Create manager
 manager = HierarchicalScenarioManager()
 
-# Set global scenario - drop 100% of packet 101, 60% of packet 102
-manager.set_global_scenario(ScenarioConfig(
-    drop_packets={101: 1.0, 102: 0.6},  # dict with drop rates (0.0-1.0)
-    response_delays={116: 0.5}
-))
+# Set scenarios at different scopes
+manager.set_global_scenario(ScenarioConfig(drop_packets={101: 1.0}))
+manager.set_device_scenario("d073d5000001", ScenarioConfig(response_delays={116: 0.5}))
+manager.set_type_scenario("multizone", ScenarioConfig(malformed_packets=[506]))
 
-# Set device-specific scenario - drop 100% of packet 103 for one device
-manager.set_device_scenario(
-    "d073d5000001",
-    ScenarioConfig(drop_packets={103: 1.0})  # dict format
-)
-
-# Set type-specific scenario
-manager.set_type_scenario(
-    "multizone",
-    ScenarioConfig(response_delays={502: 1.0})
-)
-
-# Resolve scenario for a device (accounts for all scopes)
-merged = manager.get_scenario_for_device(
-    serial="d073d5000001",
-    device_type="multizone",
-    location="Kitchen",
-    group="Strips"
-)
-
-# Use scenario methods to check behavior
-should_respond = manager.should_respond(101, merged)  # False (dropped)
-delay = manager.get_response_delay(502, merged)  # 1.0s
+# Resolve merged scenario for a device
+merged = manager.get_scenario_for_device(serial="d073d5000001", device_type="multizone")
 ```
-
-**Scenario Manager** (`src/lifx_emulator/scenarios/manager.py`):
-- `ScenarioConfig`: Dataclass representing a scenario configuration
-- `HierarchicalScenarioManager`: Manages scenarios across 5 scope levels
-- `get_device_type()`: Classify device by capability for type-based scoping
-- Methods: `set_*_scenario()`, `delete_*_scenario()`, `get_scenario_for_device()`, `should_respond()`, etc.
-
-**Persistence Module** (`src/lifx_emulator/scenarios/persistence.py`):
-- `ScenarioPersistenceAsyncFile`: Handles async JSON serialization of scenario configurations
-- Automatic save after API updates
-- Atomic file operations (temp file + rename) for consistency
-- Error recovery on corrupted scenario files
-- All operations are async for non-blocking I/O
 
 ## Architecture
 
@@ -550,7 +410,7 @@ delay = manager.get_response_delay(502, merged)  # 1.0s
 
 ### Device Factories
 
-**Factory functions** (`src/lifx_emulator/factories.py`):
+**Factory functions** (`src/lifx_emulator/factories/`):
 - `create_color_light()`: Full color RGB light - LIFX A19 (product=27)
 - `create_color_temperature_light()`: Color temperature light - LIFX Mini White to Warm (product=50)
 - `create_infrared_light()`: Night vision capable (product=29)
@@ -671,6 +531,32 @@ The codebase follows a modular structure with clear separation of concerns:
 **Repositories Module** (`src/lifx_emulator/repositories/`):
 - `device_repository.py`: In-memory device collection storage
 - `storage_backend.py`: Protocol interfaces for persistence layers
+- `__init__.py`: Public API exports
+
+**Handlers Module** (`src/lifx_emulator/handlers/`):
+- `registry.py`: Handler registry mapping packet types to handler functions
+- `base.py`: Base handler class and common utilities
+- `device_handlers.py`: Device.* packet handlers (types 2-59)
+- `light_handlers.py`: Light.* packet handlers (types 101-149)
+- `multizone_handlers.py`: MultiZone.* packet handlers (types 501-512)
+- `tile_handlers.py`: Tile.* packet handlers (types 701-720)
+- `__init__.py`: Public API exports
+
+**Protocol Module** (`src/lifx_emulator/protocol/`):
+- `packets.py`: Auto-generated packet classes from LIFX YAML spec
+- `header.py`: LifxHeader class (36-byte packet header)
+- `serializer.py`: Binary packing/unpacking using struct
+- `protocol_types.py`: Structured types (LightHsbk, TileStateDevice, etc.)
+- `const.py`: Protocol constants and enums
+- `base.py`: Base packet class
+- `generator.py`: Packet code generator (run to regenerate packets.py)
+- `__init__.py`: Public API exports
+
+**Products Module** (`src/lifx_emulator/products/`):
+- `registry.py`: Auto-generated product registry (137+ products) - do not edit manually
+- `specs.py`: Product specs loader
+- `specs.yml`: Product-specific configuration (zone counts, tile dimensions)
+- `generator.py`: Registry generator - downloads from LIFX GitHub and regenerates registry.py
 - `__init__.py`: Public API exports
 
 **Import Guidelines**:
@@ -810,148 +696,21 @@ Configure via ScenarioConfig in HierarchicalScenarioManager:
 
 ## Python Version and Dependencies
 
-- Requires Python 3.13+
-- Uses modern Python features: dataclasses, type hints, pattern matching (if present)
-- Key dependencies: `pyyaml` for config, asyncio for networking
-- Dev dependencies: `pytest`, `pytest-asyncio`, `ruff`, `pyright`, `hatchling`
+- Requires Python 3.11+ (supports 3.11, 3.12, 3.13, 3.14)
+- Uses modern Python features: dataclasses, type hints
+- Key dependencies: `fastapi`, `uvicorn`, `pyyaml`, `cyclopts`, `rich`
+- Dev dependencies: `pytest`, `pytest-asyncio`, `ruff`, `pyright`, `mkdocs`
 - Never use the term or phrase "wide tile device". Use "large matrix device" or "chained matrix device" instead
 
-## Recent Refactoring (Phases 1-5 - In Progress)
+## Code Quality Standards
 
-The codebase has completed Phases 1-4 and is currently in Phase 5 of a comprehensive refactoring plan.
+- **Test Coverage**: 95% (80% minimum required by CI)
+- **Code Complexity**: All functions ≤10 (enforced by Ruff McCabe)
+- **Type Checking**: Pyright in standard mode
+- **Pre-commit Hooks**: Format, lint, type-check on every commit
+- **CI/CD**: All checks must pass before merge
 
-**Overall Progress**: 40% complete (20/50 tasks)
-- Phase 1 (Critical Infrastructure): ✅ 100% Complete
-- Phase 2 (Code Quality & DRY): ✅ 100% Complete
-- Phase 3 (Performance & Scalability): ✅ 100% Complete
-- Phase 4 (Automated Tooling & Security): ✅ 100% Complete
-- Phase 5 (Testing & Documentation): 🔄 33% Complete (3/9 tasks)
+## Auto-Generated Files (Do Not Edit)
 
-### Key Architectural Changes
-
-**DeviceManager Pattern (Phase 2.3 - COMPLETE)**:
-- Extracted device management domain logic from `EmulatedLifxServer`
-- Created `DeviceManager` class with `IDeviceManager` Protocol interface
-- Server is now **just** the network layer (UDP protocol handling)
-- Clean separation: Network → Domain → Repository → Persistence
-
-**Breaking Changes**:
-- `EmulatedLifxServer` constructor now **requires** `device_manager` as the second parameter (was `device_repository`)
-- Example: `EmulatedLifxServer(devices, device_manager, bind_address, port)`
-- All device management methods delegated to `DeviceManager`
-
-**Repository Pattern (Phase 2.2 - COMPLETE)**:
-- Created repository abstractions (`IDeviceRepository`, `IDeviceStorageBackend`, `IScenarioStorageBackend` protocols)
-- Implemented concrete repositories (`DeviceRepository`)
-- Renamed storage backends for clarity:
-  - `AsyncDeviceStorage` → `DevicePersistenceAsyncFile`
-  - `ScenarioPersistence` → `ScenarioPersistenceAsyncFile`
-- Applied Dependency Inversion Principle throughout stack
-
-**Performance Optimizations (Phase 3 - COMPLETE)**:
-- Cached packed packet payloads to avoid double packing (CPU efficiency)
-- Optimized zone initialization with list comprehensions (20-30% faster)
-- Verified optimal async/await usage and storage debouncing (100ms)
-
-**Code Quality & Security (Phase 4 - COMPLETE)**:
-- Configured Ruff with McCabe complexity limits (max-complexity=10)
-- Enhanced CI/CD with quality gates (80%+ coverage required)
-- Added comprehensive Pydantic validation to API models:
-  - Product ID: 0-10000 range validation
-  - Serial: 12 hex chars with automatic lowercase normalization
-  - Zone/tile counts: sensible limits (0-1000, 0-100)
-  - HSBK colors: proper ranges (hue/sat/bright: 0-65535, kelvin: 1500-9000)
-- Verified atomic file writes for persistence (already correct)
-
-**Enhanced Testing (Phase 5.1 - COMPLETE)**:
-- Created comprehensive test suites:
-  - `tests/test_device_manager.py`: 13 tests for DeviceManager operations
-  - `tests/test_api_validation.py`: 38 tests for Pydantic validation
-- Coverage improvements:
-  - DeviceManager: 71% → 78%
-  - API models: 88% → 92%
-  - Overall project: 84% → 95%
-- Total tests: 608 → 653 (+45 tests)
-- All tests passing with 100% pass rate
-
-### Migration Guide
-
-**If you're upgrading from older versions**, update your code as follows:
-
-```python
-# OLD (before Phase 2.3):
-from lifx_emulator.repositories import DeviceRepository
-server = EmulatedLifxServer(devices, DeviceRepository(), "127.0.0.1", 56700)
-
-# NEW (current):
-from lifx_emulator.repositories import DeviceRepository
-from lifx_emulator.devices import DeviceManager
-
-device_repository = DeviceRepository()
-device_manager = DeviceManager(device_repository)
-server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
-```
-
-**Storage backend changes**:
-```python
-# OLD:
-from lifx_emulator.async_storage import AsyncDeviceStorage
-storage = AsyncDeviceStorage()
-
-# NEW:
-from lifx_emulator.devices import DevicePersistenceAsyncFile
-storage = DevicePersistenceAsyncFile()
-```
-
-### Quality Metrics
-
-**Current Status** (as of Phase 5.1):
-- Test Coverage: 95% (up from 84%)
-- Total Tests: 653 (100% pass rate)
-- Code Complexity: All functions ≤10 (enforced by Ruff)
-- API Input Validation: 100% (Pydantic validators on all endpoints)
-- Pre-commit Hooks: Format, lint, type-check, security scan, complexity check
-- CI/CD Gates: All checks + 80% coverage threshold
-
-**Files Modified**:
-- `src/lifx_emulator/server.py` - Network layer only, delegates to DeviceManager
-- `src/lifx_emulator/devices/manager.py` - Domain logic layer (NEW)
-- `src/lifx_emulator/__main__.py` - Updated CLI to create managers
-- `src/lifx_emulator/repositories/` - Repository abstractions (NEW)
-- `src/lifx_emulator/devices/` - Device module (NEW - organized device-related code)
-- `src/lifx_emulator/scenarios/` - Scenario module (NEW - organized scenario-related code)
-- `src/lifx_emulator/api/models.py` - Pydantic validators added
-- `pyproject.toml` - Ruff complexity limits
-- `.pre-commit-config.yaml` - Quality gates enabled
-- `.github/workflows/ci.yml` - CI quality gates
-- `src/lifx_emulator/api/routers/` - Fixed router fixture isolation (3 files)
-- `tests/*.py` - All test fixtures updated to pass repositories (60+ call sites)
-
-**Migration Guide**:
-```python
-# OLD (no longer works):
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
-
-# NEW (required):
-from lifx_emulator.repositories import DeviceRepository
-
-server = EmulatedLifxServer(devices, DeviceRepository(), "127.0.0.1", 56700)
-```
-
-### Previous Refactorings (Phase 1 & 2.1 - COMPLETE)
-
-**Phase 1 - Critical Infrastructure** (9/9 tasks complete):
-1. **API Module** (1.1): Broke apart 751-line monolith into modular routers with service layer
-2. **Device Factory** (1.2): Reduced create_device() from 218 to 33 lines (85% reduction) using Builder pattern
-3. **DeviceState** (1.3): Eliminated 203 lines of property boilerplate using `__getattr__`/`__setattr__`
-
-**Phase 2.1 - Code Quality & DRY** (5/5 tasks complete):
-1. Consolidated ScenarioConfig model (~160 lines eliminated)
-2. Moved label encoding to protocol layer (82 lines eliminated)
-3. Extracted scenario cache invalidation (27 lines eliminated)
-4. Verified response builder pattern already implemented
-5. Verified handler registry pattern already implemented
-
-**Total Lines Improved**: ~1,707 lines refactored or eliminated
-
-**Testing Status**: All 94 core tests passing (100% pass rate)
+- `src/lifx_emulator/products/registry.py` - Regenerate with `python -m lifx_emulator.products.generator`
+- `src/lifx_emulator/protocol/packets.py` - Regenerate with `python -m lifx_emulator.protocol.generator`

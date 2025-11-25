@@ -33,14 +33,23 @@ LIFX Emulator is a Python library and CLI tool that creates virtual LIFX devices
 
     ```python
     import asyncio
-    from lifx_emulator import EmulatedLifxServer, create_color_light
+    from lifx_emulator import EmulatedLifxServer
+    from lifx_emulator.factories import create_color_light
+    from lifx_emulator.repositories import DeviceRepository
+    from lifx_emulator.devices import DeviceManager
 
     async def main():
         # Create a color light device
         device = create_color_light("d073d5000001")
 
+        # Set up repository and manager (required)
+        device_repository = DeviceRepository()
+        device_manager = DeviceManager(device_repository)
+
         # Start server on port 56700
-        server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", 56700
+        )
         await server.start()
 
         # Your test code here
