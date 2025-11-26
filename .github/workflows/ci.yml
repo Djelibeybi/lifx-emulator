@@ -106,8 +106,8 @@ jobs:
       cancel-in-progress: false
 
     outputs:
-      release-lifx-emulator-core: ${{ steps.release-lifx-emulator-core.outputs.released || 'false' }}
-      release-lifx-emulator: ${{ steps.release-lifx-emulator.outputs.released || 'false' }}
+      release-lifx-emulator-core: ${{ steps.release-lifx-emulator-core.outputs.release-lifx-emulator-core || 'false' }}
+      release-lifx-emulator: ${{ steps.release-lifx-emulator.outputs.release-lifx-emulator || 'false' }}
 
     steps:
     - name: Checkout repository on release branch
@@ -161,7 +161,20 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd packages/lifx-emulator-core/
-        uv run --with python-semantic-release semantic-release version
+
+        # Capture output to detect if a release was made
+        output=$(uv run --with python-semantic-release semantic-release version 2>&1)
+        echo "$output"
+
+        # Check if a release was made (no "No release will be made" message)
+        if echo "$output" | grep -q "No release will be made"; then
+          echo "release-lifx-emulator-core=false" >> $GITHUB_OUTPUT
+        else
+          # Publish distribution artifacts to release
+          uv run --with python-semantic-release semantic-release publish
+          echo "release-lifx-emulator-core=true" >> $GITHUB_OUTPUT
+        fi
+
 
     - name: Release lifx-emulator
       id: release-lifx-emulator
@@ -171,7 +184,19 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd packages/lifx-emulator/
-        uv run --with python-semantic-release semantic-release version
+
+        # Capture output to detect if a release was made
+        output=$(uv run --with python-semantic-release semantic-release version 2>&1)
+        echo "$output"
+
+        # Check if a release was made (no "No release will be made" message)
+        if echo "$output" | grep -q "No release will be made"; then
+          echo "release-lifx-emulator=false" >> $GITHUB_OUTPUT
+        else
+          # Publish distribution artifacts to release
+          uv run --with python-semantic-release semantic-release publish
+          echo "release-lifx-emulator=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Upload Core Library Artifacts
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
