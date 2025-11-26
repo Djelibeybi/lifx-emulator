@@ -1,0 +1,2659 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries">
+      
+      
+        <meta name="author" content="Avi Miller <me@dje.li>">
+      
+      
+        <link rel="canonical" href="https://djelibeybi.github.io/lifx-emulator/library/products/">
+      
+      
+        <link rel="prev" href="../storage/">
+      
+      
+        <link rel="next" href="../../architecture/">
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Product Registry - LIFX Emulator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#products-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LIFX Emulator" class="md-header__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LIFX Emulator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Product Registry
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  lifx-emulator
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  lifx-emulator-core
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../faq/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LIFX Emulator" class="md-nav__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    LIFX Emulator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../getting-started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../cli/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    lifx-emulator
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    lifx-emulator-core
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            lifx-emulator-core
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Python Library
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Python Library
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../factories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Factory Functions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Protocol Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Product Registry
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Product Registry
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concepts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductInfo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductInfo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productcapability" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductCapability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductCapability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Registry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_productpid-int-productinfo-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_product(pid: int) -&gt; ProductInfo | None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_registry-dictint-productinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_registry() -&gt; dict[int, ProductInfo]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_device_class_nameproduct-productinfo-str" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_device_class_name(product: ProductInfo) -&gt; str
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productspecs" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductSpecs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductSpecs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_product_specsproduct_id-int-dict-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_product_specs(product_id: int) -&gt; dict | None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capability-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Capability Matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Filtering
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-single-capability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Single Capability
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-multiple-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Multiple Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-temperature-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Temperature Range
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-extended-multizone" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter Extended Multizone
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-filter-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Filter Function
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Products
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using Products">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-devices-from-product-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating Devices from Product IDs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-product-specs-for-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Product Specs for Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-available-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing Available Products
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#programmatic-product-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Programmatic Product Listing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-data-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Data Source
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Data Source">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updating-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating Products
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../architecture/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/packet-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Packet Flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Protocol Layer
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/device-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device State
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../guide/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../tutorials/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../faq/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concepts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductInfo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductInfo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productcapability" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductCapability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductCapability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Registry
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_productpid-int-productinfo-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_product(pid: int) -&gt; ProductInfo | None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_registry-dictint-productinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_registry() -&gt; dict[int, ProductInfo]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_device_class_nameproduct-productinfo-str" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_device_class_name(product: ProductInfo) -&gt; str
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#productspecs" class="md-nav__link">
+    <span class="md-ellipsis">
+      ProductSpecs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ProductSpecs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_product_specsproduct_id-int-dict-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_product_specs(product_id: int) -&gt; dict | None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capability-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Capability Matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Filtering
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Filtering">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-single-capability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Single Capability
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-multiple-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Multiple Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-by-temperature-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter by Temperature Range
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-extended-multizone" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter Extended Multizone
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-filter-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Filter Function
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Products
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using Products">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-devices-from-product-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating Devices from Product IDs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-product-specs-for-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Product Specs for Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-available-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing Available Products
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#programmatic-product-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Programmatic Product Listing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-data-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      Product Data Source
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Data Source">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#updating-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating Products
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="products-api-reference">Products API Reference<a class="headerlink" href="#products-api-reference" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>LIFX product registry and capability detection</p>
+</blockquote>
+<p>The products module provides auto-generated product definitions from the official LIFX product registry, including product IDs, capabilities, temperature ranges, and device specifications. This enables accurate emulation of specific LIFX device types.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="#productinfo">ProductInfo</a> - Product metadata and capabilities</li>
+<li><a href="#productcapability">ProductCapability</a> - Capability flags enum</li>
+<li><a href="#product-registry">Product Registry</a> - Accessing product database</li>
+<li><a href="#productspecs">ProductSpecs</a> - Device-specific specifications</li>
+</ul>
+<h3 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="#capability-matrix">Capability Matrix</a> - Complete product capabilities</li>
+<li><a href="#product-filtering">Product Filtering</a> - Query products by capability</li>
+<li><a href="#using-products">Using Products</a> - Creating devices from products</li>
+</ul>
+<hr />
+<h2 id="productinfo">ProductInfo<a class="headerlink" href="#productinfo" title="Permanent link">&para;</a></h2>
+<p>Dataclass containing complete information about a LIFX product.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProductInfo</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span>                              <span class="c1"># Product ID</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>                             <span class="c1"># Product name (e.g., &quot;LIFX A19&quot;)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">vendor</span><span class="p">:</span> <span class="nb">int</span>                           <span class="c1"># Vendor ID (always 1 for LIFX)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">capabilities</span><span class="p">:</span> <span class="nb">int</span>                     <span class="c1"># Bitfield of capabilities</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">temperature_range</span><span class="p">:</span> <span class="n">TemperatureRange</span> <span class="o">|</span> <span class="kc">None</span>  <span class="c1"># Min/max Kelvin</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">min_ext_mz_firmware</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>       <span class="c1"># Min firmware for extended multizone</span>
+</span></code></pre></div>
+<h3 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h3>
+<h4 id="pid-int"><code>pid</code> (int)<a class="headerlink" href="#pid-int" title="Permanent link">&para;</a></h4>
+<p>Product ID number. Common examples:</p>
+<ul>
+<li><code>27</code>: LIFX A19</li>
+<li><code>32</code>: LIFX Z (multizone strip)</li>
+<li><code>38</code>: LIFX Beam (extended multizone)</li>
+<li><code>55</code>: LIFX Tile</li>
+<li><code>90</code>: LIFX Clean (HEV)</li>
+</ul>
+<h4 id="name-str"><code>name</code> (str)<a class="headerlink" href="#name-str" title="Permanent link">&para;</a></h4>
+<p>Human-readable product name (e.g., "LIFX A19", "LIFX Z", "LIFX Tile").</p>
+<h4 id="vendor-int"><code>vendor</code> (int)<a class="headerlink" href="#vendor-int" title="Permanent link">&para;</a></h4>
+<p>Vendor ID. Always <code>1</code> for LIFX products.</p>
+<h4 id="capabilities-int"><code>capabilities</code> (int)<a class="headerlink" href="#capabilities-int" title="Permanent link">&para;</a></h4>
+<p>Bitfield of <code>ProductCapability</code> flags. Use <code>has_capability()</code> or property methods to check.</p>
+<h4 id="temperature_range-temperaturerange-none"><code>temperature_range</code> (TemperatureRange | None)<a class="headerlink" href="#temperature_range-temperaturerange-none" title="Permanent link">&para;</a></h4>
+<p>Supported color temperature range in Kelvin.</p>
+<ul>
+<li><code>min</code>: Minimum Kelvin (e.g., 2500 for warm white)</li>
+<li><code>max</code>: Maximum Kelvin (e.g., 9000 for cool white)</li>
+<li><code>None</code> for non-color-temperature devices (relays, switches)</li>
+</ul>
+<h4 id="min_ext_mz_firmware-int-none"><code>min_ext_mz_firmware</code> (int | None)<a class="headerlink" href="#min_ext_mz_firmware-int-none" title="Permanent link">&para;</a></h4>
+<p>Minimum firmware version required for extended multizone support (&gt;16 zones).</p>
+<ul>
+<li><code>None</code> if not applicable or always supported</li>
+</ul>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<h4 id="has_capabilitycapability-productcapability-bool"><code>has_capability(capability: ProductCapability) -&gt; bool</code><a class="headerlink" href="#has_capabilitycapability-productcapability-bool" title="Permanent link">&para;</a></h4>
+<p>Check if product has a specific capability.</p>
+<p><strong>Parameters:</strong>
+- <strong><code>capability</code></strong> (<code>ProductCapability</code>) - Capability to check</p>
+<p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if product has the capability</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product</span><span class="p">,</span> <span class="n">ProductCapability</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>  <span class="c1"># LIFX Z</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_capability</span><span class="p">(</span><span class="n">ProductCapability</span><span class="o">.</span><span class="n">MULTIZONE</span><span class="p">):</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> supports multizone&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+<h4 id="property-methods">Property Methods<a class="headerlink" href="#property-methods" title="Permanent link">&para;</a></h4>
+<p>Convenience properties for common capability checks:</p>
+<ul>
+<li><strong><code>has_color</code></strong> → <code>bool</code> - Full RGB color support</li>
+<li><strong><code>has_infrared</code></strong> → <code>bool</code> - Infrared (night vision) support</li>
+<li><strong><code>has_multizone</code></strong> → <code>bool</code> - Multizone (linear strips) support</li>
+<li><strong><code>has_chain</code></strong> → <code>bool</code> - Device chaining support</li>
+<li><strong><code>has_matrix</code></strong> → <code>bool</code> - 2D matrix/tile support</li>
+<li><strong><code>has_relays</code></strong> → <code>bool</code> - Relay switches</li>
+<li><strong><code>has_buttons</code></strong> → <code>bool</code> - Physical buttons</li>
+<li><strong><code>has_hev</code></strong> → <code>bool</code> - HEV (germicidal light) support</li>
+<li><strong><code>has_extended_multizone</code></strong> → <code>bool</code> - Extended multizone (&gt;16 zones)</li>
+</ul>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">55</span><span class="p">)</span>  <span class="c1"># LIFX Tile</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Color: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">has_color</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>         <span class="c1"># True</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Matrix: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">has_matrix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>       <span class="c1"># True</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Multizone: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># False</span>
+</span></code></pre></div></p>
+<h4 id="supports_extended_multizonefirmware_version-int-none-none-bool"><code>supports_extended_multizone(firmware_version: int | None = None) -&gt; bool</code><a class="headerlink" href="#supports_extended_multizonefirmware_version-int-none-none-bool" title="Permanent link">&para;</a></h4>
+<p>Check if extended multizone is supported for a given firmware version.</p>
+<p><strong>Parameters:</strong>
+- <strong><code>firmware_version</code></strong> (<code>int | None</code>) - Firmware version to check (optional)</p>
+<p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if extended multizone is supported</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">38</span><span class="p">)</span>  <span class="c1"># LIFX Beam</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">supports_extended_multizone</span><span class="p">():</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Supports 80 zones!&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="productcapability">ProductCapability<a class="headerlink" href="#productcapability" title="Permanent link">&para;</a></h2>
+<p>Enum of capability flags used in product definitions.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProductCapability</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">COLOR</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># Full RGB color</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">INFRARED</span> <span class="o">=</span> <span class="mi">2</span>            <span class="c1"># Night vision IR</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">MULTIZONE</span> <span class="o">=</span> <span class="mi">4</span>           <span class="c1"># Linear zones (strips)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">CHAIN</span> <span class="o">=</span> <span class="mi">8</span>               <span class="c1"># Device chaining</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">MATRIX</span> <span class="o">=</span> <span class="mi">16</span>             <span class="c1"># 2D tile grid</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">RELAYS</span> <span class="o">=</span> <span class="mi">32</span>             <span class="c1"># Relay switches</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">BUTTONS</span> <span class="o">=</span> <span class="mi">64</span>            <span class="c1"># Physical buttons</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">HEV</span> <span class="o">=</span> <span class="mi">128</span>               <span class="c1"># Germicidal light</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">EXTENDED_MULTIZONE</span> <span class="o">=</span> <span class="mi">256</span>  <span class="c1"># &gt;16 zones</span>
+</span></code></pre></div>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProductCapability</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Check multiple capabilities</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">capabilities</span> <span class="o">=</span> <span class="n">ProductCapability</span><span class="o">.</span><span class="n">COLOR</span> <span class="o">|</span> <span class="n">ProductCapability</span><span class="o">.</span><span class="n">INFRARED</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">has_color</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">capabilities</span> <span class="o">&amp;</span> <span class="n">ProductCapability</span><span class="o">.</span><span class="n">COLOR</span><span class="p">)</span>        <span class="c1"># True</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">has_multizone</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">capabilities</span> <span class="o">&amp;</span> <span class="n">ProductCapability</span><span class="o">.</span><span class="n">MULTIZONE</span><span class="p">)</span> <span class="c1"># False</span>
+</span></code></pre></div>
+<hr />
+<h2 id="product-registry">Product Registry<a class="headerlink" href="#product-registry" title="Permanent link">&para;</a></h2>
+<p>The <code>PRODUCTS</code> dictionary and helper functions provide access to the product database.</p>
+<h3 id="get_productpid-int-productinfo-none"><code>get_product(pid: int) -&gt; ProductInfo | None</code><a class="headerlink" href="#get_productpid-int-productinfo-none" title="Permanent link">&para;</a></h3>
+<p>Retrieve product information by product ID.</p>
+<p><strong>Parameters:</strong>
+- <strong><code>pid</code></strong> (<code>int</code>) - Product ID</p>
+<p><strong>Returns:</strong> <code>ProductInfo | None</code> - Product information or <code>None</code> if not found</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>  <span class="c1"># LIFX A19</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">if</span> <span class="n">product</span><span class="p">:</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Product: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Capabilities: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">capabilities</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature range: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">temperature_range</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">temperature_range</span><span class="o">.</span><span class="n">max</span><span class="si">}</span><span class="s2">K&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+<h3 id="get_registry-dictint-productinfo"><code>get_registry() -&gt; dict[int, ProductInfo]</code><a class="headerlink" href="#get_registry-dictint-productinfo" title="Permanent link">&para;</a></h3>
+<p>Get the complete product registry.</p>
+<p><strong>Returns:</strong> <code>dict[int, ProductInfo]</code> - Mapping of product ID to ProductInfo</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_registry</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">registry</span> <span class="o">=</span> <span class="n">get_registry</span><span class="p">()</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total products: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">registry</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">for</span> <span class="n">pid</span><span class="p">,</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span><span class="p">:</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div></p>
+<h3 id="get_device_class_nameproduct-productinfo-str"><code>get_device_class_name(product: ProductInfo) -&gt; str</code><a class="headerlink" href="#get_device_class_nameproduct-productinfo-str" title="Permanent link">&para;</a></h3>
+<p>Get the device class name based on capabilities.</p>
+<p><strong>Parameters:</strong>
+- <strong><code>product</code></strong> (<code>ProductInfo</code>) - Product to classify</p>
+<p><strong>Returns:</strong> <code>str</code> - Device class name ("color", "multizone", "matrix", "hev", etc.)</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product</span><span class="p">,</span> <span class="n">get_device_class_name</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">class_name</span> <span class="o">=</span> <span class="n">get_device_class_name</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device class: </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &quot;multizone&quot;</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="productspecs">ProductSpecs<a class="headerlink" href="#productspecs" title="Permanent link">&para;</a></h2>
+<p>Device-specific specifications (zone counts, tile dimensions, etc.) are stored in the specs system.</p>
+<h3 id="get_product_specsproduct_id-int-dict-none"><code>get_product_specs(product_id: int) -&gt; dict | None</code><a class="headerlink" href="#get_product_specsproduct_id-int-dict-none" title="Permanent link">&para;</a></h3>
+<p>Get detailed specifications for a product.</p>
+<p><strong>Parameters:</strong>
+- <strong><code>product_id</code></strong> (<code>int</code>) - Product ID</p>
+<p><strong>Returns:</strong> <code>dict | None</code> - Specifications dictionary or <code>None</code></p>
+<p><strong>Spec Fields:</strong>
+- <code>zone_count</code>: Number of zones (multizone devices)
+- <code>extended_multizone</code>: Extended multizone support flag
+- <code>tile_count</code>: Default number of tiles (matrix devices)
+- <code>tile_width</code>: Tile width in zones (matrix devices)
+- <code>tile_height</code>: Tile height in zones (matrix devices)</p>
+<p><strong>Example:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product_specs</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># LIFX Z (standard multizone)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">specs</span> <span class="o">=</span> <span class="n">get_product_specs</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zones: </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;zone_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 16</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># LIFX Beam (extended multizone)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">specs</span> <span class="o">=</span> <span class="n">get_product_specs</span><span class="p">(</span><span class="mi">38</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zones: </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;zone_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>           <span class="c1"># 80</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extended: </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;extended_multizone&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># True</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="c1"># LIFX Tile</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="n">specs</span> <span class="o">=</span> <span class="n">get_product_specs</span><span class="p">(</span><span class="mi">55</span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tiles: </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;tile_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>     <span class="c1"># 5</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimensions: </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;tile_width&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;tile_height&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 8x8</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="capability-matrix">Capability Matrix<a class="headerlink" href="#capability-matrix" title="Permanent link">&para;</a></h2>
+<p>Complete capability matrix for major LIFX products:</p>
+<table>
+<thead>
+<tr>
+<th>Product ID</th>
+<th>Name</th>
+<th>Color</th>
+<th>Infrared</th>
+<th>Multizone</th>
+<th>Extended MZ</th>
+<th>Matrix</th>
+<th>HEV</th>
+<th>Temp Range (K)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>LIFX Original 1000</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>27</td>
+<td>LIFX A19</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>29</td>
+<td>LIFX A19 Night Vision</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>32</td>
+<td>LIFX Z</td>
+<td>✓</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>36</td>
+<td>LIFX Downlight</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>38</td>
+<td>LIFX Beam</td>
+<td>✓</td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>43</td>
+<td>LIFX BR30</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>44</td>
+<td>LIFX BR30 Night Vision</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>50</td>
+<td>LIFX Mini White to Warm</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2700-6500</td>
+</tr>
+<tr>
+<td>55</td>
+<td>LIFX Tile</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>57</td>
+<td>LIFX Candle</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>66</td>
+<td>LIFX GU10</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>90</td>
+<td>LIFX Clean</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>141</td>
+<td>LIFX Neon</td>
+<td>✓</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+<tr>
+<td>176</td>
+<td>LIFX Ceiling</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>2500-9000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Legend:</strong>
+- <strong>Color</strong>: Full RGB color control
+- <strong>Infrared</strong>: Night vision capability
+- <strong>Multizone</strong>: Linear zone control (up to 16 zones)
+- <strong>Extended MZ</strong>: Extended multizone (&gt;16 zones)
+- <strong>Matrix</strong>: 2D tile/matrix control
+- <strong>HEV</strong>: Germicidal UV-C light
+- <strong>Temp Range</strong>: Color temperature range in Kelvin</p>
+<hr />
+<h2 id="product-filtering">Product Filtering<a class="headerlink" href="#product-filtering" title="Permanent link">&para;</a></h2>
+<p>Filter products by capabilities using the registry:</p>
+<h3 id="filter-by-single-capability">Filter by Single Capability<a class="headerlink" href="#filter-by-single-capability" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_registry</span><span class="p">,</span> <span class="n">ProductCapability</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">registry</span> <span class="o">=</span> <span class="n">get_registry</span><span class="p">()</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Find all multizone products</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">multizone_products</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="n">product</span> <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">]</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">multizone_products</span><span class="p">:</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># Output: 32: LIFX Z, 38: LIFX Beam, 141: LIFX Neon, etc.</span>
+</span></code></pre></div>
+<h3 id="filter-by-multiple-capabilities">Filter by Multiple Capabilities<a class="headerlink" href="#filter-by-multiple-capabilities" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Find all color + infrared products</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">color_ir_products</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">product</span> <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_color</span> <span class="ow">and</span> <span class="n">product</span><span class="o">.</span><span class="n">has_infrared</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">]</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">color_ir_products</span><span class="p">:</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1"># Output: 29: LIFX A19 Night Vision, 44: LIFX BR30 Night Vision</span>
+</span></code></pre></div>
+<h3 id="filter-by-temperature-range">Filter by Temperature Range<a class="headerlink" href="#filter-by-temperature-range" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Find products that support warm white (&lt; 3000K)</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">warm_white_products</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="n">product</span> <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">temperature_range</span> <span class="ow">and</span> <span class="n">product</span><span class="o">.</span><span class="n">temperature_range</span><span class="o">.</span><span class="n">min</span> <span class="o">&lt;</span> <span class="mi">3000</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="p">]</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">warm_white_products</span><span class="p">:</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">temperature_range</span><span class="o">.</span><span class="n">min</span><span class="si">}</span><span class="s2">K)&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="filter-extended-multizone">Filter Extended Multizone<a class="headerlink" href="#filter-extended-multizone" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Find extended multizone products (&gt;16 zones)</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">extended_mz_products</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">product</span> <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_extended_multizone</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">]</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">extended_mz_products</span><span class="p">:</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># Output: 38: LIFX Beam, etc.</span>
+</span></code></pre></div>
+<h3 id="custom-filter-function">Custom Filter Function<a class="headerlink" href="#custom-filter-function" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">filter_products</span><span class="p">(</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">color</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">multizone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">matrix</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">hev</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ProductInfo</span><span class="p">]:</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter products by capabilities.&quot;&quot;&quot;</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">registry</span> <span class="o">=</span> <span class="n">get_registry</span><span class="p">()</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">registry</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        <span class="k">if</span> <span class="n">color</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_color</span><span class="p">:</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>            <span class="k">continue</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        <span class="k">if</span> <span class="n">multizone</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span><span class="p">:</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>            <span class="k">continue</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>        <span class="k">if</span> <span class="n">matrix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_matrix</span><span class="p">:</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>            <span class="k">continue</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>        <span class="k">if</span> <span class="n">hev</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_hev</span><span class="p">:</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>            <span class="k">continue</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>    <span class="k">return</span> <span class="n">results</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="c1"># Usage</span>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="n">matrix_products</span> <span class="o">=</span> <span class="n">filter_products</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="n">color_multizone</span> <span class="o">=</span> <span class="n">filter_products</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multizone</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="using-products">Using Products<a class="headerlink" href="#using-products" title="Permanent link">&para;</a></h2>
+<h3 id="creating-devices-from-product-ids">Creating Devices from Product IDs<a class="headerlink" href="#creating-devices-from-product-ids" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_device</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Create device by product ID</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="n">product_id</span><span class="o">=</span><span class="mi">27</span><span class="p">)</span>  <span class="c1"># LIFX A19</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># Get product info</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="n">product</span> <span class="o">=</span> <span class="n">get_product</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created: </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Color: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_color</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Multizone: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">has_multizone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="using-product-specs-for-configuration">Using Product Specs for Configuration<a class="headerlink" href="#using-product-specs-for-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_device</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_product_specs</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Create LIFX Z with product defaults</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="n">product_id</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># Specs are automatically applied</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="n">specs</span> <span class="o">=</span> <span class="n">get_product_specs</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="k">assert</span> <span class="n">device</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">zone_count</span> <span class="o">==</span> <span class="n">specs</span><span class="p">[</span><span class="s1">&#39;zone_count&#39;</span><span class="p">]</span>  <span class="c1"># 16 zones</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="c1"># Override defaults</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="n">device</span> <span class="o">=</span> <span class="n">create_device</span><span class="p">(</span><span class="n">product_id</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">zone_count</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>  <span class="c1"># Custom: 8 zones</span>
+</span></code></pre></div>
+<h3 id="listing-available-products">Listing Available Products<a class="headerlink" href="#listing-available-products" title="Permanent link">&para;</a></h3>
+<p>Command-line tool to list all products:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># List all products</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>lifx-emulator<span class="w"> </span>list-products
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Filter by capability</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>multizone
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>matrix
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>hev
+</span></code></pre></div>
+<p><strong>Example Output:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>LIFX Product Registry
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>┌──────┬────────────────────────────────────────────┬──────────────────────────┐
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>│ ID   │ Product Name                               │ Capabilities             │
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>├──────┼────────────────────────────────────────────┼──────────────────────────┤
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>│ 27   │ LIFX A19                                   │ full color               │
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>│ 29   │ LIFX A19 Night Vision                      │ full color, infrared     │
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>│ 32   │ LIFX Z                                     │ full color, multizone    │
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>│ 38   │ LIFX Beam                                  │ full color, extended-mz  │
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>│ 55   │ LIFX Tile                                  │ full color, matrix       │
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>│ 90   │ LIFX Clean                                 │ full color, HEV          │
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>└──────┴────────────────────────────────────────────┴──────────────────────────┘
+</span></code></pre></div></p>
+<h3 id="programmatic-product-listing">Programmatic Product Listing<a class="headerlink" href="#programmatic-product-listing" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.products</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_registry</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">list_products</span><span class="p">(</span><span class="n">filter_capability</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;List all products with optional capability filter.&quot;&quot;&quot;</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>    <span class="n">registry</span> <span class="o">=</span> <span class="n">get_registry</span><span class="p">()</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="k">for</span> <span class="n">pid</span><span class="p">,</span> <span class="n">product</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>        <span class="c1"># Apply filter</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>        <span class="k">if</span> <span class="n">filter_capability</span> <span class="o">==</span> <span class="s2">&quot;multizone&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span><span class="p">:</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>            <span class="k">continue</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>        <span class="k">if</span> <span class="n">filter_capability</span> <span class="o">==</span> <span class="s2">&quot;matrix&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_matrix</span><span class="p">:</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>            <span class="k">continue</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>        <span class="k">if</span> <span class="n">filter_capability</span> <span class="o">==</span> <span class="s2">&quot;hev&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">product</span><span class="o">.</span><span class="n">has_hev</span><span class="p">:</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>            <span class="k">continue</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>        <span class="c1"># Print product info</span>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>        <span class="n">capabilities</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_color</span><span class="p">:</span>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">)</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_infrared</span><span class="p">:</span>
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;infrared&quot;</span><span class="p">)</span>
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_multizone</span><span class="p">:</span>
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;multizone&quot;</span><span class="p">)</span>
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_extended_multizone</span><span class="p">:</span>
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;extended-mz&quot;</span><span class="p">)</span>
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_matrix</span><span class="p">:</span>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;matrix&quot;</span><span class="p">)</span>
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a>        <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">has_hev</span><span class="p">:</span>
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a>            <span class="n">capabilities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;HEV&quot;</span><span class="p">)</span>
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pid</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">capabilities</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-19-32"><a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a>
+</span><span id="__span-19-33"><a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a><span class="c1"># Usage</span>
+</span><span id="__span-19-34"><a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a><span class="n">list_products</span><span class="p">()</span>
+</span><span id="__span-19-35"><a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a><span class="n">list_products</span><span class="p">(</span><span class="n">filter_capability</span><span class="o">=</span><span class="s2">&quot;matrix&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="product-data-source">Product Data Source<a class="headerlink" href="#product-data-source" title="Permanent link">&para;</a></h2>
+<p>The product registry is auto-generated from the official LIFX product database:</p>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/LIFX/products">LIFX/products on GitHub</a></li>
+<li><strong>Generator:</strong> <code>src/lifx_emulator/products/generator.py</code></li>
+<li><strong>Registry:</strong> <code>src/lifx_emulator/products/registry.py</code> (auto-generated)</li>
+<li><strong>Specs:</strong> <code>src/lifx_emulator/specs/</code> (manually curated device specifications)</li>
+</ul>
+<h3 id="updating-products">Updating Products<a class="headerlink" href="#updating-products" title="Permanent link">&para;</a></h3>
+<p>To update the product registry with the latest LIFX products:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Run the generator (fetches latest from GitHub)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.products.generator
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Verify changes</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>git<span class="w"> </span>diff<span class="w"> </span>src/lifx_emulator/products/registry.py
+</span></code></pre></div>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><strong>Source Files:</strong>
+- <code>src/lifx_emulator/products/registry.py</code> - Product registry (auto-generated)
+- <code>src/lifx_emulator/products/generator.py</code> - Registry generator
+- <code>src/lifx_emulator/specs/</code> - Product specifications</p>
+<p><strong>Related Documentation:</strong>
+- <a href="../factories/">Factories API</a> - Device creation from product IDs
+- <a href="../device/">Device API</a> - Device capabilities and state
+- <a href="../../guide/device-types/">Device Types Guide</a> - Supported device types
+- <a href="../../cli/cli-reference/">CLI Reference</a> - Command-line product usage</p>
+<p><strong>External Resources:</strong>
+- <a href="https://github.com/LIFX/products">LIFX Products GitHub</a> - Official product database
+- <a href="https://lan.developer.lifx.com/">LIFX Developer Docs</a> - Protocol specification</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 26, 2025 01:29:20 UTC">November 26, 2025</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Avi Miller
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Djelibeybi/lifx-emulator" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/lifx-emulator/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.prune", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

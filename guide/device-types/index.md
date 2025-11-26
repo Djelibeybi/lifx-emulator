@@ -25,7 +25,19 @@ Full RGB color lights with complete color control.
 - Color temperature (1500K-9000K)
 - Power on/off
 
-### Factory Function
+### Creating Color Lights
+
+```bash
+# Create a single color light
+lifx-emulator --color 1
+
+# Create multiple color lights
+lifx-emulator --color 3
+
+# Create by specific product ID
+lifx-emulator --product 27  # LIFX A19
+lifx-emulator --product 43  # LIFX BR30
+```
 
 ```python
 from lifx_emulator import create_color_light
@@ -33,12 +45,25 @@ from lifx_emulator import create_color_light
 device = create_color_light("d073d5000001")
 ```
 
+```bash
+# With API server enabled (lifx-emulator --api)
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 27}'
+```
+
 ### Example Usage
+
+```bash
+# Start emulator with verbose output to see state
+lifx-emulator --color 1 --verbose
+```
 
 ```python
 # Create and start server
 device = create_color_light("d073d5000001")
-server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+device_manager = DeviceManager(DeviceRepository())
+server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 await server.start()
 
 # Check state
@@ -62,12 +87,26 @@ White lights with variable color temperature (warm to cool white).
 - Power on/off
 - **No RGB color** (saturation locked to 0)
 
-### Factory Function
+### Creating Color Temperature Lights
+
+```bash
+# Create color temperature lights
+lifx-emulator --color-temperature 1
+
+# Create by specific product ID
+lifx-emulator --product 50  # LIFX Mini White to Warm
+```
 
 ```python
 from lifx_emulator import create_color_temperature_light
 
 device = create_color_temperature_light("d073d5000007")
+```
+
+```bash
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 50}'
 ```
 
 ### Behavior
@@ -96,12 +135,26 @@ Color lights with additional infrared capability for night vision.
 - **Infrared brightness** (0-100%)
 - Power on/off
 
-### Factory Function
+### Creating Infrared Lights
+
+```bash
+# Create infrared lights
+lifx-emulator --infrared 1
+
+# Create by specific product ID
+lifx-emulator --product 29  # LIFX A19 Night Vision
+```
 
 ```python
 from lifx_emulator import create_infrared_light
 
 device = create_infrared_light("d073d5000002")
+```
+
+```bash
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 29}'
 ```
 
 ### Infrared Control
@@ -143,12 +196,26 @@ Lights with HEV (High Energy Visible) anti-bacterial cleaning capability.
 - Cycle progress tracking
 - Power on/off
 
-### Factory Function
+### Creating HEV Lights
+
+```bash
+# Create HEV lights
+lifx-emulator --hev 1
+
+# Create by specific product ID
+lifx-emulator --product 90  # LIFX Clean
+```
 
 ```python
 from lifx_emulator import create_hev_light
 
 device = create_hev_light("d073d5000003")
+```
+
+```bash
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 90}'
 ```
 
 ### HEV State
@@ -192,7 +259,25 @@ Linear light strips with independently controllable zones.
 - Multizone effect (MOVE)
 - Power on/off
 
-### Factory Function
+### Creating Multizone Devices
+
+```bash
+# Standard LIFX Z with default 16 zones
+lifx-emulator --multizone 1
+
+# Multiple multizone devices with custom zone count
+lifx-emulator --multizone 2 --multizone-zones 24
+
+# Extended multizone (LIFX Beam) with default 80 zones
+lifx-emulator --multizone 1 --multizone-extended
+
+# Non-extended multizone
+lifx-emulator --multizone 1 --no-multizone-extended
+
+# Create by specific product ID
+lifx-emulator --product 32  # LIFX Z
+lifx-emulator --product 38  # LIFX Beam
+```
 
 ```python
 from lifx_emulator import create_multizone_light
@@ -208,6 +293,18 @@ beam = create_multizone_light("d073d8000003", extended_multizone=True)
 
 # Extended with custom zone count
 beam = create_multizone_light("d073d8000004", zone_count=60, extended_multizone=True)
+```
+
+```bash
+# Standard multizone
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 32, "zone_count": 16}'
+
+# Extended multizone with custom zones
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 38, "zone_count": 80}'
 ```
 
 ### Zone Management
@@ -269,7 +366,23 @@ Devices with a 2D matrix of individually controlled zones.
 - Matrix effects (Morph, Flame, Sky)
 - Power on/off
 
-### Factory Functions
+### Creating Matrix Devices
+
+```bash
+# Standard LIFX Tile (8x8) with default 5 tiles
+lifx-emulator --tile 1
+
+# Multiple tile devices with custom tile count
+lifx-emulator --tile 2 --tile-count 3
+
+# Custom tile dimensions
+lifx-emulator --tile 1 --tile-width 16 --tile-height 8
+
+# Create by specific product ID
+lifx-emulator --product 55   # LIFX Tile
+lifx-emulator --product 57   # LIFX Candle
+lifx-emulator --product 176  # LIFX Ceiling
+```
 
 ```python
 from lifx_emulator import create_tile_device
@@ -285,6 +398,18 @@ large_tile = create_tile_device("d073dc000001", tile_count=1, tile_width=16, til
 
 # Any custom size
 custom = create_tile_device("d073dc000002", tile_count=3, tile_width=12, tile_height=12)
+```
+
+```bash
+# Standard tile
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 55, "tile_count": 5}'
+
+# Custom dimensions
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 55, "tile_count": 1, "tile_width": 16, "tile_height": 8}'
 ```
 
 ### Matrix Configuration
@@ -355,7 +480,16 @@ LIFX Switch devices are relay-based switches with no lighting capabilities. They
 - **No lighting**: No color, brightness, or zone control
 - Basic device operations (GetVersion, GetLabel, EchoRequest, etc.)
 
-### Factory Function
+### Creating Switch Devices
+
+```bash
+# Create LIFX Switch devices
+lifx-emulator --switch 1
+
+# Create by specific product ID
+lifx-emulator --product 70  # LIFX Switch
+lifx-emulator --product 89  # LIFX Switch variant
+```
 
 ```python
 from lifx_emulator import create_switch
@@ -365,6 +499,12 @@ switch = create_switch("d073d7000001")
 
 # Or specify a different switch product
 switch = create_switch("d073d7000002", product_id=89)
+```
+
+```bash
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 70}'
 ```
 
 ### Switch Behavior
@@ -422,6 +562,17 @@ The switch emulation is primarily for testing client libraries' handling of:
 
 All factory functions use `create_device()` internally. You can use it directly:
 
+```bash
+# Create any device by product ID
+lifx-emulator --product 27   # LIFX A19
+lifx-emulator --product 32   # LIFX Z
+lifx-emulator --product 55   # LIFX Tile
+lifx-emulator --product 57   # LIFX Candle
+
+# Mix multiple products
+lifx-emulator --product 27 --product 32 --product 55
+```
+
 ```python
 from lifx_emulator.factories import create_device
 
@@ -435,9 +586,16 @@ candle = create_device(57, serial="d073d9000002")
 print(f"Candle size: {candle.state.tile_width}x{candle.state.tile_height}")  # 5x6
 ```
 
+```bash
+# Create any device by product ID
+curl -X POST http://localhost:8080/api/devices \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 57}'  # LIFX Candle
+```
+
 ## Next Steps
 
 - [Testing Scenarios](../testing-scenarios/) - Configure error scenarios
 - [Integration Testing](../integration-testing/) - Use in tests
-- [Factory Functions API](../../api/factories/) - Detailed API docs
-- [Product Registry](../../api/products/) - All products
+- [Factory Functions API](../../library/factories/) - Detailed API docs
+- [Product Registry](../../library/products/) - All products

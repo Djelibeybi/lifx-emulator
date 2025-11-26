@@ -1,0 +1,2700 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries">
+      
+      
+        <meta name="author" content="Avi Miller <me@dje.li>">
+      
+      
+        <link rel="canonical" href="https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/">
+      
+      
+        <link rel="prev" href="../device-management-api/">
+      
+      
+        <link rel="next" href="../storage/">
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Scenario API - LIFX Emulator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#scenario-management-rest-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LIFX Emulator" class="md-header__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LIFX Emulator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Scenario API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  lifx-emulator
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../library/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  lifx-emulator-core
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../faq/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LIFX Emulator" class="md-nav__button md-logo" aria-label="LIFX Emulator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg>
+
+    </a>
+    LIFX Emulator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/djelibeybi/lifx-emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Djelibeybi/lifx-emulator
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../getting-started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    lifx-emulator
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            lifx-emulator
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web-interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Interface
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    REST API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            REST API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device-management-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Device Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Scenario API
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario API
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scope Levels
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scope Levels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#precedence-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Precedence Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drop_packets" class="md-nav__link">
+    <span class="md-ellipsis">
+      drop_packets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response_delays" class="md-nav__link">
+    <span class="md-ellipsis">
+      response_delays
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#malformed_packets" class="md-nav__link">
+    <span class="md-ellipsis">
+      malformed_packets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invalid_field_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      invalid_field_values
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firmware_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      firmware_version
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partial_responses" class="md-nav__link">
+    <span class="md-ellipsis">
+      partial_responses
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_unhandled" class="md-nav__link">
+    <span class="md-ellipsis">
+      send_unhandled
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rest-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST Endpoints
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="REST Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#group-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Group-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Practical Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-test-packet-loss-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1: Test Packet Loss Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-simulate-network-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: Simulate Network Latency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-test-firmware-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3: Test Firmware Compatibility
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-simulate-problematic-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 4: Simulate Problematic Device
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-location-based-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 5: Location-Based Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-test-invalid-data-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 6: Test Invalid Data Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-7-clear-all-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 7: Clear All Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shell-script-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shell Script Helpers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shell Script Helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-all-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Get All Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-scenario-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Scenario Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-client-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Client Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python Client Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-requests-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using requests Library
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-httpx-library-async" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using httpx Library (Async)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration with Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytest-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      pytest Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-actions-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub Actions Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-packet-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Packet Types
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-and-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tips and Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Persistent Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenarios Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    
+  
+  
+  
+    <a href="../../library/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    lifx-emulator-core
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../guide/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../tutorials/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../faq/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scope Levels
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scope Levels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#precedence-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Precedence Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drop_packets" class="md-nav__link">
+    <span class="md-ellipsis">
+      drop_packets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response_delays" class="md-nav__link">
+    <span class="md-ellipsis">
+      response_delays
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#malformed_packets" class="md-nav__link">
+    <span class="md-ellipsis">
+      malformed_packets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invalid_field_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      invalid_field_values
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firmware_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      firmware_version
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#partial_responses" class="md-nav__link">
+    <span class="md-ellipsis">
+      partial_responses
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_unhandled" class="md-nav__link">
+    <span class="md-ellipsis">
+      send_unhandled
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rest-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST Endpoints
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="REST Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#location-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Location-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#group-specific-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Group-Specific Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Practical Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-test-packet-loss-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 1: Test Packet Loss Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-simulate-network-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 2: Simulate Network Latency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-test-firmware-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 3: Test Firmware Compatibility
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-simulate-problematic-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 4: Simulate Problematic Device
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-location-based-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 5: Location-Based Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-test-invalid-data-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 6: Test Invalid Data Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-7-clear-all-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example 7: Clear All Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shell-script-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shell Script Helpers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shell Script Helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-all-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Get All Scenarios
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-scenario-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Scenario Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-client-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Client Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python Client Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-requests-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using requests Library
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-httpx-library-async" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using httpx Library (Async)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration with Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytest-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      pytest Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-actions-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub Actions Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-packet-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Packet Types
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips-and-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tips and Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="scenario-management-rest-api">Scenario Management REST API<a class="headerlink" href="#scenario-management-rest-api" title="Permanent link">&para;</a></h1>
+<p>The LIFX Emulator provides a comprehensive REST API for runtime management of testing scenarios via HTTP. This guide covers all endpoints and practical examples for managing scenarios.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Start emulator with API enabled</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>lifx-emulator<span class="w"> </span>--api
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Create a global scenario that drops all GetColor packets (100% drop rate)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Verify the scenario was created</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>curl<span class="w"> </span>http://localhost:8080/api/scenarios/global
+</span></code></pre></div>
+<h2 id="scope-levels">Scope Levels<a class="headerlink" href="#scope-levels" title="Permanent link">&para;</a></h2>
+<p>Scenarios operate at 5 scope levels with automatic precedence (highest to lowest):</p>
+<ol>
+<li><strong>Device-specific</strong> - Single device by serial number</li>
+<li><strong>Device-type</strong> - All devices of a type (color, multizone, extended_multizone, matrix, hev, infrared, basic)</li>
+<li><strong>Location-specific</strong> - All devices in a location</li>
+<li><strong>Group-specific</strong> - All devices in a group</li>
+<li><strong>Global</strong> - All devices as baseline</li>
+</ol>
+<h3 id="precedence-example">Precedence Example<a class="headerlink" href="#precedence-example" title="Permanent link">&para;</a></h3>
+<p>If you have:</p>
+<ul>
+<li>Global: <code>drop_packets: {101: 1.0}</code></li>
+<li>Type (multizone): <code>response_delays: {502: 1.0}</code></li>
+<li>Device (d073d5000001): <code>drop_packets: {102: 0.5}</code></li>
+</ul>
+<p>Then device d073d5000001 would:</p>
+<ul>
+<li>Drop packet 101 with 100% rate (from global)</li>
+<li>Drop packet 102 with 50% rate (from device-specific)</li>
+<li>Have 1.0s delay for packet type 502 (from type scenario)</li>
+</ul>
+<h2 id="configuration-properties">Configuration Properties<a class="headerlink" href="#configuration-properties" title="Permanent link">&para;</a></h2>
+<p>All scenarios can include the following optional properties:</p>
+<h3 id="drop_packets">drop_packets<a class="headerlink" href="#drop_packets" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Object mapping packet type to drop rate (0.0-1.0)</p>
+<p>Silently drop (don't respond to) packets of specified types with given probability. 1.0 = always drop, 0.5 = drop 50%, 0.0 = never drop. Simulates packet loss.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span><span class="nt">&quot;drop_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;101&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;102&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;103&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3</span><span class="p">}}</span>
+</span></code></pre></div>
+<h3 id="response_delays">response_delays<a class="headerlink" href="#response_delays" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Object mapping packet type to delay in seconds</p>
+<p>Add artificial delay before responding. Simulates latency.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">&quot;response_delays&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;101&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;116&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">}}</span>
+</span></code></pre></div>
+<h3 id="malformed_packets">malformed_packets<a class="headerlink" href="#malformed_packets" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Array of integers</p>
+<p>Send truncated/corrupted response packets. Tests error handling.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;malformed_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">107</span><span class="p">,</span><span class="w"> </span><span class="mi">506</span><span class="p">]}</span>
+</span></code></pre></div>
+<h3 id="invalid_field_values">invalid_field_values<a class="headerlink" href="#invalid_field_values" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Array of integers</p>
+<p>Send response packets with all fields set to 0xFF (invalid). Tests validation.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="nt">&quot;invalid_field_values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">107</span><span class="p">]}</span>
+</span></code></pre></div>
+<h3 id="firmware_version">firmware_version<a class="headerlink" href="#firmware_version" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Array [major, minor] or null</p>
+<p>Override firmware version reported by device.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span><span class="nt">&quot;firmware_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">60</span><span class="p">]}</span>
+</span></code></pre></div>
+<h3 id="partial_responses">partial_responses<a class="headerlink" href="#partial_responses" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Array of integers</p>
+<p>Send incomplete multizone/tile data. Tests buffer handling.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span><span class="nt">&quot;partial_responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">506</span><span class="p">,</span><span class="w"> </span><span class="mi">512</span><span class="p">]}</span>
+</span></code></pre></div>
+<h3 id="send_unhandled">send_unhandled<a class="headerlink" href="#send_unhandled" title="Permanent link">&para;</a></h3>
+<p><strong>Type:</strong> Boolean</p>
+<p>Send StateUnhandled (type 3) for unknown packet types.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span><span class="nt">&quot;send_unhandled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="rest-endpoints">REST Endpoints<a class="headerlink" href="#rest-endpoints" title="Permanent link">&para;</a></h2>
+<h3 id="global-scenarios">Global Scenarios<a class="headerlink" href="#global-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="get-global-scenario">Get Global Scenario<a class="headerlink" href="#get-global-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="err">GET /api/scenarios/global</span>
+</span></code></pre></div>
+<p><strong>Response (200):</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;global&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;scenario&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">&quot;drop_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nt">&quot;response_delays&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nt">&quot;malformed_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nt">&quot;invalid_field_values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nt">&quot;firmware_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="nt">&quot;partial_responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nt">&quot;send_unhandled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
+</span></code></pre></div></p>
+<h4 id="set-global-scenario">Set Global Scenario<a class="headerlink" href="#set-global-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="err">PUT /api/scenarios/global</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="err">Content-Type: application/json</span>
+</span></code></pre></div>
+<p><strong>Request Body:</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;drop_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;101&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;102&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.6</span><span class="p">},</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">&quot;response_delays&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;101&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;116&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">},</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nt">&quot;malformed_packets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="nt">&quot;invalid_field_values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="nt">&quot;firmware_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="nt">&quot;partial_responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="nt">&quot;send_unhandled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Response (200):</strong> Returns the scenario that was set</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}, &quot;response_delays&quot;: {&quot;116&quot;: 0.5}}&#39;</span>
+</span></code></pre></div></p>
+<h4 id="clear-global-scenario">Clear Global Scenario<a class="headerlink" href="#clear-global-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="err">DELETE /api/scenarios/global</span>
+</span></code></pre></div>
+<p><strong>Response (204):</strong> No content</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/global
+</span></code></pre></div></p>
+<hr />
+<h3 id="device-specific-scenarios">Device-Specific Scenarios<a class="headerlink" href="#device-specific-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="get-device-scenario">Get Device Scenario<a class="headerlink" href="#get-device-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="err">GET /api/scenarios/devices/{serial}</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>serial</code>: Device serial (e.g., <code>d073d5000001</code>)</p>
+<p><strong>Response (200):</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;device&quot;</span><span class="p">,</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">&quot;identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">,</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">&quot;scenario&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Response (404):</strong> No scenario for this device</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>curl<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
+</span></code></pre></div></p>
+<h4 id="set-device-scenario">Set Device Scenario<a class="headerlink" href="#set-device-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="err">PUT /api/scenarios/devices/{serial}</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="err">Content-Type: application/json</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>serial</code>: Device serial</p>
+<p><strong>Request Body:</strong> Any scenario properties (partial update allowed)</p>
+<p><strong>Response (200):</strong> Returns the scenario that was set</p>
+<p><strong>Response (404):</strong> Device not found</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Set scenario for specific device (drop 100% of GetColor packets)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span>
+</span></code></pre></div></p>
+<h4 id="clear-device-scenario">Clear Device Scenario<a class="headerlink" href="#clear-device-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="err">DELETE /api/scenarios/devices/{serial}</span>
+</span></code></pre></div>
+<p><strong>Response (204):</strong> No content</p>
+<p><strong>Response (404):</strong> No scenario for this device</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001
+</span></code></pre></div></p>
+<hr />
+<h3 id="type-specific-scenarios">Type-Specific Scenarios<a class="headerlink" href="#type-specific-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="get-type-scenario">Get Type Scenario<a class="headerlink" href="#get-type-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="err">GET /api/scenarios/types/{device_type}</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>device_type</code>: One of <code>color</code>, <code>multizone</code>, <code>extended_multizone</code>, <code>matrix</code>, <code>hev</code>, <code>infrared</code>, <code>basic</code></p>
+<p><strong>Response (200):</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p">{</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">&quot;scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span><span class="nt">&quot;identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;multizone&quot;</span><span class="p">,</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nt">&quot;scenario&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Response (404):</strong> No scenario for this type</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>curl<span class="w"> </span>http://localhost:8080/api/scenarios/types/multizone<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
+</span></code></pre></div></p>
+<h4 id="set-type-scenario">Set Type Scenario<a class="headerlink" href="#set-type-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="err">PUT /api/scenarios/types/{device_type}</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="err">Content-Type: application/json</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>device_type</code>: Device type</p>
+<p><strong>Request Body:</strong> Any scenario properties</p>
+<p><strong>Response (200):</strong> Returns the scenario</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># All multizone devices will respond slowly to GetColorZones (502)</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/types/multizone<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;response_delays&quot;: {&quot;502&quot;: 1.0}}&#39;</span>
+</span></code></pre></div></p>
+<h4 id="clear-type-scenario">Clear Type Scenario<a class="headerlink" href="#clear-type-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="err">DELETE /api/scenarios/types/{device_type}</span>
+</span></code></pre></div>
+<p><strong>Response (204):</strong> No content</p>
+<p><strong>Response (404):</strong> No scenario for this type</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/types/multizone
+</span></code></pre></div></p>
+<hr />
+<h3 id="location-specific-scenarios">Location-Specific Scenarios<a class="headerlink" href="#location-specific-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="get-location-scenario">Get Location Scenario<a class="headerlink" href="#get-location-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="err">GET /api/scenarios/locations/{location}</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>location</code>: Location label (e.g., <code>Kitchen</code>, <code>Living Room</code>)</p>
+<p><strong>Response (200):</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="p">{</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span><span class="nt">&quot;scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">  </span><span class="nt">&quot;identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kitchen&quot;</span><span class="p">,</span>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">  </span><span class="nt">&quot;scenario&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Response (404):</strong> No scenario for this location</p>
+<h4 id="set-location-scenario">Set Location Scenario<a class="headerlink" href="#set-location-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="err">PUT /api/scenarios/locations/{location}</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="err">Content-Type: application/json</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>location</code>: Location label</p>
+<p><strong>Request Body:</strong> Any scenario properties</p>
+<p><strong>Response (200):</strong> Returns the scenario</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># All devices in Kitchen will have poor connectivity</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/locations/Kitchen<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;response_delays&quot;: {&quot;116&quot;: 0.5}, &quot;drop_packets&quot;: {&quot;101&quot;: 0.3}}&#39;</span>
+</span></code></pre></div></p>
+<h4 id="clear-location-scenario">Clear Location Scenario<a class="headerlink" href="#clear-location-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="err">DELETE /api/scenarios/locations/{location}</span>
+</span></code></pre></div>
+<p><strong>Response (204):</strong> No content</p>
+<p><strong>Response (404):</strong> No scenario for this location</p>
+<hr />
+<h3 id="group-specific-scenarios">Group-Specific Scenarios<a class="headerlink" href="#group-specific-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="get-group-scenario">Get Group Scenario<a class="headerlink" href="#get-group-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="err">GET /api/scenarios/groups/{group}</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>group</code>: Group label (e.g., <code>Bedroom Lights</code>)</p>
+<p><strong>Response (200):</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="p">{</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="w">  </span><span class="nt">&quot;scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;group&quot;</span><span class="p">,</span>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="w">  </span><span class="nt">&quot;identifier&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bedroom Lights&quot;</span><span class="p">,</span>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">  </span><span class="nt">&quot;scenario&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Response (404):</strong> No scenario for this group</p>
+<h4 id="set-group-scenario">Set Group Scenario<a class="headerlink" href="#set-group-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="err">PUT /api/scenarios/groups/{group}</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="err">Content-Type: application/json</span>
+</span></code></pre></div>
+<p><strong>Path Parameters:</strong>
+- <code>group</code>: Group label</p>
+<p><strong>Request Body:</strong> Any scenario properties</p>
+<p><strong>Response (200):</strong> Returns the scenario</p>
+<p><strong>Example:</strong>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># All devices in &quot;Bedroom Lights&quot; group will send corrupted responses</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/groups/<span class="s2">&quot;Bedroom Lights&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-38-4"><a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;malformed_packets&quot;: [107]}&#39;</span>
+</span></code></pre></div></p>
+<h4 id="clear-group-scenario">Clear Group Scenario<a class="headerlink" href="#clear-group-scenario" title="Permanent link">&para;</a></h4>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="err">DELETE /api/scenarios/groups/{group}</span>
+</span></code></pre></div>
+<p><strong>Response (204):</strong> No content</p>
+<p><strong>Response (404):</strong> No scenario for this group</p>
+<hr />
+<h2 id="practical-examples">Practical Examples<a class="headerlink" href="#practical-examples" title="Permanent link">&para;</a></h2>
+<h3 id="example-1-test-packet-loss-handling">Example 1: Test Packet Loss Handling<a class="headerlink" href="#example-1-test-packet-loss-handling" title="Permanent link">&para;</a></h3>
+<p>Test client retry logic by dropping GetColor packets:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Drop GetColor (type 101) for all color lights - 100% drop rate</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/types/color<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span>
+</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>
+</span><span id="__span-40-6"><a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="c1"># Your client should:</span>
+</span><span id="__span-40-7"><a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="c1"># 1. Send GetColor request</span>
+</span><span id="__span-40-8"><a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="c1"># 2. Timeout waiting for response</span>
+</span><span id="__span-40-9"><a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="c1"># 3. Retry (with backoff if implemented)</span>
+</span><span id="__span-40-10"><a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="c1"># 4. Eventually fail after max retries</span>
+</span><span id="__span-40-11"><a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>
+</span><span id="__span-40-12"><a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a><span class="c1"># Verify scenario is set</span>
+</span><span id="__span-40-13"><a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a>curl<span class="w"> </span>http://localhost:8080/api/scenarios/types/color<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario.drop_packets&#39;</span>
+</span><span id="__span-40-14"><a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a><span class="c1"># Output: {&quot;101&quot;: 1.0}</span>
+</span><span id="__span-40-15"><a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>
+</span><span id="__span-40-16"><a id="__codelineno-40-16" name="__codelineno-40-16" href="#__codelineno-40-16"></a><span class="c1"># Clean up</span>
+</span><span id="__span-40-17"><a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/types/color
+</span></code></pre></div>
+<h3 id="example-2-simulate-network-latency">Example 2: Simulate Network Latency<a class="headerlink" href="#example-2-simulate-network-latency" title="Permanent link">&para;</a></h3>
+<p>Add realistic network delays:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># Simulate 500ms latency to all color light responses</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/types/color<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-4"><a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-41-5"><a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="s1">    &quot;response_delays&quot;: {</span>
+</span><span id="__span-41-6"><a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="s1">      &quot;45&quot;: 0.5,</span>
+</span><span id="__span-41-7"><a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="s1">      &quot;101&quot;: 0.5,</span>
+</span><span id="__span-41-8"><a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="s1">      &quot;102&quot;: 0.5,</span>
+</span><span id="__span-41-9"><a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="s1">      &quot;107&quot;: 0.5,</span>
+</span><span id="__span-41-10"><a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="s1">      &quot;116&quot;: 0.5,</span>
+</span><span id="__span-41-11"><a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="s1">      &quot;117&quot;: 0.5</span>
+</span><span id="__span-41-12"><a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="s1">    }</span>
+</span><span id="__span-41-13"><a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="s1">  }&#39;</span>
+</span></code></pre></div>
+<h3 id="example-3-test-firmware-compatibility">Example 3: Test Firmware Compatibility<a class="headerlink" href="#example-3-test-firmware-compatibility" title="Permanent link">&para;</a></h3>
+<p>Override firmware version to test backward compatibility:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Set device to old firmware version</span>
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-42-4"><a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;firmware_version&quot;: [2, 60]}&#39;</span>
+</span><span id="__span-42-5"><a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>
+</span><span id="__span-42-6"><a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="c1"># Get the device to verify firmware version is changed</span>
+</span><span id="__span-42-7"><a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a>curl<span class="w"> </span>http://localhost:8080/api/devices/d073d5000001<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.version_major, .version_minor&#39;</span>
+</span><span id="__span-42-8"><a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="c1"># Output: 2, 60</span>
+</span></code></pre></div>
+<h3 id="example-4-simulate-problematic-device">Example 4: Simulate Problematic Device<a class="headerlink" href="#example-4-simulate-problematic-device" title="Permanent link">&para;</a></h3>
+<p>Combine multiple scenarios to simulate a problematic device:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Device sometimes drops responses, is slow, and sends bad data</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-43-5"><a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="s1">    &quot;drop_packets&quot;: {&quot;101&quot;: 1.0},</span>
+</span><span id="__span-43-6"><a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="s1">    &quot;response_delays&quot;: {&quot;102&quot;: 1.0, &quot;116&quot;: 0.8},</span>
+</span><span id="__span-43-7"><a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="s1">    &quot;malformed_packets&quot;: [107],</span>
+</span><span id="__span-43-8"><a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="s1">    &quot;firmware_version&quot;: [2, 50]</span>
+</span><span id="__span-43-9"><a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="s1">  }&#39;</span>
+</span></code></pre></div>
+<h3 id="example-5-location-based-testing">Example 5: Location-Based Testing<a class="headerlink" href="#example-5-location-based-testing" title="Permanent link">&para;</a></h3>
+<p>Test a group of devices with poor connectivity:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># All devices in Kitchen location have latency</span>
+</span><span id="__span-44-2"><a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/locations/Kitchen<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-44-3"><a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-44-4"><a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;response_delays&quot;: {&quot;116&quot;: 0.5}}&#39;</span>
+</span><span id="__span-44-5"><a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>
+</span><span id="__span-44-6"><a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a><span class="c1"># Override with specific device being worse</span>
+</span><span id="__span-44-7"><a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5kitchen01<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-44-8"><a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-44-9"><a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;response_delays&quot;: {&quot;116&quot;: 2.0}, &quot;drop_packets&quot;: {&quot;102&quot;: 0.5}}&#39;</span>
+</span><span id="__span-44-10"><a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a>
+</span><span id="__span-44-11"><a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a><span class="c1"># Device d073d5kitchen01 will have 2.0s delay for 116 (device override wins)</span>
+</span><span id="__span-44-12"><a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a><span class="c1"># Other Kitchen devices will have 0.5s delay for 116 (location scenario)</span>
+</span></code></pre></div>
+<h3 id="example-6-test-invalid-data-handling">Example 6: Test Invalid Data Handling<a class="headerlink" href="#example-6-test-invalid-data-handling" title="Permanent link">&para;</a></h3>
+<p>Send packets with invalid field values:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Device will send StateColor with all 0xFF bytes</span>
+</span><span id="__span-45-2"><a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-45-3"><a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-45-4"><a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;invalid_field_values&quot;: [107]}&#39;</span>
+</span><span id="__span-45-5"><a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>
+</span><span id="__span-45-6"><a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="c1"># Your client should:</span>
+</span><span id="__span-45-7"><a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="c1"># - Detect invalid values (hue=65535, saturation=65535, etc.)</span>
+</span><span id="__span-45-8"><a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="c1"># - Reject or sanitize the values</span>
+</span><span id="__span-45-9"><a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="c1"># - Not crash or use invalid values</span>
+</span></code></pre></div>
+<h3 id="example-7-clear-all-scenarios">Example 7: Clear All Scenarios<a class="headerlink" href="#example-7-clear-all-scenarios" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># List all devices to find serial numbers</span>
+</span><span id="__span-46-2"><a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>curl<span class="w"> </span>http://localhost:8080/api/devices<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.[] | .serial&#39;</span>
+</span><span id="__span-46-3"><a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>
+</span><span id="__span-46-4"><a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="c1"># Clear scenarios for specific devices</span>
+</span><span id="__span-46-5"><a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000001
+</span><span id="__span-46-6"><a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/devices/d073d5000002
+</span><span id="__span-46-7"><a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>
+</span><span id="__span-46-8"><a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a><span class="c1"># Clear all type scenarios</span>
+</span><span id="__span-46-9"><a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="k">for</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="k">in</span><span class="w"> </span>color<span class="w"> </span>multizone<span class="w"> </span>extended_multizone<span class="w"> </span>matrix<span class="w"> </span>hev<span class="w"> </span>infrared<span class="w"> </span>basic<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-46-10"><a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/types/<span class="nv">$type</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null
+</span><span id="__span-46-11"><a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a><span class="k">done</span>
+</span><span id="__span-46-12"><a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>
+</span><span id="__span-46-13"><a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a><span class="c1"># Clear global</span>
+</span><span id="__span-46-14"><a id="__codelineno-46-14" name="__codelineno-46-14" href="#__codelineno-46-14"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/global
+</span></code></pre></div>
+<h2 id="shell-script-helpers">Shell Script Helpers<a class="headerlink" href="#shell-script-helpers" title="Permanent link">&para;</a></h2>
+<h3 id="get-all-scenarios">Get All Scenarios<a class="headerlink" href="#get-all-scenarios" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="ch">#!/bin/bash</span>
+</span><span id="__span-47-2"><a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>
+</span><span id="__span-47-3"><a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== Global Scenario ===&quot;</span>
+</span><span id="__span-47-4"><a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario&#39;</span>
+</span><span id="__span-47-5"><a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>
+</span><span id="__span-47-6"><a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;\n=== Device-Specific Scenarios ===&quot;</span>
+</span><span id="__span-47-7"><a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/devices<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.[] | .serial&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>serial<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-47-8"><a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$serial</span><span class="s2">: &quot;</span>
+</span><span id="__span-47-9"><a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/scenarios/devices/<span class="nv">$serial</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario.drop_packets // &quot;none&quot;&#39;</span>
+</span><span id="__span-47-10"><a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="k">done</span>
+</span><span id="__span-47-11"><a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>
+</span><span id="__span-47-12"><a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;\n=== Type Scenarios ===&quot;</span>
+</span><span id="__span-47-13"><a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a><span class="k">for</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="k">in</span><span class="w"> </span>color<span class="w"> </span>multizone<span class="w"> </span>extended_multizone<span class="w"> </span>matrix<span class="w"> </span>hev<span class="w"> </span>infrared<span class="w"> </span>basic<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-47-14"><a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$type</span><span class="s2">: &quot;</span>
+</span><span id="__span-47-15"><a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/scenarios/types/<span class="nv">$type</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario.drop_packets // &quot;none&quot;&#39;</span>
+</span><span id="__span-47-16"><a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a><span class="k">done</span>
+</span></code></pre></div>
+<h3 id="test-scenario-workflow">Test Scenario Workflow<a class="headerlink" href="#test-scenario-workflow" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="ch">#!/bin/bash</span>
+</span><span id="__span-48-2"><a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>
+</span><span id="__span-48-3"><a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;1. Setting global scenario...&quot;</span>
+</span><span id="__span-48-4"><a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-48-5"><a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-48-6"><a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+</span><span id="__span-48-7"><a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a>
+</span><span id="__span-48-8"><a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;2. Verifying global scenario...&quot;</span>
+</span><span id="__span-48-9"><a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario&#39;</span>
+</span><span id="__span-48-10"><a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a>
+</span><span id="__span-48-11"><a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;3. Running test suite...&quot;</span>
+</span><span id="__span-48-12"><a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a>pytest<span class="w"> </span>tests/
+</span><span id="__span-48-13"><a id="__codelineno-48-13" name="__codelineno-48-13" href="#__codelineno-48-13"></a>
+</span><span id="__span-48-14"><a id="__codelineno-48-14" name="__codelineno-48-14" href="#__codelineno-48-14"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;4. Clearing scenario...&quot;</span>
+</span><span id="__span-48-15"><a id="__codelineno-48-15" name="__codelineno-48-15" href="#__codelineno-48-15"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+</span><span id="__span-48-16"><a id="__codelineno-48-16" name="__codelineno-48-16" href="#__codelineno-48-16"></a>
+</span><span id="__span-48-17"><a id="__codelineno-48-17" name="__codelineno-48-17" href="#__codelineno-48-17"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;5. Verifying cleared...&quot;</span>
+</span><span id="__span-48-18"><a id="__codelineno-48-18" name="__codelineno-48-18" href="#__codelineno-48-18"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8080/api/scenarios/global<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.scenario&#39;</span>
+</span></code></pre></div>
+<h2 id="python-client-examples">Python Client Examples<a class="headerlink" href="#python-client-examples" title="Permanent link">&para;</a></h2>
+<h3 id="using-requests-library">Using requests Library<a class="headerlink" href="#using-requests-library" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span id="__span-49-2"><a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="__span-49-3"><a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>
+</span><span id="__span-49-4"><a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:8080/api&quot;</span>
+</span><span id="__span-49-5"><a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a>
+</span><span id="__span-49-6"><a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_global_scenario</span><span class="p">():</span>
+</span><span id="__span-49-7"><a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the global scenario configuration.&quot;&quot;&quot;</span>
+</span><span id="__span-49-8"><a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/global&quot;</span><span class="p">)</span>
+</span><span id="__span-49-9"><a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span id="__span-49-10"><a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a>
+</span><span id="__span-49-11"><a id="__codelineno-49-11" name="__codelineno-49-11" href="#__codelineno-49-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_device_scenario</span><span class="p">(</span><span class="n">serial</span><span class="p">,</span> <span class="n">scenario</span><span class="p">):</span>
+</span><span id="__span-49-12"><a id="__codelineno-49-12" name="__codelineno-49-12" href="#__codelineno-49-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set scenario for a specific device.&quot;&quot;&quot;</span>
+</span><span id="__span-49-13"><a id="__codelineno-49-13" name="__codelineno-49-13" href="#__codelineno-49-13"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+</span><span id="__span-49-14"><a id="__codelineno-49-14" name="__codelineno-49-14" href="#__codelineno-49-14"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/devices/</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="__span-49-15"><a id="__codelineno-49-15" name="__codelineno-49-15" href="#__codelineno-49-15"></a>        <span class="n">json</span><span class="o">=</span><span class="n">scenario</span>
+</span><span id="__span-49-16"><a id="__codelineno-49-16" name="__codelineno-49-16" href="#__codelineno-49-16"></a>    <span class="p">)</span>
+</span><span id="__span-49-17"><a id="__codelineno-49-17" name="__codelineno-49-17" href="#__codelineno-49-17"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span id="__span-49-18"><a id="__codelineno-49-18" name="__codelineno-49-18" href="#__codelineno-49-18"></a>
+</span><span id="__span-49-19"><a id="__codelineno-49-19" name="__codelineno-49-19" href="#__codelineno-49-19"></a><span class="k">def</span><span class="w"> </span><span class="nf">clear_device_scenario</span><span class="p">(</span><span class="n">serial</span><span class="p">):</span>
+</span><span id="__span-49-20"><a id="__codelineno-49-20" name="__codelineno-49-20" href="#__codelineno-49-20"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear scenario for a device.&quot;&quot;&quot;</span>
+</span><span id="__span-49-21"><a id="__codelineno-49-21" name="__codelineno-49-21" href="#__codelineno-49-21"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/devices/</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-49-22"><a id="__codelineno-49-22" name="__codelineno-49-22" href="#__codelineno-49-22"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
+</span><span id="__span-49-23"><a id="__codelineno-49-23" name="__codelineno-49-23" href="#__codelineno-49-23"></a>
+</span><span id="__span-49-24"><a id="__codelineno-49-24" name="__codelineno-49-24" href="#__codelineno-49-24"></a><span class="c1"># Usage</span>
+</span><span id="__span-49-25"><a id="__codelineno-49-25" name="__codelineno-49-25" href="#__codelineno-49-25"></a><span class="n">scenario</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-49-26"><a id="__codelineno-49-26" name="__codelineno-49-26" href="#__codelineno-49-26"></a>    <span class="s2">&quot;drop_packets&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;101&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+</span><span id="__span-49-27"><a id="__codelineno-49-27" name="__codelineno-49-27" href="#__codelineno-49-27"></a>    <span class="s2">&quot;response_delays&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;102&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+</span><span id="__span-49-28"><a id="__codelineno-49-28" name="__codelineno-49-28" href="#__codelineno-49-28"></a><span class="p">}</span>
+</span><span id="__span-49-29"><a id="__codelineno-49-29" name="__codelineno-49-29" href="#__codelineno-49-29"></a>
+</span><span id="__span-49-30"><a id="__codelineno-49-30" name="__codelineno-49-30" href="#__codelineno-49-30"></a><span class="n">result</span> <span class="o">=</span> <span class="n">set_device_scenario</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>
+</span><span id="__span-49-31"><a id="__codelineno-49-31" name="__codelineno-49-31" href="#__codelineno-49-31"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scenario set: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-49-32"><a id="__codelineno-49-32" name="__codelineno-49-32" href="#__codelineno-49-32"></a>
+</span><span id="__span-49-33"><a id="__codelineno-49-33" name="__codelineno-49-33" href="#__codelineno-49-33"></a><span class="n">status</span> <span class="o">=</span> <span class="n">clear_device_scenario</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-49-34"><a id="__codelineno-49-34" name="__codelineno-49-34" href="#__codelineno-49-34"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cleared: </span><span class="si">{</span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">204</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="using-httpx-library-async">Using httpx Library (Async)<a class="headerlink" href="#using-httpx-library-async" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-50-1"><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+</span><span id="__span-50-2"><a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+</span><span id="__span-50-3"><a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>
+</span><span id="__span-50-4"><a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:8080/api&quot;</span>
+</span><span id="__span-50-5"><a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a>
+</span><span id="__span-50-6"><a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_scenario</span><span class="p">():</span>
+</span><span id="__span-50-7"><a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Test scenario management async.&quot;&quot;&quot;</span>
+</span><span id="__span-50-8"><a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+</span><span id="__span-50-9"><a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a>        <span class="c1"># Get all devices</span>
+</span><span id="__span-50-10"><a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a>        <span class="n">devices</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/devices&quot;</span><span class="p">)</span>
+</span><span id="__span-50-11"><a id="__codelineno-50-11" name="__codelineno-50-11" href="#__codelineno-50-11"></a>
+</span><span id="__span-50-12"><a id="__codelineno-50-12" name="__codelineno-50-12" href="#__codelineno-50-12"></a>        <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="o">.</span><span class="n">json</span><span class="p">():</span>
+</span><span id="__span-50-13"><a id="__codelineno-50-13" name="__codelineno-50-13" href="#__codelineno-50-13"></a>            <span class="n">serial</span> <span class="o">=</span> <span class="n">device</span><span class="p">[</span><span class="s2">&quot;serial&quot;</span><span class="p">]</span>
+</span><span id="__span-50-14"><a id="__codelineno-50-14" name="__codelineno-50-14" href="#__codelineno-50-14"></a>
+</span><span id="__span-50-15"><a id="__codelineno-50-15" name="__codelineno-50-15" href="#__codelineno-50-15"></a>            <span class="c1"># Set scenario for device</span>
+</span><span id="__span-50-16"><a id="__codelineno-50-16" name="__codelineno-50-16" href="#__codelineno-50-16"></a>            <span class="n">scenario</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;drop_packets&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;101&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}}</span>
+</span><span id="__span-50-17"><a id="__codelineno-50-17" name="__codelineno-50-17" href="#__codelineno-50-17"></a>            <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+</span><span id="__span-50-18"><a id="__codelineno-50-18" name="__codelineno-50-18" href="#__codelineno-50-18"></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/devices/</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="__span-50-19"><a id="__codelineno-50-19" name="__codelineno-50-19" href="#__codelineno-50-19"></a>                <span class="n">json</span><span class="o">=</span><span class="n">scenario</span>
+</span><span id="__span-50-20"><a id="__codelineno-50-20" name="__codelineno-50-20" href="#__codelineno-50-20"></a>            <span class="p">)</span>
+</span><span id="__span-50-21"><a id="__codelineno-50-21" name="__codelineno-50-21" href="#__codelineno-50-21"></a>
+</span><span id="__span-50-22"><a id="__codelineno-50-22" name="__codelineno-50-22" href="#__codelineno-50-22"></a>            <span class="c1"># Verify it was set</span>
+</span><span id="__span-50-23"><a id="__codelineno-50-23" name="__codelineno-50-23" href="#__codelineno-50-23"></a>            <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/devices/</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-50-24"><a id="__codelineno-50-24" name="__codelineno-50-24" href="#__codelineno-50-24"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;scenario&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-50-25"><a id="__codelineno-50-25" name="__codelineno-50-25" href="#__codelineno-50-25"></a>
+</span><span id="__span-50-26"><a id="__codelineno-50-26" name="__codelineno-50-26" href="#__codelineno-50-26"></a>            <span class="c1"># Clear it</span>
+</span><span id="__span-50-27"><a id="__codelineno-50-27" name="__codelineno-50-27" href="#__codelineno-50-27"></a>            <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_URL</span><span class="si">}</span><span class="s2">/scenarios/devices/</span><span class="si">{</span><span class="n">serial</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-50-28"><a id="__codelineno-50-28" name="__codelineno-50-28" href="#__codelineno-50-28"></a>
+</span><span id="__span-50-29"><a id="__codelineno-50-29" name="__codelineno-50-29" href="#__codelineno-50-29"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test_scenario</span><span class="p">())</span>
+</span></code></pre></div>
+<h2 id="integration-with-tests">Integration with Tests<a class="headerlink" href="#integration-with-tests" title="Permanent link">&para;</a></h2>
+<h3 id="pytest-integration">pytest Integration<a class="headerlink" href="#pytest-integration" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-51-1"><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+</span><span id="__span-51-2"><a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span id="__span-51-3"><a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a>
+</span><span id="__span-51-4"><a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:8080/api&quot;</span>
+</span><span id="__span-51-5"><a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a>
+</span><span id="__span-51-6"><a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">autouse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-51-7"><a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">clear_scenarios</span><span class="p">():</span>
+</span><span id="__span-51-8"><a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear all scenarios before and after each test.&quot;&quot;&quot;</span>
+</span><span id="__span-51-9"><a id="__codelineno-51-9" name="__codelineno-51-9" href="#__codelineno-51-9"></a>    <span class="c1"># Clear before</span>
+</span><span id="__span-51-10"><a id="__codelineno-51-10" name="__codelineno-51-10" href="#__codelineno-51-10"></a>    <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/scenarios/global&quot;</span><span class="p">)</span>
+</span><span id="__span-51-11"><a id="__codelineno-51-11" name="__codelineno-51-11" href="#__codelineno-51-11"></a>    <span class="k">yield</span>
+</span><span id="__span-51-12"><a id="__codelineno-51-12" name="__codelineno-51-12" href="#__codelineno-51-12"></a>    <span class="c1"># Clear after</span>
+</span><span id="__span-51-13"><a id="__codelineno-51-13" name="__codelineno-51-13" href="#__codelineno-51-13"></a>    <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/scenarios/global&quot;</span><span class="p">)</span>
+</span><span id="__span-51-14"><a id="__codelineno-51-14" name="__codelineno-51-14" href="#__codelineno-51-14"></a>
+</span><span id="__span-51-15"><a id="__codelineno-51-15" name="__codelineno-51-15" href="#__codelineno-51-15"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_with_packet_loss</span><span class="p">():</span>
+</span><span id="__span-51-16"><a id="__codelineno-51-16" name="__codelineno-51-16" href="#__codelineno-51-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Test client handles packet loss.&quot;&quot;&quot;</span>
+</span><span id="__span-51-17"><a id="__codelineno-51-17" name="__codelineno-51-17" href="#__codelineno-51-17"></a>    <span class="c1"># Set scenario</span>
+</span><span id="__span-51-18"><a id="__codelineno-51-18" name="__codelineno-51-18" href="#__codelineno-51-18"></a>    <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+</span><span id="__span-51-19"><a id="__codelineno-51-19" name="__codelineno-51-19" href="#__codelineno-51-19"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/scenarios/types/color&quot;</span><span class="p">,</span>
+</span><span id="__span-51-20"><a id="__codelineno-51-20" name="__codelineno-51-20" href="#__codelineno-51-20"></a>        <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;drop_packets&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;101&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}}</span>
+</span><span id="__span-51-21"><a id="__codelineno-51-21" name="__codelineno-51-21" href="#__codelineno-51-21"></a>    <span class="p">)</span>
+</span><span id="__span-51-22"><a id="__codelineno-51-22" name="__codelineno-51-22" href="#__codelineno-51-22"></a>
+</span><span id="__span-51-23"><a id="__codelineno-51-23" name="__codelineno-51-23" href="#__codelineno-51-23"></a>    <span class="c1"># Run test that exercises retry logic</span>
+</span><span id="__span-51-24"><a id="__codelineno-51-24" name="__codelineno-51-24" href="#__codelineno-51-24"></a>    <span class="n">client</span> <span class="o">=</span> <span class="n">YourLIFXClient</span><span class="p">()</span>
+</span><span id="__span-51-25"><a id="__codelineno-51-25" name="__codelineno-51-25" href="#__codelineno-51-25"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_color</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-51-26"><a id="__codelineno-51-26" name="__codelineno-51-26" href="#__codelineno-51-26"></a>
+</span><span id="__span-51-27"><a id="__codelineno-51-27" name="__codelineno-51-27" href="#__codelineno-51-27"></a>    <span class="c1"># Should either retry successfully or timeout gracefully</span>
+</span><span id="__span-51-28"><a id="__codelineno-51-28" name="__codelineno-51-28" href="#__codelineno-51-28"></a>    <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">client</span><span class="o">.</span><span class="n">last_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="__span-51-29"><a id="__codelineno-51-29" name="__codelineno-51-29" href="#__codelineno-51-29"></a>
+</span><span id="__span-51-30"><a id="__codelineno-51-30" name="__codelineno-51-30" href="#__codelineno-51-30"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_with_latency</span><span class="p">():</span>
+</span><span id="__span-51-31"><a id="__codelineno-51-31" name="__codelineno-51-31" href="#__codelineno-51-31"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Test client handles slow responses.&quot;&quot;&quot;</span>
+</span><span id="__span-51-32"><a id="__codelineno-51-32" name="__codelineno-51-32" href="#__codelineno-51-32"></a>    <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+</span><span id="__span-51-33"><a id="__codelineno-51-33" name="__codelineno-51-33" href="#__codelineno-51-33"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/scenarios/types/color&quot;</span><span class="p">,</span>
+</span><span id="__span-51-34"><a id="__codelineno-51-34" name="__codelineno-51-34" href="#__codelineno-51-34"></a>        <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;response_delays&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;101&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}}</span>
+</span><span id="__span-51-35"><a id="__codelineno-51-35" name="__codelineno-51-35" href="#__codelineno-51-35"></a>    <span class="p">)</span>
+</span><span id="__span-51-36"><a id="__codelineno-51-36" name="__codelineno-51-36" href="#__codelineno-51-36"></a>
+</span><span id="__span-51-37"><a id="__codelineno-51-37" name="__codelineno-51-37" href="#__codelineno-51-37"></a>    <span class="n">client</span> <span class="o">=</span> <span class="n">YourLIFXClient</span><span class="p">()</span>
+</span><span id="__span-51-38"><a id="__codelineno-51-38" name="__codelineno-51-38" href="#__codelineno-51-38"></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-51-39"><a id="__codelineno-51-39" name="__codelineno-51-39" href="#__codelineno-51-39"></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="__span-51-40"><a id="__codelineno-51-40" name="__codelineno-51-40" href="#__codelineno-51-40"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_color</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
+</span><span id="__span-51-41"><a id="__codelineno-51-41" name="__codelineno-51-41" href="#__codelineno-51-41"></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+</span><span id="__span-51-42"><a id="__codelineno-51-42" name="__codelineno-51-42" href="#__codelineno-51-42"></a>
+</span><span id="__span-51-43"><a id="__codelineno-51-43" name="__codelineno-51-43" href="#__codelineno-51-43"></a>    <span class="k">assert</span> <span class="n">elapsed</span> <span class="o">&gt;=</span> <span class="mf">0.5</span>
+</span><span id="__span-51-44"><a id="__codelineno-51-44" name="__codelineno-51-44" href="#__codelineno-51-44"></a>    <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span></code></pre></div>
+<h3 id="github-actions-integration">GitHub Actions Integration<a class="headerlink" href="#github-actions-integration" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-52-1"><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Test with Scenarios</span>
+</span><span id="__span-52-2"><a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>
+</span><span id="__span-52-3"><a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pull_request</span><span class="p p-Indicator">]</span>
+</span><span id="__span-52-4"><a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a>
+</span><span id="__span-52-5"><a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="nt">jobs</span><span class="p">:</span>
+</span><span id="__span-52-6"><a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+</span><span id="__span-52-7"><a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span id="__span-52-8"><a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span id="__span-52-9"><a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+</span><span id="__span-52-10"><a id="__codelineno-52-10" name="__codelineno-52-10" href="#__codelineno-52-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+</span><span id="__span-52-11"><a id="__codelineno-52-11" name="__codelineno-52-11" href="#__codelineno-52-11"></a>
+</span><span id="__span-52-12"><a id="__codelineno-52-12" name="__codelineno-52-12" href="#__codelineno-52-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+</span><span id="__span-52-13"><a id="__codelineno-52-13" name="__codelineno-52-13" href="#__codelineno-52-13"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-52-14"><a id="__codelineno-52-14" name="__codelineno-52-14" href="#__codelineno-52-14"></a><span class="w">          </span><span class="no">pip install -r requirements.txt</span>
+</span><span id="__span-52-15"><a id="__codelineno-52-15" name="__codelineno-52-15" href="#__codelineno-52-15"></a><span class="w">          </span><span class="no">pip install -r requirements-dev.txt</span>
+</span><span id="__span-52-16"><a id="__codelineno-52-16" name="__codelineno-52-16" href="#__codelineno-52-16"></a>
+</span><span id="__span-52-17"><a id="__codelineno-52-17" name="__codelineno-52-17" href="#__codelineno-52-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Start emulator</span>
+</span><span id="__span-52-18"><a id="__codelineno-52-18" name="__codelineno-52-18" href="#__codelineno-52-18"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-52-19"><a id="__codelineno-52-19" name="__codelineno-52-19" href="#__codelineno-52-19"></a><span class="w">          </span><span class="no">python -m lifx_emulator --api --color 2 --multizone 1 &amp;</span>
+</span><span id="__span-52-20"><a id="__codelineno-52-20" name="__codelineno-52-20" href="#__codelineno-52-20"></a><span class="w">          </span><span class="no">sleep 2</span>
+</span><span id="__span-52-21"><a id="__codelineno-52-21" name="__codelineno-52-21" href="#__codelineno-52-21"></a>
+</span><span id="__span-52-22"><a id="__codelineno-52-22" name="__codelineno-52-22" href="#__codelineno-52-22"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests (normal conditions)</span>
+</span><span id="__span-52-23"><a id="__codelineno-52-23" name="__codelineno-52-23" href="#__codelineno-52-23"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/ -v</span>
+</span><span id="__span-52-24"><a id="__codelineno-52-24" name="__codelineno-52-24" href="#__codelineno-52-24"></a>
+</span><span id="__span-52-25"><a id="__codelineno-52-25" name="__codelineno-52-25" href="#__codelineno-52-25"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Configure packet loss scenario</span>
+</span><span id="__span-52-26"><a id="__codelineno-52-26" name="__codelineno-52-26" href="#__codelineno-52-26"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-52-27"><a id="__codelineno-52-27" name="__codelineno-52-27" href="#__codelineno-52-27"></a><span class="w">          </span><span class="no">curl -X PUT http://localhost:8080/api/scenarios/types/color \</span>
+</span><span id="__span-52-28"><a id="__codelineno-52-28" name="__codelineno-52-28" href="#__codelineno-52-28"></a><span class="w">            </span><span class="no">-H &quot;Content-Type: application/json&quot; \</span>
+</span><span id="__span-52-29"><a id="__codelineno-52-29" name="__codelineno-52-29" href="#__codelineno-52-29"></a><span class="w">            </span><span class="no">-d &#39;{&quot;drop_packets&quot;: {&quot;101&quot;: 1.0}}&#39;</span>
+</span><span id="__span-52-30"><a id="__codelineno-52-30" name="__codelineno-52-30" href="#__codelineno-52-30"></a>
+</span><span id="__span-52-31"><a id="__codelineno-52-31" name="__codelineno-52-31" href="#__codelineno-52-31"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests (with packet loss)</span>
+</span><span id="__span-52-32"><a id="__codelineno-52-32" name="__codelineno-52-32" href="#__codelineno-52-32"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/ -v -k &quot;retry&quot;</span>
+</span><span id="__span-52-33"><a id="__codelineno-52-33" name="__codelineno-52-33" href="#__codelineno-52-33"></a>
+</span><span id="__span-52-34"><a id="__codelineno-52-34" name="__codelineno-52-34" href="#__codelineno-52-34"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Configure latency scenario</span>
+</span><span id="__span-52-35"><a id="__codelineno-52-35" name="__codelineno-52-35" href="#__codelineno-52-35"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-52-36"><a id="__codelineno-52-36" name="__codelineno-52-36" href="#__codelineno-52-36"></a><span class="w">          </span><span class="no">curl -X PUT http://localhost:8080/api/scenarios/types/color \</span>
+</span><span id="__span-52-37"><a id="__codelineno-52-37" name="__codelineno-52-37" href="#__codelineno-52-37"></a><span class="w">            </span><span class="no">-H &quot;Content-Type: application/json&quot; \</span>
+</span><span id="__span-52-38"><a id="__codelineno-52-38" name="__codelineno-52-38" href="#__codelineno-52-38"></a><span class="w">            </span><span class="no">-d &#39;{&quot;response_delays&quot;: {&quot;101&quot;: 0.5}}&#39;</span>
+</span><span id="__span-52-39"><a id="__codelineno-52-39" name="__codelineno-52-39" href="#__codelineno-52-39"></a>
+</span><span id="__span-52-40"><a id="__codelineno-52-40" name="__codelineno-52-40" href="#__codelineno-52-40"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run performance tests</span>
+</span><span id="__span-52-41"><a id="__codelineno-52-41" name="__codelineno-52-41" href="#__codelineno-52-41"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/ -v -k &quot;performance&quot;</span>
+</span></code></pre></div>
+<h2 id="common-packet-types">Common Packet Types<a class="headerlink" href="#common-packet-types" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>45</td>
+<td>Acknowledgement</td>
+<td>Sent when ack_required is set</td>
+</tr>
+<tr>
+<td>101</td>
+<td>GetColor</td>
+<td>Request current color state</td>
+</tr>
+<tr>
+<td>102</td>
+<td>SetColor</td>
+<td>Set device color</td>
+</tr>
+<tr>
+<td>103</td>
+<td>GetWaveform</td>
+<td>Get waveform effect</td>
+</tr>
+<tr>
+<td>104</td>
+<td>SetWaveform</td>
+<td>Set waveform effect</td>
+</tr>
+<tr>
+<td>107</td>
+<td>StateColor</td>
+<td>Response with current color</td>
+</tr>
+<tr>
+<td>116</td>
+<td>GetLightPower</td>
+<td>Request power state</td>
+</tr>
+<tr>
+<td>117</td>
+<td>SetLightPower</td>
+<td>Set power state</td>
+</tr>
+<tr>
+<td>502</td>
+<td>GetColorZones</td>
+<td>Request multizone colors</td>
+</tr>
+<tr>
+<td>503</td>
+<td>SetColorZones</td>
+<td>Set multizone colors</td>
+</tr>
+<tr>
+<td>506</td>
+<td>StateMultiZone</td>
+<td>Response with zone colors</td>
+</tr>
+<tr>
+<td>512</td>
+<td>ExtendedStateMultiZone</td>
+<td>Response with extended zones</td>
+</tr>
+<tr>
+<td>701</td>
+<td>GetDeviceChain</td>
+<td>Get tile chain info</td>
+</tr>
+<tr>
+<td>707</td>
+<td>Get64</td>
+<td>Get tile zone data</td>
+</tr>
+<tr>
+<td>715</td>
+<td>Set64</td>
+<td>Set tile zone data</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Test One Thing at a Time</strong>: Set a single scenario property first, verify it works, then add more</li>
+<li><strong>Use Realistic Values</strong>: Network delays should be 0.1-2.0 seconds, not 10+ seconds</li>
+<li><strong>Clean Up After Tests</strong>: Always delete scenarios between test runs to avoid cross-contamination</li>
+<li><strong>Monitor Activity</strong>: Use the <code>/api/activity</code> endpoint to see actual packets being sent</li>
+<li><strong>Start with Device-Level</strong>: Test individual devices before testing by type/location/group</li>
+<li><strong>Document Scenarios</strong>: Add comments explaining why each scenario is configured in your tests</li>
+<li><strong>Test Recovery</strong>: Verify clients properly recover after scenario conditions clear</li>
+</ol>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../guide/testing-scenarios/">Testing Scenarios Guide</a> - Programmatic scenario configuration</li>
+<li><a href="../../guide/integration-testing/">Integration Testing</a> - Using scenarios in test suites</li>
+<li><a href="../../guide/best-practices/">Best Practices</a> - Testing strategies</li>
+<li><a href="../../library/">API Reference</a> - Full API documentation</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 26, 2025 01:29:20 UTC">November 26, 2025</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Avi Miller
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Djelibeybi/lifx-emulator" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/lifx-emulator/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.prune", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

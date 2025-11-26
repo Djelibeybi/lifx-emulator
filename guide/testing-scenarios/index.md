@@ -4,7 +4,9 @@ The LIFX Emulator provides a powerful scenarios system that allows you to simula
 
 ## Overview
 
-Testing scenarios are configured via the `scenarios` dictionary on an `EmulatedLifxDevice`. Each scenario modifies how the device responds to protocol packets, allowing you to test your client's resilience and error handling.
+Testing scenarios modify how emulated devices respond to protocol packets, allowing you to test your client's resilience and error handling.
+
+Configure scenarios via the `scenarios` dictionary on an `EmulatedLifxDevice`:
 
 ```python
 from lifx_emulator import create_color_light
@@ -13,10 +15,36 @@ device = create_color_light("d073d5000001")
 
 # Configure scenarios
 device.scenarios = {
-    'drop_packets': [101],  # Drop GetColor requests
+    'drop_packets': {101: 1.0},  # Drop GetColor requests
     'response_delays': {102: 0.5},  # Delay SetColor by 500ms
     'malformed_packets': [107],  # Corrupt StateColor responses
 }
+```
+
+Configure scenarios via the Scenario REST API (requires `--api` flag):
+
+```bash
+# Start emulator with API
+lifx-emulator --color 1 --api
+
+# Configure scenario for a specific device
+curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "drop_packets": {"101": 1.0},
+    "response_delays": {"102": 0.5},
+    "malformed_packets": [107]
+  }'
+
+# Configure scenario for all color devices
+curl -X PUT http://localhost:8080/api/scenarios/types/color \
+  -H "Content-Type: application/json" \
+  -d '{"drop_packets": {"101": 0.3}}'
+
+# Configure global scenario for all devices
+curl -X PUT http://localhost:8080/api/scenarios/global \
+  -H "Content-Type: application/json" \
+  -d '{"response_delays": {"101": 0.5}}'
 ```
 
 ## Available Scenarios
@@ -685,10 +713,10 @@ device.scenarios = SCENARIOS['flaky_network']
 - **[Advanced Examples](../../tutorials/04-advanced-scenarios/)** - See scenarios in action
 - **[Integration Testing](../integration-testing/)** - Use scenarios in test suites
 - **[Best Practices](../best-practices/)** - Testing strategies
-- **[API Reference: Device](../../api/device/)** - Full device API documentation
+- **[API Reference: Device](../../library/device/)** - Full device API documentation
 
 ## See Also
 
-- [Protocol Types Reference](../../api/protocol/) - All packet types and numbers
-- [Device API](../../api/device/) - EmulatedLifxDevice documentation
+- [Protocol Types Reference](../../library/protocol/) - All packet types and numbers
+- [Device API](../../library/device/) - EmulatedLifxDevice documentation
 - [FAQ](../../faq/) - Common issues and solutions

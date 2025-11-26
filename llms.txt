@@ -4,19 +4,57 @@
 
 A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
 
-This emulator implements the binary UDP protocol from https://lan.developer.lifx.com
-and emulates various LIFX device types including color lights, multizone strips,
-tiles, infrared, and HEV devices. It provides a complete testing environment with
-persistent storage, HTTP management API, and advanced scenario testing capabilities
-for simulating protocol edge cases, packet loss, delays, and malformed responses.
+This project provides two packages:
+- lifx-emulator: CLI tool and HTTP management API for standalone use
+- lifx-emulator-core: Embeddable Python library for integration in your own projects
+
+Both implement the binary UDP protocol from https://lan.developer.lifx.com
+and emulate various LIFX device types including color lights, multizone strips,
+tiles, infrared, and HEV devices. The emulator provides persistent storage,
+HTTP management API, and advanced scenario testing capabilities for simulating
+protocol edge cases, packet loss, delays, and malformed responses.
 
 
 ## Getting Started
 
 - [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/index.md): Overview of getting started with the emulator
-- [Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md): Installation instructions
-- [Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md): Quick start guide
-- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/getting-started/cli/index.md): Command-line interface usage
+- [Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md): Installation instructions for both packages
+- [Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md): Quick start guide for CLI and Python library
+
+## lifx-emulator (CLI)
+
+- [lifx-emulator (Standalone CLI)](https://djelibeybi.github.io/lifx-emulator/cli/index.md): CLI tool and HTTP management server overview
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md): Command-line interface usage
+- [Web Interface](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md): HTTP management API and web interface
+- [Device Management](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md): Device management REST API
+- [Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md): Scenario management REST API
+- [Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md): Persistent storage
+- [Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md): Custom scenarios
+
+## lifx-emulator-core (Python Library)
+
+- [Python Library Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md): Python library reference overview
+- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md): Device factory functions
+- [Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md): Server library
+- [Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md): Device library
+- [Protocol Types](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md): Protocol types
+- [Storage](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md): Storage and persistence
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md): Product registry
+- [Architecture](https://djelibeybi.github.io/lifx-emulator/architecture/index.md): Architecture overview
+- [Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md): System architecture
+- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md): Packet flow and processing
+- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md): Protocol layer details
+- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md): Device state management
+
+## Guides
+
+- [User Guide Overview](https://djelibeybi.github.io/lifx-emulator/guide/index.md): User guide overview
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md): Available device types
+- [Products & Specs](https://djelibeybi.github.io/lifx-emulator/guide/products-and-specs/index.md): Product registry and specifications
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md): Testing scenario capabilities
+- [Framebuffers](https://djelibeybi.github.io/lifx-emulator/guide/framebuffers/index.md): Matrix device framebuffer support
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md): Advanced testing patterns
+- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md): Best practices
 
 ## Tutorials
 
@@ -26,40 +64,4 @@ for simulating protocol edge cases, packet loss, delays, and malformed responses
 - [03 - Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md): Integration testing
 - [04 - Advanced Scenarios](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md): Advanced testing scenarios
 - [05 - CI/CD Integration](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md): CI/CD integration
-
-## User Guide
-
-- [User Guide Overview](https://djelibeybi.github.io/lifx-emulator/guide/index.md): User guide overview
-- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md): Available device types
-- [Products & Specs](https://djelibeybi.github.io/lifx-emulator/guide/products-and-specs/index.md): Product registry and specifications
-- [Web Interface](https://djelibeybi.github.io/lifx-emulator/guide/web-interface/index.md): HTTP management API and web interface
-- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md): Testing scenario capabilities
-- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md): Best practices
-- [Advanced Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md): Advanced testing patterns
-
-## API Reference
-
-- [API Reference](https://djelibeybi.github.io/lifx-emulator/api/index.md): API reference overview
-- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/api/factories/index.md): Device factory functions
-- [Device](https://djelibeybi.github.io/lifx-emulator/api/device/index.md): Device API
-- [Server](https://djelibeybi.github.io/lifx-emulator/api/server/index.md): Server API
-- [Protocol Types](https://djelibeybi.github.io/lifx-emulator/api/protocol/index.md): Protocol types
-- [Storage](https://djelibeybi.github.io/lifx-emulator/api/storage/index.md): Storage and persistence
-- [Product Registry](https://djelibeybi.github.io/lifx-emulator/api/products/index.md): Product registry
-
-## Advanced Topics
-
-- [Advanced Features](https://djelibeybi.github.io/lifx-emulator/advanced/index.md): Advanced topics overview
-- [Persistent Storage](https://djelibeybi.github.io/lifx-emulator/advanced/storage/index.md): Persistent storage
-- [Device Management API](https://djelibeybi.github.io/lifx-emulator/advanced/device-management-api/index.md): Device management API
-- [Custom Scenarios](https://djelibeybi.github.io/lifx-emulator/advanced/scenarios/index.md): Custom scenarios
-- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/advanced/scenario-api/index.md): Scenario management API
-
-## Architecture
-
-- [Architecture](https://djelibeybi.github.io/lifx-emulator/architecture/index.md): Architecture overview
-- [Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md): System architecture
-- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md): Packet flow and processing
-- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md): Protocol layer details
-- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md): Device state management
 

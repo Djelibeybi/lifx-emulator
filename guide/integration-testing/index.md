@@ -787,5 +787,5 @@ def configure_logging():
 - [pytest Documentation](https://docs.pytest.org/)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/)
-- [API Reference: Server](../../api/server/)
-- [API Reference: Device](../../api/device/)
+- [API Reference: Server](../../library/server/)
+- [API Reference: Device](../../library/device/)

@@ -339,11 +339,11 @@ async def test_device_responds(emulator):
 
 - **[Integration Examples](../03-integration/)** - Comprehensive pytest patterns and test fixtures
 - **[Advanced Examples](../04-advanced-scenarios/)** - Complex scenarios with multizone, tiles, and error injection
-- **[API Reference: Device](../../api/device/)** - Full EmulatedLifxDevice API documentation
-- **[API Reference: Server](../../api/server/)** - Full EmulatedLifxServer API documentation
+- **[API Reference: Device](../../library/device/)** - Full EmulatedLifxDevice API documentation
+- **[API Reference: Server](../../library/server/)** - Full EmulatedLifxServer API documentation
 
 ## See Also
 
-- [CLI Usage](../../getting-started/cli/) - Command-line interface for quick testing
-- [Product Registry](../../api/products/) - Available product IDs and capabilities
+- [CLI Usage](../../cli/cli-reference/) - Command-line interface for quick testing
+- [Product Registry](../../library/products/) - Available product IDs and capabilities
 - [Device Types Guide](../../guide/device-types/) - Understanding different LIFX device types

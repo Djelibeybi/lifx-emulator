@@ -5,11 +5,16 @@
 - Python 3.11 or higher
 - pip or uv package manager
 
+## Choose Your Package
+
+| Package              | Install Command                  | Use Case                     |
+| -------------------- | -------------------------------- | ---------------------------- |
+| `lifx-emulator`      | `pip install lifx-emulator`      | CLI tool with HTTP API       |
+| `lifx-emulator-core` | `pip install lifx-emulator-core` | Python library for embedding |
+
 ## Installation Methods
 
-We support both `uv` (recommended) and `pip` for installation.
-
-### As a CLI Tool
+### lifx-emulator (CLI + HTTP API)
 
 **Recommended: Using uv** (automatically manages Python environment):
 
@@ -23,18 +28,18 @@ uv tool install lifx-emulator
 pip install lifx-emulator
 ```
 
-### As a Library in Your Project
+### lifx-emulator-core (Python Library)
 
-**Recommended: Using uv**:
+**Using uv**:
 
 ```bash
-uv add lifx-emulator
+uv add lifx-emulator-core
 ```
 
-**Alternative: Using pip** (requires Python 3.11+ already installed):
+**Using pip**:
 
 ```bash
-pip install lifx-emulator
+pip install lifx-emulator-core
 ```
 
 Then in your code:
@@ -64,7 +69,7 @@ source .venv/bin/activate
 
 ## Verify Installation
 
-Test that the installation worked:
+### CLI Package
 
 ```bash
 # Check CLI is available
@@ -83,9 +88,7 @@ INFO -   • A19 d073d5000001 (d073d5000001) - full color
 INFO - Server running with verbose packet logging... Press Ctrl+C to stop
 ```
 
-## Python API Verification
-
-Test the Python API:
+### Library Package
 
 ```python
 from lifx_emulator import create_color_light
@@ -98,14 +101,19 @@ print(f"Has color: {device.state.has_color}")
 
 ## Dependencies
 
-The emulator has minimal dependencies:
+### lifx-emulator (Standalone)
+
+- **lifx-emulator-core**: Core emulation library
+- **fastapi**: HTTP API framework
+- **uvicorn**: ASGI server
+- **cyclopts**: CLI framework
+- **rich**: Terminal formatting
+
+### lifx-emulator-core (Library)
 
 - **pyyaml**: For product registry and configuration
-- **asyncio**: For asynchronous networking (built-in)
 
 ### Development Dependencies
-
-For development, additional dependencies are installed:
 
 - **pytest**: Testing framework
 - **pytest-asyncio**: Async test support
@@ -132,7 +140,7 @@ Ensure you're using Python 3.11+:
 python --version
 ```
 
-If you need to manage Python versions, we recommend using uv, which automatically handles Python version management for tools and projects:
+If you need to manage Python versions, we recommend using uv, which automatically handles Python version management:
 
 ```bash
 # Install uv
@@ -141,7 +149,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # uv will automatically manage Python for you
 uv tool install lifx-emulator  # For CLI tool
 # or
-uv add lifx-emulator  # As a dependency of your project
+uv add lifx-emulator-core  # As a dependency of your project
 ```
 
 ### Import Errors
@@ -149,17 +157,17 @@ uv add lifx-emulator  # As a dependency of your project
 If you see import errors, ensure the package is installed:
 
 ```bash
-pip show lifx-emulator
+pip show lifx-emulator-core
 ```
 
 If not found, reinstall:
 
 ```bash
-pip install --force-reinstall lifx-emulator
+pip install --force-reinstall lifx-emulator-core
 ```
 
 ## Next Steps
 
 - [Quick Start Guide](../quickstart/) - Create your first emulated device
-- [CLI Usage](../cli/) - Learn all CLI commands
+- [CLI Usage](../../cli/cli-reference/) - Learn all CLI commands
 - [Device Types](../../guide/device-types/) - Explore supported devices

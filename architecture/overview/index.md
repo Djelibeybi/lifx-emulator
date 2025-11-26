@@ -367,4 +367,4 @@ device.scenarios = {
 - [Packet Flow](../packet-flow/) - Detailed packet processing
 - [Protocol Layer](../protocol/) - Protocol implementation details
 - [Device State](../device-state/) - State management
-- [Server API](../../api/server/) - Server documentation
+- [Server API](../../library/server/) - Server documentation

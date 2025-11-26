@@ -196,8 +196,8 @@ Example with a typical discovery flow:
 
 ## Next Steps
 
-- [CLI Usage Guide](../cli/) - Learn all CLI options
+- [CLI Usage Guide](../../cli/cli-reference/) - Learn all CLI options
 - [Device Types](../../guide/device-types/) - Explore supported devices
 - [Testing Scenarios](../../guide/testing-scenarios/) - Configure error scenarios
-- [API Reference](../../api/) - Complete API documentation
+- [API Reference](../../library/) - Complete API documentation
 - [Tutorials](../../tutorials/) - More code examples
