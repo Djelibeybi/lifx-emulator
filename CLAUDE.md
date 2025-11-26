@@ -6,6 +6,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a LIFX Emulator for testing LIFX LAN protocol libraries. It implements the binary UDP protocol from https://lan.developer.lifx.com and emulates various LIFX device types including color lights, multizone strips, tiles, infrared, and HEV devices.
 
+## Package Structure
+
+This is a **monorepo** containing two packages:
+
+| Package | PyPI Name | Import Name | Description |
+|---------|-----------|-------------|-------------|
+| Library | `lifx-emulator-core` | `lifx_emulator` | Core emulator library for embedding in other projects |
+| Standalone | `lifx-emulator` | `lifx_emulator_app` | CLI + HTTP management API for running the emulator |
+
+```
+lifx-emulator/
+├── pyproject.toml                    # Workspace config (uv workspace)
+├── packages/
+│   ├── lifx-emulator-core/           # Library package
+│   │   ├── pyproject.toml
+│   │   ├── src/lifx_emulator/        # Core emulator code
+│   │   └── tests/                    # Library tests
+│   │
+│   └── lifx-emulator/                # Standalone package
+│       ├── pyproject.toml
+│       ├── src/lifx_emulator_app/    # CLI and HTTP API
+│       └── tests/                    # CLI/API tests
+│
+├── docs/
+└── README.md
+```
+
+**Installation:**
+```bash
+# Most users - ready-to-run emulator
+pip install lifx-emulator
+
+# Developers embedding in their own projects
+pip install lifx-emulator-core
+```
+
 ## Development Commands
 
 ### Environment Setup
@@ -19,11 +55,17 @@ source .venv/bin/activate
 
 ### Testing
 ```bash
-# Run all tests
+# Run all tests (both packages)
 pytest
 
+# Run library tests only
+pytest packages/lifx-emulator-core/tests/
+
+# Run CLI/API tests only
+pytest packages/lifx-emulator/tests/
+
 # Run specific test file
-pytest tests/test_filename.py
+pytest packages/lifx-emulator-core/tests/test_device.py
 
 # Run with verbose output
 pytest -v
@@ -43,11 +85,11 @@ pyright
 
 ### Running the Emulator
 ```bash
-# Run as module with default configuration (1 color light)
-python -m lifx_emulator
+# Run as module (from the standalone package)
+python -m lifx_emulator_app
 
-# Install and run as CLI
-pip install -e .
+# Install and run as CLI (recommended)
+pip install -e packages/lifx-emulator
 lifx-emulator
 
 # Common usage examples:
@@ -220,7 +262,7 @@ curl -X POST http://localhost:8080/api/devices \
 curl -X DELETE http://localhost:8080/api/devices/d073d5000001
 ```
 
-**API Module** (`src/lifx_emulator/api/`):
+**API Module** (`packages/lifx-emulator/src/lifx_emulator_app/api/`):
 - `create_api_app(server)`: Create FastAPI application with OpenAPI 3.1.0 schema (in `api/app.py`)
 - `run_api_server(server, host, port)`: Run the API server (in `api/app.py`)
 - Modular architecture with separate routers for monitoring, devices, and scenarios (in `api/routers/`)
@@ -228,6 +270,7 @@ curl -X DELETE http://localhost:8080/api/devices/d073d5000001
 - Service layer for business logic (in `api/services/`)
 - Automatic OpenAPI schema generation with full Pydantic validation
 - Interactive API documentation via Swagger UI and ReDoc
+- **Note**: This module is part of the `lifx-emulator` (standalone) package, not the core library
 
 **OpenAPI Compliance:**
 The API follows the OpenAPI 3.1.0 specification and provides:
@@ -285,7 +328,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**Storage Module** (`src/lifx_emulator/devices/persistence.py`):
+**Storage Module** (`packages/lifx-emulator-core/src/lifx_emulator/devices/persistence.py`):
 - `DevicePersistenceAsyncFile`: High-performance async persistent storage with debouncing
 - `async save_device_state(device_state)`: Queue state for async save (non-blocking)
 - `load_device_state(serial)`: Load saved state from disk (synchronous)
@@ -356,7 +399,7 @@ merged = manager.get_scenario_for_device(serial="d073d5000001", device_type="mul
 
 ### Core Components
 
-**EmulatedLifxServer** (`src/lifx_emulator/server.py`):
+**EmulatedLifxServer** (`packages/lifx-emulator-core/src/lifx_emulator/server.py`):
 - UDP server using asyncio DatagramProtocol
 - **Single Responsibility**: Network transport only (UDP protocol handling)
 - Delegates device management to `DeviceManager`
@@ -364,7 +407,7 @@ merged = manager.get_scenario_for_device(serial="d073d5000001", device_type="mul
 - Uses dependency injection for testability and flexibility
 - **Constructor signature**: `EmulatedLifxServer(devices, device_manager, bind_address, port, ...)`
 
-**DeviceManager** (`src/lifx_emulator/devices/manager.py`):
+**DeviceManager** (`packages/lifx-emulator-core/src/lifx_emulator/devices/manager.py`):
 - **Domain logic layer** for device lifecycle and packet routing
 - Separates device management concerns from network I/O
 - Key responsibilities:
@@ -374,13 +417,13 @@ merged = manager.get_scenario_for_device(serial="d073d5000001", device_type="mul
 - Uses `IDeviceRepository` for storage abstraction
 - Protocol interface `IDeviceManager` for testability
 
-**EmulatedLifxDevice** (`src/lifx_emulator/devices/device.py`):
+**EmulatedLifxDevice** (`packages/lifx-emulator-core/src/lifx_emulator/devices/device.py`):
 - Represents a single virtual LIFX device with stateful behavior
 - `process_packet()`: Main entry point that handles packet type routing and acknowledgments
 - `_handle_packet_type()`: Dispatcher that routes to specific handlers (e.g., `_handle_light_set_color()`)
 - Supports testing scenarios: packet dropping, malformed responses, invalid field values, partial responses
 
-**DeviceState** (`src/lifx_emulator/devices/states.py`):
+**DeviceState** (`packages/lifx-emulator-core/src/lifx_emulator/devices/states.py`):
 - Dataclass holding all device state (color, power, zones, tiles, firmware version, etc.)
 - Capability flags: `has_color`, `has_infrared`, `has_multizone`, `has_matrix`, `has_hev`, `has_relays`, `has_buttons`
 - Initialized differently per device type via factory functions
@@ -390,27 +433,27 @@ merged = manager.get_scenario_for_device(serial="d073d5000001", device_type="mul
 
 ### Protocol Layer
 
-**Protocol packets** (`src/lifx_emulator/protocol/packets.py`):
+**Protocol packets** (`packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py`):
 - Auto-generated from LIFX protocol YAML spec
 - Organized into nested classes: `Device.*`, `Light.*`, `MultiZone.*`, `Tile.*`
 - Each packet class has `PKT_TYPE` constant and `pack()`/`unpack()` methods
 - Uses `PACKET_REGISTRY` dict to map packet type numbers to classes
 
-**Protocol types** (`src/lifx_emulator/protocol/protocol_types.py`):
+**Protocol types** (`packages/lifx-emulator-core/src/lifx_emulator/protocol/protocol_types.py`):
 - Defines structured types like `LightHsbk`, `TileStateDevice`, effect settings
 - Uses enums for constants (e.g., `DeviceService`, `LightWaveform`)
 
-**Header** (`src/lifx_emulator/protocol/header.py`):
+**Header** (`packages/lifx-emulator-core/src/lifx_emulator/protocol/header.py`):
 - `LifxHeader` class handles the 36-byte LIFX packet header
 - Important fields: `target` (6-byte serial + 2 null bytes), `source`, `sequence`, `pkt_type`, `tagged`, `ack_required`, `res_required`
 
-**Serializer** (`src/lifx_emulator/protocol/serializer.py`):
+**Serializer** (`packages/lifx-emulator-core/src/lifx_emulator/protocol/serializer.py`):
 - Low-level binary packing/unpacking using struct
 - Handles byte arrays, enums, nested protocol types, arrays of protocol types
 
 ### Device Factories
 
-**Factory functions** (`src/lifx_emulator/factories/`):
+**Factory functions** (`packages/lifx-emulator-core/src/lifx_emulator/factories/`):
 - `create_color_light()`: Full color RGB light - LIFX A19 (product=27)
 - `create_color_temperature_light()`: Color temperature light - LIFX Mini White to Warm (product=50)
 - `create_infrared_light()`: Night vision capable (product=29)
@@ -448,7 +491,7 @@ All factory functions now use the specs system to load product-specific defaults
 3. **Repository Layer** (`IDeviceRepository`, `IDeviceStorageBackend`): Storage abstraction
 4. **Persistence Layer** (`DevicePersistenceAsyncFile`, `ScenarioPersistenceAsyncFile`): File I/O
 
-**Repository Interfaces** (`src/lifx_emulator/repositories/`):
+**Repository Interfaces** (`packages/lifx-emulator-core/src/lifx_emulator/repositories/`):
 - `IDeviceRepository`: Protocol interface for device collection storage
   - Methods: `add()`, `remove()`, `get()`, `get_all()`, `clear()`, `count()`
   - Implementation: `DeviceRepository` (in-memory dictionary)
@@ -503,9 +546,11 @@ server = EmulatedLifxServer(
 
 ### Module Organization
 
-The codebase follows a modular structure with clear separation of concerns:
+The codebase is split into two packages:
 
-**Device Module** (`src/lifx_emulator/devices/`):
+#### Library Package (`packages/lifx-emulator-core/src/lifx_emulator/`)
+
+**Device Module** (`devices/`):
 - `device.py`: Core `EmulatedLifxDevice` class with packet processing
 - `manager.py`: `DeviceManager` for lifecycle and routing operations
 - `states.py`: All state dataclasses (`DeviceState`, `CoreDeviceState`, etc.)
@@ -515,25 +560,18 @@ The codebase follows a modular structure with clear separation of concerns:
 - `observers.py`: Device state observation patterns
 - `__init__.py`: Public API exports
 
-**Scenario Module** (`src/lifx_emulator/scenarios/`):
+**Scenario Module** (`scenarios/`):
 - `manager.py`: `HierarchicalScenarioManager` for multi-scope scenario management
 - `models.py`: `ScenarioConfig` dataclass and related models
 - `persistence.py`: `ScenarioPersistenceAsyncFile` for scenario storage
 - `__init__.py`: Public API exports
 
-**API Module** (`src/lifx_emulator/api/`):
-- `app.py`: FastAPI application creation and server startup
-- `models.py`: Pydantic request/response models with validation
-- `routers/`: Modular endpoint handlers (monitoring, devices, scenarios)
-- `services/`: Business logic layer for API operations
-- `__init__.py`: Public API exports
-
-**Repositories Module** (`src/lifx_emulator/repositories/`):
+**Repositories Module** (`repositories/`):
 - `device_repository.py`: In-memory device collection storage
 - `storage_backend.py`: Protocol interfaces for persistence layers
 - `__init__.py`: Public API exports
 
-**Handlers Module** (`src/lifx_emulator/handlers/`):
+**Handlers Module** (`handlers/`):
 - `registry.py`: Handler registry mapping packet types to handler functions
 - `base.py`: Base handler class and common utilities
 - `device_handlers.py`: Device.* packet handlers (types 2-59)
@@ -542,7 +580,7 @@ The codebase follows a modular structure with clear separation of concerns:
 - `tile_handlers.py`: Tile.* packet handlers (types 701-720)
 - `__init__.py`: Public API exports
 
-**Protocol Module** (`src/lifx_emulator/protocol/`):
+**Protocol Module** (`protocol/`):
 - `packets.py`: Auto-generated packet classes from LIFX YAML spec
 - `header.py`: LifxHeader class (36-byte packet header)
 - `serializer.py`: Binary packing/unpacking using struct
@@ -552,47 +590,66 @@ The codebase follows a modular structure with clear separation of concerns:
 - `generator.py`: Packet code generator (run to regenerate packets.py)
 - `__init__.py`: Public API exports
 
-**Products Module** (`src/lifx_emulator/products/`):
+**Products Module** (`products/`):
 - `registry.py`: Auto-generated product registry (137+ products) - do not edit manually
 - `specs.py`: Product specs loader
 - `specs.yml`: Product-specific configuration (zone counts, tile dimensions)
 - `generator.py`: Registry generator - downloads from LIFX GitHub and regenerates registry.py
 - `__init__.py`: Public API exports
 
+**Factories Module** (`factories/`):
+- `factory.py`: Device factory functions
+- `builder.py`: DeviceBuilder class
+- `default_config.py`: Default device configurations
+- `firmware_config.py`: Firmware version configuration
+- `serial_generator.py`: Serial number generation
+
+#### Standalone Package (`packages/lifx-emulator/src/lifx_emulator_app/`)
+
+**CLI Module** (`__main__.py`):
+- Entry point for the `lifx-emulator` command
+- Device creation and server startup
+- Command-line argument parsing with cyclopts
+
+**API Module** (`api/`):
+- `app.py`: FastAPI application creation and server startup
+- `models.py`: Pydantic request/response models with validation
+- `routers/`: Modular endpoint handlers (monitoring, devices, scenarios)
+- `services/`: Business logic layer for API operations
+- `__init__.py`: Public API exports
+
 **Import Guidelines**:
 ```python
-# Device-related imports
+# Library imports (from lifx-emulator-core)
 from lifx_emulator.devices import (
     EmulatedLifxDevice,
     DeviceState,
     DeviceManager,
     DevicePersistenceAsyncFile,
 )
-
-# Scenario-related imports
 from lifx_emulator.scenarios import (
     HierarchicalScenarioManager,
     ScenarioConfig,
     ScenarioPersistenceAsyncFile,
 )
-
-# Repository imports
 from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.factories import create_color_light, create_device
+from lifx_emulator.server import EmulatedLifxServer
 
-# API imports
-from lifx_emulator.api import create_api_app, run_api_server
+# App imports (from lifx-emulator, if needed)
+from lifx_emulator_app.api import create_api_app, run_api_server
 ```
 
 ### Product Registry
 
-**Product Registry** (`src/lifx_emulator/products/registry.py`):
+**Product Registry** (`packages/lifx-emulator-core/src/lifx_emulator/products/registry.py`):
 - Auto-generated from official LIFX products.json (https://github.com/LIFX/products)
 - Contains 137+ product definitions with capabilities, temperature ranges, and firmware requirements
 - Pre-built `ProductInfo` instances for efficient runtime lookups
 - Capability flags: `COLOR`, `INFRARED`, `MULTIZONE`, `CHAIN`, `MATRIX`, `RELAYS`, `BUTTONS`, `HEV`, `EXTENDED_MULTIZONE`
 - Never edit this file manually - regenerate using the generator
 
-**Product Registry Generator** (`src/lifx_emulator/products/generator.py`):
+**Product Registry Generator** (`packages/lifx-emulator-core/src/lifx_emulator/products/generator.py`):
 - Downloads latest products.json from LIFX GitHub repository
 - Generates optimized Python code with pre-built product definitions
 - Handles extended multizone capability detection:
@@ -603,7 +660,7 @@ from lifx_emulator.api import create_api_app, run_api_server
 - Updates specs.yml with templates for new multizone/matrix products
 - Run with: `python -m lifx_emulator.products.generator`
 
-**Product Specs** (`src/lifx_emulator/products/specs.yml`):
+**Product Specs** (`packages/lifx-emulator-core/src/lifx_emulator/products/specs.yml`):
 - Product-specific configuration not available in upstream products.json
 - Default zone counts, tile configurations, and device-specific defaults
 - Used by factory functions to create realistic device configurations
@@ -698,7 +755,8 @@ Configure via ScenarioConfig in HierarchicalScenarioManager:
 
 - Requires Python 3.11+ (supports 3.11, 3.12, 3.13, 3.14)
 - Uses modern Python features: dataclasses, type hints
-- Key dependencies: `fastapi`, `uvicorn`, `pyyaml`, `cyclopts`, `rich`
+- **Library dependencies** (`lifx-emulator-core`): `pyyaml`
+- **Standalone dependencies** (`lifx-emulator`): `lifx-emulator-core`, `fastapi`, `uvicorn`, `cyclopts`, `rich`
 - Dev dependencies: `pytest`, `pytest-asyncio`, `ruff`, `pyright`, `mkdocs`
 - Never use the term or phrase "wide tile device". Use "large matrix device" or "chained matrix device" instead
 
@@ -712,5 +770,5 @@ Configure via ScenarioConfig in HierarchicalScenarioManager:
 
 ## Auto-Generated Files (Do Not Edit)
 
-- `src/lifx_emulator/products/registry.py` - Regenerate with `python -m lifx_emulator.products.generator`
-- `src/lifx_emulator/protocol/packets.py` - Regenerate with `python -m lifx_emulator.protocol.generator`
+- `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py` - Regenerate with `python -m lifx_emulator.products.generator`
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py` - Regenerate with `python -m lifx_emulator.protocol.generator`

@@ -692,5 +692,5 @@ Before writing a new test, ask:
 
 - [pytest Best Practices](https://docs.pytest.org/en/stable/goodpractices.html)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
-- [API Reference: Server](../api/server.md)
-- [API Reference: Device](../api/device.md)
+- [API Reference: Server](../library/server.md)
+- [API Reference: Device](../library/device.md)

@@ -6,10 +6,9 @@ on:
     - main
   pull_request:
 
-
 env:
-  PYTHON_VERSION: '3.11'
-  UV_VERSION: 0.9.4
+  PYTHON_VERSION: '3.14'
+  UV_VERSION: 0.9.9
 
 jobs:
   # Code quality checks
@@ -45,11 +44,11 @@ jobs:
     - name: Check for security issues
       run: |
         uv pip install bandit
-        uv run bandit -r src/
+        uv run bandit -r packages/lifx-emulator-core/src/ packages/lifx-emulator/src/
 
   # Testing matrix across Python versions and platforms
   test:
-    name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -107,8 +106,8 @@ jobs:
       cancel-in-progress: false
 
     outputs:
-      released: ${{ steps.release.outputs.released || 'false' }}
-
+      release-lifx-emulator-core: ${{ steps.release-lifx-emulator-core.outputs.released || 'false' }}
+      release-lifx-emulator: ${{ steps.release-lifx-emulator.outputs.released || 'false' }}
 
     steps:
     - name: Checkout repository on release branch
@@ -134,35 +133,94 @@ jobs:
         git config --local user.email "github-actions@github.com"
         git config --local user.name "GitHub Actions"
 
-    - name: Run Python Semantic Release (NOOP)
-      id: psr-noop
+    - name: Check Python Semantic Release for lifx-emulator-core
+      id: check-release-lifx-emulator-core
       if: github.ref_name != 'main'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cd packages/lifx-emulator-core/
         uv run --with python-semantic-release semantic-release --noop version
 
-    - name: Run Python Semantic Release
-      id: release
+    - name: Check Python Semantic Release for lifx-emulator
+      id: check-release-lifx-emulator
+      if: github.ref_name != 'main'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd packages/lifx-emulator/
+        uv run --with python-semantic-release semantic-release --noop version
+
+    - name: Release lifx-emulator-core
+      id: release-lifx-emulator-core
       if: github.ref_name == 'main'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cd packages/lifx-emulator-core/
         uv run --with python-semantic-release semantic-release version
 
-    - name: Upload Distribution Artifacts
+    - name: Release lifx-emulator
+      id: release-lifx-emulator
+      if: github.ref_name == 'main'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd packages/lifx-emulator/
+        uv run --with python-semantic-release semantic-release version
+
+    - name: Upload Core Library Artifacts
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
       with:
-        name: distribution-artifacts
-        path: dist
+        name: lifx-emulator-core-artifacts
+        path: packages/lifx-emulator-core/dist
+
+    - name: Upload CLI Package Artifacts
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      with:
+        name: lifx-emulator-artifacts
+        path: packages/lifx-emulator/dist
 
 
-  deploy:
+  deploy-core:
+    name: Deploy Core Library to PyPI
     runs-on: ubuntu-latest
     needs: release
-    if: ${{ needs.release.outputs.released == 'true' }}
+    if: ${{ needs.release.outputs.release-lifx-emulator-core == 'true' }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/lifx-emulator-core
+
+    steps:
+    - name: Download Core Library Artifacts
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+      with:
+        name: lifx-emulator-core-artifacts
+        path: dist
+
+    - name: Publish lifx-emulator-core to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: dist
+        print-hash: true
+        verbose: true
+
+  deploy-cli:
+    name: Deploy CLI Package to PyPI
+    runs-on: ubuntu-latest
+    needs:
+    - release
+    - deploy-core  # CLI depends on core being published first
+    if: ${{ needs.release.outputs.release-lifx-emulator == 'true' }}
 
     permissions:
       contents: read
@@ -173,14 +231,13 @@ jobs:
       url: https://pypi.org/p/lifx-emulator
 
     steps:
-    - name: Download Build Artifacts
+    - name: Download CLI Package Artifacts
       uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
-      id: artifact-download
       with:
-        name: distribution-artifacts
+        name: lifx-emulator-artifacts
         path: dist
 
-    - name: Publish package distributions to PyPI
+    - name: Publish lifx-emulator to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages-dir: dist

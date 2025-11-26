@@ -13,94 +13,143 @@ This tutorial walks you through creating and running your first emulated LIFX de
 
 ## Step 1: Create Your First Device
 
-Create a new Python file called `first_device.py`:
+=== "CLI (Quick Start)"
 
-```python
-import asyncio
-from lifx_emulator import EmulatedLifxServer, create_color_light
+    The fastest way to get started is with the CLI:
 
-async def main():
-    # Create a LIFX A19 color light
-    device = create_color_light("d073d5000001")
+    ```bash
+    # Install (if not already installed)
+    pip install lifx-emulator
 
-    # Create server on standard LIFX port (56700)
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    # Create a single color light with verbose output
+    lifx-emulator --color 1 --verbose
+    ```
 
-    # Start the server
-    async with server:
-        print(f"✓ Emulator running!")
-        print(f"✓ Device: {device.state.label}")
-        print(f"✓ Serial: {device.state.serial}")
-        print(f"✓ Listening on: 127.0.0.1:56700")
-        print("\nPress Ctrl+C to stop")
+    You should see output like:
 
-        # Keep server running
-        try:
-            await asyncio.sleep(3600)  # Run for 1 hour
-        except KeyboardInterrupt:
-            print("\n✓ Shutting down...")
+    ```
+    INFO - Starting LIFX Emulator on 127.0.0.1:56700
+    INFO - Created 1 emulated device(s):
+    INFO -   • A19 d073d5000001 (d073d5000001) - full color
+    INFO - Server running with verbose packet logging... Press Ctrl+C to stop
+    ```
 
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+    **That's it!** You now have a virtual LIFX device running.
 
-## Step 2: Run the Emulator
+=== "Python Library"
 
-Run your script:
+    Create a new Python file called `first_device.py`:
 
-```bash
-python first_device.py
-```
+    ```python
+    import asyncio
+    from lifx_emulator import EmulatedLifxServer, create_color_light
+    from lifx_emulator.repositories import DeviceRepository
+    from lifx_emulator.devices import DeviceManager
 
-You should see output like:
+    async def main():
+        # Create a LIFX A19 color light
+        device = create_color_light("d073d5000001")
 
-```
-✓ Emulator running!
-✓ Device: LIFX Light
-✓ Serial: d073d5000001
-✓ Listening on: 127.0.0.1:56700
+        # Create repository and manager (required)
+        device_manager = DeviceManager(DeviceRepository())
 
-Press Ctrl+C to stop
-```
+        # Create server on standard LIFX port (56700)
+        server = EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", 56700
+        )
+
+        # Start the server
+        async with server:
+            print(f"Emulator running!")
+            print(f"Device: {device.state.label}")
+            print(f"Serial: {device.state.serial}")
+            print(f"Listening on: 127.0.0.1:56700")
+            print("\nPress Ctrl+C to stop")
+
+            # Keep server running
+            try:
+                await asyncio.sleep(3600)  # Run for 1 hour
+            except KeyboardInterrupt:
+                print("\nShutting down...")
+
+    if __name__ == "__main__":
+        asyncio.run(main())
+    ```
+
+    Run your script:
+
+    ```bash
+    python first_device.py
+    ```
+
+    You should see output like:
+
+    ```
+    Emulator running!
+    Device: LIFX Light
+    Serial: d073d5000001
+    Listening on: 127.0.0.1:56700
+
+    Press Ctrl+C to stop
+    ```
 
 **Congratulations!** You now have a virtual LIFX device running on your machine.
 
-## Step 3: Understanding What's Happening
+## Step 2: Understanding What's Happening
 
-Let's break down what each part does:
+=== "CLI"
 
-### Creating the Device
+    The CLI command `lifx-emulator --color 1 --verbose` does the following:
 
-```python
-device = create_color_light("d073d5000001")
-```
+    - `--color 1` - Creates 1 LIFX A19 color light (product ID 27)
+    - `--verbose` - Enables detailed packet logging to see activity
 
-- `create_color_light()` - Creates a LIFX A19 bulb (product ID 27)
-- `"d073d5000001"` - The device's unique serial number (MAC address)
+    **CLI Options Explained:**
 
-### Creating the Server
+    | Option | Description |
+    |--------|-------------|
+    | `--color N` | Create N color lights |
+    | `--verbose` | Show packet-level details |
+    | `--port PORT` | Use custom UDP port (default: 56700) |
+    | `--bind IP` | Bind to specific IP (default: 127.0.0.1) |
+    | `--api` | Enable HTTP management API |
 
-```python
-server = EmulatedLifxServer([device], "127.0.0.1", 56700)
-```
+=== "Python Library"
 
-- `[device]` - List of devices to emulate (we have one)
-- `"127.0.0.1"` - IP address to bind to (localhost)
-- `56700` - Standard LIFX UDP port
+    ### Creating the Device
 
-### Using the Context Manager
+    ```python
+    device = create_color_light("d073d5000001")
+    ```
 
-```python
-async with server:
-    # Server is running here
-    await asyncio.sleep(3600)
-```
+    - `create_color_light()` - Creates a LIFX A19 bulb (product ID 27)
+    - `"d073d5000001"` - The device's unique serial number (MAC address)
 
-The `async with` statement:
+    ### Creating the Server
 
-1. Starts the server automatically
-2. Runs your code inside the block
-3. Stops the server cleanly when done
+    ```python
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
+    ```
+
+    - `DeviceManager` and `DeviceRepository` - Required for device lifecycle management
+    - `[device]` - List of devices to emulate (we have one)
+    - `"127.0.0.1"` - IP address to bind to (localhost)
+    - `56700` - Standard LIFX UDP port
+
+    ### Using the Context Manager
+
+    ```python
+    async with server:
+        # Server is running here
+        await asyncio.sleep(3600)
+    ```
+
+    The `async with` statement:
+
+    1. Starts the server automatically
+    2. Runs your code inside the block
+    3. Stops the server cleanly when done
 
 ## Step 4: Customizing Your Device (Optional)
 
@@ -256,6 +305,6 @@ Try these modifications to your `first_device.py`:
 
 ## See Also
 
-- [CLI Usage](../getting-started/cli.md) - Quick command-line testing
+- [CLI Usage](../cli/cli-reference.md) - Quick command-line testing
 - [Device Types](../guide/device-types.md) - Understanding different LIFX devices
-- [API Reference: Device](../api/device.md) - Complete device API documentation
+- [API Reference: Device](../library/device.md) - Complete device API documentation

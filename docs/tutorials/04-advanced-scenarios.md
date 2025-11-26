@@ -573,11 +573,11 @@ if __name__ == "__main__":
 - **[Integration Examples](03-integration.md)** - Comprehensive pytest patterns and test fixtures
 - **[Basic Examples](02-basic.md)** - Review basic usage patterns
 - **[Testing Scenarios Guide](../guide/testing-scenarios.md)** - Detailed testing scenarios documentation
-- **[API Reference: Device](../api/device.md)** - Full device API reference
+- **[API Reference: Device](../library/device.md)** - Full device API reference
 
 ## See Also
 
-- [Product Registry](../api/products.md) - All available product IDs and capabilities
-- [Storage API](../api/storage.md) - Persistent storage documentation
-- [Scenario Management API Guide](../advanced/scenario-api.md) - Runtime device management and scenario testing
+- [Product Registry](../library/products.md) - All available product IDs and capabilities
+- [Storage API](../library/storage.md) - Persistent storage documentation
+- [Scenario Management API Guide](../cli/scenario-api.md) - Runtime device management and scenario testing
 - [Device Types](../guide/device-types.md) - Understanding LIFX device capabilities

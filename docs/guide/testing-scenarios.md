@@ -4,20 +4,52 @@ The LIFX Emulator provides a powerful scenarios system that allows you to simula
 
 ## Overview
 
-Testing scenarios are configured via the `scenarios` dictionary on an `EmulatedLifxDevice`. Each scenario modifies how the device responds to protocol packets, allowing you to test your client's resilience and error handling.
+Testing scenarios modify how emulated devices respond to protocol packets, allowing you to test your client's resilience and error handling.
 
-```python
-from lifx_emulator import create_color_light
+=== "Python Library"
 
-device = create_color_light("d073d5000001")
+    Configure scenarios via the `scenarios` dictionary on an `EmulatedLifxDevice`:
 
-# Configure scenarios
-device.scenarios = {
-    'drop_packets': [101],  # Drop GetColor requests
-    'response_delays': {102: 0.5},  # Delay SetColor by 500ms
-    'malformed_packets': [107],  # Corrupt StateColor responses
-}
-```
+    ```python
+    from lifx_emulator import create_color_light
+
+    device = create_color_light("d073d5000001")
+
+    # Configure scenarios
+    device.scenarios = {
+        'drop_packets': {101: 1.0},  # Drop GetColor requests
+        'response_delays': {102: 0.5},  # Delay SetColor by 500ms
+        'malformed_packets': [107],  # Corrupt StateColor responses
+    }
+    ```
+
+=== "REST API"
+
+    Configure scenarios via the Scenario REST API (requires `--api` flag):
+
+    ```bash
+    # Start emulator with API
+    lifx-emulator --color 1 --api
+
+    # Configure scenario for a specific device
+    curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
+      -H "Content-Type: application/json" \
+      -d '{
+        "drop_packets": {"101": 1.0},
+        "response_delays": {"102": 0.5},
+        "malformed_packets": [107]
+      }'
+
+    # Configure scenario for all color devices
+    curl -X PUT http://localhost:8080/api/scenarios/types/color \
+      -H "Content-Type: application/json" \
+      -d '{"drop_packets": {"101": 0.3}}'
+
+    # Configure global scenario for all devices
+    curl -X PUT http://localhost:8080/api/scenarios/global \
+      -H "Content-Type: application/json" \
+      -d '{"response_delays": {"101": 0.5}}'
+    ```
 
 ## Available Scenarios
 
@@ -664,10 +696,10 @@ device.scenarios = SCENARIOS['flaky_network']
 - **[Advanced Examples](../tutorials/04-advanced-scenarios.md)** - See scenarios in action
 - **[Integration Testing](integration-testing.md)** - Use scenarios in test suites
 - **[Best Practices](best-practices.md)** - Testing strategies
-- **[API Reference: Device](../api/device.md)** - Full device API documentation
+- **[API Reference: Device](../library/device.md)** - Full device API documentation
 
 ## See Also
 
-- [Protocol Types Reference](../api/protocol.md) - All packet types and numbers
-- [Device API](../api/device.md) - EmulatedLifxDevice documentation
+- [Protocol Types Reference](../library/protocol.md) - All packet types and numbers
+- [Device API](../library/device.md) - EmulatedLifxDevice documentation
 - [FAQ](../faq.md) - Common issues and solutions

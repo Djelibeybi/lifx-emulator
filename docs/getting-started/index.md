@@ -2,62 +2,71 @@
 
 Welcome to LIFX Emulator! This section will help you get up and running quickly.
 
+## Choose Your Package
+
+LIFX Emulator is available as two packages:
+
+| Package | Best For |
+|---------|----------|
+| `lifx-emulator` | CLI tool, web dashboard, quick testing |
+| `lifx-emulator-core` | Embedding in Python applications, pytest |
+
 ## Learning Path
 
-Follow these steps in order:
+### CLI Users (lifx-emulator)
 
-1. **[Installation](installation.md)** - Install the emulator (5 minutes)
-2. **[Quick Start](quickstart.md)** - Create your first device (10 minutes)
-3. **[CLI Usage](cli.md)** - Learn command-line options (reference)
+1. **[Installation](installation.md)** - Install the CLI tool
+2. **[Quick Start](quickstart.md)** - Start emulating devices
+3. **[CLI Reference](../cli/cli-reference.md)** - All command-line options
 
-## What You'll Learn
+### Library Users (lifx-emulator-core)
 
-By the end of this section, you'll be able to:
+1. **[Installation](installation.md)** - Install the library
+2. **[Quick Start](quickstart.md)** - Programmatic usage
+3. **[API Reference](../library/index.md)** - Python API documentation
 
-- Install LIFX Emulator using uv or pip
-- Start the emulator with default settings
-- Create emulated devices using Python or CLI
-- Understand basic device discovery
-- Use verbose mode for debugging
+## Quick Preview
+
+=== "CLI (lifx-emulator)"
+
+    ```bash
+    # Install
+    pip install lifx-emulator
+
+    # Run with one color light
+    lifx-emulator
+
+    # Create multiple devices with web dashboard
+    lifx-emulator --color 2 --multizone 1 --tile 1 --api --verbose
+    ```
+
+=== "Python API (lifx-emulator-core)"
+
+    ```python
+    import asyncio
+    from lifx_emulator import EmulatedLifxServer
+    from lifx_emulator.factories import create_color_light
+    from lifx_emulator.repositories import DeviceRepository
+    from lifx_emulator.devices import DeviceManager
+
+    async def main():
+        device = create_color_light("d073d5000001")
+        device_manager = DeviceManager(DeviceRepository())
+
+        async with EmulatedLifxServer(
+            [device], device_manager, "127.0.0.1", 56700
+        ) as server:
+            print(f"Emulating: {device.state.label}")
+            await asyncio.Event().wait()
+
+    asyncio.run(main())
+    ```
 
 ## Prerequisites
 
 - **Python 3.11+** (or let uv manage it for you)
 - Basic understanding of Python or command-line tools
 - (Optional) Familiarity with LIFX devices or protocol
-
-## Quick Preview
-
-Here's what you'll be able to do after completing this section:
-
-```bash
-# Install (recommended: using uv)
-uv tool install lifx-emulator
-
-# Or using pip
-pip install lifx-emulator
-
-# Run with one color light
-lifx-emulator
-
-# Create multiple devices
-lifx-emulator --color 2 --multizone 1 --tile 1 --verbose
-```
-
-Or in Python:
-
-```python
-import asyncio
-from lifx_emulator import EmulatedLifxServer, create_color_light
-
-async def main():
-    device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
-    await server.start()
-    await asyncio.Event().wait()
-
-asyncio.run(main())
-```
 
 ## Why uv?
 
@@ -74,7 +83,7 @@ Once you've completed the getting started guide, explore:
 
 - **[User Guides](../guide/index.md)** - Deeper understanding of features
 - **[Tutorials](../tutorials/index.md)** - Hands-on learning with examples
-- **[API Reference](../api/index.md)** - Complete API documentation
+- **[API Reference](../library/index.md)** - Complete API documentation
 
 ## Need Help?
 

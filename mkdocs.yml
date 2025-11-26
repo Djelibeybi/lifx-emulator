@@ -26,15 +26,17 @@ theme:
       name: Switch to light mode
   features:
   - navigation.instant
+  - navigation.instant.progress
   - navigation.tracking
   - navigation.tabs
   - navigation.tabs.sticky
   - navigation.sections
   - navigation.expand
   - navigation.path
+  - navigation.prune
   - navigation.indexes
+  - navigation.top
   - toc.follow
-  - toc.integrate
   - search.suggest
   - search.highlight
   - search.share
@@ -53,18 +55,50 @@ plugins:
     markdown_description: |
       A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
 
-      This emulator implements the binary UDP protocol from https://lan.developer.lifx.com
-      and emulates various LIFX device types including color lights, multizone strips,
-      tiles, infrared, and HEV devices. It provides a complete testing environment with
-      persistent storage, HTTP management API, and advanced scenario testing capabilities
-      for simulating protocol edge cases, packet loss, delays, and malformed responses.
+      This project provides two packages:
+      - lifx-emulator: CLI tool and HTTP management API for standalone use
+      - lifx-emulator-core: Embeddable Python library for integration in your own projects
+
+      Both implement the binary UDP protocol from https://lan.developer.lifx.com
+      and emulate various LIFX device types including color lights, multizone strips,
+      tiles, infrared, and HEV devices. The emulator provides persistent storage,
+      HTTP management API, and advanced scenario testing capabilities for simulating
+      protocol edge cases, packet loss, delays, and malformed responses.
     full_output: llms-full.txt
     sections:
       Getting Started:
       - getting-started/index.md: Overview of getting started with the emulator
-      - getting-started/installation.md: Installation instructions
-      - getting-started/quickstart.md: Quick start guide
-      - getting-started/cli.md: Command-line interface usage
+      - getting-started/installation.md: Installation instructions for both packages
+      - getting-started/quickstart.md: Quick start guide for CLI and Python library
+      lifx-emulator (CLI):
+      - cli/index.md: CLI tool and HTTP management server overview
+      - cli/cli-reference.md: Command-line interface usage
+      - cli/web-interface.md: HTTP management API and web interface
+      - cli/device-management-api.md: Device management REST API
+      - cli/scenario-api.md: Scenario management REST API
+      - cli/storage.md: Persistent storage
+      - cli/scenarios.md: Custom scenarios
+      lifx-emulator-core (Python Library):
+      - library/index.md: Python library reference overview
+      - library/factories.md: Device factory functions
+      - library/server.md: Server library
+      - library/device.md: Device library
+      - library/protocol.md: Protocol types
+      - library/storage.md: Storage and persistence
+      - library/products.md: Product registry
+      - architecture/index.md: Architecture overview
+      - architecture/overview.md: System architecture
+      - architecture/packet-flow.md: Packet flow and processing
+      - architecture/protocol.md: Protocol layer details
+      - architecture/device-state.md: Device state management
+      Guides:
+      - guide/index.md: User guide overview
+      - guide/device-types.md: Available device types
+      - guide/products-and-specs.md: Product registry and specifications
+      - guide/testing-scenarios.md: Testing scenario capabilities
+      - guide/framebuffers.md: Matrix device framebuffer support
+      - guide/integration-testing.md: Advanced testing patterns
+      - guide/best-practices.md: Best practices
       Tutorials:
       - tutorials/index.md: Tutorial overview
       - tutorials/01-first-device.md: Creating your first emulated device
@@ -72,38 +106,12 @@ plugins:
       - tutorials/03-integration.md: Integration testing
       - tutorials/04-advanced-scenarios.md: Advanced testing scenarios
       - tutorials/05-cicd.md: CI/CD integration
-      User Guide:
-      - guide/index.md: User guide overview
-      - guide/device-types.md: Available device types
-      - guide/products-and-specs.md: Product registry and specifications
-      - guide/web-interface.md: HTTP management API and web interface
-      - guide/testing-scenarios.md: Testing scenario capabilities
-      - guide/best-practices.md: Best practices
-      - guide/integration-testing.md: Advanced testing patterns
-      API Reference:
-      - api/index.md: API reference overview
-      - api/factories.md: Device factory functions
-      - api/device.md: Device API
-      - api/server.md: Server API
-      - api/protocol.md: Protocol types
-      - api/storage.md: Storage and persistence
-      - api/products.md: Product registry
-      Advanced Topics:
-      - advanced/index.md: Advanced topics overview
-      - advanced/storage.md: Persistent storage
-      - advanced/device-management-api.md: Device management API
-      - advanced/scenarios.md: Custom scenarios
-      - advanced/scenario-api.md: Scenario management API
-      Architecture:
-      - architecture/index.md: Architecture overview
-      - architecture/overview.md: System architecture
-      - architecture/packet-flow.md: Packet flow and processing
-      - architecture/protocol.md: Protocol layer details
-      - architecture/device-state.md: Device state management
 - mkdocstrings:
     handlers:
       python:
-        paths: [src]    # Add source path for imports
+        paths:
+        - packages/lifx-emulator-core/src
+        - packages/lifx-emulator/src
           # Load object inventories to enable cross-references to other projects.
         inventories:
         - https://docs.python.org/3/objects.inv
@@ -162,6 +170,7 @@ plugins:
 markdown_extensions:
 - admonition
 - pymdownx.details
+- pymdownx.betterem
 - pymdownx.superfences:
     custom_fences:
     - name: mermaid
@@ -170,6 +179,7 @@ markdown_extensions:
 - pymdownx.highlight:
     anchor_linenums: true
     line_spans: __span
+    use_pygments: true
     pygments_lang_class: true
 - pymdownx.inlinehilite
 - pymdownx.snippets
@@ -197,11 +207,46 @@ markdown_extensions:
 nav:
 
 - Home: index.md
+
 - Getting Started:
   - getting-started/index.md
   - Installation: getting-started/installation.md
   - Quick Start: getting-started/quickstart.md
-  - CLI Usage: getting-started/cli.md
+
+- lifx-emulator:
+  - cli/index.md
+  - CLI Reference: cli/cli-reference.md
+  - Web Interface: cli/web-interface.md
+  - REST API:
+    - Device Management: cli/device-management-api.md
+    - Scenario API: cli/scenario-api.md
+  - Persistent Storage: cli/storage.md
+  - Scenarios Guide: cli/scenarios.md
+
+- lifx-emulator-core:
+  - Python Library:
+    - library/index.md
+    - Factory Functions: library/factories.md
+    - Server: library/server.md
+    - Device: library/device.md
+    - Protocol Types: library/protocol.md
+    - Storage: library/storage.md
+    - Product Registry: library/products.md
+  - Architecture:
+    - architecture/index.md
+    - Overview: architecture/overview.md
+    - Packet Flow: architecture/packet-flow.md
+    - Protocol Layer: architecture/protocol.md
+    - Device State: architecture/device-state.md
+
+- Guides:
+  - guide/index.md
+  - Device Types: guide/device-types.md
+  - Products & Specs: guide/products-and-specs.md
+  - Testing Scenarios: guide/testing-scenarios.md
+  - Framebuffers: guide/framebuffers.md
+  - Integration Testing: guide/integration-testing.md
+  - Best Practices: guide/best-practices.md
 
 - Tutorials:
   - tutorials/index.md
@@ -211,45 +256,11 @@ nav:
   - 04 - Advanced Scenarios: tutorials/04-advanced-scenarios.md
   - 05 - CI/CD Integration: tutorials/05-cicd.md
 
-- User Guide:
-  - guide/index.md
-  - Device Types: guide/device-types.md
-  - Products & Specs: guide/products-and-specs.md
-  - Web Interface: guide/web-interface.md
-  - Testing Scenarios: guide/testing-scenarios.md
-  - Best Practices: guide/best-practices.md
-  - Advanced Testing: guide/integration-testing.md
-
-- API Reference:
-  - api/index.md
-  - Factory Functions: api/factories.md
-  - Device: api/device.md
-  - Server: api/server.md
-  - Protocol Types: api/protocol.md
-  - Storage: api/storage.md
-  - Product Registry: api/products.md
-
-- Advanced Topics:
-  - advanced/index.md
-  - Persistent Storage: advanced/storage.md
-  - Device Management API: advanced/device-management-api.md
-  - Custom Scenarios: advanced/scenarios.md
-  - Scenario Management API: advanced/scenario-api.md
-
-- Architecture:
-  - architecture/index.md
-  - Overview: architecture/overview.md
-  - Packet Flow: architecture/packet-flow.md
-  - Protocol Layer: architecture/protocol.md
-  - Device State: architecture/device-state.md
-
-- FAQ: faq.md
-
 - Reference:
+  - FAQ: faq.md
   - Troubleshooting: reference/troubleshooting.md
   - Glossary: reference/glossary.md
-
-- Changelog: changelog.md
+  - Changelog: changelog.md
 
 extra:
   social:

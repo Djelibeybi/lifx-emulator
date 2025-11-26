@@ -638,5 +638,5 @@ async def test_state_modification(test_devices):
 
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/) - Async test support
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/) - Parallel test execution
-- [API Reference: Device](../api/device.md) - Device API documentation
-- [API Reference: Server](../api/server.md) - Server API documentation
+- [API Reference: Device](../library/device.md) - Device API documentation
+- [API Reference: Server](../library/server.md) - Server API documentation

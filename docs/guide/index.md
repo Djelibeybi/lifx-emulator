@@ -17,7 +17,7 @@ Read these guides in order for the best learning experience:
 1. **[Overview](#what-is-lifx-emulator)** (below) - High-level concepts
 2. **[Device Types](device-types.md)** - What devices you can emulate
 3. **[Products and Specs](products-and-specs.md)** - Product registry system
-4. **[Web Interface](web-interface.md)** - Visual monitoring and management
+4. **[Web Interface](../cli/web-interface.md)** - Visual monitoring and management
 5. **[Integration Testing](integration-testing.md)** - Using in test suites
 6. **[Testing Scenarios](testing-scenarios.md)** - Simulating errors and edge cases
 7. **[Best Practices](best-practices.md)** - Tips for effective testing
