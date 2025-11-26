@@ -348,5 +348,5 @@ Universal factory function that creates any device by product ID from the regist
 - [FAQ](../faq.md) - Common questions and answers
 - [Troubleshooting](troubleshooting.md) - Solutions to common problems
 - [Device Types](../guide/device-types.md) - Detailed device type documentation
-- [Protocol Types](../api/protocol.md) - Protocol data structures
+- [Protocol Types](../library/protocol.md) - Protocol data structures
 - [LIFX LAN Protocol](https://lan.developer.lifx.com) - Official protocol specification
