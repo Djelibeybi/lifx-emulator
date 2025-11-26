@@ -64,8 +64,8 @@ tag_format = "core-v{version}"
 version_toml = ["pyproject.toml:project.version"]
 build_command = """
     uv lock --upgrade-package "$PACKAGE_NAME"
-    git add uv.lock
-    uv build --package lifx-emulator-core
+    git add ../../uv.lock
+    uv build --package lifx-emulator-core --out-dir dist/
 """
 
 [tool.semantic_release.commit_parser_options]
