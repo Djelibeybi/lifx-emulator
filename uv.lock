@@ -477,7 +477,7 @@ wheels = [
 
 [[package]]
 name = "lifx-emulator"
-version = "2.4.0"
+version = "3.0.0"
 source = { editable = "packages/lifx-emulator" }
 dependencies = [
     { name = "cyclopts" },
@@ -498,7 +498,7 @@ requires-dist = [
 
 [[package]]
 name = "lifx-emulator-core"
-version = "2.4.0"
+version = "3.0.1"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
     { name = "pyyaml" },
