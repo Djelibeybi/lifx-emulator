@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.0.1 (2025-11-26)
+
+### Bug Fixes
+
+- Adjust uv build for new monorepo layout
+  ([`a0d5b7c`](https://github.com/Djelibeybi/lifx-emulator/commit/a0d5b7c1c1ab5659acc8554931f6c441654add05))
+
+
 ## v3.0.0 (2025-11-26)
 
 ### Refactoring
