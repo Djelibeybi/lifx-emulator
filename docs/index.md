@@ -140,7 +140,7 @@ from lifx_emulator import create_color_light, EmulatedLifxServer
 - **[FAQ](faq.md)** - Frequently asked questions
 - **[Troubleshooting](reference/troubleshooting.md)** - Common issues and solutions
 - **[Glossary](reference/glossary.md)** - Terms and definitions
-- **[Changelog](changelog.md)** - Version history
+- **[Changelog](changelogs/index.md)** - Version history
 
 ## Supported Device Types
 

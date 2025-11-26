@@ -1,0 +1,1 @@
+../../packages/lifx-emulator/CHANGELOG.md

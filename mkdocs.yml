@@ -260,7 +260,12 @@ nav:
   - FAQ: faq.md
   - Troubleshooting: reference/troubleshooting.md
   - Glossary: reference/glossary.md
-  - Changelog: changelog.md
+
+- Changelogs:
+  - changelogs/index.md
+  - lifx-emulator-core: changelogs/core-changelog.md
+  - lifx-emulator: changelogs/app-changelog.md
+  - Original changelog: changelogs/changelog.md
 
 extra:
   social:
