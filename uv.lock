@@ -501,11 +501,15 @@ name = "lifx-emulator-core"
 version = "3.0.1"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
+    { name = "pydantic" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyyaml", specifier = ">=6.0.3" }]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+]
 
 [[package]]
 name = "markdown"
