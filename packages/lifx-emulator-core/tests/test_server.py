@@ -49,6 +49,32 @@ class TestServerInitialization:
         serial = color_device.state.serial
         assert server.get_device(serial) == color_device
 
+    def test_server_init_updates_device_port(self, color_device):
+        """Test that device port is updated to match server port at init."""
+        # Device defaults to port 56700, but server is on custom port
+        custom_port = 12345
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device], device_manager, "127.0.0.1", custom_port
+        )
+        # Device port should be updated to match server port
+        assert color_device.state.port == custom_port
+        assert server.get_device(color_device.state.serial).state.port == custom_port
+
+    def test_server_add_device_updates_port(self, color_device, multizone_device):
+        """Test that device port is updated when added via add_device()."""
+        custom_port = 54321
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device], device_manager, "127.0.0.1", custom_port
+        )
+        # multizone_device starts with default port
+        assert multizone_device.state.port == 56700
+        # Add device to server
+        server.add_device(multizone_device)
+        # Port should be updated to match server port
+        assert multizone_device.state.port == custom_port
+
 
 class TestPacketRouting:
     """Test server packet routing logic."""
