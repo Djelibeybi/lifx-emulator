@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.0.3 (2025-11-27)
+
+### Bug Fixes
+
+- **core**: Update device port to match server port when adding devices
+  ([`db68eef`](https://github.com/Djelibeybi/lifx-emulator/commit/db68eefa764d8c98054ada19eabd6e06440f886b))
+
+
 ## v3.0.2 (2025-11-27)
 
 ### Bug Fixes
