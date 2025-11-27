@@ -755,7 +755,7 @@ Configure via ScenarioConfig in HierarchicalScenarioManager:
 
 - Requires Python 3.11+ (supports 3.11, 3.12, 3.13, 3.14)
 - Uses modern Python features: dataclasses, type hints
-- **Library dependencies** (`lifx-emulator-core`): `pyyaml`
+- **Library dependencies** (`lifx-emulator-core`): `pydantic`, `pyyaml`
 - **Standalone dependencies** (`lifx-emulator`): `lifx-emulator-core`, `fastapi`, `uvicorn`, `cyclopts`, `rich`
 - Dev dependencies: `pytest`, `pytest-asyncio`, `ruff`, `pyright`, `mkdocs`
 - Never use the term or phrase "wide tile device". Use "large matrix device" or "chained matrix device" instead
