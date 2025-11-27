@@ -128,6 +128,8 @@ class EmulatedLifxServer:
 
         # Add initial devices to the device manager
         for device in devices:
+            # Update device port to match server port
+            device.state.port = self.port
             self._device_manager.add_device(device, self.scenario_manager)
 
         # Activity observer - defaults to ActivityLogger if track_activity=True
@@ -360,6 +362,8 @@ class EmulatedLifxServer:
         Returns:
             True if added, False if device with same serial already exists
         """
+        # Update device port to match server port
+        device.state.port = self.port
         return self._device_manager.add_device(device, self.scenario_manager)
 
     def remove_device(self, serial: str) -> bool:

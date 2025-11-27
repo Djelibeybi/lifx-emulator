@@ -90,3 +90,6 @@ exclude_lines = [
     "raise NotImplementedError",
     'if __name__ == "__main__":',
 ]
+
+[tool.bandit]
+exclude_dirs = ["packages/lifx-emulator/tests", "packages/lifx-emulator-core/tests"]
