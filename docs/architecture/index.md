@@ -25,9 +25,10 @@ Before reading this section, you should:
 Read these pages in order from high-level to implementation details:
 
 1. **[Architecture Overview](overview.md)** - System design and component interaction
-2. **[Packet Flow](packet-flow.md)** - How packets are received and processed
-3. **[Device State](device-state.md)** - State management and capabilities
-4. **[Protocol Details](protocol.md)** - Binary protocol implementation
+2. **[Architecture Decisions](decisions.md)** - Design rationale and ADRs (15 documented decisions)
+3. **[Packet Flow](packet-flow.md)** - How packets are received and processed
+4. **[Device State](device-state.md)** - State management and capabilities
+5. **[Protocol Details](protocol.md)** - Binary protocol implementation
 
 ## Quick Concepts
 
