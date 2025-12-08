@@ -235,6 +235,7 @@ nav:
   - Architecture:
     - architecture/index.md
     - Overview: architecture/overview.md
+    - Architecture Decisions: architecture/decisions.md
     - Packet Flow: architecture/packet-flow.md
     - Protocol Layer: architecture/protocol.md
     - Device State: architecture/device-state.md
@@ -255,6 +256,10 @@ nav:
   - 03 - Integration Testing: tutorials/03-integration.md
   - 04 - Advanced Scenarios: tutorials/04-advanced-scenarios.md
   - 05 - CI/CD Integration: tutorials/05-cicd.md
+
+- Development:
+  - development/index.md
+  - Code Navigation: development/code-navigation.md
 
 - Reference:
   - FAQ: faq.md
