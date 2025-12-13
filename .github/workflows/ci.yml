@@ -199,13 +199,13 @@ jobs:
         fi
 
     - name: Upload Core Library Artifacts
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: lifx-emulator-core-artifacts
         path: packages/lifx-emulator-core/dist
 
     - name: Upload CLI Package Artifacts
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: lifx-emulator-artifacts
         path: packages/lifx-emulator/dist
@@ -227,7 +227,7 @@ jobs:
 
     steps:
     - name: Download Core Library Artifacts
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: lifx-emulator-core-artifacts
         path: dist
@@ -257,7 +257,7 @@ jobs:
 
     steps:
     - name: Download CLI Package Artifacts
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: lifx-emulator-artifacts
         path: dist
