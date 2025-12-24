@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.0.2 (2025-12-24)
+
+### Bug Fixes
+
+- **api**: Eliminate XSS vulnerabilities and extract dashboard JavaScript
+  ([`8302a09`](https://github.com/Djelibeybi/lifx-emulator/commit/8302a0947b326e73f6c2f15de85986a464a307ad))
+
+
 ## v3.0.1 (2025-11-26)
 
 ### Bug Fixes
