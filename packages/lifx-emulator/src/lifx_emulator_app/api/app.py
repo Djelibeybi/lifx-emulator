@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 if TYPE_CHECKING:
@@ -25,8 +26,9 @@ from lifx_emulator_app.api.routers.scenarios import create_scenarios_router
 
 logger = logging.getLogger(__name__)
 
-# Template directory for web UI
+# Asset directories for web UI
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+STATIC_DIR = Path(__file__).parent / "static"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
@@ -101,6 +103,9 @@ The API is organized into three main routers:
     async def root(request: Request):
         """Serve embedded web UI dashboard."""
         return templates.TemplateResponse(request, "dashboard.html")
+
+    # Mount static files for JS/CSS assets (cached by browsers)
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     # Include routers with server dependency injection
     monitoring_router = create_monitoring_router(server)
