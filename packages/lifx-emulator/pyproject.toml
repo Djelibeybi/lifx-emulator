@@ -3,7 +3,7 @@ name = "lifx-emulator"
 version = "3.0.2"
 description = "Standalone LIFX Emulator with CLI and HTTP management API"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "lifx-emulator-core>=2.4.0",
     "cyclopts>=4.2.0",
@@ -27,6 +27,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -47,7 +48,7 @@ packages = ["src/lifx_emulator_app"]
 
 [tool.pyright]
 typeCheckingMode = "standard"
-pythonVersion = "3.11"
+pythonVersion = "3.10"
 include = ["src"]
 exclude = ["**/__pycache__"]
 
