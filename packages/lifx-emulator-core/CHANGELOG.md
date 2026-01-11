@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.1.0 (2026-01-11)
+
+### Features
+
+- Add Python 3.10 support
+  ([`c19eee5`](https://github.com/Djelibeybi/lifx-emulator/commit/c19eee5181fc3e0e3b4ef9fc3e6d47308dce7a0f))
+
+
 ## v3.0.3 (2025-11-27)
 
 ### Bug Fixes
