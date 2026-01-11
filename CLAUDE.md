@@ -753,7 +753,7 @@ Configure via ScenarioConfig in HierarchicalScenarioManager:
 
 ## Python Version and Dependencies
 
-- Requires Python 3.11+ (supports 3.11, 3.12, 3.13, 3.14)
+- Requires Python 3.10+ (supports 3.10, 3.11, 3.12, 3.13, 3.14)
 - Uses modern Python features: dataclasses, type hints
 - **Library dependencies** (`lifx-emulator-core`): `pydantic`, `pyyaml`
 - **Standalone dependencies** (`lifx-emulator`): `lifx-emulator-core`, `fastapi`, `uvicorn`, `cyclopts`, `rich`
