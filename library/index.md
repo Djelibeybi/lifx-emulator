@@ -10,12 +10,12 @@ The LIFX Emulator library is designed for simplicity and ease of use. Most users
 
 This reference is organized from most common to advanced usage:
 
-1. **[Factory Functions](factories/)** - Creating devices (most common)
-1. **[Server](server/)** - Server setup and configuration
-1. **[Device](device/)** - Device API and state management
-1. **[Products](products/)** - Product registry and specs
-1. **[Protocol](protocol/)** - Low-level protocol types (advanced)
-1. **[Storage](storage/)** - Persistent state (advanced)
+1. **[Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md)** - Creating devices (most common)
+1. **[Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)** - Server setup and configuration
+1. **[Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Device API and state management
+1. **[Products](https://djelibeybi.github.io/lifx-emulator/library/products/index.md)** - Product registry and specs
+1. **[Protocol](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md)** - Low-level protocol types (advanced)
+1. **[Storage](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md)** - Persistent state (advanced)
 
 ## Quick Start
 
@@ -79,7 +79,7 @@ from lifx_emulator.factories import (
 )
 ```
 
-👉 **[Full Factory Documentation](factories/)**
+👉 **[Full Factory Documentation](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md)**
 
 ### 2. Server
 
@@ -109,7 +109,7 @@ await server.start()
 await server.stop()
 ```
 
-👉 **[Full Server Documentation](server/)**
+👉 **[Full Server Documentation](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)**
 
 ### 3. Device (Advanced)
 
@@ -122,7 +122,7 @@ state = DeviceState(serial="d073d5000001", label="Custom Device")
 device = EmulatedLifxDevice(state)
 ```
 
-👉 **[Full Device Documentation](device/)**
+👉 **[Full Device Documentation](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)**
 
 ### 4. Product Registry
 
@@ -135,7 +135,7 @@ product = get_product(27)  # LIFX A19
 all_products = get_registry()
 ```
 
-👉 **[Full Product Documentation](products/)**
+👉 **[Full Product Documentation](https://djelibeybi.github.io/lifx-emulator/library/products/index.md)**
 
 ## Quick Reference
 
@@ -308,8 +308,8 @@ print(f"New color: {device.state.color}")
 
 ## Next Steps
 
-- [Server API](server/) - EmulatedLifxServer documentation
-- [Device API](device/) - EmulatedLifxDevice and DeviceState
-- [Factory Functions](factories/) - All create\_\* functions
-- [Protocol Types](protocol/) - LightHsbk and other types
-- [Product Registry](products/) - Product database
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - EmulatedLifxServer documentation
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice and DeviceState
+- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - All create\_\* functions
+- [Protocol Types](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - LightHsbk and other types
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - Product database

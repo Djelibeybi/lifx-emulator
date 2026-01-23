@@ -6,7 +6,7 @@ Welcome to the LIFX Emulator User Guide. This guide helps you understand the emu
 
 Before reading this guide, you should have:
 
-- Completed the [Getting Started](../getting-started/) section
+- Completed the [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/index.md) section
 - Successfully run the emulator at least once
 - Basic understanding of LIFX devices (optional but helpful)
 
@@ -15,12 +15,12 @@ Before reading this guide, you should have:
 Read these guides in order for the best learning experience:
 
 1. **[Overview](#what-is-lifx-emulator)** (below) - High-level concepts
-1. **[Device Types](device-types/)** - What devices you can emulate
-1. **[Products and Specs](products-and-specs/)** - Product registry system
-1. **[Web Interface](../cli/web-interface/)** - Visual monitoring and management
-1. **[Integration Testing](integration-testing/)** - Using in test suites
-1. **[Testing Scenarios](testing-scenarios/)** - Simulating errors and edge cases
-1. **[Best Practices](best-practices/)** - Tips for effective testing
+1. **[Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md)** - What devices you can emulate
+1. **[Products and Specs](https://djelibeybi.github.io/lifx-emulator/guide/products-and-specs/index.md)** - Product registry system
+1. **[Web Interface](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md)** - Visual monitoring and management
+1. **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - Using in test suites
+1. **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Simulating errors and edge cases
+1. **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Tips for effective testing
 
 ## What is LIFX Emulator?
 

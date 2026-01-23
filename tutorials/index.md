@@ -6,11 +6,11 @@ Step-by-step tutorials to master the LIFX Emulator, organized from beginner to a
 
 Follow these tutorials in order for the best learning experience:
 
-1. **🟢 Beginner** - [First Device](01-first-device/) - Your first emulated LIFX device (⏱️ 10-15 minutes)
-1. **🟢 Beginner** - [Basic Usage](02-basic/) - Multiple devices and basic operations (⏱️ 15-30 minutes)
-1. **🟡 Intermediate** - [Integration Testing](03-integration/) - Using the emulator in test suites (⏱️ 30-45 minutes)
-1. **🔴 Advanced** - [Advanced Scenarios](04-advanced-scenarios/) - Error injection and complex testing (⏱️ 45-60 minutes)
-1. **🔴 Advanced** - [CI/CD Integration](05-cicd/) - Automated testing pipelines (⏱️ 30-45 minutes)
+1. **🟢 Beginner** - [First Device](https://djelibeybi.github.io/lifx-emulator/tutorials/01-first-device/index.md) - Your first emulated LIFX device (⏱️ 10-15 minutes)
+1. **🟢 Beginner** - [Basic Usage](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md) - Multiple devices and basic operations (⏱️ 15-30 minutes)
+1. **🟡 Intermediate** - [Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md) - Using the emulator in test suites (⏱️ 30-45 minutes)
+1. **🔴 Advanced** - [Advanced Scenarios](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md) - Error injection and complex testing (⏱️ 45-60 minutes)
+1. **🔴 Advanced** - [CI/CD Integration](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md) - Automated testing pipelines (⏱️ 30-45 minutes)
 
 ## Tutorial Categories
 

@@ -24,10 +24,10 @@ Before exploring advanced features, you should:
 
 Read these guides in order from simple to complex:
 
-1. **[Persistent Storage](storage/)** - Save device state across restarts
-1. **[Device Management API](device-management-api/)** - Add/remove devices at runtime
-1. **[Scenarios](scenarios/)** - Comprehensive error simulation concepts
-1. **[Scenario API](scenario-api/)** - REST API for managing test scenarios
+1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
+1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
+1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
+1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios
 
 ## Quick Concepts
 
@@ -41,7 +41,7 @@ lifx-emulator --persistent
 
 Device states are saved to `~/.lifx-emulator/` and automatically restored.
 
-👉 **[Storage Guide](storage/)**
+👉 **[Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)**
 
 ### Device Management API
 
@@ -53,7 +53,7 @@ lifx-emulator --api
 
 Access the web dashboard at `http://localhost:8080` or use the REST API to add/remove devices dynamically.
 
-👉 **[Device Management Guide](device-management-api/)**
+👉 **[Device Management Guide](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)**
 
 ### Testing Scenarios
 
@@ -64,7 +64,7 @@ Configure error conditions for comprehensive testing:
 - Malformed data (test error handling)
 - Firmware version overrides
 
-👉 **[Scenarios Guide](scenarios/)**
+👉 **[Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)**
 
 ### Scenario API
 
@@ -79,7 +79,7 @@ curl -X PUT http://localhost:8080/api/scenarios/types/color \
 
 Supports device-specific, type-based, location-based, group-based, and global scenarios.
 
-👉 **[Scenario API Reference](scenario-api/)**
+👉 **[Scenario API Reference](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)**
 
 ## Feature Comparison
 

@@ -843,7 +843,7 @@ jobs:
 
 ## See Also
 
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Programmatic scenario configuration
-- [Integration Testing](../../guide/integration-testing/) - Using scenarios in test suites
-- [Best Practices](../../guide/best-practices/) - Testing strategies
-- [API Reference](../../library/) - Full API documentation
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Programmatic scenario configuration
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Using scenarios in test suites
+- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Testing strategies
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Full API documentation

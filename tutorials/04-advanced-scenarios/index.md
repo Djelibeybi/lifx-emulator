@@ -571,14 +571,14 @@ if __name__ == "__main__":
 
 ## Next Steps
 
-- **[Integration Examples](../03-integration/)** - Comprehensive pytest patterns and test fixtures
-- **[Basic Examples](../02-basic/)** - Review basic usage patterns
-- **[Testing Scenarios Guide](../../guide/testing-scenarios/)** - Detailed testing scenarios documentation
-- **[API Reference: Device](../../library/device/)** - Full device API reference
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Comprehensive pytest patterns and test fixtures
+- **[Basic Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Review basic usage patterns
+- **[Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Detailed testing scenarios documentation
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full device API reference
 
 ## See Also
 
-- [Product Registry](../../library/products/) - All available product IDs and capabilities
-- [Storage API](../../library/storage/) - Persistent storage documentation
-- [Scenario Management API Guide](../../cli/scenario-api/) - Runtime device management and scenario testing
-- [Device Types](../../guide/device-types/) - Understanding LIFX device capabilities
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All available product IDs and capabilities
+- [Storage API](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Persistent storage documentation
+- [Scenario Management API Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Runtime device management and scenario testing
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding LIFX device capabilities

@@ -210,5 +210,5 @@ copy = Tile.CopyFrameBuffer(
 
 ## Related Documentation
 
-- [Device Types](../device-types/#matrix-devices) - Matrix device capabilities
-- [Protocol](../../architecture/protocol/) - LIFX LAN protocol details
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/#matrix-devices) - Matrix device capabilities
+- [Protocol](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) - LIFX LAN protocol details

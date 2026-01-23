@@ -506,5 +506,5 @@ ______________________________________________________________________
 
 ## Related Documentation
 
-- [Device Management API](../device-management-api/) - Programmatic API access
-- [Scenario Management API](../scenario-api/) - Test scenario configuration
+- [Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md) - Programmatic API access
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Test scenario configuration

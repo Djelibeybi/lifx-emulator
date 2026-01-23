@@ -601,7 +601,7 @@ tiles = create_tile_device("d073d9000001")
 candle = create_device(57, serial="d073d9000002")
 ```
 
-See [Product Registry](../products/) for all product definitions and defaults.
+See [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) for all product definitions and defaults.
 
 ## Device State Access
 
@@ -727,7 +727,7 @@ new_device = create_color_light(
 
 ## Next Steps
 
-- [Server API](../server/) - Running the emulator server
-- [Device API](../device/) - Device and state details
-- [Product Registry](../products/) - All available products
-- [Basic Tutorial](../../tutorials/02-basic/) - Complete usage examples
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Running the emulator server
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device and state details
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All available products
+- [Basic Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md) - Complete usage examples

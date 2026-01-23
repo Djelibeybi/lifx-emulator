@@ -34,15 +34,15 @@ LIFX Emulator is available as two packages:
 
 ### CLI Users (lifx-emulator)
 
-1. **[Installation](installation/)** - Install the CLI tool
-1. **[Quick Start](quickstart/)** - Start emulating devices
-1. **[CLI Reference](../cli/cli-reference/)** - All command-line options
+1. **[Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md)** - Install the CLI tool
+1. **[Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md)** - Start emulating devices
+1. **[CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md)** - All command-line options
 
 ### Library Users (lifx-emulator-core)
 
-1. **[Installation](installation/)** - Install the library
-1. **[Quick Start](quickstart/)** - Programmatic usage
-1. **[API Reference](../library/)** - Python API documentation
+1. **[Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md)** - Install the library
+1. **[Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md)** - Programmatic usage
+1. **[API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md)** - Python API documentation
 
 ## Quick Preview
 
@@ -96,14 +96,14 @@ We recommend [uv](https://astral.sh/uv) because it:
 
 Once you've completed the getting started guide, explore:
 
-- **[User Guides](../guide/)** - Deeper understanding of features
-- **[Tutorials](../tutorials/)** - Hands-on learning with examples
-- **[API Reference](../library/)** - Complete API documentation
+- **[User Guides](https://djelibeybi.github.io/lifx-emulator/guide/index.md)** - Deeper understanding of features
+- **[Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md)** - Hands-on learning with examples
+- **[API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md)** - Complete API documentation
 
 ## Need Help?
 
-- [Troubleshooting Guide](../reference/troubleshooting/)
-- [FAQ](../faq/)
+- [Troubleshooting Guide](https://djelibeybi.github.io/lifx-emulator/reference/troubleshooting/index.md)
+- [FAQ](https://djelibeybi.github.io/lifx-emulator/faq/index.md)
 - [GitHub Issues](https://github.com/Djelibeybi/lifx-emulator/issues)
 
 # Installation
@@ -276,9 +276,9 @@ pip install --force-reinstall lifx-emulator-core
 
 ## Next Steps
 
-- [Quick Start Guide](../quickstart/) - Create your first emulated device
-- [CLI Usage](../../cli/cli-reference/) - Learn all CLI commands
-- [Device Types](../../guide/device-types/) - Explore supported devices
+- [Quick Start Guide](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Create your first emulated device
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Learn all CLI commands
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Explore supported devices
 
 # Quick Start
 
@@ -478,11 +478,11 @@ Example with a typical discovery flow:
 
 ## Next Steps
 
-- [CLI Usage Guide](../../cli/cli-reference/) - Learn all CLI options
-- [Device Types](../../guide/device-types/) - Explore supported devices
-- [Testing Scenarios](../../guide/testing-scenarios/) - Configure error scenarios
-- [API Reference](../../library/) - Complete API documentation
-- [Tutorials](../../tutorials/) - More code examples
+- [CLI Usage Guide](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Learn all CLI options
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Explore supported devices
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Complete API documentation
+- [Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md) - More code examples
 # lifx-emulator (CLI)
 
 # lifx-emulator (Standalone CLI)
@@ -511,10 +511,10 @@ Before exploring advanced features, you should:
 
 Read these guides in order from simple to complex:
 
-1. **[Persistent Storage](storage/)** - Save device state across restarts
-1. **[Device Management API](device-management-api/)** - Add/remove devices at runtime
-1. **[Scenarios](scenarios/)** - Comprehensive error simulation concepts
-1. **[Scenario API](scenario-api/)** - REST API for managing test scenarios
+1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
+1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
+1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
+1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios
 
 ## Quick Concepts
 
@@ -528,7 +528,7 @@ lifx-emulator --persistent
 
 Device states are saved to `~/.lifx-emulator/` and automatically restored.
 
-👉 **[Storage Guide](storage/)**
+👉 **[Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)**
 
 ### Device Management API
 
@@ -540,7 +540,7 @@ lifx-emulator --api
 
 Access the web dashboard at `http://localhost:8080` or use the REST API to add/remove devices dynamically.
 
-👉 **[Device Management Guide](device-management-api/)**
+👉 **[Device Management Guide](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)**
 
 ### Testing Scenarios
 
@@ -551,7 +551,7 @@ Configure error conditions for comprehensive testing:
 - Malformed data (test error handling)
 - Firmware version overrides
 
-👉 **[Scenarios Guide](scenarios/)**
+👉 **[Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)**
 
 ### Scenario API
 
@@ -566,7 +566,7 @@ curl -X PUT http://localhost:8080/api/scenarios/types/color \
 
 Supports device-specific, type-based, location-based, group-based, and global scenarios.
 
-👉 **[Scenario API Reference](scenario-api/)**
+👉 **[Scenario API Reference](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)**
 
 ## Feature Comparison
 
@@ -1115,10 +1115,10 @@ lifx-emulator --api --color 3
 
 ## Next Steps
 
-- [Device Types Guide](../../guide/device-types/) - Learn about each device type
-- [Testing Scenarios](../../guide/testing-scenarios/) - Configure error scenarios
-- [API Reference](../../library/) - Python API documentation
-- [Tutorials](../../tutorials/) - More usage examples
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Learn about each device type
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Python API documentation
+- [Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md) - More usage examples
 
 # Web Interface Guide
 
@@ -1628,8 +1628,8 @@ ______________________________________________________________________
 
 ## Related Documentation
 
-- [Device Management API](../device-management-api/) - Programmatic API access
-- [Scenario Management API](../scenario-api/) - Test scenario configuration
+- [Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md) - Programmatic API access
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Test scenario configuration
 
 # Device Management API
 
@@ -2310,8 +2310,8 @@ ______________________________________________________________________
 
 ## See Also
 
-- [Web Interface Guide](../web-interface/) - Browser-based monitoring dashboard
-- [Scenario Management API](../scenario-api/) - Test scenario configuration
+- [Web Interface Guide](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md) - Browser-based monitoring dashboard
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Test scenario configuration
 
 # Scenario Management REST API
 
@@ -3158,10 +3158,10 @@ jobs:
 
 ## See Also
 
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Programmatic scenario configuration
-- [Integration Testing](../../guide/integration-testing/) - Using scenarios in test suites
-- [Best Practices](../../guide/best-practices/) - Testing strategies
-- [API Reference](../../library/) - Full API documentation
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Programmatic scenario configuration
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Using scenarios in test suites
+- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Testing strategies
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Full API documentation
 
 # Persistent Storage Guide
 
@@ -3404,9 +3404,9 @@ This saves scenario configurations to `~/.lifx-emulator/scenarios.json`.
 
 For complete API documentation, see:
 
-- [Storage API Reference](../../library/storage/)
-- [AsyncDeviceStorage class reference](../../library/storage/#asyncdevicestorage)
-- [File format specification](../../library/storage/#file-format)
+- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md)
+- [AsyncDeviceStorage class reference](https://djelibeybi.github.io/lifx-emulator/library/storage/#asyncdevicestorage)
+- [File format specification](https://djelibeybi.github.io/lifx-emulator/library/storage/#file-format)
 
 ## Troubleshooting
 
@@ -3451,9 +3451,9 @@ for serial in storage.list_devices():
 
 ## Next Steps
 
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Combine with error scenarios
-- [Storage API Reference](../../library/storage/) - Detailed API documentation
-- [Advanced Testing Guide](../../guide/integration-testing/) - Integration patterns
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Combine with error scenarios
+- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Detailed API documentation
+- [Advanced Testing Guide](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Integration patterns
 
 # Custom Test Scenarios
 
@@ -3697,7 +3697,7 @@ manager.set_device_scenario(
 
 ## REST API Examples
 
-Full REST API documentation is in the [Scenario Management API guide](../scenario-api/).
+Full REST API documentation is in the [Scenario Management API guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md).
 
 ### Get Current Scenario
 
@@ -3835,9 +3835,9 @@ Scenarios are saved to `~/.lifx-emulator/scenarios.json`.
 
 For complete API documentation, see:
 
-- [Scenario Management API Guide](../scenario-api/) - REST API endpoints
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Configuration details
-- [Scenario Manager API](../../library/server/) - Python API
+- [Scenario Management API Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - REST API endpoints
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configuration details
+- [Scenario Manager API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Python API
 
 ## Common Packet Types
 
@@ -3854,13 +3854,13 @@ For complete API documentation, see:
 | Get64                  | 514 | Get tile 64              |
 | Set64                  | 715 | Set tile 64              |
 
-See [Protocol Documentation](../../architecture/protocol/) for complete list.
+See [Protocol Documentation](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) for complete list.
 
 ## Next Steps
 
-- [Scenario Management API](../scenario-api/) - REST API reference
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Configuration details
-- [Integration Testing](../../guide/integration-testing/) - Testing patterns
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - REST API reference
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configuration details
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Testing patterns
 # lifx-emulator-core (Python Library)
 
 # Python Library Reference
@@ -3875,12 +3875,12 @@ The LIFX Emulator library is designed for simplicity and ease of use. Most users
 
 This reference is organized from most common to advanced usage:
 
-1. **[Factory Functions](factories/)** - Creating devices (most common)
-1. **[Server](server/)** - Server setup and configuration
-1. **[Device](device/)** - Device API and state management
-1. **[Products](products/)** - Product registry and specs
-1. **[Protocol](protocol/)** - Low-level protocol types (advanced)
-1. **[Storage](storage/)** - Persistent state (advanced)
+1. **[Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md)** - Creating devices (most common)
+1. **[Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)** - Server setup and configuration
+1. **[Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Device API and state management
+1. **[Products](https://djelibeybi.github.io/lifx-emulator/library/products/index.md)** - Product registry and specs
+1. **[Protocol](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md)** - Low-level protocol types (advanced)
+1. **[Storage](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md)** - Persistent state (advanced)
 
 ## Quick Start
 
@@ -3944,7 +3944,7 @@ from lifx_emulator.factories import (
 )
 ```
 
-👉 **[Full Factory Documentation](factories/)**
+👉 **[Full Factory Documentation](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md)**
 
 ### 2. Server
 
@@ -3974,7 +3974,7 @@ await server.start()
 await server.stop()
 ```
 
-👉 **[Full Server Documentation](server/)**
+👉 **[Full Server Documentation](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)**
 
 ### 3. Device (Advanced)
 
@@ -3987,7 +3987,7 @@ state = DeviceState(serial="d073d5000001", label="Custom Device")
 device = EmulatedLifxDevice(state)
 ```
 
-👉 **[Full Device Documentation](device/)**
+👉 **[Full Device Documentation](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)**
 
 ### 4. Product Registry
 
@@ -4000,7 +4000,7 @@ product = get_product(27)  # LIFX A19
 all_products = get_registry()
 ```
 
-👉 **[Full Product Documentation](products/)**
+👉 **[Full Product Documentation](https://djelibeybi.github.io/lifx-emulator/library/products/index.md)**
 
 ## Quick Reference
 
@@ -4173,11 +4173,11 @@ print(f"New color: {device.state.color}")
 
 ## Next Steps
 
-- [Server API](server/) - EmulatedLifxServer documentation
-- [Device API](device/) - EmulatedLifxDevice and DeviceState
-- [Factory Functions](factories/) - All create\_\* functions
-- [Protocol Types](protocol/) - LightHsbk and other types
-- [Product Registry](products/) - Product database
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - EmulatedLifxServer documentation
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice and DeviceState
+- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - All create\_\* functions
+- [Protocol Types](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - LightHsbk and other types
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - Product database
 
 # Factory Functions
 
@@ -4782,7 +4782,7 @@ tiles = create_tile_device("d073d9000001")
 candle = create_device(57, serial="d073d9000002")
 ```
 
-See [Product Registry](../products/) for all product definitions and defaults.
+See [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) for all product definitions and defaults.
 
 ## Device State Access
 
@@ -4908,10 +4908,10 @@ new_device = create_color_light(
 
 ## Next Steps
 
-- [Server API](../server/) - Running the emulator server
-- [Device API](../device/) - Device and state details
-- [Product Registry](../products/) - All available products
-- [Basic Tutorial](../../tutorials/02-basic/) - Complete usage examples
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Running the emulator server
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device and state details
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All available products
+- [Basic Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md) - Complete usage examples
 
 # EmulatedLifxServer
 
@@ -5219,7 +5219,7 @@ Optional persistent storage backend for device state.
 - When provided, device state changes are automatically saved asynchronously
 - Allows device state to persist across emulator restarts
 - Must be used with devices created with the same storage instance
-- See [Persistent Storage Guide](../../cli/storage/) for details
+- See [Persistent Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md) for details
 
 **Example:**
 
@@ -5269,7 +5269,7 @@ Optional scenario manager for test scenario configuration.
 - When provided, enables runtime scenario management via REST API
 - Supports device-specific, type-specific, location-based, group-based, and global scenarios
 - Scenarios control packet dropping, delays, malformed responses, etc.
-- See [Testing Scenarios Guide](../../cli/scenarios/) for detailed examples
+- See [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md) for detailed examples
 
 **Example:**
 
@@ -5569,9 +5569,9 @@ async def lifx_server(device_manager):
 
 ## Next Steps
 
-- [Device API](../device/) - EmulatedLifxDevice documentation
-- [Factory Functions](../factories/) - Device creation
-- [Integration Testing Tutorial](../../tutorials/03-integration/) - Integration test examples
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice documentation
+- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Device creation
+- [Integration Testing Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md) - Integration test examples
 
 # Device API Reference
 
@@ -6063,10 +6063,10 @@ graph TD
 
 **See Also:**
 
-- [EmulatedLifxServer](../server/) - UDP server that routes packets to devices
-- [Protocol Packets](../protocol/) - LIFX protocol packet definitions
-- [Factories](../factories/) - Helper functions for creating pre-configured devices
-- [Storage](../storage/) - Persistent state storage API
+- [EmulatedLifxServer](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - UDP server that routes packets to devices
+- [Protocol Packets](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - LIFX protocol packet definitions
+- [Factories](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Helper functions for creating pre-configured devices
+- [Storage](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Persistent state storage API
 
 ______________________________________________________________________
 
@@ -6076,10 +6076,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Getting Started](../../getting-started/quickstart/) - Quick start guide
-- [Device Types](../../guide/device-types/) - Supported device types and capabilities
-- [Testing Scenarios](../../guide/testing-scenarios/) - Detailed testing scenario guide
-- [Architecture Overview](../../architecture/overview/) - System architecture
+- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start guide
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Supported device types and capabilities
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Detailed testing scenario guide
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) - System architecture
 
 # Protocol API Reference
 
@@ -6797,10 +6797,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Device API](../device/) - Device state and packet processing
-- [Server API](../server/) - UDP server implementation
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state and packet processing
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - UDP server implementation
 - [LIFX LAN Protocol Specification](https://lan.developer.lifx.com/) - Official protocol docs
-- [Architecture Overview](../../architecture/overview/) - System architecture
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) - System architecture
 
 **Protocol Specification:**
 
@@ -7498,10 +7498,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Device API](../device/) - Device state structure
-- [CLI Reference](../../cli/cli-reference/) - Using `--persistent` flag
-- [Getting Started](../../getting-started/quickstart/) - Quick start with persistence
-- [Best Practices](../../guide/best-practices/) - Storage best practices
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state structure
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Using `--persistent` flag
+- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start with persistence
+- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Storage best practices
 
 **See Also:**
 
@@ -8064,10 +8064,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Factories API](../factories/) - Device creation from product IDs
-- [Device API](../device/) - Device capabilities and state
-- [Device Types Guide](../../guide/device-types/) - Supported device types
-- [CLI Reference](../../cli/cli-reference/) - Command-line product usage
+- [Factories API](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Device creation from product IDs
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device capabilities and state
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Supported device types
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Command-line product usage
 
 **External Resources:**
 
@@ -8100,11 +8100,11 @@ Before reading this section, you should:
 
 Read these pages in order from high-level to implementation details:
 
-1. **[Architecture Overview](overview/)** - System design and component interaction
-1. **[Architecture Decisions](decisions/)** - Design rationale and ADRs (15 documented decisions)
-1. **[Packet Flow](packet-flow/)** - How packets are received and processed
-1. **[Device State](device-state/)** - State management and capabilities
-1. **[Protocol Details](protocol/)** - Binary protocol implementation
+1. **[Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md)** - System design and component interaction
+1. **[Architecture Decisions](https://djelibeybi.github.io/lifx-emulator/architecture/decisions/index.md)** - Design rationale and ADRs (15 documented decisions)
+1. **[Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md)** - How packets are received and processed
+1. **[Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md)** - State management and capabilities
+1. **[Protocol Details](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md)** - Binary protocol implementation
 
 ## Quick Concepts
 
@@ -8150,7 +8150,7 @@ The LIFX LAN protocol is a binary UDP protocol. The emulator:
 
 ## Next Steps
 
-Start with the [Architecture Overview](overview/) for a high-level understanding, then progress through the other pages for deeper details.
+Start with the [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) for a high-level understanding, then progress through the other pages for deeper details.
 
 # Architecture Overview
 
@@ -8446,7 +8446,7 @@ The emulator implements 44+ packet types across multiple domains:
 - SetTileState64 (715)
 - GetTileEffect (718) / StateTileEffect (719)
 
-See [Protocol Layer](../protocol/) for complete packet documentation.
+See [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) for complete packet documentation.
 
 ## Design Patterns
 
@@ -8518,10 +8518,10 @@ device.scenarios = {
 
 ## Next Steps
 
-- [Packet Flow](../packet-flow/) - Detailed packet processing
-- [Protocol Layer](../protocol/) - Protocol implementation details
-- [Device State](../device-state/) - State management
-- [Server API](../../library/server/) - Server documentation
+- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md) - Detailed packet processing
+- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) - Protocol implementation details
+- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md) - State management
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Server documentation
 
 # Packet Flow
 
@@ -8544,7 +8544,7 @@ Welcome to the LIFX Emulator User Guide. This guide helps you understand the emu
 
 Before reading this guide, you should have:
 
-- Completed the [Getting Started](../getting-started/) section
+- Completed the [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/index.md) section
 - Successfully run the emulator at least once
 - Basic understanding of LIFX devices (optional but helpful)
 
@@ -8553,12 +8553,12 @@ Before reading this guide, you should have:
 Read these guides in order for the best learning experience:
 
 1. **[Overview](#what-is-lifx-emulator)** (below) - High-level concepts
-1. **[Device Types](device-types/)** - What devices you can emulate
-1. **[Products and Specs](products-and-specs/)** - Product registry system
-1. **[Web Interface](../cli/web-interface/)** - Visual monitoring and management
-1. **[Integration Testing](integration-testing/)** - Using in test suites
-1. **[Testing Scenarios](testing-scenarios/)** - Simulating errors and edge cases
-1. **[Best Practices](best-practices/)** - Tips for effective testing
+1. **[Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md)** - What devices you can emulate
+1. **[Products and Specs](https://djelibeybi.github.io/lifx-emulator/guide/products-and-specs/index.md)** - Product registry system
+1. **[Web Interface](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md)** - Visual monitoring and management
+1. **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - Using in test suites
+1. **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Simulating errors and edge cases
+1. **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Tips for effective testing
 
 ## What is LIFX Emulator?
 
@@ -9092,7 +9092,7 @@ Matrix devices support **8 framebuffers (0-7)** to enable atomic updates of tile
 
 For large tiles (>64 zones), prepare all zones in a non-visible framebuffer, then use `CopyFrameBuffer` to atomically display them without flicker.
 
-See [Framebuffer Guide](../framebuffers/) for complete documentation and examples.
+See [Framebuffer Guide](https://djelibeybi.github.io/lifx-emulator/guide/framebuffers/index.md) for complete documentation and examples.
 
 ## Switch Devices
 
@@ -9224,10 +9224,10 @@ curl -X POST http://localhost:8080/api/devices \
 
 ## Next Steps
 
-- [Testing Scenarios](../testing-scenarios/) - Configure error scenarios
-- [Integration Testing](../integration-testing/) - Use in tests
-- [Factory Functions API](../../library/factories/) - Detailed API docs
-- [Product Registry](../../library/products/) - All products
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Use in tests
+- [Factory Functions API](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Detailed API docs
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All products
 
 # LIFX Product Registry and Specifications
 
@@ -10181,16 +10181,16 @@ device.scenarios = SCENARIOS['flaky_network']
 
 ## Next Steps
 
-- **[Advanced Examples](../../tutorials/04-advanced-scenarios/)** - See scenarios in action
-- **[Integration Testing](../integration-testing/)** - Use scenarios in test suites
-- **[Best Practices](../best-practices/)** - Testing strategies
-- **[API Reference: Device](../../library/device/)** - Full device API documentation
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - See scenarios in action
+- **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - Use scenarios in test suites
+- **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing strategies
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full device API documentation
 
 ## See Also
 
-- [Protocol Types Reference](../../library/protocol/) - All packet types and numbers
-- [Device API](../../library/device/) - EmulatedLifxDevice documentation
-- [FAQ](../../faq/) - Common issues and solutions
+- [Protocol Types Reference](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - All packet types and numbers
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice documentation
+- [FAQ](https://djelibeybi.github.io/lifx-emulator/faq/index.md) - Common issues and solutions
 
 # Matrix Framebuffer Support
 
@@ -10404,8 +10404,8 @@ copy = Tile.CopyFrameBuffer(
 
 ## Related Documentation
 
-- [Device Types](../device-types/#matrix-devices) - Matrix device capabilities
-- [Protocol](../../architecture/protocol/) - LIFX LAN protocol details
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/#matrix-devices) - Matrix device capabilities
+- [Protocol](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) - LIFX LAN protocol details
 
 # Integration Testing Guide
 
@@ -11186,18 +11186,18 @@ def configure_logging():
 
 ## Next Steps
 
-- **[Best Practices](../best-practices/)** - Testing best practices
-- **[Testing Scenarios](../testing-scenarios/)** - Error injection
-- **[CI/CD Tutorial](../../tutorials/05-cicd/)** - Detailed CI/CD setup
-- **[Integration Examples](../../tutorials/03-integration/)** - More examples
+- **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing best practices
+- **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Error injection
+- **[CI/CD Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md)** - Detailed CI/CD setup
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - More examples
 
 ## See Also
 
 - [pytest Documentation](https://docs.pytest.org/)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/)
-- [API Reference: Server](../../library/server/)
-- [API Reference: Device](../../library/device/)
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)
 
 # Best Practices
 
@@ -11891,17 +11891,17 @@ Before writing a new test, ask:
 
 ## Next Steps
 
-- **[Testing Scenarios](../testing-scenarios/)** - Error injection patterns
-- **[Integration Testing](../integration-testing/)** - pytest integration
-- **[Advanced Examples](../../tutorials/04-advanced-scenarios/)** - Complex scenarios
-- **[CI/CD Integration](../../tutorials/05-cicd/)** - Running in CI
+- **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Error injection patterns
+- **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - pytest integration
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios
+- **[CI/CD Integration](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md)** - Running in CI
 
 ## See Also
 
 - [pytest Best Practices](https://docs.pytest.org/en/stable/goodpractices.html)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
-- [API Reference: Server](../../library/server/)
-- [API Reference: Device](../../library/device/)
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)
 # Tutorials
 
 # Tutorials Overview
@@ -11912,11 +11912,11 @@ Step-by-step tutorials to master the LIFX Emulator, organized from beginner to a
 
 Follow these tutorials in order for the best learning experience:
 
-1. **🟢 Beginner** - [First Device](01-first-device/) - Your first emulated LIFX device (⏱️ 10-15 minutes)
-1. **🟢 Beginner** - [Basic Usage](02-basic/) - Multiple devices and basic operations (⏱️ 15-30 minutes)
-1. **🟡 Intermediate** - [Integration Testing](03-integration/) - Using the emulator in test suites (⏱️ 30-45 minutes)
-1. **🔴 Advanced** - [Advanced Scenarios](04-advanced-scenarios/) - Error injection and complex testing (⏱️ 45-60 minutes)
-1. **🔴 Advanced** - [CI/CD Integration](05-cicd/) - Automated testing pipelines (⏱️ 30-45 minutes)
+1. **🟢 Beginner** - [First Device](https://djelibeybi.github.io/lifx-emulator/tutorials/01-first-device/index.md) - Your first emulated LIFX device (⏱️ 10-15 minutes)
+1. **🟢 Beginner** - [Basic Usage](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md) - Multiple devices and basic operations (⏱️ 15-30 minutes)
+1. **🟡 Intermediate** - [Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md) - Using the emulator in test suites (⏱️ 30-45 minutes)
+1. **🔴 Advanced** - [Advanced Scenarios](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md) - Error injection and complex testing (⏱️ 45-60 minutes)
+1. **🔴 Advanced** - [CI/CD Integration](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md) - Automated testing pipelines (⏱️ 30-45 minutes)
 
 ## Tutorial Categories
 
@@ -12278,9 +12278,9 @@ python --version  # Should show 3.11 or higher
 
 Now that you have a basic device running, you can:
 
-1. **[Basic Usage Tutorial](../02-basic/)** - Learn more patterns (multiple devices, state queries, etc.)
-1. **[Integration Testing](../03-integration/)** - Use the emulator in your pytest test suite
-1. **[Advanced Scenarios](../04-advanced-scenarios/)** - Explore multizone devices, tiles, and error injection
+1. **[Basic Usage Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Learn more patterns (multiple devices, state queries, etc.)
+1. **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Use the emulator in your pytest test suite
+1. **[Advanced Scenarios](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Explore multizone devices, tiles, and error injection
 
 ### Quick Wins
 
@@ -12312,9 +12312,9 @@ Try these modifications to your `first_device.py`:
 
 ## See Also
 
-- [CLI Usage](../../cli/cli-reference/) - Quick command-line testing
-- [Device Types](../../guide/device-types/) - Understanding different LIFX devices
-- [API Reference: Device](../../library/device/) - Complete device API documentation
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Quick command-line testing
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding different LIFX devices
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Complete device API documentation
 
 # Basic Examples
 
@@ -12655,16 +12655,16 @@ async def test_device_responds(emulator):
 
 ## Next Steps
 
-- **[Integration Examples](../03-integration/)** - Comprehensive pytest patterns and test fixtures
-- **[Advanced Examples](../04-advanced-scenarios/)** - Complex scenarios with multizone, tiles, and error injection
-- **[API Reference: Device](../../library/device/)** - Full EmulatedLifxDevice API documentation
-- **[API Reference: Server](../../library/server/)** - Full EmulatedLifxServer API documentation
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Comprehensive pytest patterns and test fixtures
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios with multizone, tiles, and error injection
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full EmulatedLifxDevice API documentation
+- **[API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)** - Full EmulatedLifxServer API documentation
 
 ## See Also
 
-- [CLI Usage](../../cli/cli-reference/) - Command-line interface for quick testing
-- [Product Registry](../../library/products/) - Available product IDs and capabilities
-- [Device Types Guide](../../guide/device-types/) - Understanding different LIFX device types
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Command-line interface for quick testing
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - Available product IDs and capabilities
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding different LIFX device types
 
 # Integration Testing Examples
 
@@ -13300,17 +13300,17 @@ async def test_state_modification(test_devices):
 
 ## Next Steps
 
-- **[Basic Examples](../02-basic/)** - Review basic usage patterns
-- **[Advanced Examples](../04-advanced-scenarios/)** - Complex scenarios and error injection
-- **[Best Practices Guide](../../guide/best-practices/)** - Testing best practices
+- **[Basic Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Review basic usage patterns
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios and error injection
+- **[Best Practices Guide](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing best practices
 - **[pytest Documentation](https://docs.pytest.org/)** - Official pytest docs
 
 ## See Also
 
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/) - Async test support
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/) - Parallel test execution
-- [API Reference: Device](../../library/device/) - Device API documentation
-- [API Reference: Server](../../library/server/) - Server API documentation
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device API documentation
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Server API documentation
 
 # Advanced Examples
 
@@ -13885,21 +13885,21 @@ if __name__ == "__main__":
 
 ## Next Steps
 
-- **[Integration Examples](../03-integration/)** - Comprehensive pytest patterns and test fixtures
-- **[Basic Examples](../02-basic/)** - Review basic usage patterns
-- **[Testing Scenarios Guide](../../guide/testing-scenarios/)** - Detailed testing scenarios documentation
-- **[API Reference: Device](../../library/device/)** - Full device API reference
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Comprehensive pytest patterns and test fixtures
+- **[Basic Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Review basic usage patterns
+- **[Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Detailed testing scenarios documentation
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full device API reference
 
 ## See Also
 
-- [Product Registry](../../library/products/) - All available product IDs and capabilities
-- [Storage API](../../library/storage/) - Persistent storage documentation
-- [Scenario Management API Guide](../../cli/scenario-api/) - Runtime device management and scenario testing
-- [Device Types](../../guide/device-types/) - Understanding LIFX device capabilities
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All available product IDs and capabilities
+- [Storage API](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Persistent storage documentation
+- [Scenario Management API Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Runtime device management and scenario testing
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding LIFX device capabilities
 
 # CI/CD Integration
 
-**Difficulty:** 🔴 Advanced | **Time:** ⏱️ 30 minutes | **Prerequisites:** [Integration Testing Tutorial](../03-integration/)
+**Difficulty:** 🔴 Advanced | **Time:** ⏱️ 30 minutes | **Prerequisites:** [Integration Testing Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)
 
 This tutorial shows how to integrate the LIFX Emulator into your CI/CD pipelines using GitHub Actions, GitLab CI, and Docker.
 
@@ -14585,9 +14585,9 @@ if sys.platform == 'win32':
 
 ## Next Steps
 
-- **[Integration Testing](../03-integration/)** - Review pytest patterns
-- **[Advanced Examples](../04-advanced-scenarios/)** - Learn error injection for CI tests
-- **[Best Practices](../../guide/best-practices/)** - Testing best practices
+- **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Review pytest patterns
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Learn error injection for CI tests
+- **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing best practices
 
 ## See Also
 

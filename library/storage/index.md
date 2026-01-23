@@ -688,10 +688,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Device API](../device/) - Device state structure
-- [CLI Reference](../../cli/cli-reference/) - Using `--persistent` flag
-- [Getting Started](../../getting-started/quickstart/) - Quick start with persistence
-- [Best Practices](../../guide/best-practices/) - Storage best practices
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state structure
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Using `--persistent` flag
+- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start with persistence
+- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Storage best practices
 
 **See Also:**
 

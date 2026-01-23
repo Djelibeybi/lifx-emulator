@@ -24,11 +24,11 @@ Before reading this section, you should:
 
 Read these pages in order from high-level to implementation details:
 
-1. **[Architecture Overview](overview/)** - System design and component interaction
-1. **[Architecture Decisions](decisions/)** - Design rationale and ADRs (15 documented decisions)
-1. **[Packet Flow](packet-flow/)** - How packets are received and processed
-1. **[Device State](device-state/)** - State management and capabilities
-1. **[Protocol Details](protocol/)** - Binary protocol implementation
+1. **[Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md)** - System design and component interaction
+1. **[Architecture Decisions](https://djelibeybi.github.io/lifx-emulator/architecture/decisions/index.md)** - Design rationale and ADRs (15 documented decisions)
+1. **[Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md)** - How packets are received and processed
+1. **[Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md)** - State management and capabilities
+1. **[Protocol Details](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md)** - Binary protocol implementation
 
 ## Quick Concepts
 
@@ -74,4 +74,4 @@ The LIFX LAN protocol is a binary UDP protocol. The emulator:
 
 ## Next Steps
 
-Start with the [Architecture Overview](overview/) for a high-level understanding, then progress through the other pages for deeper details.
+Start with the [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) for a high-level understanding, then progress through the other pages for deeper details.

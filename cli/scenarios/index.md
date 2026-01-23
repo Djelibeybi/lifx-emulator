@@ -240,7 +240,7 @@ manager.set_device_scenario(
 
 ## REST API Examples
 
-Full REST API documentation is in the [Scenario Management API guide](../scenario-api/).
+Full REST API documentation is in the [Scenario Management API guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md).
 
 ### Get Current Scenario
 
@@ -378,9 +378,9 @@ Scenarios are saved to `~/.lifx-emulator/scenarios.json`.
 
 For complete API documentation, see:
 
-- [Scenario Management API Guide](../scenario-api/) - REST API endpoints
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Configuration details
-- [Scenario Manager API](../../library/server/) - Python API
+- [Scenario Management API Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - REST API endpoints
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configuration details
+- [Scenario Manager API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Python API
 
 ## Common Packet Types
 
@@ -397,10 +397,10 @@ For complete API documentation, see:
 | Get64                  | 514 | Get tile 64              |
 | Set64                  | 715 | Set tile 64              |
 
-See [Protocol Documentation](../../architecture/protocol/) for complete list.
+See [Protocol Documentation](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) for complete list.
 
 ## Next Steps
 
-- [Scenario Management API](../scenario-api/) - REST API reference
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Configuration details
-- [Integration Testing](../../guide/integration-testing/) - Testing patterns
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - REST API reference
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configuration details
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Testing patterns

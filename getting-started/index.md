@@ -15,15 +15,15 @@ LIFX Emulator is available as two packages:
 
 ### CLI Users (lifx-emulator)
 
-1. **[Installation](installation/)** - Install the CLI tool
-1. **[Quick Start](quickstart/)** - Start emulating devices
-1. **[CLI Reference](../cli/cli-reference/)** - All command-line options
+1. **[Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md)** - Install the CLI tool
+1. **[Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md)** - Start emulating devices
+1. **[CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md)** - All command-line options
 
 ### Library Users (lifx-emulator-core)
 
-1. **[Installation](installation/)** - Install the library
-1. **[Quick Start](quickstart/)** - Programmatic usage
-1. **[API Reference](../library/)** - Python API documentation
+1. **[Installation](https://djelibeybi.github.io/lifx-emulator/getting-started/installation/index.md)** - Install the library
+1. **[Quick Start](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md)** - Programmatic usage
+1. **[API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md)** - Python API documentation
 
 ## Quick Preview
 
@@ -77,12 +77,12 @@ We recommend [uv](https://astral.sh/uv) because it:
 
 Once you've completed the getting started guide, explore:
 
-- **[User Guides](../guide/)** - Deeper understanding of features
-- **[Tutorials](../tutorials/)** - Hands-on learning with examples
-- **[API Reference](../library/)** - Complete API documentation
+- **[User Guides](https://djelibeybi.github.io/lifx-emulator/guide/index.md)** - Deeper understanding of features
+- **[Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md)** - Hands-on learning with examples
+- **[API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md)** - Complete API documentation
 
 ## Need Help?
 
-- [Troubleshooting Guide](../reference/troubleshooting/)
-- [FAQ](../faq/)
+- [Troubleshooting Guide](https://djelibeybi.github.io/lifx-emulator/reference/troubleshooting/index.md)
+- [FAQ](https://djelibeybi.github.io/lifx-emulator/faq/index.md)
 - [GitHub Issues](https://github.com/Djelibeybi/lifx-emulator/issues)

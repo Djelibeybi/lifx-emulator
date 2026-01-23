@@ -632,14 +632,14 @@ async def test_state_modification(test_devices):
 
 ## Next Steps
 
-- **[Basic Examples](../02-basic/)** - Review basic usage patterns
-- **[Advanced Examples](../04-advanced-scenarios/)** - Complex scenarios and error injection
-- **[Best Practices Guide](../../guide/best-practices/)** - Testing best practices
+- **[Basic Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Review basic usage patterns
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios and error injection
+- **[Best Practices Guide](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing best practices
 - **[pytest Documentation](https://docs.pytest.org/)** - Official pytest docs
 
 ## See Also
 
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/) - Async test support
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/) - Parallel test execution
-- [API Reference: Device](../../library/device/) - Device API documentation
-- [API Reference: Server](../../library/server/) - Server API documentation
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device API documentation
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Server API documentation

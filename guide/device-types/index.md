@@ -463,7 +463,7 @@ Matrix devices support **8 framebuffers (0-7)** to enable atomic updates of tile
 
 For large tiles (>64 zones), prepare all zones in a non-visible framebuffer, then use `CopyFrameBuffer` to atomically display them without flicker.
 
-See [Framebuffer Guide](../framebuffers/) for complete documentation and examples.
+See [Framebuffer Guide](https://djelibeybi.github.io/lifx-emulator/guide/framebuffers/index.md) for complete documentation and examples.
 
 ## Switch Devices
 
@@ -595,7 +595,7 @@ curl -X POST http://localhost:8080/api/devices \
 
 ## Next Steps
 
-- [Testing Scenarios](../testing-scenarios/) - Configure error scenarios
-- [Integration Testing](../integration-testing/) - Use in tests
-- [Factory Functions API](../../library/factories/) - Detailed API docs
-- [Product Registry](../../library/products/) - All products
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Use in tests
+- [Factory Functions API](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Detailed API docs
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - All products

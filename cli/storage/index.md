@@ -239,9 +239,9 @@ This saves scenario configurations to `~/.lifx-emulator/scenarios.json`.
 
 For complete API documentation, see:
 
-- [Storage API Reference](../../library/storage/)
-- [AsyncDeviceStorage class reference](../../library/storage/#asyncdevicestorage)
-- [File format specification](../../library/storage/#file-format)
+- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md)
+- [AsyncDeviceStorage class reference](https://djelibeybi.github.io/lifx-emulator/library/storage/#asyncdevicestorage)
+- [File format specification](https://djelibeybi.github.io/lifx-emulator/library/storage/#file-format)
 
 ## Troubleshooting
 
@@ -286,6 +286,6 @@ for serial in storage.list_devices():
 
 ## Next Steps
 
-- [Testing Scenarios Guide](../../guide/testing-scenarios/) - Combine with error scenarios
-- [Storage API Reference](../../library/storage/) - Detailed API documentation
-- [Advanced Testing Guide](../../guide/integration-testing/) - Integration patterns
+- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Combine with error scenarios
+- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Detailed API documentation
+- [Advanced Testing Guide](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Integration patterns

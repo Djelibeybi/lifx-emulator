@@ -196,8 +196,8 @@ Example with a typical discovery flow:
 
 ## Next Steps
 
-- [CLI Usage Guide](../../cli/cli-reference/) - Learn all CLI options
-- [Device Types](../../guide/device-types/) - Explore supported devices
-- [Testing Scenarios](../../guide/testing-scenarios/) - Configure error scenarios
-- [API Reference](../../library/) - Complete API documentation
-- [Tutorials](../../tutorials/) - More code examples
+- [CLI Usage Guide](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Learn all CLI options
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Explore supported devices
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Complete API documentation
+- [Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md) - More code examples

@@ -482,7 +482,7 @@ lifx-emulator --api --color 3
 
 ## Next Steps
 
-- [Device Types Guide](../../guide/device-types/) - Learn about each device type
-- [Testing Scenarios](../../guide/testing-scenarios/) - Configure error scenarios
-- [API Reference](../../library/) - Python API documentation
-- [Tutorials](../../tutorials/) - More usage examples
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Learn about each device type
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Configure error scenarios
+- [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Python API documentation
+- [Tutorials](https://djelibeybi.github.io/lifx-emulator/tutorials/index.md) - More usage examples

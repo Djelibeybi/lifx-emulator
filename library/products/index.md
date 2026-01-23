@@ -552,10 +552,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Factories API](../factories/) - Device creation from product IDs
-- [Device API](../device/) - Device capabilities and state
-- [Device Types Guide](../../guide/device-types/) - Supported device types
-- [CLI Reference](../../cli/cli-reference/) - Command-line product usage
+- [Factories API](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Device creation from product IDs
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device capabilities and state
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Supported device types
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Command-line product usage
 
 **External Resources:**
 

@@ -488,10 +488,10 @@ graph TD
 
 **See Also:**
 
-- [EmulatedLifxServer](../server/) - UDP server that routes packets to devices
-- [Protocol Packets](../protocol/) - LIFX protocol packet definitions
-- [Factories](../factories/) - Helper functions for creating pre-configured devices
-- [Storage](../storage/) - Persistent state storage API
+- [EmulatedLifxServer](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - UDP server that routes packets to devices
+- [Protocol Packets](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - LIFX protocol packet definitions
+- [Factories](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Helper functions for creating pre-configured devices
+- [Storage](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Persistent state storage API
 
 ______________________________________________________________________
 
@@ -501,7 +501,7 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Getting Started](../../getting-started/quickstart/) - Quick start guide
-- [Device Types](../../guide/device-types/) - Supported device types and capabilities
-- [Testing Scenarios](../../guide/testing-scenarios/) - Detailed testing scenario guide
-- [Architecture Overview](../../architecture/overview/) - System architecture
+- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start guide
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Supported device types and capabilities
+- [Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Detailed testing scenario guide
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) - System architecture

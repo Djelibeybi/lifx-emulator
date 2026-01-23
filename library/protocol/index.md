@@ -714,10 +714,10 @@ ______________________________________________________________________
 
 **Related Documentation:**
 
-- [Device API](../device/) - Device state and packet processing
-- [Server API](../server/) - UDP server implementation
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state and packet processing
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - UDP server implementation
 - [LIFX LAN Protocol Specification](https://lan.developer.lifx.com/) - Official protocol docs
-- [Architecture Overview](../../architecture/overview/) - System architecture
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) - System architecture
 
 **Protocol Specification:**
 

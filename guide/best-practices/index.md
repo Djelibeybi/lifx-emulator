@@ -690,14 +690,14 @@ Before writing a new test, ask:
 
 ## Next Steps
 
-- **[Testing Scenarios](../testing-scenarios/)** - Error injection patterns
-- **[Integration Testing](../integration-testing/)** - pytest integration
-- **[Advanced Examples](../../tutorials/04-advanced-scenarios/)** - Complex scenarios
-- **[CI/CD Integration](../../tutorials/05-cicd/)** - Running in CI
+- **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Error injection patterns
+- **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - pytest integration
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios
+- **[CI/CD Integration](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md)** - Running in CI
 
 ## See Also
 
 - [pytest Best Practices](https://docs.pytest.org/en/stable/goodpractices.html)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
-- [API Reference: Server](../../library/server/)
-- [API Reference: Device](../../library/device/)
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)

@@ -710,13 +710,13 @@ device.scenarios = SCENARIOS['flaky_network']
 
 ## Next Steps
 
-- **[Advanced Examples](../../tutorials/04-advanced-scenarios/)** - See scenarios in action
-- **[Integration Testing](../integration-testing/)** - Use scenarios in test suites
-- **[Best Practices](../best-practices/)** - Testing strategies
-- **[API Reference: Device](../../library/device/)** - Full device API documentation
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - See scenarios in action
+- **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md)** - Use scenarios in test suites
+- **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing strategies
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full device API documentation
 
 ## See Also
 
-- [Protocol Types Reference](../../library/protocol/) - All packet types and numbers
-- [Device API](../../library/device/) - EmulatedLifxDevice documentation
-- [FAQ](../../faq/) - Common issues and solutions
+- [Protocol Types Reference](https://djelibeybi.github.io/lifx-emulator/library/protocol/index.md) - All packet types and numbers
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice documentation
+- [FAQ](https://djelibeybi.github.io/lifx-emulator/faq/index.md) - Common issues and solutions

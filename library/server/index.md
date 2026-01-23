@@ -304,7 +304,7 @@ Optional persistent storage backend for device state.
 - When provided, device state changes are automatically saved asynchronously
 - Allows device state to persist across emulator restarts
 - Must be used with devices created with the same storage instance
-- See [Persistent Storage Guide](../../cli/storage/) for details
+- See [Persistent Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md) for details
 
 **Example:**
 
@@ -354,7 +354,7 @@ Optional scenario manager for test scenario configuration.
 - When provided, enables runtime scenario management via REST API
 - Supports device-specific, type-specific, location-based, group-based, and global scenarios
 - Scenarios control packet dropping, delays, malformed responses, etc.
-- See [Testing Scenarios Guide](../../cli/scenarios/) for detailed examples
+- See [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md) for detailed examples
 
 **Example:**
 
@@ -654,6 +654,6 @@ async def lifx_server(device_manager):
 
 ## Next Steps
 
-- [Device API](../device/) - EmulatedLifxDevice documentation
-- [Factory Functions](../factories/) - Device creation
-- [Integration Testing Tutorial](../../tutorials/03-integration/) - Integration test examples
+- [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - EmulatedLifxDevice documentation
+- [Factory Functions](https://djelibeybi.github.io/lifx-emulator/library/factories/index.md) - Device creation
+- [Integration Testing Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md) - Integration test examples

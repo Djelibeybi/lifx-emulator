@@ -677,5 +677,5 @@ ______________________________________________________________________
 
 ## See Also
 
-- [Web Interface Guide](../web-interface/) - Browser-based monitoring dashboard
-- [Scenario Management API](../scenario-api/) - Test scenario configuration
+- [Web Interface Guide](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md) - Browser-based monitoring dashboard
+- [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Test scenario configuration

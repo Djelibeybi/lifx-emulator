@@ -263,9 +263,9 @@ python --version  # Should show 3.11 or higher
 
 Now that you have a basic device running, you can:
 
-1. **[Basic Usage Tutorial](../02-basic/)** - Learn more patterns (multiple devices, state queries, etc.)
-1. **[Integration Testing](../03-integration/)** - Use the emulator in your pytest test suite
-1. **[Advanced Scenarios](../04-advanced-scenarios/)** - Explore multizone devices, tiles, and error injection
+1. **[Basic Usage Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/02-basic/index.md)** - Learn more patterns (multiple devices, state queries, etc.)
+1. **[Integration Testing](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Use the emulator in your pytest test suite
+1. **[Advanced Scenarios](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Explore multizone devices, tiles, and error injection
 
 ### Quick Wins
 
@@ -297,6 +297,6 @@ Try these modifications to your `first_device.py`:
 
 ## See Also
 
-- [CLI Usage](../../cli/cli-reference/) - Quick command-line testing
-- [Device Types](../../guide/device-types/) - Understanding different LIFX devices
-- [API Reference: Device](../../library/device/) - Complete device API documentation
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Quick command-line testing
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding different LIFX devices
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Complete device API documentation

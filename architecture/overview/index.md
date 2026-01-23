@@ -292,7 +292,7 @@ The emulator implements 44+ packet types across multiple domains:
 - SetTileState64 (715)
 - GetTileEffect (718) / StateTileEffect (719)
 
-See [Protocol Layer](../protocol/) for complete packet documentation.
+See [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) for complete packet documentation.
 
 ## Design Patterns
 
@@ -364,7 +364,7 @@ device.scenarios = {
 
 ## Next Steps
 
-- [Packet Flow](../packet-flow/) - Detailed packet processing
-- [Protocol Layer](../protocol/) - Protocol implementation details
-- [Device State](../device-state/) - State management
-- [Server API](../../library/server/) - Server documentation
+- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md) - Detailed packet processing
+- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) - Protocol implementation details
+- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md) - State management
+- [Server API](https://djelibeybi.github.io/lifx-emulator/library/server/index.md) - Server documentation

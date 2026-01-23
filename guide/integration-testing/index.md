@@ -777,15 +777,15 @@ def configure_logging():
 
 ## Next Steps
 
-- **[Best Practices](../best-practices/)** - Testing best practices
-- **[Testing Scenarios](../testing-scenarios/)** - Error injection
-- **[CI/CD Tutorial](../../tutorials/05-cicd/)** - Detailed CI/CD setup
-- **[Integration Examples](../../tutorials/03-integration/)** - More examples
+- **[Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md)** - Testing best practices
+- **[Testing Scenarios](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md)** - Error injection
+- **[CI/CD Tutorial](https://djelibeybi.github.io/lifx-emulator/tutorials/05-cicd/index.md)** - Detailed CI/CD setup
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - More examples
 
 ## See Also
 
 - [pytest Documentation](https://docs.pytest.org/)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
 - [pytest-xdist Documentation](https://pytest-xdist.readthedocs.io/)
-- [API Reference: Server](../../library/server/)
-- [API Reference: Device](../../library/device/)
+- [API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)
+- [API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)

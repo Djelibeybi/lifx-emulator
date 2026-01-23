@@ -168,6 +168,6 @@ pip install --force-reinstall lifx-emulator-core
 
 ## Next Steps
 
-- [Quick Start Guide](../quickstart/) - Create your first emulated device
-- [CLI Usage](../../cli/cli-reference/) - Learn all CLI commands
-- [Device Types](../../guide/device-types/) - Explore supported devices
+- [Quick Start Guide](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Create your first emulated device
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Learn all CLI commands
+- [Device Types](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Explore supported devices

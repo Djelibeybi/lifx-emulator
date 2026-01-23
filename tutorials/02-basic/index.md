@@ -337,13 +337,13 @@ async def test_device_responds(emulator):
 
 ## Next Steps
 
-- **[Integration Examples](../03-integration/)** - Comprehensive pytest patterns and test fixtures
-- **[Advanced Examples](../04-advanced-scenarios/)** - Complex scenarios with multizone, tiles, and error injection
-- **[API Reference: Device](../../library/device/)** - Full EmulatedLifxDevice API documentation
-- **[API Reference: Server](../../library/server/)** - Full EmulatedLifxServer API documentation
+- **[Integration Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/03-integration/index.md)** - Comprehensive pytest patterns and test fixtures
+- **[Advanced Examples](https://djelibeybi.github.io/lifx-emulator/tutorials/04-advanced-scenarios/index.md)** - Complex scenarios with multizone, tiles, and error injection
+- **[API Reference: Device](https://djelibeybi.github.io/lifx-emulator/library/device/index.md)** - Full EmulatedLifxDevice API documentation
+- **[API Reference: Server](https://djelibeybi.github.io/lifx-emulator/library/server/index.md)** - Full EmulatedLifxServer API documentation
 
 ## See Also
 
-- [CLI Usage](../../cli/cli-reference/) - Command-line interface for quick testing
-- [Product Registry](../../library/products/) - Available product IDs and capabilities
-- [Device Types Guide](../../guide/device-types/) - Understanding different LIFX device types
+- [CLI Usage](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Command-line interface for quick testing
+- [Product Registry](https://djelibeybi.github.io/lifx-emulator/library/products/index.md) - Available product IDs and capabilities
+- [Device Types Guide](https://djelibeybi.github.io/lifx-emulator/guide/device-types/index.md) - Understanding different LIFX device types
