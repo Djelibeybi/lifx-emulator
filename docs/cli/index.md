@@ -31,6 +31,24 @@ Read these guides in order from simple to complex:
 
 ## Quick Concepts
 
+### Configuration File
+
+Define your emulator setup in a YAML file instead of command-line arguments:
+
+```yaml
+# lifx-emulator.yaml
+api: true
+color: 2
+multizone: 1
+devices:
+  - product_id: 27
+    label: "Living Room"
+```
+
+The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
+
+👉 **[Configuration Guide](configuration.md)**
+
 ### Persistent Storage
 
 Save device state (colors, labels, power) across emulator restarts:
@@ -96,6 +114,13 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 
 ## When to Use Advanced Features
 
+### Use Configuration Files When:
+
+- You have complex device setups to reproduce
+- Sharing configurations with team members
+- Running tests in CI/CD pipelines
+- You want version-controlled emulator settings
+
 ### Use Persistent Storage When:
 
 - Running long test suites where state matters
@@ -143,3 +168,9 @@ curl -X POST http://localhost:8080/api/devices \
 ## Next Steps
 
 Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.
+
+1. **[Configuration File](configuration.md)** - YAML-based configuration
+2. **[Persistent Storage](storage.md)** - Save device state across restarts
+3. **[Device Management API](device-management-api.md)** - Add/remove devices at runtime
+4. **[Scenarios](scenarios.md)** - Comprehensive error simulation concepts
+5. **[Scenario API](scenario-api.md)** - REST API for managing test scenarios

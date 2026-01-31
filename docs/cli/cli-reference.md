@@ -2,6 +2,9 @@
 
 Complete guide to the `lifx-emulator` command-line interface.
 
+!!! tip "Configuration File"
+    All CLI options can also be set via a YAML configuration file. See the [Configuration File Guide](configuration.md) for details.
+
 ## Basic Usage
 
 ```bash
@@ -36,6 +39,24 @@ lifx-emulator list-products --filter-type multizone
 # List only matrix products (tiles)
 lifx-emulator list-products --filter-type matrix
 ```
+
+## Configuration Options
+
+### `--config <PATH>`
+
+Path to a YAML configuration file.
+
+- **Default:** Auto-detects `lifx-emulator.yaml` or `lifx-emulator.yml` in the current directory
+- **Environment Variable:** `LIFX_EMULATOR_CONFIG`
+- **Example:** `--config /path/to/my-config.yaml`
+
+Config file resolution order (first match wins):
+
+1. `--config` flag (explicit path)
+2. `LIFX_EMULATOR_CONFIG` environment variable
+3. `lifx-emulator.yaml` or `lifx-emulator.yml` in current directory
+
+CLI parameters override config file values. See [Configuration File Guide](configuration.md) for full details.
 
 ## Server Options
 

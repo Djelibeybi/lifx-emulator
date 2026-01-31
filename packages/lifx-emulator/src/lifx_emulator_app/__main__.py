@@ -6,7 +6,6 @@ import signal
 from typing import Annotated
 
 import cyclopts
-from lifx_emulator.constants import LIFX_UDP_PORT
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
@@ -28,6 +27,13 @@ from lifx_emulator.scenarios import ScenarioPersistenceAsyncFile
 from lifx_emulator.server import EmulatedLifxServer
 from rich.logging import RichHandler
 
+from lifx_emulator_app.config import (
+    EmulatorConfig,
+    load_config,
+    merge_config,
+    resolve_config_path,
+)
+
 app = cyclopts.App(
     name="lifx-emulator",
     help="LIFX LAN Protocol Emulator provides virtual LIFX devices for testing",
@@ -35,6 +41,7 @@ app = cyclopts.App(
 app.register_install_completion_command()
 
 # Parameter groups for organizing help output
+config_group = cyclopts.Group.create_ordered("Configuration")
 server_group = cyclopts.Group.create_ordered("Server Options")
 storage_group = cyclopts.Group.create_ordered("Storage & Persistence")
 api_group = cyclopts.Group.create_ordered("HTTP API Server")
@@ -208,74 +215,156 @@ def clear_storage(
     print(f"\nSuccessfully deleted {deleted} device state(s).")
 
 
+def _load_merged_config(**cli_kwargs) -> dict | None:
+    """Load config file and merge with CLI overrides.
+
+    Returns the merged config dict, or None on error.
+    """
+    config_flag = cli_kwargs.pop("config_flag", None)
+
+    try:
+        config_path = resolve_config_path(config_flag)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return None
+
+    file_config = EmulatorConfig()
+    if config_path:
+        try:
+            file_config = load_config(config_path)
+        except Exception as e:
+            print(f"Error loading config file {config_path}: {e}")
+            return None
+
+    # CLI "products" maps to config "products"
+    cli_overrides = dict(cli_kwargs)
+    if "products" in cli_overrides:
+        cli_overrides["products"] = cli_overrides.pop("products")
+
+    result = merge_config(file_config, cli_overrides)
+
+    # Carry the devices list from the config (not a CLI parameter)
+    if file_config.devices:
+        result["devices"] = file_config.devices
+
+    # Store config path for logging
+    if config_path:
+        result["_config_path"] = str(config_path)
+
+    return result
+
+
 @app.default
 async def run(
     *,
+    # Configuration
+    config: Annotated[
+        str | None, cyclopts.Parameter(group=config_group)
+    ] = None,
     # Server Options
-    bind: Annotated[str, cyclopts.Parameter(group=server_group)] = "127.0.0.1",
-    port: Annotated[int, cyclopts.Parameter(group=server_group)] = LIFX_UDP_PORT,
+    bind: Annotated[
+        str | None, cyclopts.Parameter(group=server_group)
+    ] = None,
+    port: Annotated[
+        int | None, cyclopts.Parameter(group=server_group)
+    ] = None,
     verbose: Annotated[
-        bool, cyclopts.Parameter(negative="", group=server_group)
-    ] = False,
+        bool | None, cyclopts.Parameter(negative="", group=server_group)
+    ] = None,
     # Storage & Persistence
     persistent: Annotated[
-        bool, cyclopts.Parameter(negative="", group=storage_group)
-    ] = False,
+        bool | None, cyclopts.Parameter(negative="", group=storage_group)
+    ] = None,
     persistent_scenarios: Annotated[
-        bool, cyclopts.Parameter(negative="", group=storage_group)
-    ] = False,
+        bool | None, cyclopts.Parameter(negative="", group=storage_group)
+    ] = None,
     # HTTP API Server
-    api: Annotated[bool, cyclopts.Parameter(negative="", group=api_group)] = False,
-    api_host: Annotated[str, cyclopts.Parameter(group=api_group)] = "127.0.0.1",
-    api_port: Annotated[int, cyclopts.Parameter(group=api_group)] = 8080,
-    api_activity: Annotated[bool, cyclopts.Parameter(group=api_group)] = True,
+    api: Annotated[
+        bool | None, cyclopts.Parameter(negative="", group=api_group)
+    ] = None,
+    api_host: Annotated[
+        str | None, cyclopts.Parameter(group=api_group)
+    ] = None,
+    api_port: Annotated[
+        int | None, cyclopts.Parameter(group=api_group)
+    ] = None,
+    api_activity: Annotated[
+        bool | None, cyclopts.Parameter(group=api_group)
+    ] = None,
     # Device Creation
     product: Annotated[
         list[int] | None, cyclopts.Parameter(negative_iterable="", group=device_group)
     ] = None,
-    color: Annotated[int, cyclopts.Parameter(group=device_group)] = 1,
-    color_temperature: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
-    infrared: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
-    hev: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
-    multizone: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
-    tile: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
-    switch: Annotated[int, cyclopts.Parameter(group=device_group)] = 0,
+    color: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    color_temperature: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    infrared: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    hev: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    multizone: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    tile: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
+    switch: Annotated[
+        int | None, cyclopts.Parameter(group=device_group)
+    ] = None,
     # Multizone Options
     multizone_zones: Annotated[
         int | None, cyclopts.Parameter(group=multizone_group)
     ] = None,
     multizone_extended: Annotated[
-        bool, cyclopts.Parameter(group=multizone_group)
-    ] = True,
+        bool | None, cyclopts.Parameter(group=multizone_group)
+    ] = None,
     # Tile/Matrix Options
     tile_count: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
     tile_width: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
     tile_height: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
     # Serial Number Options
-    serial_prefix: Annotated[str, cyclopts.Parameter(group=serial_group)] = "d073d5",
-    serial_start: Annotated[int, cyclopts.Parameter(group=serial_group)] = 1,
+    serial_prefix: Annotated[
+        str | None, cyclopts.Parameter(group=serial_group)
+    ] = None,
+    serial_start: Annotated[
+        int | None, cyclopts.Parameter(group=serial_group)
+    ] = None,
 ) -> bool | None:
     """Start the LIFX emulator with configurable devices.
 
     Creates virtual LIFX devices that respond to the LIFX LAN protocol. Supports
     creating devices by product ID or by device type (color, multizone, tile, etc).
-    State can optionally be persisted across restarts.
+    Settings can be provided via a YAML config file, environment variable, or
+    command-line parameters. CLI parameters override config file values.
+
+    Config file resolution order (first match wins):
+        1. --config path/to/file.yaml (explicit flag)
+        2. LIFX_EMULATOR_CONFIG environment variable
+        3. lifx-emulator.yaml or lifx-emulator.yml in current directory
 
     Args:
-        bind: IP address to bind to.
-        port: UDP port to listen on.
+        config: Path to YAML config file. If not specified, checks
+            LIFX_EMULATOR_CONFIG env var, then auto-detects
+            lifx-emulator.yaml or lifx-emulator.yml in current directory.
+        bind: IP address to bind to. Default: 127.0.0.1.
+        port: UDP port to listen on. Default: 56700.
         verbose: Enable verbose logging showing all packets sent and received.
         persistent: Enable persistent storage of device state across restarts.
         persistent_scenarios: Enable persistent storage of test scenarios.
             Requires --persistent to be enabled.
         api: Enable HTTP API server for monitoring and runtime device management.
-        api_host: API server host to bind to.
-        api_port: API server port.
+        api_host: API server host to bind to. Default: 127.0.0.1.
+        api_port: API server port. Default: 8080.
         api_activity: Enable activity logging in API. Disable to reduce traffic
-            and save UI space on the monitoring dashboard.
+            and save UI space on the monitoring dashboard. Default: true.
         product: Create devices by product ID. Can be specified multiple times.
             Run 'lifx-emulator list-products' to see available products.
-        color: Number of full-color RGB lights to emulate. Defaults to 1.
+        color: Number of full-color RGB lights to emulate.
         color_temperature: Number of color temperature (white spectrum) lights.
         infrared: Number of infrared lights with night vision capability.
         hev: Number of HEV/Clean lights with UV-C germicidal capability.
@@ -284,6 +373,7 @@ async def run(
             defaults if not specified.
         multizone_extended: Enable extended multizone support (Beam).
             Set --no-multizone-extended for basic multizone (Z) devices.
+            Default: true.
         tile: Number of tile/matrix chain devices.
         switch: Number of LIFX Switch devices (relays, no lighting).
         tile_count: Number of tiles per device. Uses product defaults if not
@@ -292,11 +382,15 @@ async def run(
             specified (8 for most devices).
         tile_height: Height of each tile in zones. Uses product defaults if
             not specified (8 for most devices).
-        serial_prefix: Serial number prefix as 6 hex characters.
+        serial_prefix: Serial number prefix as 6 hex characters. Default: d073d5.
         serial_start: Starting serial suffix for auto-incrementing device serials.
+            Default: 1.
 
     Examples:
-        Start with default configuration (1 color light):
+        Start with a config file:
+            lifx-emulator --config my-setup.yaml
+
+        Auto-detect config file in current directory:
             lifx-emulator
 
         Enable HTTP API server for monitoring:
@@ -311,59 +405,116 @@ async def run(
         Create diverse devices with API:
             lifx-emulator --color 2 --multizone 1 --tile 1 --api --verbose
 
-        Create only specific device types:
-            lifx-emulator --color 0 --infrared 3 --hev 2 --switch 2
-
-        Custom serial prefix:
-            lifx-emulator --serial-prefix cafe00 --color 5
-
-        Mix products and device types:
-            lifx-emulator --product 27 --color 2 --multizone 1
+        Override a config file setting:
+            lifx-emulator --config setup.yaml --port 56701
 
         Enable persistent storage:
             lifx-emulator --persistent --api
     """
-    logger: logging.Logger = _setup_logging(verbose)
+    # Load and merge config file with CLI overrides
+    cfg = _load_merged_config(
+        config_flag=config,
+        bind=bind,
+        port=port,
+        verbose=verbose,
+        persistent=persistent,
+        persistent_scenarios=persistent_scenarios,
+        api=api,
+        api_host=api_host,
+        api_port=api_port,
+        api_activity=api_activity,
+        products=product,
+        color=color,
+        color_temperature=color_temperature,
+        infrared=infrared,
+        hev=hev,
+        multizone=multizone,
+        tile=tile,
+        switch=switch,
+        multizone_zones=multizone_zones,
+        multizone_extended=multizone_extended,
+        tile_count=tile_count,
+        tile_width=tile_width,
+        tile_height=tile_height,
+        serial_prefix=serial_prefix,
+        serial_start=serial_start,
+    )
+    if cfg is None:
+        return False
+
+    # Extract final merged values
+    f_bind: str = cfg["bind"]
+    f_port: int = cfg["port"]
+    f_verbose: bool = cfg["verbose"]
+    f_persistent: bool = cfg["persistent"]
+    f_persistent_scenarios: bool = cfg["persistent_scenarios"]
+    f_api: bool = cfg["api"]
+    f_api_host: str = cfg["api_host"]
+    f_api_port: int = cfg["api_port"]
+    f_api_activity: bool = cfg["api_activity"]
+    f_products: list[int] | None = cfg["products"]
+    f_color: int = cfg["color"]
+    f_color_temperature: int = cfg["color_temperature"]
+    f_infrared: int = cfg["infrared"]
+    f_hev: int = cfg["hev"]
+    f_multizone: int = cfg["multizone"]
+    f_tile: int = cfg["tile"]
+    f_switch: int = cfg["switch"]
+    f_multizone_zones: int | None = cfg["multizone_zones"]
+    f_multizone_extended: bool = cfg["multizone_extended"]
+    f_tile_count: int | None = cfg["tile_count"]
+    f_tile_width: int | None = cfg["tile_width"]
+    f_tile_height: int | None = cfg["tile_height"]
+    f_serial_prefix: str = cfg["serial_prefix"]
+    f_serial_start: int = cfg["serial_start"]
+    config_devices: list | None = cfg["devices"]
+
+    logger: logging.Logger = _setup_logging(f_verbose)
+
+    # Log config file source if one was used
+    config_path = cfg.get("_config_path")
+    if config_path:
+        logger.info("Loaded config from %s", config_path)
 
     # Validate that --persistent-scenarios requires --persistent
-    if persistent_scenarios and not persistent:
+    if f_persistent_scenarios and not f_persistent:
         logger.error("--persistent-scenarios requires --persistent")
         return False
 
     # Initialize storage if persistence is enabled
-    storage = DevicePersistenceAsyncFile() if persistent else None
-    if persistent and storage:
+    storage = DevicePersistenceAsyncFile() if f_persistent else None
+    if f_persistent and storage:
         logger.info("Persistent storage enabled at %s", storage.storage_dir)
 
     # Build device list based on parameters
     devices = []
-    serial_num = serial_start
+    serial_num = f_serial_start
 
     # Helper to generate serials
     def get_serial():
         nonlocal serial_num
-        serial = f"{serial_prefix}{serial_num:06x}"
+        serial = f"{f_serial_prefix}{serial_num:06x}"
         serial_num += 1
         return serial
 
     # Check if we should restore devices from persistent storage
-    # When persistent is enabled, we only create new devices if explicitly requested
     restore_from_storage = False
-    if persistent and storage:
-        saved_serials = storage.list_devices()
-        # Check if user explicitly requested device creation
-        user_requested_devices = (
-            product is not None
-            or color != 1  # color has default value of 1
-            or color_temperature != 0
-            or infrared != 0
-            or hev != 0
-            or multizone != 0
-            or tile != 0
-        )
+    has_any_device_config = (
+        f_products is not None
+        or f_color > 0
+        or f_color_temperature > 0
+        or f_infrared > 0
+        or f_hev > 0
+        or f_multizone > 0
+        or f_tile > 0
+        or f_switch > 0
+        or (config_devices is not None and len(config_devices) > 0)
+    )
 
-        if saved_serials and not user_requested_devices:
-            # Restore saved devices
+    if f_persistent and storage:
+        saved_serials = storage.list_devices()
+
+        if saved_serials and not has_any_device_config:
             restore_from_storage = True
             logger.info(
                 f"Restoring {len(saved_serials)} device(s) from persistent storage"
@@ -372,15 +523,13 @@ async def run(
                 saved_state = storage.load_device_state(saved_serial)
                 if saved_state:
                     try:
-                        # Create device with the saved serial and product ID
                         device = create_device(
                             saved_state["product"], serial=saved_serial, storage=storage
                         )
                         devices.append(device)
                     except Exception as e:
                         logger.error("Failed to restore device %s: %s", saved_serial, e)
-        elif not saved_serials and not user_requested_devices:
-            # Persistent storage is empty and no devices requested
+        elif not saved_serials and not has_any_device_config:
             logger.info(
                 "Persistent storage enabled but empty. Starting with no devices."
             )
@@ -392,8 +541,8 @@ async def run(
     # Create new devices if not restoring from storage
     if not restore_from_storage:
         # Create devices from product IDs if specified
-        if product:
-            for pid in product:
+        if f_products:
+            for pid in f_products:
                 try:
                     devices.append(
                         create_device(pid, serial=get_serial(), storage=storage)
@@ -404,94 +553,92 @@ async def run(
                         "Run 'lifx-emulator list-products' to see available products"
                     )
                     return
-            # If using --product, don't create default devices
-            # Set color to 0 by default
-            if (
-                color == 1
-                and color_temperature == 0
-                and infrared == 0
-                and hev == 0
-                and multizone == 0
-                and switch == 0
-            ):
-                color = 0
-
-        # When persistent is enabled, don't create default devices
-        # User must explicitly request devices
-        if (
-            persistent
-            and color == 1
-            and color_temperature == 0
-            and infrared == 0
-            and hev == 0
-            and multizone == 0
-            and tile == 0
-            and switch == 0
-        ):
-            color = 0
 
         # Create color lights
-        for _ in range(color):
+        for _ in range(f_color):
             devices.append(create_color_light(get_serial(), storage=storage))
 
         # Create color temperature lights
-        for _ in range(color_temperature):
+        for _ in range(f_color_temperature):
             devices.append(
                 create_color_temperature_light(get_serial(), storage=storage)
             )
 
         # Create infrared lights
-        for _ in range(infrared):
+        for _ in range(f_infrared):
             devices.append(create_infrared_light(get_serial(), storage=storage))
 
         # Create HEV lights
-        for _ in range(hev):
+        for _ in range(f_hev):
             devices.append(create_hev_light(get_serial(), storage=storage))
 
         # Create multizone devices (strips/beams)
-        for _ in range(multizone):
+        for _ in range(f_multizone):
             devices.append(
                 create_multizone_light(
                     get_serial(),
-                    zone_count=multizone_zones,
-                    extended_multizone=multizone_extended,
+                    zone_count=f_multizone_zones,
+                    extended_multizone=f_multizone_extended,
                     storage=storage,
                 )
             )
 
         # Create tile devices
-        for _ in range(tile):
+        for _ in range(f_tile):
             devices.append(
                 create_tile_device(
                     get_serial(),
-                    tile_count=tile_count,
-                    tile_width=tile_width,
-                    tile_height=tile_height,
+                    tile_count=f_tile_count,
+                    tile_width=f_tile_width,
+                    tile_height=f_tile_height,
                     storage=storage,
                 )
             )
 
         # Create switch devices
-        for _ in range(switch):
+        for _ in range(f_switch):
             devices.append(create_switch(get_serial(), storage=storage))
 
+        # Create devices from per-device definitions in config
+        if config_devices:
+            for dev_def in config_devices:
+                try:
+                    device = create_device(
+                        dev_def.product_id,
+                        serial=get_serial(),
+                        zone_count=dev_def.zone_count,
+                        tile_count=dev_def.tile_count,
+                        tile_width=dev_def.tile_width,
+                        tile_height=dev_def.tile_height,
+                        storage=storage,
+                    )
+                    if dev_def.label:
+                        device.state.label = dev_def.label
+                    devices.append(device)
+                except ValueError as e:
+                    logger.error("Failed to create device from config: %s", e)
+                    logger.info(
+                        "Run 'lifx-emulator list-products' to see available products"
+                    )
+                    return
+
     if not devices:
-        if persistent:
+        if f_persistent:
             logger.warning("No devices configured. Server will run with no devices.")
             logger.info("Use API (--api) or restart with device flags to add devices.")
         else:
             logger.error(
                 "No devices configured. Use --color, --multizone, --tile, --switch, "
-                "etc. to add devices."
+                "--product, or a config file to add devices."
             )
             return
 
     # Set port for all devices
     for device in devices:
-        device.state.port = port
+        device.state.port = f_port
 
     # Log device information
-    logger.info("Starting LIFX Emulator on %s:%s", bind, port)
+    logger.info("Starting LIFX Emulator on %s:%s", f_bind, f_port)
     logger.info("Created %s emulated device(s):", len(devices))
     for device in devices:
         label = device.state.label
@@ -506,7 +653,7 @@ async def run(
     # Load scenarios from storage if persistence is enabled
     scenario_manager = None
     scenario_storage = None
-    if persistent_scenarios:
+    if f_persistent_scenarios:
         scenario_storage = ScenarioPersistenceAsyncFile()
         scenario_manager = await scenario_storage.load()
         logger.info("Loaded scenarios from persistent storage")
@@ -515,23 +662,23 @@ async def run(
     server = EmulatedLifxServer(
         devices,
         device_manager,
-        bind,
-        port,
-        track_activity=api_activity if api else False,
+        f_bind,
+        f_port,
+        track_activity=f_api_activity if f_api else False,
         storage=storage,
         scenario_manager=scenario_manager,
-        persist_scenarios=persistent_scenarios,
+        persist_scenarios=f_persistent_scenarios,
         scenario_storage=scenario_storage,
     )
     await server.start()
 
     # Start API server if enabled
     api_task = None
-    if api:
+    if f_api:
         from lifx_emulator_app.api import run_api_server
 
-        logger.info("Starting HTTP API server on http://%s:%s", api_host, api_port)
-        api_task = asyncio.create_task(run_api_server(server, api_host, api_port))
+        logger.info("Starting HTTP API server on http://%s:%s", f_api_host, f_api_port)
+        api_task = asyncio.create_task(run_api_server(server, f_api_host, f_api_port))
 
     # Set up graceful shutdown on signals
     shutdown_event = asyncio.Event()
@@ -539,29 +686,26 @@ async def run(
 
     def signal_handler(signum, frame):
         """Handle shutdown signals gracefully (thread-safe for asyncio)."""
-        # Use call_soon_threadsafe to safely set event from signal handler
         loop.call_soon_threadsafe(shutdown_event.set)
 
-    # Register signal handlers for graceful shutdown
-    # Use signal.signal() instead of loop.add_signal_handler() for Windows compatibility
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    # On Windows, also handle SIGBREAK
     sigbreak = getattr(signal, "SIGBREAK", None)
     if sigbreak is not None:
         signal.signal(sigbreak, signal_handler)
 
     try:
-        if api:
+        if f_api:
             logger.info(
-                f"LIFX server running on {bind}:{port}, API server on http://{api_host}:{api_port}"
+                f"LIFX server running on {f_bind}:{f_port}, "
+                f"API server on http://{f_api_host}:{f_api_port}"
             )
             logger.info(
-                f"Open http://{api_host}:{api_port} in your browser "
+                f"Open http://{f_api_host}:{f_api_port} in your browser "
                 "to view the monitoring dashboard"
             )
-        elif verbose:
+        elif f_verbose:
             logger.info(
                 "Server running with verbose packet logging... Press Ctrl+C to stop"
             )
@@ -570,11 +714,10 @@ async def run(
                 "Server running... Press Ctrl+C to stop (use --verbose to see packets)"
             )
 
-        await shutdown_event.wait()  # Wait for shutdown signal
+        await shutdown_event.wait()
     finally:
         logger.info("Shutting down server...")
 
-        # Shutdown storage first to flush pending writes
         if storage:
             await storage.shutdown()
 

@@ -1,0 +1,220 @@
+# LIFX Emulator Configuration File
+# ================================
+#
+# This file configures the lifx-emulator CLI. Place it in one of:
+#   1. Path specified via --config flag
+#   2. Path in LIFX_EMULATOR_CONFIG environment variable
+#   3. lifx-emulator.yaml or lifx-emulator.yml in the current directory (auto-detected)
+#
+# CLI parameters override values in this file.
+# All settings are optional - defaults are used for missing values.
+
+# ==============================================================================
+# Server Options
+# ==============================================================================
+
+# IP address to bind to (default: 127.0.0.1)
+# Use 0.0.0.0 to listen on all interfaces
+bind: 127.0.0.1
+
+# UDP port for LIFX protocol (default: 56700)
+port: 56700
+
+# Enable verbose logging to show all packet traffic (default: false)
+verbose: false
+
+# ==============================================================================
+# Storage & Persistence
+# ==============================================================================
+
+# Persist device state across restarts (default: false)
+# State is saved to ~/.lifx-emulator/
+persistent: false
+
+# Persist scenario configurations across restarts (default: false)
+# Requires persistent: true
+persistent_scenarios: false
+
+# ==============================================================================
+# HTTP API Server
+# ==============================================================================
+
+# Enable HTTP API server for monitoring and management (default: false)
+api: true
+
+# API server bind address (default: 127.0.0.1)
+api_host: 127.0.0.1
+
+# API server port (default: 8080)
+api_port: 8080
+
+# Enable activity logging in the API - last 100 packets (default: true)
+# Disable to reduce traffic and save UI space
+api_activity: true
+
+# ==============================================================================
+# Device Creation by Product ID
+# ==============================================================================
+
+# Create devices by specific product ID from the LIFX registry.
+# Run 'lifx-emulator list-products' to see all available products.
+# When products are specified, the default color: 1 is suppressed.
+#
+# Common product IDs:
+#   27 - LIFX A19 (color bulb)
+#   29 - LIFX A19 Night Vision (infrared)
+#   32 - LIFX Z (multizone strip, requires firmware upgrade for extended)
+#   38 - LIFX Beam (multizone, native extended support)
+#   50 - LIFX Mini White to Warm (color temperature)
+#   55 - LIFX Tile (matrix device)
+#   70 - LIFX Switch (relay, no lighting)
+#   90 - LIFX Clean (HEV)
+#  117 - LIFX Z US (multizone, native extended support)
+
+# products:
+#   - 27
+#   - 38
+#   - 55
+
+# ==============================================================================
+# Device Creation by Type
+# ==============================================================================
+
+# Number of color lights - LIFX A19 (default: 1, set to 0 to disable)
+color: 1
+
+# Number of color temperature lights - LIFX Mini White to Warm (default: 0)
+color_temperature: 0
+
+# Number of infrared lights - LIFX A19 Night Vision (default: 0)
+infrared: 0
+
+# Number of HEV/Clean lights - LIFX Clean (default: 0)
+hev: 0
+
+# Number of multizone devices - strips/beams (default: 0)
+multizone: 0
+
+# Number of tile devices - LIFX Tile (default: 0)
+tile: 0
+
+# Number of LIFX Switch devices - relay-based, no lighting (default: 0)
+switch: 0
+
+# ==============================================================================
+# Multizone Options
+# ==============================================================================
+
+# Number of zones per multizone device (default: uses product defaults)
+# LIFX Z default: 16 zones, LIFX Beam default: 80 zones
+# multizone_zones: 24
+
+# Enable extended multizone support (default: true)
+# true: Creates LIFX Beam with firmware 3.70
+# false: Creates LIFX Z with firmware 2.60
+multizone_extended: true
+
+# ==============================================================================
+# Tile/Matrix Options
+# ==============================================================================
+
+# Number of tiles per tile device (default: uses product defaults)
+# LIFX Tile default: 5 tiles
+# tile_count: 5
+
+# Width of each tile in zones (default: uses product defaults)
+# LIFX Tile default: 8
+# tile_width: 8
+
+# Height of each tile in zones (default: uses product defaults)
+# LIFX Tile default: 8
+# tile_height: 8
+
+# ==============================================================================
+# Serial Number Options
+# ==============================================================================
+
+# Serial prefix - 6 hex characters (default: d073d5)
+serial_prefix: d073d5
+
+# Starting serial suffix (default: 1)
+# Serials are formatted as: <prefix><suffix as 6-digit hex>
+# Example: d073d5000001, d073d5000002, ...
+serial_start: 1
+
+# ==============================================================================
+# Per-Device Definitions
+# ==============================================================================
+
+# Define individual devices with specific configurations.
+# Each device requires a product_id; other fields are optional.
+#
+# Available fields:
+#   product_id: Required - LIFX product ID from registry
+#   label: Optional - Device label (max 32 characters)
+#   zone_count: Optional - Number of zones (multizone devices only)
+#   tile_count: Optional - Number of tiles (matrix devices only)
+#   tile_width: Optional - Tile width in zones (matrix devices only)
+#   tile_height: Optional - Tile height in zones (matrix devices only)
+
+# devices:
+#   # LIFX A19 color bulb with custom label
+#   - product_id: 27
+#     label: "Living Room"
+#
+#   # LIFX Beam with 60 zones
+#   - product_id: 38
+#     zone_count: 60
+#     label: "TV Backlight"
+#
+#   # LIFX Tile with 3 tiles
+#   - product_id: 55
+#     tile_count: 3
+#     label: "Art Display"
+#
+#   # LIFX Clean (HEV) light
+#   - product_id: 90
+#     label: "Bathroom"
+#
+#   # LIFX Switch (relay device)
+#   - product_id: 70
+#     label: "Garage Switch"
+
+# ==============================================================================
+# Example Configurations
+# ==============================================================================
+
+# --- Minimal Setup ---
+# Just use defaults (1 color light on localhost:56700)
+# (empty file or no device settings)
+
+# --- Development Setup ---
+# verbose: true
+# api: true
+# color: 2
+# multizone: 1
+
+# --- Testing Lab ---
+# api: true
+# persistent: true
+# color: 0
+# devices:
+#   - product_id: 27
+#     label: "Test Bulb 1"
+#   - product_id: 27
+#     label: "Test Bulb 2"
+#   - product_id: 38
+#     zone_count: 80
+#     label: "Test Beam"
+#   - product_id: 55
+#     tile_count: 5
+#     label: "Test Tiles"
+
+# --- CI/CD Pipeline ---
+# bind: 127.0.0.1
+# port: 56701
+# verbose: false
+# api: false
+# color: 1
+# multizone: 1
+# serial_prefix: "test00"

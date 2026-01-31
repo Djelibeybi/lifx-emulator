@@ -571,10 +571,27 @@ class TestRunCommand:
     """Test run command."""
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_default_config(self, mock_setup_logging, mock_server_class):
-        """Test running with default configuration."""
+    async def test_run_default_no_devices(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Test running with no arguments creates no devices."""
+        # With no default color device, running with no args should error
+        result = await run()
+
+        # Verify no server was created (returns None on error)
+        mock_server_class.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_run_with_color(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Test running with explicit color light."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
@@ -582,8 +599,7 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        # Run for a short time then cancel
-        task = asyncio.create_task(run())
+        task = asyncio.create_task(run(color=1))
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -591,19 +607,19 @@ class TestRunCommand:
         except asyncio.CancelledError:
             pass
 
-        # Verify setup_logging was called
         mock_setup_logging.assert_called_once_with(False)
-
-        # Verify server was created and started
         mock_server_class.assert_called_once()
         devices = mock_server_class.call_args[0][0]
-        assert len(devices) == 1  # Default is 1 color light
+        assert len(devices) == 1
         mock_server.start.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_with_verbose(self, mock_setup_logging, mock_server_class):
+    async def test_run_with_verbose(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
         """Test running with verbose logging."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -612,7 +628,7 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        task = asyncio.create_task(run(verbose=True))
+        task = asyncio.create_task(run(verbose=True, color=1))
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -623,13 +639,16 @@ class TestRunCommand:
         mock_setup_logging.assert_called_once_with(True)
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__.DevicePersistenceAsyncFile")
     @patch("lifx_emulator_app.__main__._setup_logging")
     async def test_run_with_persistence(
-        self, mock_setup_logging, mock_storage_class, mock_server_class
+        self, mock_setup_logging, mock_storage_class, mock_server_class, mock_resolve
     ):
         """Test running with persistent storage."""
+        from unittest.mock import AsyncMock
+
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
         mock_server.start = MagicMock(return_value=asyncio.Future())
@@ -639,11 +658,13 @@ class TestRunCommand:
 
         mock_storage = MagicMock()
         mock_storage.storage_dir = "/tmp/lifx"
-        mock_storage.shutdown = MagicMock(return_value=asyncio.Future())
-        mock_storage.shutdown.return_value.set_result(None)
+        mock_storage.shutdown = AsyncMock()
+        mock_storage.save_device_state = AsyncMock()
+        mock_storage.load_device_state.return_value = None
+        mock_storage.list_devices.return_value = []
         mock_storage_class.return_value = mock_storage
 
-        task = asyncio.create_task(run(persistent=True))
+        task = asyncio.create_task(run(persistent=True, color=1))
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -654,10 +675,11 @@ class TestRunCommand:
         mock_storage_class.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     async def test_run_with_custom_bind_port(
-        self, mock_setup_logging, mock_server_class
+        self, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Test running with custom bind address and port."""
         mock_server = MagicMock()
@@ -667,7 +689,9 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        task = asyncio.create_task(run(bind="192.168.1.100", port=12345))
+        task = asyncio.create_task(
+            run(bind="192.168.1.100", port=12345, color=1)
+        )
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -681,10 +705,11 @@ class TestRunCommand:
         assert call_args[3] == 12345
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     async def test_run_with_multiple_device_types(
-        self, mock_setup_logging, mock_server_class
+        self, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Test running with multiple device types."""
         mock_server = MagicMock()
@@ -706,9 +731,12 @@ class TestRunCommand:
         assert len(devices) == 5  # 2 color + 1 infrared + 1 multizone + 1 tile
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_with_product_ids(self, mock_setup_logging, mock_server_class):
+    async def test_run_with_product_ids(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
         """Test running with product IDs."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -726,47 +754,45 @@ class TestRunCommand:
             pass
 
         devices = mock_server_class.call_args[0][0]
-        # Should only have 2 devices from product IDs, not the default color light
         assert len(devices) == 2
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.logging.getLogger")
-    async def test_run_with_invalid_product_id(self, mock_get_logger):
+    async def test_run_with_invalid_product_id(self, mock_get_logger, mock_resolve):
         """Test running with invalid product ID."""
-        # Create a mock logger
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
-        # Use a product ID that doesn't exist
         await run(product=[9999])
 
-        # Verify error was logged
         assert any(
             "Failed to create device" in str(call)
             for call in mock_logger.error.call_args_list
         )
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.logging.getLogger")
-    async def test_run_with_no_devices(self, mock_get_logger):
+    async def test_run_with_no_devices(self, mock_get_logger, mock_resolve):
         """Test running with no devices configured."""
-        # Create a mock logger
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
-        # Set all device counts to 0
-        await run(color=0)
+        await run()
 
-        # Verify error was logged
         assert any(
             "No devices configured" in str(call)
             for call in mock_logger.error.call_args_list
         )
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_with_custom_serial(self, mock_setup_logging, mock_server_class):
+    async def test_run_with_custom_serial(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
         """Test running with custom serial prefix and start."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -786,14 +812,14 @@ class TestRunCommand:
             pass
 
         devices = mock_server_class.call_args[0][0]
-        # Check first device serial starts with cafe00000064 (100 in hex)
         assert devices[0].state.serial.startswith("cafe00")
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     async def test_run_with_multizone_options(
-        self, mock_setup_logging, mock_server_class
+        self, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Test running with multizone-specific options."""
         mock_server = MagicMock()
@@ -803,9 +829,8 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        # Need to disable default color light
         task = asyncio.create_task(
-            run(color=0, multizone=1, multizone_zones=32, multizone_extended=True)
+            run(multizone=1, multizone_zones=32, multizone_extended=True)
         )
         await asyncio.sleep(0.1)
         task.cancel()
@@ -815,14 +840,16 @@ class TestRunCommand:
             pass
 
         devices = mock_server_class.call_args[0][0]
-        # Verify multizone device was created
         assert len(devices) == 1
         assert devices[0].state.has_multizone
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_with_tile_options(self, mock_setup_logging, mock_server_class):
+    async def test_run_with_tile_options(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
         """Test running with tile-specific options."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -831,9 +858,8 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        # Need to disable default color light
         task = asyncio.create_task(
-            run(color=0, tile=1, tile_count=3, tile_width=8, tile_height=8)
+            run(tile=1, tile_count=3, tile_width=8, tile_height=8)
         )
         await asyncio.sleep(0.1)
         task.cancel()
@@ -847,10 +873,11 @@ class TestRunCommand:
         assert devices[0].state.has_matrix
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     async def test_run_with_color_temperature_lights(
-        self, mock_setup_logging, mock_server_class
+        self, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Test running with color temperature lights."""
         mock_server = MagicMock()
@@ -869,13 +896,15 @@ class TestRunCommand:
             pass
 
         devices = mock_server_class.call_args[0][0]
-        # 1 default color + 2 color_temperature
-        assert len(devices) == 3
+        assert len(devices) == 2
 
     @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
-    async def test_run_with_hev_lights(self, mock_setup_logging, mock_server_class):
+    async def test_run_with_hev_lights(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
         """Test running with HEV lights."""
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -893,5 +922,4 @@ class TestRunCommand:
             pass
 
         devices = mock_server_class.call_args[0][0]
-        # 1 default color + 1 hev
-        assert len(devices) == 2
+        assert len(devices) == 1

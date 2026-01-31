@@ -11,277 +11,285 @@ theme:
   name: material
   palette:
     # Light mode
-  - scheme: default
-    primary: indigo
-    accent: blue
-    toggle:
-      icon: material/brightness-7
-      name: Switch to dark mode
-    # Dark mode
-  - scheme: slate
-    primary: indigo
-    accent: blue
-    toggle:
-      icon: material/brightness-4
-      name: Switch to light mode
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+      # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
-  - navigation.instant
-  - navigation.instant.progress
-  - navigation.tracking
-  - navigation.tabs
-  - navigation.tabs.sticky
-  - navigation.sections
-  - navigation.expand
-  - navigation.path
-  - navigation.prune
-  - navigation.indexes
-  - navigation.top
-  - toc.follow
-  - search.suggest
-  - search.highlight
-  - search.share
-  - content.code.copy
-  - content.code.annotate
-  - content.tabs.link
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.prune
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
   icon:
     repo: fontawesome/brands/github
     logo: material/lightbulb-on
   favicon: assets/favicon.png
 
 plugins:
-- search:
-    lang: en
-- llmstxt:
-    markdown_description: |
-      A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
+  - search:
+      lang: en
+  - llmstxt:
+      markdown_description: |
+        A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
 
-      This project provides two packages:
-      - lifx-emulator: CLI tool and HTTP management API for standalone use
-      - lifx-emulator-core: Embeddable Python library for integration in your own projects
+        This project provides two packages:
+        - lifx-emulator: CLI tool and HTTP management API for standalone use
+        - lifx-emulator-core: Embeddable Python library for integration in your own projects
 
-      Both implement the binary UDP protocol from https://lan.developer.lifx.com
-      and emulate various LIFX device types including color lights, multizone strips,
-      tiles, infrared, and HEV devices. The emulator provides persistent storage,
-      HTTP management API, and advanced scenario testing capabilities for simulating
-      protocol edge cases, packet loss, delays, and malformed responses.
-    full_output: llms-full.txt
-    sections:
-      Getting Started:
-      - getting-started/index.md: Overview of getting started with the emulator
-      - getting-started/installation.md: Installation instructions for both packages
-      - getting-started/quickstart.md: Quick start guide for CLI and Python library
-      lifx-emulator (CLI):
-      - cli/index.md: CLI tool and HTTP management server overview
-      - cli/cli-reference.md: Command-line interface usage
-      - cli/web-interface.md: HTTP management API and web interface
-      - cli/device-management-api.md: Device management REST API
-      - cli/scenario-api.md: Scenario management REST API
-      - cli/storage.md: Persistent storage
-      - cli/scenarios.md: Custom scenarios
-      lifx-emulator-core (Python Library):
-      - library/index.md: Python library reference overview
-      - library/factories.md: Device factory functions
-      - library/server.md: Server library
-      - library/device.md: Device library
-      - library/protocol.md: Protocol types
-      - library/storage.md: Storage and persistence
-      - library/products.md: Product registry
-      - architecture/index.md: Architecture overview
-      - architecture/overview.md: System architecture
-      - architecture/packet-flow.md: Packet flow and processing
-      - architecture/protocol.md: Protocol layer details
-      - architecture/device-state.md: Device state management
-      Guides:
-      - guide/index.md: User guide overview
-      - guide/device-types.md: Available device types
-      - guide/products-and-specs.md: Product registry and specifications
-      - guide/testing-scenarios.md: Testing scenario capabilities
-      - guide/framebuffers.md: Matrix device framebuffer support
-      - guide/integration-testing.md: Advanced testing patterns
-      - guide/best-practices.md: Best practices
-      Tutorials:
-      - tutorials/index.md: Tutorial overview
-      - tutorials/01-first-device.md: Creating your first emulated device
-      - tutorials/02-basic.md: Basic usage patterns
-      - tutorials/03-integration.md: Integration testing
-      - tutorials/04-advanced-scenarios.md: Advanced testing scenarios
-      - tutorials/05-cicd.md: CI/CD integration
-- mkdocstrings:
-    handlers:
-      python:
-        paths:
-        - packages/lifx-emulator-core/src
-        - packages/lifx-emulator/src
-          # Load object inventories to enable cross-references to other projects.
-        inventories:
-        - https://docs.python.org/3/objects.inv
-        options:
-          docstring_options:
-            ignore_init_summary: true
+        Both implement the binary UDP protocol from https://lan.developer.lifx.com
+        and emulate various LIFX device types including color lights, multizone strips,
+        tiles, infrared, and HEV devices. The emulator provides persistent storage,
+        HTTP management API, and advanced scenario testing capabilities for simulating
+        protocol edge cases, packet loss, delays, and malformed responses.
+      full_output: llms-full.txt
+      sections:
+        Getting Started:
+          - getting-started/index.md: Overview of getting started with the emulator
+          - getting-started/installation.md: Installation instructions for both packages
+          - getting-started/quickstart.md: Quick start guide for CLI and Python library
+        lifx-emulator (CLI):
+          - cli/index.md: CLI tool and HTTP management server overview
+          - cli/configuration.md: YAML configuration file support
+          - cli/cli-reference.md: Command-line interface usage
+          - cli/web-interface.md: HTTP management API and web interface
+          - cli/device-management-api.md: Device management REST API
+          - cli/scenario-api.md: Scenario management REST API
+          - cli/storage.md: Persistent storage
+          - cli/scenarios.md: Custom scenarios
+        lifx-emulator-core (Python Library):
+          - library/index.md: Python library reference overview
+          - library/factories.md: Device factory functions
+          - library/server.md: Server library
+          - library/device.md: Device library
+          - library/protocol.md: Protocol types
+          - library/storage.md: Storage and persistence
+          - library/products.md: Product registry
+          - architecture/index.md: Architecture overview
+          - architecture/overview.md: System architecture
+          - architecture/packet-flow.md: Packet flow and processing
+          - architecture/protocol.md: Protocol layer details
+          - architecture/device-state.md: Device state management
+        Guides:
+          - guide/index.md: User guide overview
+          - guide/device-types.md: Available device types
+          - guide/products-and-specs.md: Product registry and specifications
+          - guide/testing-scenarios.md: Testing scenario capabilities
+          - guide/framebuffers.md: Matrix device framebuffer support
+          - guide/integration-testing.md: Advanced testing patterns
+          - guide/best-practices.md: Best practices
+        Tutorials:
+          - tutorials/index.md: Tutorial overview
+          - tutorials/01-first-device.md: Creating your first emulated device
+          - tutorials/02-basic.md: Basic usage patterns
+          - tutorials/03-integration.md: Integration testing
+          - tutorials/04-advanced-scenarios.md: Advanced testing scenarios
+          - tutorials/05-cicd.md: CI/CD integration
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - packages/lifx-emulator-core/src
+            - packages/lifx-emulator/src
+              # Load object inventories to enable cross-references to other projects.
+          inventories:
+            - https://docs.python.org/3/objects.inv
+          options:
+            docstring_options:
+              ignore_init_summary: true
 
-            # Docstring parsing
-          docstring_style: google
-          docstring_section_style: spacy
+              # Docstring parsing
+            docstring_style: google
+            docstring_section_style:
+              spacy
 
-            # Headings and structure
-          show_root_heading: true
-          show_root_full_path: false
-          show_root_members_full_path: false
-          show_object_full_path: false
-          show_category_heading: true
-          heading_level: 2
+              # Headings and structure
+            show_root_heading: true
+            show_root_full_path: false
+            show_root_members_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            heading_level:
+              2
 
-            # Signatures
-          show_signature: true
-          show_signature_annotations: true
-          separate_signature: true
-          signature_crossrefs: true
+              # Signatures
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs:
+              true
 
-            # Members
-          members_order: source
-          group_by_category: true
-          show_if_no_docstring: false
-          show_docstring_attributes: true
-          show_docstring_functions: true
-          show_docstring_classes: true
-          show_docstring_modules: true
+              # Members
+            members_order: source
+            group_by_category: true
+            show_if_no_docstring: false
+            show_docstring_attributes: true
+            show_docstring_functions: true
+            show_docstring_classes: true
+            show_docstring_modules:
+              true
 
-            # Source code
-          show_source: true
+              # Source code
+            show_source:
+              true
 
-            # Inheritance
-          show_bases: true
-          show_inheritance_diagram: false
+              # Inheritance
+            show_bases: true
+            show_inheritance_diagram:
+              false
 
-            # Special members
-          merge_init_into_class: true
-          show_labels: true
+              # Special members
+            merge_init_into_class: true
+            show_labels:
+              true
 
-            # Additional improvements
-          annotations_path: brief
-          line_length: 80
-          show_symbol_type_heading: true
-          show_symbol_type_toc: true
-          summary: true
+              # Additional improvements
+            annotations_path: brief
+            line_length: 80
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            summary: true
 
-- git-revision-date-localized:
-    enable_creation_date: true
+  - git-revision-date-localized:
+      enable_creation_date: true
 
 markdown_extensions:
-- admonition
-- pymdownx.details
-- pymdownx.betterem
-- pymdownx.superfences:
-    custom_fences:
-    - name: mermaid
-      class: mermaid
-      format: !!python/name:pymdownx.superfences.fence_code_format
-- pymdownx.highlight:
-    anchor_linenums: true
-    line_spans: __span
-    use_pygments: true
-    pygments_lang_class: true
-- pymdownx.inlinehilite
-- pymdownx.snippets
-- pymdownx.tabbed:
-    alternate_style: true
-- pymdownx.tasklist:
-    custom_checkbox: true
-- attr_list
-- md_in_html
-- tables
-- footnotes
-- def_list
-- pymdownx.emoji:
-    emoji_index: !!python/name:material.extensions.emoji.twemoji
-    emoji_generator: !!python/name:material.extensions.emoji.to_svg
-- pymdownx.critic
-- pymdownx.caret
-- pymdownx.keys
-- pymdownx.mark
-- pymdownx.tilde
-- toc:
-    permalink: true
-    toc_depth: 3
+  - admonition
+  - pymdownx.details
+  - pymdownx.betterem
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      use_pygments: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - def_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+      toc_depth: 3
 
 nav:
+  - Home: index.md
 
-- Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
 
-- Getting Started:
-  - getting-started/index.md
-  - Installation: getting-started/installation.md
-  - Quick Start: getting-started/quickstart.md
+  - lifx-emulator:
+      - cli/index.md
+      - Configuration File: cli/configuration.md
+      - CLI Reference: cli/cli-reference.md
+      - Web Interface: cli/web-interface.md
+      - REST API:
+          - Device Management: cli/device-management-api.md
+          - Scenario API: cli/scenario-api.md
+      - Persistent Storage: cli/storage.md
+      - Scenarios Guide: cli/scenarios.md
 
-- lifx-emulator:
-  - cli/index.md
-  - CLI Reference: cli/cli-reference.md
-  - Web Interface: cli/web-interface.md
-  - REST API:
-    - Device Management: cli/device-management-api.md
-    - Scenario API: cli/scenario-api.md
-  - Persistent Storage: cli/storage.md
-  - Scenarios Guide: cli/scenarios.md
+  - lifx-emulator-core:
+      - Python Library:
+          - library/index.md
+          - Factory Functions: library/factories.md
+          - Server: library/server.md
+          - Device: library/device.md
+          - Protocol Types: library/protocol.md
+          - Storage: library/storage.md
+          - Product Registry: library/products.md
+      - Architecture:
+          - architecture/index.md
+          - Overview: architecture/overview.md
+          - Architecture Decisions: architecture/decisions.md
+          - Packet Flow: architecture/packet-flow.md
+          - Protocol Layer: architecture/protocol.md
+          - Device State: architecture/device-state.md
 
-- lifx-emulator-core:
-  - Python Library:
-    - library/index.md
-    - Factory Functions: library/factories.md
-    - Server: library/server.md
-    - Device: library/device.md
-    - Protocol Types: library/protocol.md
-    - Storage: library/storage.md
-    - Product Registry: library/products.md
-  - Architecture:
-    - architecture/index.md
-    - Overview: architecture/overview.md
-    - Architecture Decisions: architecture/decisions.md
-    - Packet Flow: architecture/packet-flow.md
-    - Protocol Layer: architecture/protocol.md
-    - Device State: architecture/device-state.md
+  - Guides:
+      - guide/index.md
+      - Device Types: guide/device-types.md
+      - Products & Specs: guide/products-and-specs.md
+      - Testing Scenarios: guide/testing-scenarios.md
+      - Framebuffers: guide/framebuffers.md
+      - Integration Testing: guide/integration-testing.md
+      - Best Practices: guide/best-practices.md
 
-- Guides:
-  - guide/index.md
-  - Device Types: guide/device-types.md
-  - Products & Specs: guide/products-and-specs.md
-  - Testing Scenarios: guide/testing-scenarios.md
-  - Framebuffers: guide/framebuffers.md
-  - Integration Testing: guide/integration-testing.md
-  - Best Practices: guide/best-practices.md
+  - Tutorials:
+      - tutorials/index.md
+      - 01 - First Device: tutorials/01-first-device.md
+      - 02 - Basic Usage: tutorials/02-basic.md
+      - 03 - Integration Testing: tutorials/03-integration.md
+      - 04 - Advanced Scenarios: tutorials/04-advanced-scenarios.md
+      - 05 - CI/CD Integration: tutorials/05-cicd.md
 
-- Tutorials:
-  - tutorials/index.md
-  - 01 - First Device: tutorials/01-first-device.md
-  - 02 - Basic Usage: tutorials/02-basic.md
-  - 03 - Integration Testing: tutorials/03-integration.md
-  - 04 - Advanced Scenarios: tutorials/04-advanced-scenarios.md
-  - 05 - CI/CD Integration: tutorials/05-cicd.md
+  - Development:
+      - development/index.md
+      - Code Navigation: development/code-navigation.md
 
-- Development:
-  - development/index.md
-  - Code Navigation: development/code-navigation.md
+  - Reference:
+      - FAQ: faq.md
+      - Troubleshooting: reference/troubleshooting.md
+      - Glossary: reference/glossary.md
 
-- Reference:
-  - FAQ: faq.md
-  - Troubleshooting: reference/troubleshooting.md
-  - Glossary: reference/glossary.md
-
-- Changelogs:
-  - changelogs/index.md
-  - lifx-emulator-core: changelogs/core-changelog.md
-  - lifx-emulator: changelogs/app-changelog.md
-  - Original changelog: changelogs/changelog.md
+  - Changelogs:
+      - changelogs/index.md
+      - lifx-emulator-core: changelogs/core-changelog.md
+      - lifx-emulator: changelogs/app-changelog.md
+      - Original changelog: changelogs/changelog.md
 
 extra:
   social:
-  - icon: fontawesome/brands/github
-    link: https://github.com/Djelibeybi/lifx-emulator
-  - icon: fontawesome/brands/python
-    link: https://pypi.org/project/lifx-emulator/
+    - icon: fontawesome/brands/github
+      link: https://github.com/Djelibeybi/lifx-emulator
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/lifx-emulator/
   version:
     provider: mike
 
 extra_css:
-- stylesheets/extra.css
+  - stylesheets/extra.css
 
 copyright: Copyright &copy; 2025 Avi Miller
