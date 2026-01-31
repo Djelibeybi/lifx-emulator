@@ -1,8 +1,5 @@
 """Tests for config file support."""
 
-import os
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -10,6 +7,9 @@ from lifx_emulator_app.config import (
     ENV_VAR,
     DeviceDefinition,
     EmulatorConfig,
+    HsbkConfig,
+    ScenarioDefinition,
+    ScenariosConfig,
     load_config,
     merge_config,
     resolve_config_path,
@@ -335,3 +335,395 @@ class TestMergeConfig:
         result = merge_config(config, {})
 
         assert result["products"] == [27, 32]
+
+
+class TestHsbkConfig:
+    """Test HsbkConfig model."""
+
+    def test_default_values(self):
+        """Test default HSBK values."""
+        hsbk = HsbkConfig()
+        assert hsbk.hue == 0
+        assert hsbk.saturation == 0
+        assert hsbk.brightness == 65535
+        assert hsbk.kelvin == 3500
+
+    def test_dict_form(self):
+        """Test creating HSBK from dict."""
+        hsbk = HsbkConfig(hue=21845, saturation=65535, brightness=65535, kelvin=3500)
+        assert hsbk.hue == 21845
+        assert hsbk.saturation == 65535
+
+    def test_list_form(self):
+        """Test creating HSBK from [h, s, b, k] list."""
+        hsbk = HsbkConfig.model_validate([21845, 65535, 65535, 3500])
+        assert hsbk.hue == 21845
+        assert hsbk.saturation == 65535
+        assert hsbk.brightness == 65535
+        assert hsbk.kelvin == 3500
+
+    def test_tuple_form(self):
+        """Test creating HSBK from (h, s, b, k) tuple."""
+        hsbk = HsbkConfig.model_validate((21845, 65535, 65535, 3500))
+        assert hsbk.hue == 21845
+
+    def test_list_wrong_length(self):
+        """Test that list with wrong length is rejected."""
+        with pytest.raises(ValueError, match="exactly 4 elements"):
+            HsbkConfig.model_validate([1, 2, 3])
+
+    def test_list_too_long(self):
+        """Test that list with too many elements is rejected."""
+        with pytest.raises(ValueError, match="exactly 4 elements"):
+            HsbkConfig.model_validate([1, 2, 3, 4, 5])
+
+    def test_hue_out_of_range(self):
+        """Test that hue > 65535 is rejected."""
+        with pytest.raises(ValueError, match="between 0 and 65535"):
+            HsbkConfig(hue=70000)
+
+    def test_negative_brightness(self):
+        """Test that negative brightness is rejected."""
+        with pytest.raises(ValueError, match="between 0 and 65535"):
+            HsbkConfig(brightness=-1)
+
+    def test_kelvin_too_low(self):
+        """Test that kelvin below 1500 is rejected."""
+        with pytest.raises(ValueError, match="between 1500 and 9000"):
+            HsbkConfig(kelvin=1000)
+
+    def test_kelvin_too_high(self):
+        """Test that kelvin above 9000 is rejected."""
+        with pytest.raises(ValueError, match="between 1500 and 9000"):
+            HsbkConfig(kelvin=10000)
+
+    def test_kelvin_boundary_values(self):
+        """Test boundary kelvin values."""
+        low = HsbkConfig(kelvin=1500)
+        assert low.kelvin == 1500
+        high = HsbkConfig(kelvin=9000)
+        assert high.kelvin == 9000
+
+
+class TestScenarioDefinition:
+    """Test ScenarioDefinition model."""
+
+    def test_empty_scenario(self):
+        """Test that all fields default to None."""
+        s = ScenarioDefinition()
+        assert s.drop_packets is None
+        assert s.response_delays is None
+        assert s.malformed_packets is None
+        assert s.send_unhandled is None
+
+    def test_full_scenario(self):
+        """Test scenario with all fields populated."""
+        s = ScenarioDefinition(
+            drop_packets={101: 1.0, 102: 0.5},
+            response_delays={116: 0.2},
+            malformed_packets=[506],
+            invalid_field_values=[107],
+            firmware_version=(3, 70),
+            partial_responses=[512],
+            send_unhandled=True,
+        )
+        assert s.drop_packets == {101: 1.0, 102: 0.5}
+        assert s.response_delays == {116: 0.2}
+        assert s.malformed_packets == [506]
+        assert s.firmware_version == (3, 70)
+        assert s.send_unhandled is True
+
+    def test_string_keys_converted(self):
+        """Test that string keys in drop_packets/response_delays are converted."""
+        s = ScenarioDefinition.model_validate(
+            {"drop_packets": {"101": 1.0}, "response_delays": {"116": "0.5"}}
+        )
+        assert s.drop_packets == {101: 1.0}
+        assert s.response_delays == {116: 0.5}
+
+
+class TestScenariosConfig:
+    """Test ScenariosConfig model."""
+
+    def test_empty_scenarios(self):
+        """Test empty scenarios config."""
+        s = ScenariosConfig()
+        assert s.global_scenario is None
+        assert s.devices is None
+
+    def test_global_scenario_via_alias(self):
+        """Test that 'global' alias works for global_scenario."""
+        data = {"global": {"send_unhandled": True}}
+        s = ScenariosConfig.model_validate(data)
+        assert s.global_scenario is not None
+        assert s.global_scenario.send_unhandled is True
+
+    def test_all_scope_levels(self):
+        """Test scenarios at all scope levels."""
+        s = ScenariosConfig(
+            global_scenario=ScenarioDefinition(send_unhandled=True),
+            devices={"d073d5000001": ScenarioDefinition(drop_packets={101: 1.0})},
+            types={"multizone": ScenarioDefinition(response_delays={506: 0.2})},
+            locations={"Downstairs": ScenarioDefinition(malformed_packets=[506])},
+            groups={"Lights": ScenarioDefinition(firmware_version=(2, 60))},
+        )
+        assert s.global_scenario.send_unhandled is True
+        assert s.devices["d073d5000001"].drop_packets == {101: 1.0}
+        assert s.types["multizone"].response_delays == {506: 0.2}
+        assert s.locations["Downstairs"].malformed_packets == [506]
+        assert s.groups["Lights"].firmware_version == (2, 60)
+
+
+class TestExtendedDeviceDefinition:
+    """Test new fields on DeviceDefinition."""
+
+    def test_device_with_serial(self):
+        """Test device with explicit serial."""
+        dev = DeviceDefinition(product_id=27, serial="d073d5000001")
+        assert dev.serial == "d073d5000001"
+
+    def test_serial_validation_valid(self):
+        """Test valid serial values."""
+        dev = DeviceDefinition(product_id=27, serial="cafe00000001")
+        assert dev.serial == "cafe00000001"
+
+    def test_serial_validation_invalid_length(self):
+        """Test serial with wrong length is rejected."""
+        with pytest.raises(ValueError, match="12 hex characters"):
+            DeviceDefinition(product_id=27, serial="abc")
+
+    def test_serial_validation_invalid_chars(self):
+        """Test serial with non-hex chars is rejected."""
+        with pytest.raises(ValueError, match="12 hex characters"):
+            DeviceDefinition(product_id=27, serial="gggggggggggg")
+
+    def test_power_level_on(self):
+        """Test power_level=65535 (on)."""
+        dev = DeviceDefinition(product_id=27, power_level=65535)
+        assert dev.power_level == 65535
+
+    def test_power_level_off(self):
+        """Test power_level=0 (off)."""
+        dev = DeviceDefinition(product_id=27, power_level=0)
+        assert dev.power_level == 0
+
+    def test_power_level_invalid(self):
+        """Test that intermediate power_level is rejected."""
+        with pytest.raises(ValueError, match="0.*or.*65535"):
+            DeviceDefinition(product_id=27, power_level=100)
+
+    def test_color_dict_form(self):
+        """Test device with color as dict."""
+        dev = DeviceDefinition(
+            product_id=27,
+            color={
+                "hue": 21845,
+                "saturation": 65535,
+                "brightness": 65535,
+                "kelvin": 3500,
+            },
+        )
+        assert dev.color is not None
+        assert dev.color.hue == 21845
+
+    def test_color_list_form(self):
+        """Test device with color as [h, s, b, k] list."""
+        dev = DeviceDefinition(
+            product_id=27,
+            color=[21845, 65535, 65535, 3500],
+        )
+        assert dev.color is not None
+        assert dev.color.hue == 21845
+
+    def test_location_and_group(self):
+        """Test device with location and group labels."""
+        dev = DeviceDefinition(product_id=27, location="Downstairs", group="Lights")
+        assert dev.location == "Downstairs"
+        assert dev.group == "Lights"
+
+    def test_zone_colors(self):
+        """Test device with zone_colors list."""
+        dev = DeviceDefinition(
+            product_id=32,
+            zone_count=3,
+            zone_colors=[
+                [0, 65535, 65535, 3500],
+                [21845, 65535, 65535, 3500],
+                [43690, 65535, 65535, 3500],
+            ],
+        )
+        assert dev.zone_colors is not None
+        assert len(dev.zone_colors) == 3
+        assert dev.zone_colors[0].hue == 0
+        assert dev.zone_colors[1].hue == 21845
+
+    def test_infrared_brightness(self):
+        """Test device with infrared_brightness."""
+        dev = DeviceDefinition(product_id=29, infrared_brightness=32768)
+        assert dev.infrared_brightness == 32768
+
+    def test_infrared_brightness_out_of_range(self):
+        """Test infrared_brightness validation."""
+        with pytest.raises(ValueError, match="between 0 and 65535"):
+            DeviceDefinition(product_id=29, infrared_brightness=70000)
+
+    def test_hev_fields(self):
+        """Test device with HEV fields."""
+        dev = DeviceDefinition(
+            product_id=90,
+            hev_cycle_duration=7200,
+            hev_indication=True,
+        )
+        assert dev.hev_cycle_duration == 7200
+        assert dev.hev_indication is True
+
+    def test_hev_cycle_duration_negative(self):
+        """Test negative hev_cycle_duration is rejected."""
+        with pytest.raises(ValueError, match="non-negative"):
+            DeviceDefinition(product_id=90, hev_cycle_duration=-1)
+
+    def test_full_extended_device(self):
+        """Test device with all new fields."""
+        dev = DeviceDefinition(
+            product_id=27,
+            serial="d073d5000001",
+            label="Living Room",
+            power_level=65535,
+            color=HsbkConfig(
+                hue=21845, saturation=65535, brightness=65535, kelvin=3500
+            ),
+            location="Downstairs",
+            group="Lights",
+        )
+        assert dev.serial == "d073d5000001"
+        assert dev.label == "Living Room"
+        assert dev.power_level == 65535
+        assert dev.color.hue == 21845
+        assert dev.location == "Downstairs"
+        assert dev.group == "Lights"
+
+
+class TestExtendedConfigLoad:
+    """Test loading extended config from YAML."""
+
+    def test_load_config_with_scenarios(self, tmp_path):
+        """Test loading config file with scenarios section."""
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(
+            yaml.dump(
+                {
+                    "color": 1,
+                    "scenarios": {
+                        "global": {"send_unhandled": True},
+                        "devices": {
+                            "d073d5000001": {"drop_packets": {"101": 1.0}},
+                        },
+                        "types": {
+                            "multizone": {"response_delays": {"506": 0.2}},
+                        },
+                    },
+                }
+            )
+        )
+        config = load_config(config_file)
+        assert config.scenarios is not None
+        assert config.scenarios.global_scenario is not None
+        assert config.scenarios.global_scenario.send_unhandled is True
+        assert config.scenarios.devices is not None
+        assert config.scenarios.devices["d073d5000001"].drop_packets == {101: 1.0}
+
+    def test_load_config_with_extended_devices(self, tmp_path):
+        """Test loading config with extended device definitions."""
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(
+            yaml.dump(
+                {
+                    "devices": [
+                        {
+                            "product_id": 27,
+                            "serial": "d073d5000001",
+                            "label": "Living Room",
+                            "power_level": 65535,
+                            "color": {
+                                "hue": 21845,
+                                "saturation": 65535,
+                                "brightness": 65535,
+                                "kelvin": 3500,
+                            },
+                            "location": "Downstairs",
+                            "group": "Lights",
+                        },
+                    ],
+                }
+            )
+        )
+        config = load_config(config_file)
+        assert config.devices is not None
+        assert len(config.devices) == 1
+        dev = config.devices[0]
+        assert dev.serial == "d073d5000001"
+        assert dev.power_level == 65535
+        assert dev.color is not None
+        assert dev.color.hue == 21845
+        assert dev.location == "Downstairs"
+
+    def test_load_config_with_zone_colors_list_form(self, tmp_path):
+        """Test loading config with zone_colors in compact list form."""
+        config_file = tmp_path / "config.yaml"
+        # Use raw YAML to test compact list notation
+        config_file.write_text(
+            "devices:\n"
+            "  - product_id: 32\n"
+            "    zone_count: 2\n"
+            "    zone_colors:\n"
+            "      - [0, 65535, 65535, 3500]\n"
+            "      - [21845, 65535, 65535, 3500]\n"
+        )
+        config = load_config(config_file)
+        assert config.devices is not None
+        dev = config.devices[0]
+        assert dev.zone_colors is not None
+        assert len(dev.zone_colors) == 2
+        assert dev.zone_colors[0].hue == 0
+        assert dev.zone_colors[1].hue == 21845
+
+    def test_round_trip_extended_config(self, tmp_path):
+        """Test round-trip: create config, dump to YAML, load back."""
+        original = EmulatorConfig(
+            bind="10.0.0.1",
+            port=56700,
+            color=2,
+            devices=[
+                DeviceDefinition(
+                    product_id=27,
+                    serial="d073d5000001",
+                    label="Test",
+                    power_level=65535,
+                    color=HsbkConfig(
+                        hue=21845,
+                        saturation=65535,
+                        brightness=65535,
+                        kelvin=3500,
+                    ),
+                    location="Room",
+                    group="Group",
+                ),
+            ],
+            scenarios=ScenariosConfig(
+                global_scenario=ScenarioDefinition(send_unhandled=True),
+            ),
+        )
+
+        config_file = tmp_path / "config.yaml"
+        dumped = original.model_dump(exclude_none=True, by_alias=True)
+        config_file.write_text(yaml.dump(dumped))
+
+        loaded = load_config(config_file)
+        assert loaded.bind == "10.0.0.1"
+        assert loaded.devices is not None
+        assert loaded.devices[0].serial == "d073d5000001"
+        assert loaded.devices[0].color is not None
+        assert loaded.devices[0].color.hue == 21845
+        assert loaded.scenarios is not None
+        assert loaded.scenarios.global_scenario is not None
+        assert loaded.scenarios.global_scenario.send_unhandled is True

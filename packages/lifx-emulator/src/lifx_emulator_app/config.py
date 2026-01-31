@@ -2,27 +2,155 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
 
 AUTO_DETECT_FILENAMES = ("lifx-emulator.yaml", "lifx-emulator.yml")
 ENV_VAR = "LIFX_EMULATOR_CONFIG"
 
+_SERIAL_PATTERN = re.compile(r"^[0-9a-fA-F]{12}$")
+
+
+class HsbkConfig(BaseModel):
+    """HSBK color value supporting both dict and [h, s, b, k] list input."""
+
+    hue: int = 0
+    saturation: int = 0
+    brightness: int = 65535
+    kelvin: int = 3500
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_list_form(cls, data):
+        """Convert [h, s, b, k] list to dict form."""
+        if isinstance(data, (list, tuple)):
+            if len(data) != 4:
+                msg = (
+                    "HSBK list must have exactly 4 elements"
+                    " [hue, saturation, brightness, kelvin]"
+                )
+                raise ValueError(msg)
+            return {
+                "hue": data[0],
+                "saturation": data[1],
+                "brightness": data[2],
+                "kelvin": data[3],
+            }
+        return data
+
+    @field_validator("hue", "saturation", "brightness")
+    @classmethod
+    def validate_uint16(cls, v: int) -> int:
+        if not 0 <= v <= 65535:
+            msg = "Value must be between 0 and 65535"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("kelvin")
+    @classmethod
+    def validate_kelvin(cls, v: int) -> int:
+        if not 1500 <= v <= 9000:
+            msg = "Kelvin must be between 1500 and 9000"
+            raise ValueError(msg)
+        return v
+
+
+class ScenarioDefinition(BaseModel):
+    """Scenario configuration for a single scope level."""
+
+    drop_packets: dict[int, float] | None = None
+    response_delays: dict[int, float] | None = None
+    malformed_packets: list[int] | None = None
+    invalid_field_values: list[int] | None = None
+    firmware_version: tuple[int, int] | None = None
+    partial_responses: list[int] | None = None
+    send_unhandled: bool | None = None
+
+    @field_validator("drop_packets", mode="before")
+    @classmethod
+    def convert_drop_packets_keys(cls, v):
+        """Convert string keys to integers (YAML keys are often strings)."""
+        if isinstance(v, dict):
+            return {int(k): float(val) for k, val in v.items()}
+        return v
+
+    @field_validator("response_delays", mode="before")
+    @classmethod
+    def convert_response_delays_keys(cls, v):
+        """Convert string keys to integers (YAML keys are often strings)."""
+        if isinstance(v, dict):
+            return {int(k): float(val) for k, val in v.items()}
+        return v
+
+
+class ScenariosConfig(BaseModel):
+    """Scenarios configuration across all scope levels."""
+
+    global_scenario: ScenarioDefinition | None = Field(None, alias="global")
+    devices: dict[str, ScenarioDefinition] | None = None
+    types: dict[str, ScenarioDefinition] | None = None
+    locations: dict[str, ScenarioDefinition] | None = None
+    groups: dict[str, ScenarioDefinition] | None = None
+
+    model_config = {"populate_by_name": True}
+
 
 class DeviceDefinition(BaseModel):
     """A single device definition in the config file."""
 
     product_id: int
+    serial: str | None = None
     label: str | None = None
+    power_level: int | None = None
+    color: HsbkConfig | None = None
+    location: str | None = None
+    group: str | None = None
     zone_count: int | None = None
+    zone_colors: list[HsbkConfig] | None = None
+    infrared_brightness: int | None = None
+    hev_cycle_duration: int | None = None
+    hev_indication: bool | None = None
     tile_count: int | None = None
     tile_width: int | None = None
     tile_height: int | None = None
+
+    @field_validator("serial")
+    @classmethod
+    def validate_serial(cls, v: str | None) -> str | None:
+        if v is not None and not _SERIAL_PATTERN.match(v):
+            msg = "serial must be exactly 12 hex characters"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("power_level")
+    @classmethod
+    def validate_power_level(cls, v: int | None) -> int | None:
+        if v is not None and v not in (0, 65535):
+            msg = "power_level must be 0 (off) or 65535 (on)"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("infrared_brightness")
+    @classmethod
+    def validate_infrared_brightness(cls, v: int | None) -> int | None:
+        if v is not None and not 0 <= v <= 65535:
+            msg = "infrared_brightness must be between 0 and 65535"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("hev_cycle_duration")
+    @classmethod
+    def validate_hev_cycle_duration(cls, v: int | None) -> int | None:
+        if v is not None and v < 0:
+            msg = "hev_cycle_duration must be non-negative"
+            raise ValueError(msg)
+        return v
 
 
 class EmulatorConfig(BaseModel):
@@ -69,12 +197,14 @@ class EmulatorConfig(BaseModel):
     # Per-device definitions
     devices: list[DeviceDefinition] | None = None
 
+    # Scenario configuration
+    scenarios: ScenariosConfig | None = None
+
     @field_validator("serial_prefix")
     @classmethod
     def validate_serial_prefix(cls, v: str | None) -> str | None:
         if v is not None and (
-            len(v) != 6
-            or not all(c in "0123456789abcdefABCDEF" for c in v)
+            len(v) != 6 or not all(c in "0123456789abcdefABCDEF" for c in v)
         ):
             msg = "serial_prefix must be exactly 6 hex characters"
             raise ValueError(msg)
