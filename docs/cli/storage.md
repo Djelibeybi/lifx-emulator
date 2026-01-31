@@ -17,10 +17,11 @@ With persistent storage enabled, device state survives emulator restarts, making
 Enable persistent storage from the CLI:
 
 ```bash
-# Start emulator with persistent storage
-lifx-emulator --persistent
+# Start emulator with persistent storage and devices
+lifx-emulator --persistent --color 2
 
-# State will be saved and restored across restarts
+# On subsequent runs, saved devices are restored automatically
+lifx-emulator --persistent
 ```
 
 Or from Python:

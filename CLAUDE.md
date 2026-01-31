@@ -84,13 +84,24 @@ pyright
 ```
 
 ### Running the Emulator
+
+**IMPORTANT: No devices are created by default.** You must provide device
+configuration via a config file, CLI parameters, or both. Running `lifx-emulator`
+with no arguments and no config file will produce an error.
+
 ```bash
 # Run as module (from the standalone package)
-python -m lifx_emulator_app
+python -m lifx_emulator_app --color 1
 
 # Install and run as CLI (recommended)
 pip install -e packages/lifx-emulator
+
+# Quick start with a config file (auto-detected in current directory)
+# Create lifx-emulator.yaml with device definitions, then:
 lifx-emulator
+
+# Use an explicit config file
+lifx-emulator --config path/to/config.yaml
 
 # Common usage examples:
 # List all available LIFX products from the registry
@@ -99,20 +110,23 @@ lifx-emulator list-products
 # List only multizone products
 lifx-emulator list-products --filter-type multizone
 
+# Create a single color light (must be explicit)
+lifx-emulator --color 1
+
 # Create devices by product ID (from registry)
 lifx-emulator --product 27 --product 32 --product 55  # A19, Z strip, Tile
 
 # Start on custom port with verbose packet logging
-lifx-emulator --port 56700 --verbose
+lifx-emulator --color 1 --port 56700 --verbose
 
 # Bind to specific IP address
-lifx-emulator --bind 192.168.1.100 --port 56700
+lifx-emulator --color 1 --bind 192.168.1.100 --port 56700
 
 # Create multiple device types
 lifx-emulator --color 2 --multizone 1 --tile 1 --verbose
 
 # Create only specific device types
-lifx-emulator --color 0 --infrared 3 --hev 2 --switch 2
+lifx-emulator --infrared 3 --hev 2 --switch 2
 
 # Mix product IDs with device types
 lifx-emulator --product 27 --color 2 --multizone 1
@@ -127,13 +141,16 @@ lifx-emulator --multizone 2 --no-multizone-extended --multizone-zones 16
 lifx-emulator --serial-prefix cafe00 --color 5
 
 # Enable HTTP API server for monitoring and management
-lifx-emulator --api
+lifx-emulator --color 1 --api
 
 # API server with custom host/port
-lifx-emulator --api --api-host 127.0.0.1 --api-port 9090
+lifx-emulator --color 1 --api --api-host 127.0.0.1 --api-port 9090
 
 # Disable activity logging to save UI space and reduce traffic
-lifx-emulator --api --api-activity=false
+lifx-emulator --color 1 --api --api-activity=false
+
+# Override config file settings with CLI flags
+lifx-emulator --config setup.yaml --port 56701
 
 # See all available options
 lifx-emulator --help
@@ -156,29 +173,84 @@ lifx-emulator --help
     - `buttons`: Has physical buttons
 
 **CLI Parameters:**
+- `--config`: Path to YAML config file (see Configuration File section below)
 - `--bind`: IP address to bind to (default: 127.0.0.1)
 - `--port`: UDP port to listen on (default: 56700)
 - `--verbose`: Enable verbose logging showing all packets sent/received
 - `--persistent`: Enable persistent storage of device state across sessions
+- `--persistent-scenarios`: Enable persistent storage of test scenarios (requires --persistent)
 - `--product`: Create devices by product ID (can specify multiple times)
-- `--color`: Number of color lights (default: 1)
-- `--color-temperature`: Number of color temperature lights
-- `--infrared`: Number of infrared lights
-- `--hev`: Number of HEV/Clean lights
-- `--multizone`: Number of multizone devices (strips/beams, default: 0)
+- `--color`: Number of color lights (default: 0)
+- `--color-temperature`: Number of color temperature lights (default: 0)
+- `--infrared`: Number of infrared lights (default: 0)
+- `--hev`: Number of HEV/Clean lights (default: 0)
+- `--multizone`: Number of multizone devices (default: 0)
 - `--multizone-zones`: Zones per multizone device (uses product default if not specified)
 - `--multizone-extended`: Enable extended multizone support (default: True, use --no-multizone-extended to disable)
-- `--tile`: Number of tile devices
+- `--tile`: Number of tile devices (default: 0)
 - `--tile-count`: Tiles per device (uses product default if not specified)
 - `--tile-width`: Width of each tile in zones (uses product default if not specified)
 - `--tile-height`: Height of each tile in zones (uses product default if not specified)
-- `--switch`: Number of LIFX Switch devices (relays, no lighting, default: 0)
+- `--switch`: Number of LIFX Switch devices (default: 0)
 - `--serial-prefix`: serial prefix (6 hex chars, default: d073d5)
 - `--serial-start`: Starting serial suffix (default: 1)
 - `--api`: Enable HTTP API server for monitoring and management (default: False)
 - `--api-host`: API server host to bind to (default: 127.0.0.1)
 - `--api-port`: API server port (default: 8080)
 - `--api-activity`: Enable activity logging in API (default: True, disable to reduce traffic and save UI space)
+
+## Configuration File
+
+The emulator supports YAML configuration files for defining devices and settings. **No devices are created by default** -- you must provide device configuration via a config file, CLI parameters, or both.
+
+**Config file resolution order** (first match wins):
+1. `--config path/to/file.yaml` (explicit flag)
+2. `LIFX_EMULATOR_CONFIG` environment variable
+3. Auto-detect `lifx-emulator.yaml` or `lifx-emulator.yml` in the current directory
+
+**CLI parameters override config file values.** Final values = CLI arguments > config file values > defaults.
+
+**Config File Schema** (`packages/lifx-emulator/src/lifx_emulator_app/config.py`):
+- `EmulatorConfig`: Pydantic model with `extra = "forbid"` (unknown keys rejected)
+- `DeviceDefinition`: Per-device definition with `product_id` (required), `label`, `zone_count`, `tile_count`, `tile_width`, `tile_height` (all optional)
+- `resolve_config_path(config_flag)`: Three-tier path resolution
+- `load_config(path)`: Load and validate YAML
+- `merge_config(config, cli_overrides)`: Merge config + CLI with defaults
+
+**Config file options** mirror CLI parameters with these additions:
+- `products`: List of product IDs (equivalent to multiple `--product` flags)
+- `devices`: List of per-device definitions with individual product IDs, labels, and parameters
+
+**Example config file** (`lifx-emulator.yaml`):
+```yaml
+# Server options
+bind: 127.0.0.1
+port: 56700
+verbose: false
+
+# Enable API
+api: true
+
+# Device creation by type
+color: 2
+multizone: 1
+
+# Per-device definitions (in addition to type-based counts above)
+devices:
+  - product_id: 38
+    label: "TV Backlight"
+    zone_count: 60
+  - product_id: 55
+    label: "Art Display"
+    tile_count: 3
+```
+
+**Behavior when no devices are configured:**
+- Without `--persistent`: Error with guidance to use `--color`, `--product`, etc. or a config file
+- With `--persistent` and saved devices: Restores devices from persistent storage
+- With `--persistent` and no saved devices: Starts with no devices, logs guidance to use API or device flags
+
+**Example configuration file**: See `lifx-emulator.example.yaml` in the project root for a comprehensive example with all options documented.
 
 **Product Defaults:**
 Device parameters like `--multizone-zones` and `--tile-count` automatically use product-specific defaults from the specs system when not specified:
@@ -211,11 +283,11 @@ The emulator includes an optional HTTP API server for runtime monitoring and dev
 
 **Usage:**
 ```bash
-# Enable API server (default: http://127.0.0.1:8080)
-lifx-emulator --api
+# Enable API server with devices (default: http://127.0.0.1:8080)
+lifx-emulator --color 1 --api
 
 # Custom host and port
-lifx-emulator --api --api-host 127.0.0.1 --api-port 9090
+lifx-emulator --color 1 --api --api-host 127.0.0.1 --api-port 9090
 
 # Combined with other options
 lifx-emulator --color 2 --multizone 1 --api --verbose
@@ -295,7 +367,10 @@ The emulator supports optional persistent storage of device state across session
 
 **Usage:**
 ```bash
-# Enable persistence
+# Enable persistence with devices
+lifx-emulator --persistent --color 2 --multizone 1
+
+# On subsequent runs, saved devices are restored automatically
 lifx-emulator --persistent
 
 # Device state now survives restarts
@@ -610,6 +685,14 @@ The codebase is split into two packages:
 - Entry point for the `lifx-emulator` command
 - Device creation and server startup
 - Command-line argument parsing with cyclopts
+- YAML config file loading and merging with CLI overrides
+
+**Config Module** (`config.py`):
+- `EmulatorConfig`: Pydantic model for config file validation
+- `DeviceDefinition`: Pydantic model for per-device definitions
+- `resolve_config_path()`: Three-tier config file resolution (flag > env var > auto-detect)
+- `load_config()`: YAML loading and validation
+- `merge_config()`: Config file + CLI override merging with defaults
 
 **API Module** (`api/`):
 - `app.py`: FastAPI application creation and server startup

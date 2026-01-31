@@ -247,7 +247,7 @@ RUN pip install -e .
 
 EXPOSE 56700/udp
 
-CMD ["lifx-emulator", "--color", "3"]
+CMD ["lifx-emulator", "--color", "3", "--bind", "0.0.0.0"]
 ```
 
 **Docker tips:**

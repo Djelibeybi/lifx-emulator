@@ -140,7 +140,7 @@ lifx-emulator --product 27 --product 32
 lifx-emulator --product 55 --product 55 --product 55
 ```
 
-When using `--product`, the default `--color 1` is suppressed unless explicitly set.
+No devices are created by default. Use `--product`, `--color`, or other device flags to specify devices.
 
 ## Device Type Options
 
@@ -148,7 +148,7 @@ When using `--product`, the default `--color 1` is suppressed unless explicitly 
 
 Number of color lights to emulate (LIFX A19).
 
-- **Default:** `1`
+- **Default:** `0`
 - **Product:** 27 (LIFX A19)
 - **Example:** `--color 3`
 
@@ -262,25 +262,35 @@ Starting serial suffix.
 
 ## Complete Examples
 
-### Default Configuration
+### Using a Config File
 
 ```bash
-# Single color light on port 56700
+# Auto-detect lifx-emulator.yaml in current directory
 lifx-emulator
+
+# Explicit config file
+lifx-emulator --config my-setup.yaml
+```
+
+### Single Color Light
+
+```bash
+# Create one color light
+lifx-emulator --color 1
 ```
 
 ### Verbose Mode
 
 ```bash
 # Show all packet traffic
-lifx-emulator --verbose
+lifx-emulator --color 1 --verbose
 ```
 
 ### Custom Port
 
 ```bash
 # Use port 56701
-lifx-emulator --port 56701
+lifx-emulator --color 1 --port 56701
 ```
 
 ### Multiple Device Types
@@ -322,8 +332,8 @@ lifx-emulator --serial-prefix cafe00 --serial-start 100 --color 3
 ### Only Specific Types
 
 ```bash
-# No default devices, only infrared, HEV, and switches
-lifx-emulator --color 0 --infrared 3 --HEV 2 --switch 2
+# Only infrared, HEV, and switches
+lifx-emulator --infrared 3 --HEV 2 --switch 2
 ```
 
 ### Discovery Testing
@@ -337,7 +347,7 @@ lifx-emulator --color 10 --multizone 5 --tile 3
 
 ```bash
 # Bind to localhost for security
-lifx-emulator --bind 127.0.0.1 --verbose
+lifx-emulator --color 1 --bind 127.0.0.1 --verbose
 ```
 
 ### With HTTP API
@@ -347,10 +357,10 @@ lifx-emulator --bind 127.0.0.1 --verbose
 lifx-emulator --api --color 2 --multizone 1
 
 # Custom API port
-lifx-emulator --api --api-port 9090
+lifx-emulator --color 1 --api --api-port 9090
 
 # API without activity logging (reduces traffic)
-lifx-emulator --api --api-activity=false
+lifx-emulator --color 1 --api --api-activity=false
 ```
 
 ### Persistent Storage
@@ -419,7 +429,7 @@ lifx-emulator list-products --filter-type color
 For quick testing, use verbose mode to see all traffic:
 
 ```bash
-lifx-emulator --verbose
+lifx-emulator --color 1 --verbose
 ```
 
 ### Visual Monitoring
@@ -427,7 +437,7 @@ lifx-emulator --verbose
 Use the HTTP API for visual monitoring during development:
 
 ```bash
-lifx-emulator --api --verbose
+lifx-emulator --color 1 --api --verbose
 # Open http://localhost:8080 in your browser
 ```
 
@@ -442,7 +452,7 @@ The web dashboard shows:
 Use specific ports and localhost binding in CI:
 
 ```bash
-lifx-emulator --bind 127.0.0.1 --port 56701 &
+lifx-emulator --color 1 --bind 127.0.0.1 --port 56701 &
 EMULATOR_PID=$!
 # Run your tests
 kill $EMULATOR_PID
@@ -461,8 +471,10 @@ lifx-emulator list-products --filter-type multizone
 Enable persistence to maintain device state across test runs:
 
 ```bash
+lifx-emulator --persistent --color 2
+
+# On subsequent runs, saved devices are restored automatically
 lifx-emulator --persistent
-# Device labels, colors, power states persist across restarts
 ```
 
 ### Realistic Configurations

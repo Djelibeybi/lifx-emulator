@@ -54,10 +54,10 @@ The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use 
 Save device state (colors, labels, power) across emulator restarts:
 
 ```bash
-lifx-emulator --persistent
+lifx-emulator --persistent --color 2
 ```
 
-Device states are saved to `~/.lifx-emulator/` and automatically restored.
+Device states are saved to `~/.lifx-emulator/` and automatically restored on subsequent runs.
 
 👉 **[Storage Guide](storage.md)**
 
@@ -66,7 +66,7 @@ Device states are saved to `~/.lifx-emulator/` and automatically restored.
 Enable the HTTP API to manage devices at runtime:
 
 ```bash
-lifx-emulator --api
+lifx-emulator --color 1 --api
 ```
 
 Access the web dashboard at `http://localhost:8080` or use the REST API to add/remove devices dynamically.

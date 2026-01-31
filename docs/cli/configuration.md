@@ -125,14 +125,14 @@ products:
 !!! tip "Finding Product IDs"
     Run `lifx-emulator list-products` to see all available products and their IDs.
 
-When `products` is specified, the default `color: 1` is suppressed unless explicitly set.
+No devices are created by default. Use `products`, `color`, or other device type fields to specify which devices to create.
 
 ### Device Creation by Type
 
 Create devices by category:
 
 ```yaml
-# Number of color lights - LIFX A19 (default: 1)
+# Number of color lights - LIFX A19 (default: 0)
 color: 1
 
 # Number of color temperature lights - LIFX Mini White to Warm (default: 0)
@@ -265,9 +265,6 @@ port: 56700
 api: true
 persistent: true
 
-# Disable default devices
-color: 0
-
 # Define specific test devices
 devices:
   - product_id: 27
@@ -314,8 +311,6 @@ api_host: 0.0.0.0
 persistent: true
 persistent_scenarios: true
 
-color: 0
-
 devices:
   # Living room
   - product_id: 27
@@ -343,8 +338,6 @@ devices:
 
 ```yaml
 # multizone-test.yaml - Various multizone configurations
-color: 0
-
 devices:
   # Standard LIFX Z (non-extended)
   - product_id: 32
@@ -403,7 +396,7 @@ This is useful for:
 3. **Separate configs by purpose** - Development, testing, CI/CD, etc.
 4. **Use environment variable for defaults** - Set `LIFX_EMULATOR_CONFIG` for your preferred setup
 5. **Override with CLI for one-off changes** - Don't modify config files for temporary adjustments
-6. **Use `color: 0` with `devices`** - Prevents the default color light when using per-device definitions
+6. **Use the `devices` list for named devices** - Define individual devices with labels and specific configurations
 
 ## Troubleshooting
 
@@ -416,10 +409,9 @@ This is useful for:
 
 ### Unexpected Device Count
 
-Remember that device type counts (`color`, `multizone`, etc.) are **added to** the `devices` list, not replaced by it. To use only the `devices` list:
+Device type counts (`color`, `multizone`, etc.) are **added to** the `devices` list, not replaced by it. If you only want the devices in your `devices` list, don't set any type counts:
 
 ```yaml
-color: 0  # Disable default color light
 devices:
   - product_id: 27
     label: "My Only Light"

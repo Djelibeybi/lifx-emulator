@@ -58,7 +58,7 @@ api_activity: true
 
 # Create devices by specific product ID from the LIFX registry.
 # Run 'lifx-emulator list-products' to see all available products.
-# When products are specified, the default color: 1 is suppressed.
+# No devices are created by default. Use products or device type counts.
 #
 # Common product IDs:
 #   27 - LIFX A19 (color bulb)
@@ -80,7 +80,7 @@ api_activity: true
 # Device Creation by Type
 # ==============================================================================
 
-# Number of color lights - LIFX A19 (default: 1, set to 0 to disable)
+# Number of color lights - LIFX A19 (default: 0)
 color: 1
 
 # Number of color temperature lights - LIFX Mini White to Warm (default: 0)
@@ -185,8 +185,8 @@ serial_start: 1
 # ==============================================================================
 
 # --- Minimal Setup ---
-# Just use defaults (1 color light on localhost:56700)
-# (empty file or no device settings)
+# One color light on localhost:56700
+# color: 1
 
 # --- Development Setup ---
 # verbose: true

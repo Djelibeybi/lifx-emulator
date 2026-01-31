@@ -28,10 +28,10 @@ This tutorial walks you through creating and running your first emulated LIFX de
     You should see output like:
 
     ```
-    INFO - Starting LIFX Emulator on 127.0.0.1:56700
-    INFO - Created 1 emulated device(s):
-    INFO -   • A19 d073d5000001 (d073d5000001) - full color
-    INFO - Server running with verbose packet logging... Press Ctrl+C to stop
+    INFO     Starting LIFX Emulator on 127.0.0.1:56700
+    INFO     Created 1 emulated device(s):
+    INFO       • LIFX Color 000001 (d073d5000001) - color
+    INFO     Server running with verbose packet logging... Press Ctrl+C to stop
     ```
 
     **That's it!** You now have a virtual LIFX device running.
