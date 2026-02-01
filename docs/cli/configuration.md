@@ -361,7 +361,7 @@ verbose: false
 api: false
 
 # Use unique serial prefix for test isolation
-serial_prefix: "test00"
+serial_prefix: "cafe00"
 
 color: 1
 multizone: 1

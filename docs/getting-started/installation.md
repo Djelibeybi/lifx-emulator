@@ -81,7 +81,7 @@ lifx-emulator --color 1 --verbose
 
 You should see output like:
 
-```
+```text
 INFO     Starting LIFX Emulator on 127.0.0.1:56700
 INFO     Created 1 emulated device(s):
 INFO       • LIFX Color 000001 (d073d5000001) - color

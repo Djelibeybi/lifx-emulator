@@ -487,10 +487,7 @@ def _load_merged_config(**cli_kwargs) -> dict | None:
             print(f"Error loading config file {config_path}: {e}")
             return None
 
-    # CLI "products" maps to config "products"
     cli_overrides = dict(cli_kwargs)
-    if "products" in cli_overrides:
-        cli_overrides["products"] = cli_overrides.pop("products")
 
     result = merge_config(file_config, cli_overrides)
 
@@ -829,7 +826,7 @@ async def run(
     # Check if we should restore devices from persistent storage
     restore_from_storage = False
     has_any_device_config = (
-        f_products is not None
+        bool(f_products)
         or f_color > 0
         or f_color_temperature > 0
         or f_infrared > 0

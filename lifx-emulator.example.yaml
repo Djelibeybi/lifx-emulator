@@ -328,4 +328,4 @@ serial_start: 1
 # api: false
 # color: 1
 # multizone: 1
-# serial_prefix: "test00"
+# serial_prefix: "cafe00"
