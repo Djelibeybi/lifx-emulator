@@ -759,7 +759,7 @@ async def run(
     f_tile_height: int | None = cfg["tile_height"]
     f_serial_prefix: str = cfg["serial_prefix"]
     f_serial_start: int = cfg["serial_start"]
-    config_devices: list | None = cfg["devices"]
+    config_devices: list | None = cfg.get("devices")
     config_scenarios = cfg.get("scenarios")
 
     logger: logging.Logger = _setup_logging(f_verbose)
