@@ -11,20 +11,38 @@ env:
   UV_VERSION: 0.9.9
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      source: ${{ steps.filter.outputs.source }}
+    steps:
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8   # v6
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          source:
+            - 'packages/**'
+            - 'pyproject.toml'
+            - 'uv.lock'
+
   # Code quality checks
   quality:
     name: Code Quality
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8   # v6
 
     - name: Set up Python
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405   # v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Install uv
-      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7
+      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41   # v7
       with:
         version: ${{ env.UV_VERSION }}
         python-version: ${{ env.PYTHON_VERSION }}
@@ -49,6 +67,8 @@ jobs:
   # Testing matrix across Python versions and platforms
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,15 +76,15 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8   # v6
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405   # v6
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install uv
-      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7
+      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41   # v7
       with:
         version: ${{ env.UV_VERSION }}
         python-version: ${{ matrix.python-version }}
@@ -78,7 +98,7 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
-      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de   # v5
       with:
         slug: Djelibeybi/lifx-emulator
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -86,15 +106,22 @@ jobs:
 
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de   # v5
       with:
+        report_type: test_results
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     needs:
+    - changes
     - quality
     - test
+    if: |
+      always()
+      && needs.changes.outputs.source == 'true'
+      && needs.quality.result == 'success'
+      && needs.test.result == 'success'
     runs-on: ubuntu-latest
 
     permissions:
@@ -111,19 +138,19 @@ jobs:
 
     steps:
     - name: Checkout repository on release branch
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8   # v6
       with:
         ref: ${{ github.head_ref || github.ref_name }}
         fetch-depth: 0
         ssh-key: ${{ secrets.DEPLOY_KEY }}
 
     - name: Set up Python
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405   # v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Install uv
-      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7
+      uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41   # v7
       with:
         version: ${{ env.UV_VERSION }}
         python-version: ${{ env.PYTHON_VERSION }}
@@ -175,7 +202,6 @@ jobs:
           echo "release-lifx-emulator-core=true" >> $GITHUB_OUTPUT
         fi
 
-
     - name: Release lifx-emulator
       id: release-lifx-emulator
       if: github.ref_name == 'main'
@@ -199,17 +225,16 @@ jobs:
         fi
 
     - name: Upload Core Library Artifacts
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f   # v6
       with:
         name: lifx-emulator-core-artifacts
         path: packages/lifx-emulator-core/dist
 
     - name: Upload CLI Package Artifacts
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f   # v6
       with:
         name: lifx-emulator-artifacts
         path: packages/lifx-emulator/dist
-
 
   deploy-core:
     name: Deploy Core Library to PyPI
@@ -227,7 +252,7 @@ jobs:
 
     steps:
     - name: Download Core Library Artifacts
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131   # v7
       with:
         name: lifx-emulator-core-artifacts
         path: dist
@@ -244,7 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - release
-    - deploy-core  # CLI depends on core being published first
+    - deploy-core   # CLI depends on core being published first
     if: ${{ needs.release.outputs.release-lifx-emulator == 'true' }}
 
     permissions:
@@ -257,7 +282,7 @@ jobs:
 
     steps:
     - name: Download CLI Package Artifacts
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131   # v7
       with:
         name: lifx-emulator-artifacts
         path: dist
