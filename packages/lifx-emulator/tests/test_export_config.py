@@ -289,6 +289,17 @@ class TestCleanScenario:
         assert result["drop_packets"] == {101: 0.5, 116: 1.0}
         assert result["response_delays"] == {506: 0.2}
 
+    def test_false_non_send_unhandled_excluded(self):
+        """False values for keys other than send_unhandled are excluded."""
+        result = _clean_scenario(
+            {
+                "send_unhandled": False,
+                "partial_responses": False,
+            }
+        )
+        # send_unhandled=False is kept, other False values are excluded
+        assert result == {"send_unhandled": False}
+
 
 class TestScenariosToYamlDict:
     """Test _scenarios_to_yaml_dict function."""

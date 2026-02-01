@@ -440,6 +440,16 @@ class TestScenarioDefinition:
         assert s.drop_packets == {101: 1.0}
         assert s.response_delays == {116: 0.5}
 
+    def test_drop_packets_none_passthrough(self):
+        """Test that None drop_packets passes through validator unchanged."""
+        s = ScenarioDefinition(drop_packets=None)
+        assert s.drop_packets is None
+
+    def test_response_delays_none_passthrough(self):
+        """Test that None response_delays passes through validator unchanged."""
+        s = ScenarioDefinition(response_delays=None)
+        assert s.response_delays is None
+
 
 class TestScenariosConfig:
     """Test ScenariosConfig model."""
