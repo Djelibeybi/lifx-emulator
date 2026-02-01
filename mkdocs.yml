@@ -17,7 +17,7 @@ theme:
     toggle:
       icon: material/brightness-7
       name: Switch to dark mode
-    # Dark mode
+      # Dark mode
   - scheme: slate
     primary: indigo
     accent: blue
@@ -72,6 +72,7 @@ plugins:
       - getting-started/quickstart.md: Quick start guide for CLI and Python library
       lifx-emulator (CLI):
       - cli/index.md: CLI tool and HTTP management server overview
+      - cli/configuration.md: YAML configuration file support
       - cli/cli-reference.md: Command-line interface usage
       - cli/web-interface.md: HTTP management API and web interface
       - cli/device-management-api.md: Device management REST API
@@ -112,18 +113,18 @@ plugins:
         paths:
         - packages/lifx-emulator-core/src
         - packages/lifx-emulator/src
-          # Load object inventories to enable cross-references to other projects.
+              # Load object inventories to enable cross-references to other projects.
         inventories:
         - https://docs.python.org/3/objects.inv
         options:
           docstring_options:
             ignore_init_summary: true
 
-            # Docstring parsing
+              # Docstring parsing
           docstring_style: google
           docstring_section_style: spacy
 
-            # Headings and structure
+              # Headings and structure
           show_root_heading: true
           show_root_full_path: false
           show_root_members_full_path: false
@@ -131,13 +132,13 @@ plugins:
           show_category_heading: true
           heading_level: 2
 
-            # Signatures
+              # Signatures
           show_signature: true
           show_signature_annotations: true
           separate_signature: true
           signature_crossrefs: true
 
-            # Members
+              # Members
           members_order: source
           group_by_category: true
           show_if_no_docstring: false
@@ -146,18 +147,18 @@ plugins:
           show_docstring_classes: true
           show_docstring_modules: true
 
-            # Source code
+              # Source code
           show_source: true
 
-            # Inheritance
+              # Inheritance
           show_bases: true
           show_inheritance_diagram: false
 
-            # Special members
+              # Special members
           merge_init_into_class: true
           show_labels: true
 
-            # Additional improvements
+              # Additional improvements
           annotations_path: brief
           line_length: 80
           show_symbol_type_heading: true
@@ -205,7 +206,6 @@ markdown_extensions:
     toc_depth: 3
 
 nav:
-
 - Home: index.md
 
 - Getting Started:
@@ -215,6 +215,7 @@ nav:
 
 - lifx-emulator:
   - cli/index.md
+  - Configuration File: cli/configuration.md
   - CLI Reference: cli/cli-reference.md
   - Web Interface: cli/web-interface.md
   - REST API:

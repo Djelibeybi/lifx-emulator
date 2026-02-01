@@ -75,17 +75,17 @@ source .venv/bin/activate
 # Check CLI is available
 lifx-emulator --help
 
-# Run the emulator with verbose output
-lifx-emulator --verbose
+# Run the emulator with a color light and verbose output
+lifx-emulator --color 1 --verbose
 ```
 
 You should see output like:
 
-```
-INFO - Starting LIFX Emulator on 127.0.0.1:56700
-INFO - Created 1 emulated device(s):
-INFO -   • A19 d073d5000001 (d073d5000001) - full color
-INFO - Server running with verbose packet logging... Press Ctrl+C to stop
+```text
+INFO     Starting LIFX Emulator on 127.0.0.1:56700
+INFO     Created 1 emulated device(s):
+INFO       • LIFX Color 000001 (d073d5000001) - color
+INFO     Server running with verbose packet logging... Press Ctrl+C to stop
 ```
 
 ### Library Package

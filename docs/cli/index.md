@@ -31,15 +31,33 @@ Read these guides in order from simple to complex:
 
 ## Quick Concepts
 
+### Configuration File
+
+Define your emulator setup in a YAML file instead of command-line arguments:
+
+```yaml
+# lifx-emulator.yaml
+api: true
+color: 2
+multizone: 1
+devices:
+  - product_id: 27
+    label: "Living Room"
+```
+
+The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
+
+👉 **[Configuration Guide](configuration.md)**
+
 ### Persistent Storage
 
 Save device state (colors, labels, power) across emulator restarts:
 
 ```bash
-lifx-emulator --persistent
+lifx-emulator --persistent --color 2
 ```
 
-Device states are saved to `~/.lifx-emulator/` and automatically restored.
+Device states are saved to `~/.lifx-emulator/` and automatically restored on subsequent runs.
 
 👉 **[Storage Guide](storage.md)**
 
@@ -48,7 +66,7 @@ Device states are saved to `~/.lifx-emulator/` and automatically restored.
 Enable the HTTP API to manage devices at runtime:
 
 ```bash
-lifx-emulator --api
+lifx-emulator --color 1 --api
 ```
 
 Access the web dashboard at `http://localhost:8080` or use the REST API to add/remove devices dynamically.
@@ -95,6 +113,13 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 | REST API | ❌ | ✅ |
 
 ## When to Use Advanced Features
+
+### Use Configuration Files When:
+
+- You have complex device setups to reproduce
+- Sharing configurations with team members
+- Running tests in CI/CD pipelines
+- You want version-controlled emulator settings
 
 ### Use Persistent Storage When:
 
@@ -143,3 +168,9 @@ curl -X POST http://localhost:8080/api/devices \
 ## Next Steps
 
 Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.
+
+1. **[Configuration File](configuration.md)** - YAML-based configuration
+2. **[Persistent Storage](storage.md)** - Save device state across restarts
+3. **[Device Management API](device-management-api.md)** - Add/remove devices at runtime
+4. **[Scenarios](scenarios.md)** - Comprehensive error simulation concepts
+5. **[Scenario API](scenario-api.md)** - REST API for managing test scenarios
