@@ -75,8 +75,10 @@ class TestDeviceStateToYamlDict:
             "label": "",
             "power_level": 0,
             "color": LightHsbk(
-                hue=21845, saturation=65535,
-                brightness=65535, kelvin=3500,
+                hue=21845,
+                saturation=65535,
+                brightness=65535,
+                kelvin=3500,
             ),
             "location_label": "Test Location",
             "group_label": "Test Group",
@@ -138,7 +140,10 @@ class TestDeviceStateToYamlDict:
     def test_multizone_with_uniform_colors_omits_zone_colors(self):
         """Multizone with all same zone colors omits zone_colors."""
         same_color = LightHsbk(
-            hue=21845, saturation=65535, brightness=65535, kelvin=3500,
+            hue=21845,
+            saturation=65535,
+            brightness=65535,
+            kelvin=3500,
         )
         state = {
             "product": 38,
@@ -244,35 +249,43 @@ class TestCleanScenario:
 
     def test_removes_empty_dicts(self):
         """Empty dict values are removed."""
-        result = _clean_scenario({
-            "drop_packets": {},
-            "response_delays": {},
-            "malformed_packets": [],
-        })
+        result = _clean_scenario(
+            {
+                "drop_packets": {},
+                "response_delays": {},
+                "malformed_packets": [],
+            }
+        )
         assert result is None
 
     def test_removes_none_values(self):
         """None values are removed."""
-        result = _clean_scenario({
-            "drop_packets": None,
-            "firmware_version": None,
-        })
+        result = _clean_scenario(
+            {
+                "drop_packets": None,
+                "firmware_version": None,
+            }
+        )
         assert result is None
 
     def test_keeps_meaningful_values(self):
         """Non-empty values are kept."""
-        result = _clean_scenario({
-            "drop_packets": {"101": 1.0},
-            "send_unhandled": True,
-        })
+        result = _clean_scenario(
+            {
+                "drop_packets": {"101": 1.0},
+                "send_unhandled": True,
+            }
+        )
         assert result == {"drop_packets": {101: 1.0}, "send_unhandled": True}
 
     def test_converts_string_keys(self):
         """String keys in drop_packets/response_delays become ints."""
-        result = _clean_scenario({
-            "drop_packets": {"101": 0.5, "116": 1.0},
-            "response_delays": {"506": 0.2},
-        })
+        result = _clean_scenario(
+            {
+                "drop_packets": {"101": 0.5, "116": 1.0},
+                "response_delays": {"506": 0.2},
+            }
+        )
         assert result["drop_packets"] == {101: 0.5, 116: 1.0}
         assert result["response_delays"] == {506: 0.2}
 
@@ -288,21 +301,29 @@ class TestScenariosToYamlDict:
     def test_empty_scenarios_returns_none(self, tmp_path):
         """All-empty scenarios returns None."""
         path = tmp_path / "scenarios.json"
-        path.write_text(json.dumps({
-            "global": {},
-            "devices": {},
-            "types": {},
-        }))
+        path.write_text(
+            json.dumps(
+                {
+                    "global": {},
+                    "devices": {},
+                    "types": {},
+                }
+            )
+        )
         result = _scenarios_to_yaml_dict(path)
         assert result is None
 
     def test_global_scenario(self, tmp_path):
         """Global scenario is included."""
         path = tmp_path / "scenarios.json"
-        path.write_text(json.dumps({
-            "global": {"drop_packets": {"101": 1.0}},
-            "devices": {},
-        }))
+        path.write_text(
+            json.dumps(
+                {
+                    "global": {"drop_packets": {"101": 1.0}},
+                    "devices": {},
+                }
+            )
+        )
         result = _scenarios_to_yaml_dict(path)
         assert result is not None
         assert result["global"]["drop_packets"] == {101: 1.0}
@@ -310,13 +331,17 @@ class TestScenariosToYamlDict:
     def test_device_scenarios(self, tmp_path):
         """Device-scoped scenarios are included."""
         path = tmp_path / "scenarios.json"
-        path.write_text(json.dumps({
-            "global": {},
-            "devices": {
-                "d073d5000001": {"send_unhandled": True},
-            },
-            "types": {},
-        }))
+        path.write_text(
+            json.dumps(
+                {
+                    "global": {},
+                    "devices": {
+                        "d073d5000001": {"send_unhandled": True},
+                    },
+                    "types": {},
+                }
+            )
+        )
         result = _scenarios_to_yaml_dict(path)
         assert result is not None
         assert "d073d5000001" in result["devices"]

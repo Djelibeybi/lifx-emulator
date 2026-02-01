@@ -1,6 +1,5 @@
 """Tests for config file support."""
 
-
 import pytest
 import yaml
 from lifx_emulator_app.config import (

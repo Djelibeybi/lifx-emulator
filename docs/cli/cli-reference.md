@@ -40,6 +40,56 @@ lifx-emulator list-products --filter-type multizone
 lifx-emulator list-products --filter-type matrix
 ```
 
+### `lifx-emulator export-config`
+
+Export persistent storage (device state and scenarios) to a YAML config file. Use this to migrate from the deprecated `--persistent` workflow to a config file.
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--storage-dir <PATH>` | Path to storage directory (default: `~/.lifx-emulator`) |
+| `--output <PATH>` | Output file path (default: stdout) |
+| `--no-scenarios` | Exclude scenario configurations from export |
+
+**Examples:**
+```bash
+# Print exported config to stdout
+lifx-emulator export-config
+
+# Export to a file
+lifx-emulator export-config --output my-config.yaml
+
+# Export without scenarios
+lifx-emulator export-config --no-scenarios --output devices-only.yaml
+
+# Export from custom storage directory
+lifx-emulator export-config --storage-dir /path/to/storage
+```
+
+### `lifx-emulator clear-storage`
+
+Delete all persistent storage files (device state and scenarios).
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--storage-dir <PATH>` | Path to storage directory (default: `~/.lifx-emulator`) |
+| `--yes` | Skip confirmation prompt |
+
+**Examples:**
+```bash
+# Clear with confirmation prompt
+lifx-emulator clear-storage
+
+# Clear without confirmation
+lifx-emulator clear-storage --yes
+
+# Clear custom storage directory
+lifx-emulator clear-storage --storage-dir /path/to/storage
+```
+
 ## Configuration Options
 
 ### `--config <PATH>`
@@ -83,12 +133,18 @@ Enable verbose logging showing all packet traffic.
 
 ### `--persistent`
 
+!!! warning "Deprecated"
+    `--persistent` is deprecated and will be removed in a future release. Use [config file device definitions](configuration.md#per-device-definitions) instead. Run `lifx-emulator export-config` to migrate.
+
 Enable persistent storage of device state across sessions. Device state (label, power, color, location, group, etc.) is saved to `~/.lifx-emulator/` and automatically restored on restart.
 
 - **Default:** `False`
 - **Example:** `--persistent`
 
 ### `--persistent-scenarios`
+
+!!! warning "Deprecated"
+    `--persistent-scenarios` is deprecated and will be removed in a future release. Use [config file scenarios](configuration.md#scenarios) instead. Run `lifx-emulator export-config` to migrate.
 
 Enable persistent storage of scenario configurations across sessions. Scenarios are saved to `~/.lifx-emulator/scenarios.json`. Requires `--persistent` to be enabled.
 

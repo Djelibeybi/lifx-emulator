@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import uuid
+import warnings
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -700,9 +701,7 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        task = asyncio.create_task(
-            run(bind="192.168.1.100", port=12345, color=1)
-        )
+        task = asyncio.create_task(run(bind="192.168.1.100", port=12345, color=1))
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -936,6 +935,142 @@ class TestRunCommand:
         assert len(devices) == 1
 
 
+class TestDeprecationWarnings:
+    """Test deprecation warnings for --persistent flags."""
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_persistent_deprecation_warning(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """--persistent emits a DeprecationWarning."""
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            task = asyncio.create_task(run(persistent=True, color=1))
+            await asyncio.sleep(0.1)
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+        deprecation_warnings = [
+            x for x in w if issubclass(x.category, DeprecationWarning)
+        ]
+        assert len(deprecation_warnings) >= 1
+        assert "export-config" in str(deprecation_warnings[0].message)
+        assert "--persistent" in str(deprecation_warnings[0].message)
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_persistent_deprecation_logged(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """--persistent logs a deprecation warning via logger."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run(persistent=True, color=1))
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        warning_calls = [
+            call
+            for call in mock_logger.warning.call_args_list
+            if "--persistent is deprecated" in str(call)
+        ]
+        assert len(warning_calls) >= 1
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_persistent_scenarios_deprecation_warning(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """--persistent-scenarios emits a DeprecationWarning."""
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            task = asyncio.create_task(
+                run(persistent=True, persistent_scenarios=True, color=1)
+            )
+            await asyncio.sleep(0.1)
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+        deprecation_warnings = [
+            x for x in w if issubclass(x.category, DeprecationWarning)
+        ]
+        scenario_warnings = [
+            x
+            for x in deprecation_warnings
+            if "--persistent-scenarios" in str(x.message)
+        ]
+        assert len(scenario_warnings) >= 1
+        assert "export-config" in str(scenario_warnings[0].message)
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_no_deprecation_without_persistent(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """No deprecation warnings when --persistent is not used."""
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            task = asyncio.create_task(run(color=1))
+            await asyncio.sleep(0.1)
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+        deprecation_warnings = [
+            x for x in w if issubclass(x.category, DeprecationWarning)
+        ]
+        assert len(deprecation_warnings) == 0
+
+
 class TestScenarioDefToCore:
     """Test _scenario_def_to_core conversion."""
 
@@ -1147,8 +1282,10 @@ class TestRunWithConfigDevices:
                     product_id=27,
                     power_level=65535,
                     color=HsbkConfig(
-                        hue=21845, saturation=65535,
-                        brightness=65535, kelvin=3500,
+                        hue=21845,
+                        saturation=65535,
+                        brightness=65535,
+                        kelvin=3500,
                     ),
                 ),
             ]
@@ -1239,8 +1376,10 @@ class TestRunWithConfigDevices:
                     zone_count=8,
                     zone_colors=[
                         HsbkConfig(
-                            hue=i * 8000, saturation=65535,
-                            brightness=65535, kelvin=3500,
+                            hue=i * 8000,
+                            saturation=65535,
+                            brightness=65535,
+                            kelvin=3500,
                         )
                         for i in range(8)
                     ],

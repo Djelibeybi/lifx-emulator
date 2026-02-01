@@ -5,6 +5,7 @@ import json
 import logging
 import signal
 import uuid
+import warnings
 from pathlib import Path
 from typing import Annotated
 
@@ -364,7 +365,7 @@ def _clean_scenario(sc: dict) -> dict | None:
     for key, val in sc.items():
         if val is None:
             continue
-        if isinstance(val, (dict, list)) and not val:
+        if isinstance(val, dict | list) and not val:
             continue
         if val is False and key != "send_unhandled":
             continue
@@ -415,9 +416,7 @@ def export_config(
 
     # Find all device state files
     device_files = sorted(storage_path.glob("*.json"))
-    device_files = [
-        f for f in device_files if f.name != "scenarios.json"
-    ]
+    device_files = [f for f in device_files if f.name != "scenarios.json"]
 
     if not device_files and not (storage_path / "scenarios.json").exists():
         print(f"No persistent device states found in {storage_path}")
@@ -538,16 +537,12 @@ def _apply_config_scenarios(
     manager = HierarchicalScenarioManager()
 
     if scenarios.global_scenario:
-        manager.set_global_scenario(
-            _scenario_def_to_core(scenarios.global_scenario)
-        )
+        manager.set_global_scenario(_scenario_def_to_core(scenarios.global_scenario))
         logger.info("Applied global scenario from config")
 
     if scenarios.devices:
         for serial, defn in scenarios.devices.items():
-            manager.set_device_scenario(
-                serial, _scenario_def_to_core(defn)
-            )
+            manager.set_device_scenario(serial, _scenario_def_to_core(defn))
         logger.info(
             "Applied %d device scenario(s) from config",
             len(scenarios.devices),
@@ -555,9 +550,7 @@ def _apply_config_scenarios(
 
     if scenarios.types:
         for type_name, defn in scenarios.types.items():
-            manager.set_type_scenario(
-                type_name, _scenario_def_to_core(defn)
-            )
+            manager.set_type_scenario(type_name, _scenario_def_to_core(defn))
         logger.info(
             "Applied %d type scenario(s) from config",
             len(scenarios.types),
@@ -565,9 +558,7 @@ def _apply_config_scenarios(
 
     if scenarios.locations:
         for location, defn in scenarios.locations.items():
-            manager.set_location_scenario(
-                location, _scenario_def_to_core(defn)
-            )
+            manager.set_location_scenario(location, _scenario_def_to_core(defn))
         logger.info(
             "Applied %d location scenario(s) from config",
             len(scenarios.locations),
@@ -575,9 +566,7 @@ def _apply_config_scenarios(
 
     if scenarios.groups:
         for group, defn in scenarios.groups.items():
-            manager.set_group_scenario(
-                group, _scenario_def_to_core(defn)
-            )
+            manager.set_group_scenario(group, _scenario_def_to_core(defn))
         logger.info(
             "Applied %d group scenario(s) from config",
             len(scenarios.groups),
@@ -590,16 +579,10 @@ def _apply_config_scenarios(
 async def run(
     *,
     # Configuration
-    config: Annotated[
-        str | None, cyclopts.Parameter(group=config_group)
-    ] = None,
+    config: Annotated[str | None, cyclopts.Parameter(group=config_group)] = None,
     # Server Options
-    bind: Annotated[
-        str | None, cyclopts.Parameter(group=server_group)
-    ] = None,
-    port: Annotated[
-        int | None, cyclopts.Parameter(group=server_group)
-    ] = None,
+    bind: Annotated[str | None, cyclopts.Parameter(group=server_group)] = None,
+    port: Annotated[int | None, cyclopts.Parameter(group=server_group)] = None,
     verbose: Annotated[
         bool | None, cyclopts.Parameter(negative="", group=server_group)
     ] = None,
@@ -614,40 +597,22 @@ async def run(
     api: Annotated[
         bool | None, cyclopts.Parameter(negative="", group=api_group)
     ] = None,
-    api_host: Annotated[
-        str | None, cyclopts.Parameter(group=api_group)
-    ] = None,
-    api_port: Annotated[
-        int | None, cyclopts.Parameter(group=api_group)
-    ] = None,
-    api_activity: Annotated[
-        bool | None, cyclopts.Parameter(group=api_group)
-    ] = None,
+    api_host: Annotated[str | None, cyclopts.Parameter(group=api_group)] = None,
+    api_port: Annotated[int | None, cyclopts.Parameter(group=api_group)] = None,
+    api_activity: Annotated[bool | None, cyclopts.Parameter(group=api_group)] = None,
     # Device Creation
     product: Annotated[
         list[int] | None, cyclopts.Parameter(negative_iterable="", group=device_group)
     ] = None,
-    color: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
+    color: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
     color_temperature: Annotated[
         int | None, cyclopts.Parameter(group=device_group)
     ] = None,
-    infrared: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
-    hev: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
-    multizone: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
-    tile: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
-    switch: Annotated[
-        int | None, cyclopts.Parameter(group=device_group)
-    ] = None,
+    infrared: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
+    hev: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
+    multizone: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
+    tile: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
+    switch: Annotated[int | None, cyclopts.Parameter(group=device_group)] = None,
     # Multizone Options
     multizone_zones: Annotated[
         int | None, cyclopts.Parameter(group=multizone_group)
@@ -660,12 +625,8 @@ async def run(
     tile_width: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
     tile_height: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
     # Serial Number Options
-    serial_prefix: Annotated[
-        str | None, cyclopts.Parameter(group=serial_group)
-    ] = None,
-    serial_start: Annotated[
-        int | None, cyclopts.Parameter(group=serial_group)
-    ] = None,
+    serial_prefix: Annotated[str | None, cyclopts.Parameter(group=serial_group)] = None,
+    serial_start: Annotated[int | None, cyclopts.Parameter(group=serial_group)] = None,
 ) -> bool | None:
     """Start the LIFX emulator with configurable devices.
 
@@ -813,6 +774,32 @@ async def run(
     if f_persistent_scenarios and not f_persistent:
         logger.error("--persistent-scenarios requires --persistent")
         return False
+
+    # Deprecation warnings for --persistent / --persistent-scenarios
+    if f_persistent:
+        warnings.warn(
+            "--persistent is deprecated and will be removed in a future "
+            "release. Use 'lifx-emulator export-config' to migrate to a "
+            "config file.",
+            DeprecationWarning,
+            stacklevel=1,
+        )
+        logger.warning(
+            "--persistent is deprecated. Use 'lifx-emulator export-config' "
+            "to migrate your device state to a config file."
+        )
+    if f_persistent_scenarios:
+        warnings.warn(
+            "--persistent-scenarios is deprecated and will be removed in a "
+            "future release. Use 'lifx-emulator export-config' to migrate "
+            "scenarios to a config file.",
+            DeprecationWarning,
+            stacklevel=1,
+        )
+        logger.warning(
+            "--persistent-scenarios is deprecated. Use 'lifx-emulator "
+            "export-config' to migrate your scenarios to a config file."
+        )
 
     # Initialize storage if persistence is enabled
     storage = DevicePersistenceAsyncFile() if f_persistent else None
@@ -994,21 +981,16 @@ async def run(
                             for zc in dev_def.zone_colors
                         ]
                     if dev_def.infrared_brightness is not None:
-                        device.state.infrared_brightness = (
-                            dev_def.infrared_brightness
-                        )
+                        device.state.infrared_brightness = dev_def.infrared_brightness
                     if dev_def.hev_cycle_duration is not None:
-                        device.state.hev_cycle_duration_s = (
-                            dev_def.hev_cycle_duration
-                        )
+                        device.state.hev_cycle_duration_s = dev_def.hev_cycle_duration
                     if dev_def.hev_indication is not None:
                         device.state.hev_indication = dev_def.hev_indication
                     devices.append(device)
                 except ValueError as e:
                     logger.error("Failed to create device from config: %s", e)
                     logger.info(
-                        "Run 'lifx-emulator list-products'"
-                        " to see available products"
+                        "Run 'lifx-emulator list-products' to see available products"
                     )
                     return
 

@@ -171,14 +171,21 @@ lifx-emulator --help
     - `HEV`: Germicidal UV-C capability
     - `chain`: Supports device chaining
     - `buttons`: Has physical buttons
+- `export-config`: Export persistent storage to a YAML config file (migration tool)
+  - `--storage-dir`: Path to storage directory (default: `~/.lifx-emulator`)
+  - `--output`: Output file path (default: stdout)
+  - `--no-scenarios`: Exclude scenario configurations from export
+- `clear-storage`: Delete all persistent storage files
+  - `--storage-dir`: Path to storage directory (default: `~/.lifx-emulator`)
+  - `--yes`: Skip confirmation prompt
 
 **CLI Parameters:**
 - `--config`: Path to YAML config file (see Configuration File section below)
 - `--bind`: IP address to bind to (default: 127.0.0.1)
 - `--port`: UDP port to listen on (default: 56700)
 - `--verbose`: Enable verbose logging showing all packets sent/received
-- `--persistent`: Enable persistent storage of device state across sessions
-- `--persistent-scenarios`: Enable persistent storage of test scenarios (requires --persistent)
+- `--persistent`: **(Deprecated)** Enable persistent storage of device state across sessions. Use config file device definitions instead.
+- `--persistent-scenarios`: **(Deprecated)** Enable persistent storage of test scenarios (requires --persistent). Use config file scenarios instead.
 - `--product`: Create devices by product ID (can specify multiple times)
 - `--color`: Number of color lights (default: 0)
 - `--color-temperature`: Number of color temperature lights (default: 0)
@@ -212,14 +219,18 @@ The emulator supports YAML configuration files for defining devices and settings
 
 **Config File Schema** (`packages/lifx-emulator/src/lifx_emulator_app/config.py`):
 - `EmulatorConfig`: Pydantic model with `extra = "forbid"` (unknown keys rejected)
-- `DeviceDefinition`: Per-device definition with `product_id` (required), `label`, `zone_count`, `tile_count`, `tile_width`, `tile_height` (all optional)
+- `DeviceDefinition`: Per-device definition with `product_id` (required), plus optional fields: `serial`, `label`, `power_level`, `color`, `location`, `group`, `zone_count`, `zone_colors`, `infrared_brightness`, `hev_cycle_duration`, `hev_indication`, `tile_count`, `tile_width`, `tile_height`
+- `HsbkConfig`: HSBK color model with `model_validator(mode="before")` accepting `[h, s, b, k]` list input, uint16 validation, kelvin range 1500–9000
+- `ScenarioDefinition`: Per-scope scenario with fields: `drop_packets`, `response_delays`, `malformed_packets`, `invalid_field_values`, `firmware_version`, `partial_responses`, `send_unhandled`
+- `ScenariosConfig`: Container for all 5 scope levels: `global`, `devices` (by serial), `types`, `locations`, `groups`
 - `resolve_config_path(config_flag)`: Three-tier path resolution
 - `load_config(path)`: Load and validate YAML
 - `merge_config(config, cli_overrides)`: Merge config + CLI with defaults
 
 **Config file options** mirror CLI parameters with these additions:
 - `products`: List of product IDs (equivalent to multiple `--product` flags)
-- `devices`: List of per-device definitions with individual product IDs, labels, and parameters
+- `devices`: List of per-device definitions with individual product IDs, labels, state fields, and parameters
+- `scenarios`: Scenario definitions at 5 scope levels (global, devices, types, locations, groups)
 
 **Example config file** (`lifx-emulator.yaml`):
 ```yaml
@@ -227,22 +238,40 @@ The emulator supports YAML configuration files for defining devices and settings
 bind: 127.0.0.1
 port: 56700
 verbose: false
-
-# Enable API
 api: true
 
 # Device creation by type
 color: 2
 multizone: 1
 
-# Per-device definitions (in addition to type-based counts above)
+# Per-device definitions with initial state
 devices:
+  - product_id: 27
+    serial: d073d5000001
+    label: "Living Room"
+    power_level: 65535
+    color: [21845, 65535, 65535, 3500]
+    location: "Downstairs"
+    group: "Lights"
   - product_id: 38
     label: "TV Backlight"
-    zone_count: 60
-  - product_id: 55
-    label: "Art Display"
-    tile_count: 3
+    zone_count: 16
+    zone_colors:
+      - [0, 65535, 65535, 3500]
+      - [21845, 65535, 65535, 3500]
+  - product_id: 90
+    label: "Bathroom"
+    hev_cycle_duration: 7200
+    hev_indication: true
+
+# Test scenarios (precedence: device > type > location > group > global)
+scenarios:
+  global:
+    send_unhandled: true
+  devices:
+    d073d5000001:
+      drop_packets:
+        101: 0.5
 ```
 
 **Behavior when no devices are configured:**
@@ -355,6 +384,8 @@ The API follows the OpenAPI 3.1.0 specification and provides:
 - Complete metadata (title, version, description, license, contact info)
 
 ## Persistent Storage
+
+> **Deprecated:** `--persistent` and `--persistent-scenarios` are deprecated. Use config file device definitions with state fields and the `scenarios` config section instead. Run `lifx-emulator export-config` to migrate existing storage to a config file.
 
 The emulator supports optional persistent storage of device state across sessions using the `--persistent` CLI flag.
 
@@ -688,8 +719,11 @@ The codebase is split into two packages:
 - YAML config file loading and merging with CLI overrides
 
 **Config Module** (`config.py`):
-- `EmulatorConfig`: Pydantic model for config file validation
-- `DeviceDefinition`: Pydantic model for per-device definitions
+- `EmulatorConfig`: Pydantic model for config file validation (includes `scenarios: ScenariosConfig | None`)
+- `DeviceDefinition`: Pydantic model for per-device definitions (includes `serial`, `power_level`, `color`, `location`, `group`, `zone_colors`, `infrared_brightness`, `hev_cycle_duration`, `hev_indication`)
+- `HsbkConfig`: HSBK color model accepting dict or `[h, s, b, k]` list, with uint16 and kelvin validation
+- `ScenarioDefinition`: Scenario config model with `drop_packets`, `response_delays`, `malformed_packets`, `invalid_field_values`, `firmware_version`, `partial_responses`, `send_unhandled`
+- `ScenariosConfig`: Container for scenarios at 5 scope levels (`global`, `devices`, `types`, `locations`, `groups`)
 - `resolve_config_path()`: Three-tier config file resolution (flag > env var > auto-detect)
 - `load_config()`: YAML loading and validation
 - `merge_config()`: Config file + CLI override merging with defaults

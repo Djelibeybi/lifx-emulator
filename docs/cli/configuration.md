@@ -82,16 +82,17 @@ port: 56700
 verbose: false
 ```
 
-### Storage & Persistence
+### Storage & Persistence (Deprecated)
+
+!!! warning "Deprecated"
+    `persistent` and `persistent_scenarios` are deprecated and will be removed in a future release. Use [device definitions with state fields](#per-device-definitions) and the [scenarios section](#scenarios) instead. To migrate existing persistent storage, see [Migrating from Persistent Storage](#migrating-from-persistent-storage).
 
 ```yaml
-# Persist device state across restarts (default: false)
-# State is saved to ~/.lifx-emulator/
-persistent: false
+# DEPRECATED: Use device definitions with state fields instead
+# persistent: false
 
-# Persist scenario configurations (default: false)
-# Requires persistent: true
-persistent_scenarios: false
+# DEPRECATED: Use the scenarios section instead
+# persistent_scenarios: false
 ```
 
 ### HTTP API Server
@@ -200,26 +201,48 @@ devices:
   # Simple device with just product ID
   - product_id: 27
 
-  # Device with custom label
+  # Device with full initial state
   - product_id: 27
+    serial: d073d5000001
     label: "Living Room"
+    power_level: 65535
+    color:
+      hue: 21845
+      saturation: 65535
+      brightness: 65535
+      kelvin: 3500
+    location: "Downstairs"
+    group: "Lights"
 
-  # Multizone device with custom zone count
+  # Device using compact HSBK notation
+  - product_id: 27
+    label: "Kitchen"
+    color: [0, 0, 32768, 4000]
+
+  # Multizone device with per-zone colors
   - product_id: 38
-    zone_count: 60
+    zone_count: 16
     label: "TV Backlight"
+    zone_colors:
+      - [0, 65535, 65535, 3500]
+      - [21845, 65535, 65535, 3500]
+      - [43690, 65535, 65535, 3500]
+
+  # Infrared light with IR brightness
+  - product_id: 29
+    label: "Security Camera"
+    infrared_brightness: 32768
+
+  # HEV light with cycle configuration
+  - product_id: 90
+    label: "Bathroom"
+    hev_cycle_duration: 7200
+    hev_indication: true
 
   # Tile device with custom tile count
   - product_id: 55
     tile_count: 3
     label: "Art Display"
-
-  # Tile device with custom dimensions
-  - product_id: 55
-    tile_count: 1
-    tile_width: 16
-    tile_height: 8
-    label: "Wide Panel"
 ```
 
 ### Device Definition Fields
@@ -227,11 +250,47 @@ devices:
 | Field | Required | Description |
 |-------|----------|-------------|
 | `product_id` | Yes | LIFX product ID from registry |
+| `serial` | No | 12-character hex serial (e.g. `d073d5000001`). Auto-generated if not set. |
 | `label` | No | Device label (max 32 characters) |
+| `power_level` | No | Initial power level (`0` = off, `65535` = on) |
+| `color` | No | Initial HSBK color (dict or `[h, s, b, k]` list) |
+| `location` | No | Location label (UUID auto-generated from label) |
+| `group` | No | Group label (UUID auto-generated from label) |
 | `zone_count` | No | Number of zones (multizone devices only) |
+| `zone_colors` | No | List of per-zone HSBK colors (multizone devices only) |
+| `infrared_brightness` | No | Initial IR brightness 0–65535 (infrared devices only) |
+| `hev_cycle_duration` | No | HEV cycle duration in seconds (HEV devices only) |
+| `hev_indication` | No | HEV indication enabled (HEV devices only) |
 | `tile_count` | No | Number of tiles (matrix devices only) |
 | `tile_width` | No | Tile width in zones (matrix devices only) |
 | `tile_height` | No | Tile height in zones (matrix devices only) |
+
+#### HSBK Color Format
+
+Colors can be specified as a dict or a compact list:
+
+```yaml
+# Verbose dict format
+color:
+  hue: 21845
+  saturation: 65535
+  brightness: 65535
+  kelvin: 3500
+
+# Compact list format [hue, saturation, brightness, kelvin]
+color: [21845, 65535, 65535, 3500]
+```
+
+All values are uint16 (0–65535). Kelvin must be between 1500 and 9000.
+
+The compact list format is especially useful for `zone_colors`:
+
+```yaml
+zone_colors:
+  - [0, 65535, 65535, 3500]       # Red
+  - [21845, 65535, 65535, 3500]   # Green
+  - [43690, 65535, 65535, 3500]   # Blue
+```
 
 !!! note "Combining Device Types"
     You can use both `devices` list and device type counts (`color`, `multizone`, etc.) together. All specified devices will be created.
@@ -258,27 +317,37 @@ tile: 1
 ### Testing Lab
 
 ```yaml
-# testing-lab.yaml - Named devices for structured testing
+# testing-lab.yaml - Stateful devices with initial state in config
 bind: 127.0.0.1
 port: 56700
-
 api: true
-persistent: true
 
-# Define specific test devices
 devices:
   - product_id: 27
+    serial: d073d5000001
     label: "Test Bulb A"
+    power_level: 65535
+    color: [21845, 65535, 65535, 3500]
+    location: "Lab"
+    group: "Test Lights"
   - product_id: 27
+    serial: d073d5000002
     label: "Test Bulb B"
+    location: "Lab"
+    group: "Test Lights"
   - product_id: 38
+    serial: d073d5000003
     zone_count: 80
     label: "Test Beam"
   - product_id: 55
+    serial: d073d5000004
     tile_count: 5
     label: "Test Tiles"
   - product_id: 90
+    serial: d073d5000005
     label: "Test HEV"
+    hev_cycle_duration: 7200
+    hev_indication: true
 ```
 
 ### CI/CD Pipeline
@@ -290,7 +359,6 @@ port: 56701  # Non-standard port to avoid conflicts
 
 verbose: false
 api: false
-persistent: false
 
 # Use unique serial prefix for test isolation
 serial_prefix: "test00"
@@ -308,30 +376,41 @@ port: 56700
 
 api: true
 api_host: 0.0.0.0
-persistent: true
-persistent_scenarios: true
 
 devices:
   # Living room
   - product_id: 27
     label: "Living Room Lamp"
+    power_level: 65535
+    color: [0, 0, 65535, 3500]
+    location: "Living Room"
+    group: "Main Lights"
   - product_id: 38
     zone_count: 40
     label: "TV Backlight"
+    location: "Living Room"
+    group: "Entertainment"
 
   # Bedroom
   - product_id: 29
     label: "Bedroom Light"
+    infrared_brightness: 16384
+    location: "Bedroom"
+    group: "Bedroom Lights"
 
   # Kitchen
   - product_id: 32
     zone_count: 16
     label: "Kitchen Strip"
+    location: "Kitchen"
+    group: "Kitchen Lights"
 
   # Office
   - product_id: 55
     tile_count: 5
     label: "Office Tiles"
+    location: "Office"
+    group: "Office"
 ```
 
 ### Multizone Testing
@@ -353,6 +432,86 @@ devices:
   - product_id: 38
     zone_count: 160
     label: "Beam 160"
+```
+
+## Scenarios
+
+Configure test scenarios directly in the config file. Scenarios simulate protocol edge cases such as packet loss, delays, and malformed responses. They can be set at 5 scope levels with automatic precedence resolution (device > type > location > group > global).
+
+```yaml
+scenarios:
+  # Global settings apply to all devices
+  global:
+    send_unhandled: true
+
+  # Per-device scenarios (by serial)
+  devices:
+    d073d5000001:
+      drop_packets:
+        101: 0.5          # Drop 50% of GetColor responses
+      response_delays:
+        116: 0.2          # 200ms delay on GetPower responses
+
+  # Per-type scenarios (color, multizone, matrix, hev, infrared)
+  types:
+    multizone:
+      response_delays:
+        506: 0.1          # 100ms delay on StateMultiZone
+
+  # Per-location scenarios
+  locations:
+    Downstairs:
+      drop_packets:
+        101: 0.1          # 10% packet loss for downstairs devices
+
+  # Per-group scenarios
+  groups:
+    Entertainment:
+      malformed_packets:
+        - 506             # Corrupt StateMultiZone for group
+```
+
+### Scenario Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `drop_packets` | `{packet_type: rate}` | Drop rate 0.0–1.0 per packet type |
+| `response_delays` | `{packet_type: seconds}` | Delay before responding |
+| `malformed_packets` | `[packet_type, ...]` | Send truncated/corrupted responses |
+| `invalid_field_values` | `[packet_type, ...]` | Send responses with all 0xFF bytes |
+| `firmware_version` | `[major, minor]` | Override firmware version |
+| `partial_responses` | `[packet_type, ...]` | Send incomplete multizone/tile data |
+| `send_unhandled` | `bool` | Send StateUnhandled for unknown packets |
+
+!!! tip "Replaces `--persistent-scenarios`"
+    Config file scenarios replace the deprecated `--persistent-scenarios` flag. Use `lifx-emulator export-config` to migrate existing persistent scenarios.
+
+## Migrating from Persistent Storage
+
+If you have been using `--persistent` or `--persistent-scenarios`, you can migrate your saved state to a config file using the `export-config` command:
+
+```bash
+# Export saved device state and scenarios to a config file
+lifx-emulator export-config --output my-config.yaml
+
+# Export without scenarios
+lifx-emulator export-config --no-scenarios --output devices-only.yaml
+
+# Export from a custom storage directory
+lifx-emulator export-config --storage-dir /path/to/storage --output config.yaml
+
+# Print to stdout for inspection
+lifx-emulator export-config
+```
+
+The exported config file includes all device state (serial, label, power, color, location, group, zone colors, infrared, HEV settings) and scenario configurations. You can then use this file instead of `--persistent`:
+
+```bash
+# Before (deprecated)
+lifx-emulator --persistent
+
+# After (recommended)
+lifx-emulator --config my-config.yaml
 ```
 
 ## Validation
