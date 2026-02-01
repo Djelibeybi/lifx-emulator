@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import signal
+import uuid
 from typing import Annotated
 
 import cyclopts
@@ -22,13 +23,20 @@ from lifx_emulator.factories import (
     create_tile_device,
 )
 from lifx_emulator.products.registry import get_registry
+from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.repositories import DeviceRepository
-from lifx_emulator.scenarios import ScenarioPersistenceAsyncFile
+from lifx_emulator.scenarios import (
+    HierarchicalScenarioManager,
+    ScenarioConfig,
+    ScenarioPersistenceAsyncFile,
+)
 from lifx_emulator.server import EmulatedLifxServer
 from rich.logging import RichHandler
 
 from lifx_emulator_app.config import (
     EmulatorConfig,
+    ScenarioDefinition,
+    ScenariosConfig,
     load_config,
     merge_config,
     resolve_config_path,
@@ -247,11 +255,91 @@ def _load_merged_config(**cli_kwargs) -> dict | None:
     if file_config.devices:
         result["devices"] = file_config.devices
 
+    # Carry scenarios from the config (not a CLI parameter)
+    if file_config.scenarios:
+        result["scenarios"] = file_config.scenarios
+
     # Store config path for logging
     if config_path:
         result["_config_path"] = str(config_path)
 
     return result
+
+
+def _scenario_def_to_core(defn: ScenarioDefinition) -> ScenarioConfig:
+    """Convert a config ScenarioDefinition to a core ScenarioConfig."""
+    kwargs: dict = {}
+    if defn.drop_packets is not None:
+        kwargs["drop_packets"] = defn.drop_packets
+    if defn.response_delays is not None:
+        kwargs["response_delays"] = defn.response_delays
+    if defn.malformed_packets is not None:
+        kwargs["malformed_packets"] = defn.malformed_packets
+    if defn.invalid_field_values is not None:
+        kwargs["invalid_field_values"] = defn.invalid_field_values
+    if defn.firmware_version is not None:
+        kwargs["firmware_version"] = defn.firmware_version
+    if defn.partial_responses is not None:
+        kwargs["partial_responses"] = defn.partial_responses
+    if defn.send_unhandled is not None:
+        kwargs["send_unhandled"] = defn.send_unhandled
+    return ScenarioConfig(**kwargs)
+
+
+def _apply_config_scenarios(
+    scenarios: ScenariosConfig,
+    logger: logging.Logger,
+) -> HierarchicalScenarioManager:
+    """Create a HierarchicalScenarioManager from config file scenarios."""
+    manager = HierarchicalScenarioManager()
+
+    if scenarios.global_scenario:
+        manager.set_global_scenario(
+            _scenario_def_to_core(scenarios.global_scenario)
+        )
+        logger.info("Applied global scenario from config")
+
+    if scenarios.devices:
+        for serial, defn in scenarios.devices.items():
+            manager.set_device_scenario(
+                serial, _scenario_def_to_core(defn)
+            )
+        logger.info(
+            "Applied %d device scenario(s) from config",
+            len(scenarios.devices),
+        )
+
+    if scenarios.types:
+        for type_name, defn in scenarios.types.items():
+            manager.set_type_scenario(
+                type_name, _scenario_def_to_core(defn)
+            )
+        logger.info(
+            "Applied %d type scenario(s) from config",
+            len(scenarios.types),
+        )
+
+    if scenarios.locations:
+        for location, defn in scenarios.locations.items():
+            manager.set_location_scenario(
+                location, _scenario_def_to_core(defn)
+            )
+        logger.info(
+            "Applied %d location scenario(s) from config",
+            len(scenarios.locations),
+        )
+
+    if scenarios.groups:
+        for group, defn in scenarios.groups.items():
+            manager.set_group_scenario(
+                group, _scenario_def_to_core(defn)
+            )
+        logger.info(
+            "Applied %d group scenario(s) from config",
+            len(scenarios.groups),
+        )
+
+    return manager
 
 
 @app.default
@@ -468,6 +556,7 @@ async def run(
     f_serial_prefix: str = cfg["serial_prefix"]
     f_serial_start: int = cfg["serial_start"]
     config_devices: list | None = cfg["devices"]
+    config_scenarios = cfg.get("scenarios")
 
     logger: logging.Logger = _setup_logging(f_verbose)
 
@@ -490,12 +579,21 @@ async def run(
     devices = []
     serial_num = f_serial_start
 
-    # Helper to generate serials
+    # Collect explicit serials from config device definitions
+    explicit_serials: set[str] = set()
+    if config_devices:
+        for dev_def in config_devices:
+            if dev_def.serial:
+                explicit_serials.add(dev_def.serial.lower())
+
+    # Helper to generate serials (skipping explicitly assigned ones)
     def get_serial():
         nonlocal serial_num
-        serial = f"{f_serial_prefix}{serial_num:06x}"
-        serial_num += 1
-        return serial
+        while True:
+            serial = f"{f_serial_prefix}{serial_num:06x}"
+            serial_num += 1
+            if serial.lower() not in explicit_serials:
+                return serial
 
     # Check if we should restore devices from persistent storage
     restore_from_storage = False
@@ -601,11 +699,17 @@ async def run(
 
         # Create devices from per-device definitions in config
         if config_devices:
+            # Namespace for deterministic location/group UUIDs
+            ns = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+            location_ids: dict[str, bytes] = {}
+            group_ids: dict[str, bytes] = {}
+
             for dev_def in config_devices:
                 try:
+                    serial = dev_def.serial or get_serial()
                     device = create_device(
                         dev_def.product_id,
-                        serial=get_serial(),
+                        serial=serial,
                         zone_count=dev_def.zone_count,
                         tile_count=dev_def.tile_count,
                         tile_width=dev_def.tile_width,
@@ -614,11 +718,53 @@ async def run(
                     )
                     if dev_def.label:
                         device.state.label = dev_def.label
+                    if dev_def.power_level is not None:
+                        device.state.power_level = dev_def.power_level
+                    if dev_def.color is not None:
+                        device.state.color = LightHsbk(
+                            hue=dev_def.color.hue,
+                            saturation=dev_def.color.saturation,
+                            brightness=dev_def.color.brightness,
+                            kelvin=dev_def.color.kelvin,
+                        )
+                    if dev_def.location is not None:
+                        loc = dev_def.location
+                        if loc not in location_ids:
+                            location_ids[loc] = uuid.uuid5(ns, loc).bytes
+                        device.state.location_id = location_ids[loc]
+                        device.state.location_label = loc
+                    if dev_def.group is not None:
+                        grp = dev_def.group
+                        if grp not in group_ids:
+                            group_ids[grp] = uuid.uuid5(ns, grp).bytes
+                        device.state.group_id = group_ids[grp]
+                        device.state.group_label = grp
+                    if dev_def.zone_colors is not None:
+                        device.state.zone_colors = [
+                            LightHsbk(
+                                hue=zc.hue,
+                                saturation=zc.saturation,
+                                brightness=zc.brightness,
+                                kelvin=zc.kelvin,
+                            )
+                            for zc in dev_def.zone_colors
+                        ]
+                    if dev_def.infrared_brightness is not None:
+                        device.state.infrared_brightness = (
+                            dev_def.infrared_brightness
+                        )
+                    if dev_def.hev_cycle_duration is not None:
+                        device.state.hev_cycle_duration_s = (
+                            dev_def.hev_cycle_duration
+                        )
+                    if dev_def.hev_indication is not None:
+                        device.state.hev_indication = dev_def.hev_indication
                     devices.append(device)
                 except ValueError as e:
                     logger.error("Failed to create device from config: %s", e)
                     logger.info(
-                        "Run 'lifx-emulator list-products' to see available products"
+                        "Run 'lifx-emulator list-products'"
+                        " to see available products"
                     )
                     return
 
@@ -650,13 +796,17 @@ async def run(
     device_repository = DeviceRepository()
     device_manager = DeviceManager(device_repository)
 
-    # Load scenarios from storage if persistence is enabled
+    # Load scenarios from storage or config
     scenario_manager = None
     scenario_storage = None
     if f_persistent_scenarios:
         scenario_storage = ScenarioPersistenceAsyncFile()
         scenario_manager = await scenario_storage.load()
         logger.info("Loaded scenarios from persistent storage")
+
+    # Apply scenarios from config file (only if not using persistent scenarios)
+    if config_scenarios and not f_persistent_scenarios:
+        scenario_manager = _apply_config_scenarios(config_scenarios, logger)
 
     # Start LIFX server
     server = EmulatedLifxServer(
