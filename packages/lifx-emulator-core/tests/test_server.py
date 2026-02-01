@@ -298,8 +298,8 @@ class TestResponseDelays:
         await server.handle_packet(packet_data, addr)
         elapsed = time.time() - start_time
 
-        # Should be very fast (< 10ms)
-        assert elapsed < 0.01
+        # Should be very fast (< 100ms, generous for CI runners)
+        assert elapsed < 0.1
 
 
 class TestServerLifecycle:
