@@ -341,8 +341,10 @@ def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:
 
     # Convert global scenario
     global_sc = data.get("global", {})
-    if global_sc and any(v for v in global_sc.values()):
-        result["global"] = _clean_scenario(global_sc)
+    if global_sc:
+        cleaned_global = _clean_scenario(global_sc)
+        if cleaned_global:
+            result["global"] = cleaned_global
 
     # Convert scoped scenarios
     for scope in ("devices", "types", "locations", "groups"):
