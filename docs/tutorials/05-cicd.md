@@ -274,7 +274,7 @@ RUN pip install -e .
 # Expose UDP port
 EXPOSE 56700/udp
 
-# Run emulator with default configuration
+# Run emulator with specific devices
 CMD ["lifx-emulator", "--color", "3", "--multizone", "2", "--bind", "0.0.0.0"]
 ```
 
