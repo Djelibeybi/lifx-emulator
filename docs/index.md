@@ -26,7 +26,7 @@ This project provides two packages for different use cases:
 
 ```bash
 pip install lifx-emulator
-lifx-emulator --api --verbose
+lifx-emulator --color 1 --api --verbose
 ```
 
 **Install `lifx-emulator-core` if you want:**
@@ -51,10 +51,10 @@ from lifx_emulator import create_color_light, EmulatedLifxServer
     # Install
     pip install lifx-emulator
 
-    # Start with default configuration
+    # Start with a config file (auto-detected in current directory)
     lifx-emulator
 
-    # Multiple devices with web dashboard
+    # Create devices via CLI flags
     lifx-emulator --color 2 --multizone 1 --api --verbose
     ```
 

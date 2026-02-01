@@ -44,14 +44,14 @@ Use this if you're building a LIFX library or application and want to add the em
 ### Using the CLI
 
 ```bash
-# Start with default configuration (one color light)
+# Start with a config file (auto-detected in current directory)
 lifx-emulator
 
-# Create specific device types
+# Create specific device types via CLI flags
 lifx-emulator --color 2 --multizone 1 --tile 1
 
 # Enable the HTTP management API
-lifx-emulator --api
+lifx-emulator --color 1 --api
 
 # List available LIFX products
 lifx-emulator list-products

@@ -4,32 +4,41 @@ Get started with LIFX Emulator in just a few minutes.
 
 ## Start the Emulator
 
-The simplest way to start the emulator is with the default configuration:
+The simplest way to start the emulator is with a configuration file. Create a file named `lifx-emulator.yaml` in your current directory:
+
+```yaml
+color: 1
+```
+
+Then run:
 
 ```bash
 lifx-emulator
 ```
 
-This creates a single color light device listening on port 56700.
+The emulator auto-detects the config file and creates a single color light on port 56700.
+
+Alternatively, specify devices directly via CLI flags:
+
+```bash
+lifx-emulator --color 1
+```
 
 ## Using Verbose Mode
 
 To see all packet traffic (helpful for debugging):
 
 ```bash
-lifx-emulator --verbose
+lifx-emulator --color 1 --verbose
 ```
 
 You'll see output like:
 
 ```
-INFO - Starting LIFX Emulator on 127.0.0.1:56700
-INFO - Created 1 emulated device(s):
-INFO -   • A19 d073d5 (d073d5000001) - full color
-INFO - Server running with verbose packet logging... Press Ctrl+C to stop
-DEBUG - Received 36 bytes from ('192.168.1.100', 54321)
-DEBUG - Header: GetService (type=2) target=000000000000 source=12345678
-DEBUG - Sending StateService to ('192.168.1.100', 54321)
+INFO     Starting LIFX Emulator on 127.0.0.1:56700
+INFO     Created 1 emulated device(s):
+INFO       • LIFX Color 000001 (d073d5000001) - color
+INFO     Server running with verbose packet logging... Press Ctrl+C to stop
 ```
 
 ## Create Multiple Devices
