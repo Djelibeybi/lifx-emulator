@@ -494,11 +494,12 @@ def _load_merged_config(**cli_kwargs) -> dict | None:
     result = merge_config(file_config, cli_overrides)
 
     # Carry the devices list from the config (not a CLI parameter)
-    if file_config.devices:
+    # Use `is not None` so explicit `devices: []` is preserved
+    if file_config.devices is not None:
         result["devices"] = file_config.devices
 
     # Carry scenarios from the config (not a CLI parameter)
-    if file_config.scenarios:
+    if file_config.scenarios is not None:
         result["scenarios"] = file_config.scenarios
 
     # Store config path for logging
@@ -836,7 +837,7 @@ async def run(
         or f_multizone > 0
         or f_tile > 0
         or f_switch > 0
-        or (config_devices is not None and len(config_devices) > 0)
+        or config_devices is not None
     )
 
     if f_persistent and storage:
@@ -985,6 +986,8 @@ async def run(
                         zone_count = device.state.zone_count
                         if len(colors) < zone_count:
                             colors.extend([default_color] * (zone_count - len(colors)))
+                        elif len(colors) > zone_count:
+                            colors = colors[:zone_count]
                         device.state.zone_colors = colors
                     if dev_def.infrared_brightness is not None:
                         device.state.infrared_brightness = dev_def.infrared_brightness
