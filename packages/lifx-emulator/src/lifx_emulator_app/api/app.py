@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 from lifx_emulator_app.api.routers.devices import create_devices_router
 from lifx_emulator_app.api.routers.monitoring import create_monitoring_router
+from lifx_emulator_app.api.routers.products import create_products_router
 from lifx_emulator_app.api.routers.scenarios import create_scenarios_router
 
 logger = logging.getLogger(__name__)
@@ -69,10 +70,11 @@ LIFX LAN protocol.
 - OpenAPI 3.1.0 compliant schema
 
 ## Architecture
-The API is organized into three main routers:
+The API is organized into four main routers:
 - **Monitoring**: Server stats and activity logs
 - **Devices**: Device CRUD operations
 - **Scenarios**: Test scenario configuration
+- **Products**: LIFX product registry
         """,
         version="1.0.0",
         contact={
@@ -96,6 +98,10 @@ The API is organized into three main routers:
                 "name": "scenarios",
                 "description": "Test scenario management",
             },
+            {
+                "name": "products",
+                "description": "LIFX product registry",
+            },
         ],
     )
 
@@ -111,14 +117,14 @@ The API is organized into three main routers:
     monitoring_router = create_monitoring_router(server)
     devices_router = create_devices_router(server)
     scenarios_router = create_scenarios_router(server)
+    products_router = create_products_router()
 
     app.include_router(monitoring_router)
     app.include_router(devices_router)
     app.include_router(scenarios_router)
+    app.include_router(products_router)
 
-    logger.info(
-        "API application created with 3 routers (monitoring, devices, scenarios)"
-    )
+    logger.info("API application created with 4 routers")
 
     return app
 

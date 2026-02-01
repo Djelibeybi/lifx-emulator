@@ -588,10 +588,20 @@ async def run(
     ] = None,
     # Storage & Persistence
     persistent: Annotated[
-        bool | None, cyclopts.Parameter(negative="", group=storage_group)
+        bool | None,
+        cyclopts.Parameter(
+            negative="",
+            group=storage_group,
+            help="[DEPRECATED] Use a config file instead. See 'export-config'.",
+        ),
     ] = None,
     persistent_scenarios: Annotated[
-        bool | None, cyclopts.Parameter(negative="", group=storage_group)
+        bool | None,
+        cyclopts.Parameter(
+            negative="",
+            group=storage_group,
+            help="[DEPRECATED] Use a config file instead. See 'export-config'.",
+        ),
     ] = None,
     # HTTP API Server
     api: Annotated[
@@ -647,9 +657,10 @@ async def run(
         bind: IP address to bind to. Default: 127.0.0.1.
         port: UDP port to listen on. Default: 56700.
         verbose: Enable verbose logging showing all packets sent and received.
-        persistent: Enable persistent storage of device state across restarts.
-        persistent_scenarios: Enable persistent storage of test scenarios.
-            Requires --persistent to be enabled.
+        persistent: DEPRECATED. Enable persistent storage of device state across
+            restarts. Use a config file instead. See 'export-config' command.
+        persistent_scenarios: DEPRECATED. Enable persistent storage of test
+            scenarios. Use a config file instead. See 'export-config' command.
         api: Enable HTTP API server for monitoring and runtime device management.
         api_host: API server host to bind to. Default: 127.0.0.1.
         api_port: API server port. Default: 8080.
@@ -701,8 +712,6 @@ async def run(
         Override a config file setting:
             lifx-emulator --config setup.yaml --port 56701
 
-        Enable persistent storage:
-            lifx-emulator --persistent --api
     """
     # Load and merge config file with CLI overrides
     cfg = _load_merged_config(
