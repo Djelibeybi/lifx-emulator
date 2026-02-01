@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.1.1 (2026-02-01)
+
+### Bug Fixes
+
+- **tests**: Relax timing threshold in test_no_delay_by_default
+  ([`dd1b416`](https://github.com/Djelibeybi/lifx-emulator/commit/dd1b4162e7b6111a13818aad0450f15367c7c9ac))
+
+
 ## v3.1.0 (2026-01-11)
 
 ### Features
