@@ -1,17 +1,21 @@
 """CLI entry point for lifx-emulator."""
 
 import asyncio
+import json
 import logging
 import signal
 import uuid
+from pathlib import Path
 from typing import Annotated
 
 import cyclopts
+import yaml
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
     DevicePersistenceAsyncFile,
 )
+from lifx_emulator.devices.state_serializer import deserialize_device_state
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
@@ -188,8 +192,6 @@ def clear_storage(
         Clear custom storage directory:
             lifx-emulator clear-storage --storage-dir /path/to/storage
     """
-    from pathlib import Path
-
     # Use default storage directory if not specified
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
 
@@ -221,6 +223,248 @@ def clear_storage(
     # Delete all device states
     deleted = storage.delete_all_device_states()
     print(f"\nSuccessfully deleted {deleted} device state(s).")
+
+
+def _device_state_to_yaml_dict(state_dict: dict) -> dict:
+    """Convert a persistent device state dict to a config-file device entry.
+
+    Only includes fields that are meaningful for initial configuration.
+    Skips runtime-only fields (effects, tile positions, framebuffers, etc.).
+    """
+    entry: dict = {"product_id": state_dict["product"]}
+
+    entry["serial"] = state_dict["serial"]
+
+    if state_dict.get("label"):
+        entry["label"] = state_dict["label"]
+
+    if state_dict.get("power_level", 0) != 0:
+        entry["power_level"] = state_dict["power_level"]
+
+    # Color - always include since defaults vary per product
+    color = state_dict.get("color")
+    if color:
+        if isinstance(color, dict):
+            entry["color"] = [
+                color["hue"],
+                color["saturation"],
+                color["brightness"],
+                color["kelvin"],
+            ]
+        else:
+            # LightHsbk dataclass (already deserialized)
+            entry["color"] = [
+                color.hue,
+                color.saturation,
+                color.brightness,
+                color.kelvin,
+            ]
+
+    loc_label = state_dict.get("location_label")
+    if loc_label and loc_label != "Test Location":
+        entry["location"] = loc_label
+
+    grp_label = state_dict.get("group_label")
+    if grp_label and grp_label != "Test Group":
+        entry["group"] = grp_label
+
+    # Multizone zone_colors
+    if state_dict.get("has_multizone") and state_dict.get("zone_colors"):
+        zone_colors = state_dict["zone_colors"]
+        # Check if all zones are the same color - if so, just use color
+        all_same = all(
+            (
+                z.hue == zone_colors[0].hue
+                and z.saturation == zone_colors[0].saturation
+                and z.brightness == zone_colors[0].brightness
+                and z.kelvin == zone_colors[0].kelvin
+            )
+            if hasattr(z, "hue")
+            else (
+                z["hue"] == zone_colors[0]["hue"]
+                and z["saturation"] == zone_colors[0]["saturation"]
+                and z["brightness"] == zone_colors[0]["brightness"]
+                and z["kelvin"] == zone_colors[0]["kelvin"]
+            )
+            for z in zone_colors[1:]
+        )
+        if not all_same:
+            entry["zone_colors"] = [
+                [z.hue, z.saturation, z.brightness, z.kelvin]
+                if hasattr(z, "hue")
+                else [z["hue"], z["saturation"], z["brightness"], z["kelvin"]]
+                for z in zone_colors
+            ]
+        if state_dict.get("zone_count"):
+            entry["zone_count"] = state_dict["zone_count"]
+
+    # Infrared
+    if state_dict.get("has_infrared") and state_dict.get("infrared_brightness", 0) != 0:
+        entry["infrared_brightness"] = state_dict["infrared_brightness"]
+
+    # HEV
+    if state_dict.get("has_hev"):
+        if state_dict.get("hev_cycle_duration_s", 7200) != 7200:
+            entry["hev_cycle_duration"] = state_dict["hev_cycle_duration_s"]
+        if state_dict.get("hev_indication") is False:
+            entry["hev_indication"] = False
+
+    # Matrix/tile
+    if state_dict.get("has_matrix"):
+        if state_dict.get("tile_count"):
+            entry["tile_count"] = state_dict["tile_count"]
+        if state_dict.get("tile_width"):
+            entry["tile_width"] = state_dict["tile_width"]
+        if state_dict.get("tile_height"):
+            entry["tile_height"] = state_dict["tile_height"]
+
+    return entry
+
+
+def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:
+    """Load scenarios.json and convert to config-file format.
+
+    Returns a dict suitable for the 'scenarios' key in the YAML config,
+    or None if no scenario file exists or it's empty.
+    """
+    if not scenario_file.exists():
+        return None
+
+    try:
+        with open(scenario_file) as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+    result: dict = {}
+
+    # Convert global scenario
+    global_sc = data.get("global", {})
+    if global_sc and any(v for v in global_sc.values()):
+        result["global"] = _clean_scenario(global_sc)
+
+    # Convert scoped scenarios
+    for scope in ("devices", "types", "locations", "groups"):
+        scope_data = data.get(scope, {})
+        if scope_data:
+            cleaned = {}
+            for key, sc in scope_data.items():
+                cleaned_sc = _clean_scenario(sc)
+                if cleaned_sc:
+                    cleaned[key] = cleaned_sc
+            if cleaned:
+                result[scope] = cleaned
+
+    return result if result else None
+
+
+def _clean_scenario(sc: dict) -> dict | None:
+    """Remove empty/default fields from a scenario dict."""
+    cleaned: dict = {}
+    for key, val in sc.items():
+        if val is None:
+            continue
+        if isinstance(val, (dict, list)) and not val:
+            continue
+        if val is False and key != "send_unhandled":
+            continue
+        # Convert string keys in drop_packets/response_delays to int
+        if key in ("drop_packets", "response_delays") and isinstance(val, dict):
+            cleaned[key] = {int(k): v for k, v in val.items()}
+        else:
+            cleaned[key] = val
+    return cleaned if cleaned else None
+
+
+@app.command
+def export_config(
+    storage_dir: str | None = None,
+    output: str | None = None,
+    no_scenarios: bool = False,
+) -> None:
+    """Export persistent device storage as a YAML config file.
+
+    Reads saved device state from persistent storage and outputs a valid
+    YAML configuration file. This allows migrating from --persistent to a
+    config file-based workflow.
+
+    Args:
+        storage_dir: Storage directory to read from. Defaults to ~/.lifx-emulator
+            if not specified.
+        output: Output file path. If not specified, outputs to stdout.
+        no_scenarios: Exclude scenarios from the exported config.
+
+    Examples:
+        Export to stdout:
+            lifx-emulator export-config
+
+        Export to a file:
+            lifx-emulator export-config --output my-config.yaml
+
+        Export without scenarios:
+            lifx-emulator export-config --no-scenarios
+
+        Export from custom storage directory:
+            lifx-emulator export-config --storage-dir /path/to/storage
+    """
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+
+    if not storage_path.exists():
+        print(f"Storage directory not found: {storage_path}")
+        return
+
+    # Find all device state files
+    device_files = sorted(storage_path.glob("*.json"))
+    device_files = [
+        f for f in device_files if f.name != "scenarios.json"
+    ]
+
+    if not device_files and not (storage_path / "scenarios.json").exists():
+        print(f"No persistent device states found in {storage_path}")
+        return
+
+    config: dict = {}
+    devices = []
+
+    for device_file in device_files:
+        try:
+            with open(device_file) as f:
+                state_dict = json.load(f)
+            state_dict = deserialize_device_state(state_dict)
+            entry = _device_state_to_yaml_dict(state_dict)
+            devices.append(entry)
+        except Exception as e:
+            print(f"Warning: Failed to read {device_file.name}: {e}")
+
+    if devices:
+        config["devices"] = devices
+
+    # Load scenarios unless excluded
+    if not no_scenarios:
+        scenario_file = storage_path / "scenarios.json"
+        scenarios = _scenarios_to_yaml_dict(scenario_file)
+        if scenarios:
+            config["scenarios"] = scenarios
+
+    if not config:
+        print("No device states or scenarios found to export.")
+        return
+
+    # Output YAML
+    yaml_output = yaml.dump(
+        config,
+        default_flow_style=None,
+        sort_keys=False,
+        allow_unicode=True,
+    )
+
+    if output:
+        output_path = Path(output)
+        with open(output_path, "w") as f:
+            f.write(yaml_output)
+        print(f"Config exported to {output_path}")
+    else:
+        print(yaml_output)
 
 
 def _load_merged_config(**cli_kwargs) -> dict | None:
