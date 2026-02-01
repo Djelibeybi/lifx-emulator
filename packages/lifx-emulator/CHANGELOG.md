@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v4.0.0 (2026-02-01)
+
+### Bug Fixes
+
+- **app**: Pad zone_colors to zone_count with default color
+  ([`46aed0a`](https://github.com/Djelibeybi/lifx-emulator/commit/46aed0a389bf2c6185fc9f07751fea3fbbf6e8d5))
+
+- **app**: Preserve explicit empty devices/scenarios and truncate zone_colors
+  ([`b5c420c`](https://github.com/Djelibeybi/lifx-emulator/commit/b5c420cb1a9bdc3cae3b6a7a373b4251828cfed5))
+
+### Features
+
+- **app**: Add YAML config file support for CLI
+  ([`fceb9af`](https://github.com/Djelibeybi/lifx-emulator/commit/fceb9af1da6368a672cd24b58f68b2063b397c23))
+
+### Breaking Changes
+
+- **app**: No devices are created by default anymore.
+
+
 ## v3.1.0 (2026-01-11)
 
 ### Features
