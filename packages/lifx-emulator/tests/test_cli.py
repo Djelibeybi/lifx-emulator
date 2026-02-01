@@ -1165,6 +1165,68 @@ class TestApplyConfigScenarios:
         assert len(manager.device_scenarios) == 0
 
 
+class TestLoadMergedConfigErrors:
+    """Test _load_merged_config error paths."""
+
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        side_effect=FileNotFoundError("Config file not found: /bad/path.yaml"),
+    )
+    def test_config_file_not_found(self, mock_resolve, capsys):
+        """Returns None when config file is not found."""
+        result = _load_merged_config(config_flag="/bad/path.yaml")
+        assert result is None
+        captured = capsys.readouterr()
+        assert "Error:" in captured.out
+
+    @patch(
+        "lifx_emulator_app.__main__.load_config",
+        side_effect=ValueError("invalid config"),
+    )
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        return_value="/fake/config.yaml",
+    )
+    def test_config_load_exception(self, mock_resolve, mock_load, capsys):
+        """Returns None when config file fails to load."""
+        result = _load_merged_config(config_flag="/fake/config.yaml")
+        assert result is None
+        captured = capsys.readouterr()
+        assert "Error loading config file" in captured.out
+
+    @patch("lifx_emulator_app.__main__.load_config")
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        return_value="/fake/config.yaml",
+    )
+    def test_devices_carried_from_config(self, mock_resolve, mock_load):
+        """Devices list from config file is carried through to result."""
+        from lifx_emulator_app.config import DeviceDefinition, EmulatorConfig
+
+        devices = [DeviceDefinition(product_id=27, label="Test")]
+        mock_load.return_value = EmulatorConfig(devices=devices)
+
+        result = _load_merged_config(config_flag="/fake/config.yaml")
+        assert result is not None
+        assert "devices" in result
+        assert len(result["devices"]) == 1
+        assert result["devices"][0].label == "Test"
+
+    @patch("lifx_emulator_app.__main__.load_config")
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        return_value="/fake/config.yaml",
+    )
+    def test_config_path_stored(self, mock_resolve, mock_load):
+        """Config path is stored in result for logging."""
+        from lifx_emulator_app.config import EmulatorConfig
+
+        mock_load.return_value = EmulatorConfig()
+        result = _load_merged_config(config_flag="/fake/config.yaml")
+        assert result is not None
+        assert result["_config_path"] == "/fake/config.yaml"
+
+
 class TestLoadMergedConfigScenarios:
     """Test _load_merged_config passes scenarios from file config."""
 
@@ -1531,3 +1593,182 @@ class TestRunWithConfigDevices:
         assert scenario_manager is not None
         assert isinstance(scenario_manager, HierarchicalScenarioManager)
         assert scenario_manager.global_scenario.drop_packets == {101: 1.0}
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__._load_merged_config", return_value=None)
+    async def test_run_returns_false_when_config_fails(self, mock_load_cfg):
+        """run() returns False when config loading fails."""
+        result = await run()
+        assert result is False
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_run_persistent_scenarios_without_persistent(
+        self, mock_setup_logging, mock_resolve
+    ):
+        """run() returns False when --persistent-scenarios used without --persistent."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        result = await run(persistent_scenarios=True, color=1)
+        assert result is False
+        assert any(
+            "--persistent-scenarios requires --persistent" in str(call)
+            for call in mock_logger.error.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_run_with_switch_devices(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Test running with switch devices."""
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run(switch=2))
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        assert len(devices) == 2
+        assert devices[0].state.has_relays
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_run_config_device_with_label(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Device label from config definition is applied."""
+        from lifx_emulator_app.config import DeviceDefinition
+
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[DeviceDefinition(product_id=27, label="My Lamp")]
+        )
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        assert devices[0].state.label == "My Lamp"
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_run_config_device_invalid_product(
+        self, mock_load_cfg, mock_setup_logging, mock_resolve
+    ):
+        """run() returns early when config device has invalid product_id."""
+        from lifx_emulator_app.config import DeviceDefinition
+
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[DeviceDefinition(product_id=9999)]
+        )
+
+        result = await run()
+        assert result is None
+        assert any(
+            "Failed to create device from config" in str(call)
+            for call in mock_logger.error.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__.DevicePersistenceAsyncFile")
+    async def test_run_persistent_no_devices_warning(
+        self, mock_storage_class, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Persistent mode with no devices logs warning instead of error."""
+        from unittest.mock import AsyncMock
+
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_storage = MagicMock()
+        mock_storage.storage_dir = "/tmp/lifx"
+        mock_storage.shutdown = AsyncMock()
+        mock_storage.list_devices.return_value = []
+        mock_storage_class.return_value = mock_storage
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run(persistent=True))
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        assert any(
+            "No devices configured" in str(call)
+            for call in mock_logger.warning.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_run_logs_config_path(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Config path is logged when a config file was loaded."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_load_cfg.return_value = _make_cfg(color=1, _config_path="/my/config.yaml")
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        assert any(
+            "Loaded config from" in str(call)
+            for call in mock_logger.info.call_args_list
+        )
