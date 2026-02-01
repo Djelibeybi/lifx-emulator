@@ -2,6 +2,12 @@
 
 > Save and restore device state across emulator sessions
 
+Deprecated
+
+`--persistent` and `--persistent-scenarios` are deprecated and will be removed in a future release. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) and [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead.
+
+**To migrate**, run `lifx-emulator export-config --output my-config.yaml` to convert your saved state into a config file. See [Migration to Config File](#migration-to-config-file) below.
+
 The LIFX Emulator supports optional persistent storage that automatically saves device state (color, power, labels, zone colors, etc.) to disk and restores it when the emulator restarts.
 
 ## Overview
@@ -17,10 +23,11 @@ With persistent storage enabled, device state survives emulator restarts, making
 Enable persistent storage from the CLI:
 
 ```bash
-# Start emulator with persistent storage
-lifx-emulator --persistent
+# Start emulator with persistent storage and devices
+lifx-emulator --persistent --color 2
 
-# State will be saved and restored across restarts
+# On subsequent runs, saved devices are restored automatically
+lifx-emulator --persistent
 ```
 
 Or from Python:
@@ -242,6 +249,43 @@ For complete API documentation, see:
 - [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md)
 - [AsyncDeviceStorage class reference](https://djelibeybi.github.io/lifx-emulator/library/storage/#asyncdevicestorage)
 - [File format specification](https://djelibeybi.github.io/lifx-emulator/library/storage/#file-format)
+
+## Migration to Config File
+
+The `export-config` command converts your persistent storage into a YAML config file that replaces `--persistent` and `--persistent-scenarios`:
+
+```bash
+# Export everything (device state + scenarios)
+lifx-emulator export-config --output my-config.yaml
+
+# Export without scenarios
+lifx-emulator export-config --no-scenarios --output devices-only.yaml
+
+# Export from a custom storage directory
+lifx-emulator export-config --storage-dir /path/to/storage --output config.yaml
+
+# Preview by printing to stdout
+lifx-emulator export-config
+```
+
+After exporting, switch from `--persistent` to `--config`:
+
+```bash
+# Before (deprecated)
+lifx-emulator --persistent --persistent-scenarios
+
+# After (recommended)
+lifx-emulator --config my-config.yaml
+```
+
+The config file approach offers several advantages over persistent storage:
+
+- **Version control** — config files can be committed to git
+- **Reproducibility** — start from a known state every time
+- **Sharing** — config files are easy to share across teams
+- **Transparency** — all state is visible in a single YAML file
+
+See the [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) for full details on config file options.
 
 ## Troubleshooting
 

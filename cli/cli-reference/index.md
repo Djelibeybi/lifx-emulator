@@ -2,6 +2,10 @@
 
 Complete guide to the `lifx-emulator` command-line interface.
 
+Configuration File
+
+All CLI options can also be set via a YAML configuration file. See the [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) for details.
+
 ## Basic Usage
 
 ```bash
@@ -40,6 +44,76 @@ lifx-emulator list-products --filter-type multizone
 lifx-emulator list-products --filter-type matrix
 ```
 
+### `lifx-emulator export-config`
+
+Export persistent storage (device state and scenarios) to a YAML config file. Use this to migrate from the deprecated `--persistent` workflow to a config file.
+
+**Options:**
+
+| Option                 | Description                                             |
+| ---------------------- | ------------------------------------------------------- |
+| `--storage-dir <PATH>` | Path to storage directory (default: `~/.lifx-emulator`) |
+| `--output <PATH>`      | Output file path (default: stdout)                      |
+| `--no-scenarios`       | Exclude scenario configurations from export             |
+
+**Examples:**
+
+```bash
+# Print exported config to stdout
+lifx-emulator export-config
+
+# Export to a file
+lifx-emulator export-config --output my-config.yaml
+
+# Export without scenarios
+lifx-emulator export-config --no-scenarios --output devices-only.yaml
+
+# Export from custom storage directory
+lifx-emulator export-config --storage-dir /path/to/storage
+```
+
+### `lifx-emulator clear-storage`
+
+Delete all persistent storage files (device state and scenarios).
+
+**Options:**
+
+| Option                 | Description                                             |
+| ---------------------- | ------------------------------------------------------- |
+| `--storage-dir <PATH>` | Path to storage directory (default: `~/.lifx-emulator`) |
+| `--yes`                | Skip confirmation prompt                                |
+
+**Examples:**
+
+```bash
+# Clear with confirmation prompt
+lifx-emulator clear-storage
+
+# Clear without confirmation
+lifx-emulator clear-storage --yes
+
+# Clear custom storage directory
+lifx-emulator clear-storage --storage-dir /path/to/storage
+```
+
+## Configuration Options
+
+### `--config <PATH>`
+
+Path to a YAML configuration file.
+
+- **Default:** Auto-detects `lifx-emulator.yaml` or `lifx-emulator.yml` in the current directory
+- **Environment Variable:** `LIFX_EMULATOR_CONFIG`
+- **Example:** `--config /path/to/my-config.yaml`
+
+Config file resolution order (first match wins):
+
+1. `--config` flag (explicit path)
+1. `LIFX_EMULATOR_CONFIG` environment variable
+1. `lifx-emulator.yaml` or `lifx-emulator.yml` in current directory
+
+CLI parameters override config file values. See [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) for full details.
+
 ## Server Options
 
 ### `--bind <IP>`
@@ -65,12 +139,20 @@ Enable verbose logging showing all packet traffic.
 
 ### `--persistent`
 
+Deprecated
+
+`--persistent` is deprecated and will be removed in a future release. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) instead. Run `lifx-emulator export-config` to migrate.
+
 Enable persistent storage of device state across sessions. Device state (label, power, color, location, group, etc.) is saved to `~/.lifx-emulator/` and automatically restored on restart.
 
 - **Default:** `False`
 - **Example:** `--persistent`
 
 ### `--persistent-scenarios`
+
+Deprecated
+
+`--persistent-scenarios` is deprecated and will be removed in a future release. Use [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead. Run `lifx-emulator export-config` to migrate.
 
 Enable persistent storage of scenario configurations across sessions. Scenarios are saved to `~/.lifx-emulator/scenarios.json`. Requires `--persistent` to be enabled.
 
@@ -123,7 +205,7 @@ lifx-emulator --product 27 --product 32
 lifx-emulator --product 55 --product 55 --product 55
 ```
 
-When using `--product`, the default `--color 1` is suppressed unless explicitly set.
+No devices are created by default. Use `--product`, `--color`, or other device flags to specify devices.
 
 ## Device Type Options
 
@@ -131,7 +213,7 @@ When using `--product`, the default `--color 1` is suppressed unless explicitly 
 
 Number of color lights to emulate (LIFX A19).
 
-- **Default:** `1`
+- **Default:** `0`
 - **Product:** 27 (LIFX A19)
 - **Example:** `--color 3`
 
@@ -244,25 +326,35 @@ Starting serial suffix.
 
 ## Complete Examples
 
-### Default Configuration
+### Using a Config File
 
 ```bash
-# Single color light on port 56700
+# Auto-detect lifx-emulator.yaml in current directory
 lifx-emulator
+
+# Explicit config file
+lifx-emulator --config my-setup.yaml
+```
+
+### Single Color Light
+
+```bash
+# Create one color light
+lifx-emulator --color 1
 ```
 
 ### Verbose Mode
 
 ```bash
 # Show all packet traffic
-lifx-emulator --verbose
+lifx-emulator --color 1 --verbose
 ```
 
 ### Custom Port
 
 ```bash
 # Use port 56701
-lifx-emulator --port 56701
+lifx-emulator --color 1 --port 56701
 ```
 
 ### Multiple Device Types
@@ -304,8 +396,8 @@ lifx-emulator --serial-prefix cafe00 --serial-start 100 --color 3
 ### Only Specific Types
 
 ```bash
-# No default devices, only infrared, HEV, and switches
-lifx-emulator --color 0 --infrared 3 --HEV 2 --switch 2
+# Only infrared, HEV, and switches
+lifx-emulator --infrared 3 --HEV 2 --switch 2
 ```
 
 ### Discovery Testing
@@ -319,7 +411,7 @@ lifx-emulator --color 10 --multizone 5 --tile 3
 
 ```bash
 # Bind to localhost for security
-lifx-emulator --bind 127.0.0.1 --verbose
+lifx-emulator --color 1 --bind 127.0.0.1 --verbose
 ```
 
 ### With HTTP API
@@ -329,10 +421,10 @@ lifx-emulator --bind 127.0.0.1 --verbose
 lifx-emulator --api --color 2 --multizone 1
 
 # Custom API port
-lifx-emulator --api --api-port 9090
+lifx-emulator --color 1 --api --api-port 9090
 
 # API without activity logging (reduces traffic)
-lifx-emulator --api --api-activity=false
+lifx-emulator --color 1 --api --api-activity=false
 ```
 
 ### Persistent Storage
@@ -402,7 +494,7 @@ lifx-emulator list-products --filter-type color
 For quick testing, use verbose mode to see all traffic:
 
 ```bash
-lifx-emulator --verbose
+lifx-emulator --color 1 --verbose
 ```
 
 ### Visual Monitoring
@@ -410,7 +502,7 @@ lifx-emulator --verbose
 Use the HTTP API for visual monitoring during development:
 
 ```bash
-lifx-emulator --api --verbose
+lifx-emulator --color 1 --api --verbose
 # Open http://localhost:8080 in your browser
 ```
 
@@ -426,7 +518,7 @@ The web dashboard shows:
 Use specific ports and localhost binding in CI:
 
 ```bash
-lifx-emulator --bind 127.0.0.1 --port 56701 &
+lifx-emulator --color 1 --bind 127.0.0.1 --port 56701 &
 EMULATOR_PID=$!
 # Run your tests
 kill $EMULATOR_PID
@@ -445,8 +537,10 @@ lifx-emulator list-products --filter-type multizone
 Enable persistence to maintain device state across test runs:
 
 ```bash
+lifx-emulator --persistent --color 2
+
+# On subsequent runs, saved devices are restored automatically
 lifx-emulator --persistent
-# Device labels, colors, power states persist across restarts
 ```
 
 ### Realistic Configurations

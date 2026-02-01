@@ -31,8 +31,11 @@ LIFX Emulator is available as two packages:
 # Install
 pip install lifx-emulator
 
-# Run with one color light
+# Run with a config file (auto-detected in current directory)
 lifx-emulator
+
+# Or specify devices via CLI flags
+lifx-emulator --color 1
 
 # Create multiple devices with web dashboard
 lifx-emulator --color 2 --multizone 1 --tile 1 --api --verbose

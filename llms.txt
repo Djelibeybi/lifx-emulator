@@ -24,6 +24,7 @@ protocol edge cases, packet loss, delays, and malformed responses.
 ## lifx-emulator (CLI)
 
 - [lifx-emulator (Standalone CLI)](https://djelibeybi.github.io/lifx-emulator/cli/index.md): CLI tool and HTTP management server overview
+- [Configuration File](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md): YAML configuration file support
 - [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md): Command-line interface usage
 - [Web Interface](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md): HTTP management API and web interface
 - [Device Management](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md): Device management REST API
