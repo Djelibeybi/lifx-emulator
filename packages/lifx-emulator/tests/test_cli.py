@@ -1477,6 +1477,68 @@ class TestRunWithConfigDevices:
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_zone_colors_padded_to_zone_count(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Zone colors shorter than zone_count are padded with default color."""
+        from lifx_emulator_app.config import DeviceDefinition
+
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[
+                DeviceDefinition(
+                    product_id=38,
+                    zone_count=80,
+                    zone_colors=[
+                        HsbkConfig(
+                            hue=21845,
+                            saturation=65535,
+                            brightness=65535,
+                            kelvin=3500,
+                        ),
+                        HsbkConfig(
+                            hue=43690,
+                            saturation=65535,
+                            brightness=65535,
+                            kelvin=3500,
+                        ),
+                    ],
+                ),
+            ]
+        )
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        zone_colors = devices[0].state.zone_colors
+        assert len(zone_colors) == 80
+        # First two are the configured colors
+        assert zone_colors[0].hue == 21845
+        assert zone_colors[1].hue == 43690
+        # Remaining are padded with default (0, 0, 0, 3500)
+        assert zone_colors[2].hue == 0
+        assert zone_colors[2].saturation == 0
+        assert zone_colors[2].brightness == 0
+        assert zone_colors[2].kelvin == 3500
+        assert zone_colors[79].kelvin == 3500
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
     async def test_explicit_serial_skips_in_auto_generator(
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):

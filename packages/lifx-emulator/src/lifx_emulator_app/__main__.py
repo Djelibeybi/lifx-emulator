@@ -970,7 +970,10 @@ async def run(
                         device.state.group_id = group_ids[grp]
                         device.state.group_label = grp
                     if dev_def.zone_colors is not None:
-                        device.state.zone_colors = [
+                        default_color = LightHsbk(
+                            hue=0, saturation=0, brightness=0, kelvin=3500
+                        )
+                        colors = [
                             LightHsbk(
                                 hue=zc.hue,
                                 saturation=zc.saturation,
@@ -979,6 +982,10 @@ async def run(
                             )
                             for zc in dev_def.zone_colors
                         ]
+                        zone_count = device.state.zone_count
+                        if len(colors) < zone_count:
+                            colors.extend([default_color] * (zone_count - len(colors)))
+                        device.state.zone_colors = colors
                     if dev_def.infrared_brightness is not None:
                         device.state.infrared_brightness = dev_def.infrared_brightness
                     if dev_def.hev_cycle_duration is not None:
