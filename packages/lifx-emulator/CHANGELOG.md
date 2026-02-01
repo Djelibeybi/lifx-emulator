@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.0.1 (2026-02-01)
+
+### Bug Fixes
+
+- **app**: Add products API, populate dashboard dropdown, remove stale TODOs
+  ([`c49502a`](https://github.com/Djelibeybi/lifx-emulator/commit/c49502aa74d845b4e413761f081d06d157f27e6f))
+
+
 ## v4.0.0 (2026-02-01)
 
 ### Bug Fixes
