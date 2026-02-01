@@ -1226,6 +1226,34 @@ class TestLoadMergedConfigErrors:
         assert result is not None
         assert result["_config_path"] == "/fake/config.yaml"
 
+    @patch("lifx_emulator_app.__main__.load_config")
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        return_value="/fake/config.yaml",
+    )
+    def test_empty_devices_list_preserved(self, mock_resolve, mock_load):
+        """Explicit `devices: []` is preserved, not treated as None."""
+        from lifx_emulator_app.config import EmulatorConfig
+
+        mock_load.return_value = EmulatorConfig(devices=[])
+        result = _load_merged_config(config_flag="/fake/config.yaml")
+        assert result is not None
+        assert result["devices"] == []
+
+    @patch("lifx_emulator_app.__main__.load_config")
+    @patch(
+        "lifx_emulator_app.__main__.resolve_config_path",
+        return_value="/fake/config.yaml",
+    )
+    def test_empty_scenarios_preserved(self, mock_resolve, mock_load):
+        """Explicit `scenarios: {}` is preserved, not treated as None."""
+        from lifx_emulator_app.config import EmulatorConfig
+
+        mock_load.return_value = EmulatorConfig(scenarios=ScenariosConfig())
+        result = _load_merged_config(config_flag="/fake/config.yaml")
+        assert result is not None
+        assert "scenarios" in result
+
 
 class TestLoadMergedConfigScenarios:
     """Test _load_merged_config passes scenarios from file config."""
@@ -1533,6 +1561,55 @@ class TestRunWithConfigDevices:
         assert zone_colors[2].brightness == 0
         assert zone_colors[2].kelvin == 3500
         assert zone_colors[79].kelvin == 3500
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_zone_colors_truncated_to_zone_count(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Zone colors longer than zone_count are truncated."""
+        from lifx_emulator_app.config import DeviceDefinition
+
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[
+                DeviceDefinition(
+                    product_id=38,
+                    zone_count=8,
+                    zone_colors=[
+                        HsbkConfig(
+                            hue=i * 3000,
+                            saturation=65535,
+                            brightness=65535,
+                            kelvin=3500,
+                        )
+                        for i in range(20)
+                    ],
+                ),
+            ]
+        )
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        zone_colors = devices[0].state.zone_colors
+        assert len(zone_colors) == 8
+        assert zone_colors[7].hue == 21000
 
     @pytest.mark.asyncio
     @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
