@@ -525,24 +525,29 @@ async function removeAllDevices() {
     }
 }
 
-async function clearStorage() {
-    const confirmMsg = `Clear all persistent device state from storage?\n\n` +
-        `This will permanently delete all saved device state files. ` +
-        `Currently running devices will not be affected.\n\n` +
-        `This action cannot be undone.`;
-    if (!confirm(confirmMsg)) return;
+async function fetchProducts() {
+    const select = document.getElementById('product-id');
+    try {
+        const response = await fetch('/api/products');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const products = await response.json();
 
-    const response = await fetch('/api/storage', {
-        method: 'DELETE'
-    });
-
-    if (response.ok) {
-        const result = await response.json();
-        alert(result.message);
-    } else if (response.status === 503) {
-        alert('Persistent storage is not enabled on this server');
-    } else {
-        alert('Failed to clear storage');
+        select.textContent = '';
+        products.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.pid;
+            option.textContent = `${p.pid} - ${p.name}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to fetch products:', error);
+        select.textContent = '';
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Error loading products';
+        select.appendChild(option);
     }
 }
 
@@ -580,7 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initial load
+    // Load product list (one-time) and initial data
+    fetchProducts();
     updateAll();
 
     // Auto-refresh every 2 seconds

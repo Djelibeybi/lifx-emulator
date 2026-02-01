@@ -124,7 +124,4 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
         count = device_service.clear_all_devices(delete_storage=False)
         return {"deleted": count, "message": f"Removed {count} device(s) from server"}
 
-    # TODO: Add storage clear endpoint (was /api/storage in old API, not under /devices)
-    # This should be handled separately or at the app level
-
     return router

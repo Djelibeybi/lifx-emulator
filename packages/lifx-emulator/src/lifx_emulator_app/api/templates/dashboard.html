@@ -312,13 +312,7 @@
                     <div class="form-group">
                         <label>Product ID</label>
                         <select id="product-id" required>
-                            <option value="27">27 - LIFX A19</option>
-                            <option value="29">29 - LIFX A19 Night Vision</option>
-                            <option value="32">32 - LIFX Z (Strip)</option>
-                            <option value="38">38 - LIFX Beam</option>
-                            <option value="50">50 - LIFX Mini White to Warm</option>
-                            <option value="55">55 - LIFX Tile</option>
-                            <option value="90">90 - LIFX Clean (HEV)</option>
+                            <option value="">Loading products...</option>
                         </select>
                     </div>
                     <button type="submit" class="btn">Add Device</button>
@@ -335,12 +329,6 @@
                         onclick="removeAllDevices()"
                         title="Remove all devices from server (runtime only)"
                     >Remove All</button>
-                    <button
-                        class="btn btn-delete"
-                        onclick="clearStorage()"
-                        id="clear-storage-btn"
-                        title="Delete all persistent device state files"
-                    >Clear Storage</button>
                 </span>
             </h2>
             <div id="devices" class="devices-grid"></div>
