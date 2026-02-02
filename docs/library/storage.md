@@ -4,6 +4,9 @@
 
 The storage module provides asynchronous persistent storage of device state using JSON files on disk. When enabled, device state (color, power, label, zones, tiles, etc.) is automatically saved and restored across emulator sessions with high-performance non-blocking I/O.
 
+!!! note "CLI users"
+    The CLI flags `--persistent` and `--persistent-scenarios` are deprecated. Use [config file device definitions](../cli/configuration.md#per-device-definitions) and [config file scenarios](../cli/configuration.md#scenarios) instead. The storage API documented here is unaffected and remains available for library users.
+
 ---
 
 ## Table of Contents
@@ -469,6 +472,9 @@ print(f"Imported {len(all_states)} devices")
 
 ## CLI Integration
 
+!!! warning "Deprecated"
+    The `--persistent` CLI flag is deprecated. Use [config file device definitions](../cli/configuration.md#per-device-definitions) instead. Run `lifx-emulator export-config` to migrate.
+
 ### Enabling Persistent Storage from CLI
 
 Use the `--persistent` flag to enable state persistence:
@@ -669,9 +675,8 @@ for file_path in storage_dir.glob("*.json"):
 
 **Related Documentation:**
 - [Device API](device.md) - Device state structure
-- [CLI Reference](../cli/cli-reference.md) - Using `--persistent` flag
-- [Getting Started](../getting-started/quickstart.md) - Quick start with persistence
-- [Best Practices](../guide/best-practices.md) - Storage best practices
+- [CLI Reference](../cli/cli-reference.md) - CLI flags reference
+- [Configuration File Guide](../cli/configuration.md) - Recommended replacement for `--persistent`
 
 **See Also:**
 - Persistent storage is optional and disabled by default

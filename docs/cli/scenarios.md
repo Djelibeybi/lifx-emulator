@@ -366,9 +366,13 @@ manager.set_device_scenario(
 
 ## Persistent Scenarios
 
+!!! warning "Deprecated"
+    `--persistent-scenarios` is deprecated. Use [config file scenarios](configuration.md#scenarios) instead. Run `lifx-emulator export-config` to migrate existing scenarios.
+
 Save scenarios across emulator restarts:
 
 ```bash
+# Deprecated — use config file scenarios instead
 lifx-emulator --api --persistent --persistent-scenarios
 ```
 
