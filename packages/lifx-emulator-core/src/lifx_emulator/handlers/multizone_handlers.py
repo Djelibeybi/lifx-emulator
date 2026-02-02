@@ -124,22 +124,26 @@ class ExtendedGetColorZonesHandler(PacketHandler):
         if not device_state.has_multizone:
             return []
 
-        colors_count = min(82, len(device_state.zone_colors))
-        colors = []
-        for i in range(colors_count):
-            colors.append(device_state.zone_colors[i])
-        # Pad to 82 colors
-        while len(colors) < 82:
-            colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
-
-        return [
-            MultiZone.ExtendedStateMultiZone(
-                count=device_state.zone_count,
-                index=0,
-                colors_count=colors_count,
-                colors=colors,
+        responses = []
+        index = 0
+        while index < device_state.zone_count:
+            end = min(index + 82, device_state.zone_count)
+            colors_count = end - index
+            colors = list(device_state.zone_colors[index:end])
+            # Pad to 82 colors
+            while len(colors) < 82:
+                colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
+            responses.append(
+                MultiZone.ExtendedStateMultiZone(
+                    count=device_state.zone_count,
+                    index=index,
+                    colors_count=colors_count,
+                    colors=colors,
+                )
             )
-        ]
+            index += 82
+
+        return responses
 
 
 class ExtendedSetColorZonesHandler(PacketHandler):
