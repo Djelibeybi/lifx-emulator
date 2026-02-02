@@ -10,7 +10,7 @@ Each emulated device holds a `DeviceState` object that represents its complete s
 
 `DeviceState` is not a monolithic dataclass. It delegates to specialized sub-state objects:
 
-```
+```text
 DeviceState
 ├── core: CoreDeviceState          (serial, label, power, color, firmware)
 ├── network: NetworkState          (WiFi signal strength)
