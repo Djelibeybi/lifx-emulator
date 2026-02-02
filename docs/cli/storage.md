@@ -232,10 +232,13 @@ device.scenarios = ScenarioConfig(
 
 ## Persistent Scenarios
 
+!!! warning "Deprecated"
+    Use [config file scenarios](configuration.md#scenarios) instead.
+
 In addition to device state, test scenarios can also be persisted:
 
 ```bash
-# Enable both device state and scenario persistence
+# Enable both device state and scenario persistence (deprecated)
 lifx-emulator --persistent --persistent-scenarios
 ```
 
@@ -319,16 +322,9 @@ for serial in storage.list_devices():
     storage.delete_device_state(serial)
 ```
 
-## Best Practices
-
-1. **Use storage for integration tests** - Persist state across test sessions
-2. **Back up important state** - Use `cp -r ~/.lifx-emulator ~/.lifx-emulator.backup`
-3. **Clean up after tests** - Delete device state when tests complete
-4. **Use meaningful serials** - Make it easy to identify saved devices
-5. **Version your state** - Keep track of state changes in git if needed
-
 ## Next Steps
 
-- [Testing Scenarios Guide](../guide/testing-scenarios.md) - Combine with error scenarios
-- [Storage API Reference](../library/storage.md) - Detailed API documentation
-- [Advanced Testing Guide](../guide/integration-testing.md) - Integration patterns
+Migrate to config files for a better experience:
+
+- [Configuration File Guide](configuration.md) - Recommended replacement for persistent storage
+- [Storage API Reference](../library/storage.md) - Detailed API documentation for library users

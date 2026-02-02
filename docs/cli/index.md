@@ -6,7 +6,7 @@ The `lifx-emulator` package provides a ready-to-run CLI tool and HTTP management
 
 This section covers the standalone emulator's advanced features for complex testing needs. These features are optional but powerful for:
 
-- Maintaining device state across test runs
+- Defining reproducible device setups via configuration files
 - Runtime device management
 - Comprehensive error simulation
 - Complex multi-scenario testing
@@ -24,7 +24,7 @@ Before exploring advanced features, you should:
 
 Read these guides in order from simple to complex:
 
-1. **[Persistent Storage](storage.md)** - Save device state across restarts
+1. **[Configuration File](configuration.md)** - Define devices and scenarios in YAML
 2. **[Device Management API](device-management-api.md)** - Add/remove devices at runtime
 3. **[Scenarios](scenarios.md)** - Comprehensive error simulation concepts
 4. **[Scenario API](scenario-api.md)** - REST API for managing test scenarios
@@ -48,18 +48,6 @@ devices:
 The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
 
 👉 **[Configuration Guide](configuration.md)**
-
-### Persistent Storage
-
-Save device state (colors, labels, power) across emulator restarts:
-
-```bash
-lifx-emulator --persistent --color 2
-```
-
-Device states are saved to `~/.lifx-emulator/` and automatically restored on subsequent runs.
-
-👉 **[Storage Guide](storage.md)**
 
 ### Device Management API
 
@@ -106,7 +94,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 | Create devices | ✅ | ✅ |
 | Device discovery | ✅ | ✅ |
 | Control devices | ✅ | ✅ |
-| State persistence | ❌ | ✅ |
 | Runtime management | ❌ | ✅ |
 | Error simulation | Basic | Comprehensive |
 | Web UI | ❌ | ✅ |
@@ -120,13 +107,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 - Sharing configurations with team members
 - Running tests in CI/CD pipelines
 - You want version-controlled emulator settings
-
-### Use Persistent Storage When:
-
-- Running long test suites where state matters
-- Testing state restoration after failures
-- Developing iteratively and want to preserve state
-- Simulating real-world device persistence
 
 ### Use Device Management API When:
 
@@ -148,8 +128,8 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 Use multiple advanced features together:
 
 ```bash
-# Start with persistence, API, and scenarios
-lifx-emulator --persistent --api --color 2
+# Start with API and devices
+lifx-emulator --api --color 2
 
 # Configure global scenario for packet loss
 curl -X PUT http://localhost:8080/api/scenarios/global \
@@ -162,7 +142,6 @@ curl -X POST http://localhost:8080/api/devices \
   -d '{"product_id": 32, "zone_count": 16}'
 
 # Run your tests...
-# State persists across restarts
 ```
 
 ## Next Steps
@@ -170,7 +149,6 @@ curl -X POST http://localhost:8080/api/devices \
 Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.
 
 1. **[Configuration File](configuration.md)** - YAML-based configuration
-2. **[Persistent Storage](storage.md)** - Save device state across restarts
-3. **[Device Management API](device-management-api.md)** - Add/remove devices at runtime
-4. **[Scenarios](scenarios.md)** - Comprehensive error simulation concepts
-5. **[Scenario API](scenario-api.md)** - REST API for managing test scenarios
+2. **[Device Management API](device-management-api.md)** - Add/remove devices at runtime
+3. **[Scenarios](scenarios.md)** - Comprehensive error simulation concepts
+4. **[Scenario API](scenario-api.md)** - REST API for managing test scenarios

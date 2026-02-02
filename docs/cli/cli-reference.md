@@ -419,16 +419,6 @@ lifx-emulator --color 1 --api --api-port 9090
 lifx-emulator --color 1 --api --api-activity=false
 ```
 
-### Persistent Storage
-
-```bash
-# Enable state persistence
-lifx-emulator --persistent --color 2
-
-# Enable both state and scenario persistence
-lifx-emulator --persistent --persistent-scenarios --api
-```
-
 ### Non-Extended Multizone
 
 ```bash
@@ -524,14 +514,14 @@ lifx-emulator list-products --filter-type multizone
 
 ### State Preservation
 
-Enable persistence to maintain device state across test runs:
+Use a config file to define device state for reproducible test runs:
 
 ```bash
-lifx-emulator --persistent --color 2
-
-# On subsequent runs, saved devices are restored automatically
-lifx-emulator --persistent
+# Define devices in a config file
+lifx-emulator --config my-devices.yaml
 ```
+
+See the [Configuration File Guide](configuration.md) for details on defining device state.
 
 ### Realistic Configurations
 
@@ -550,8 +540,8 @@ lifx-emulator --tile 1
 For development with full observability:
 
 ```bash
-# Verbose logging, API dashboard, persistent state
-lifx-emulator --verbose --api --persistent --color 2 --multizone 1
+# Verbose logging, API dashboard
+lifx-emulator --verbose --api --color 2 --multizone 1
 ```
 
 ### Testing Mode

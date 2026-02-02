@@ -372,39 +372,7 @@ Removes all emulated devices from the server. All devices will stop responding t
 curl -X DELETE http://localhost:8080/api/devices
 ```
 
-**Note:** This only removes devices from memory. Persistent state files remain intact.
-
----
-
-### Clear Persistent Storage
-
-```
-DELETE /api/storage
-```
-
-Deletes all persistent device state files from disk. This does not affect currently running devices, only saved state files.
-
-**Response (200 OK):**
-```json
-{
-  "deleted": 3,
-  "message": "Deleted 3 device state(s) from persistent storage"
-}
-```
-
-**Error Response (503):**
-```json
-{
-  "detail": "Persistent storage is not enabled"
-}
-```
-
-**Example:**
-```bash
-curl -X DELETE http://localhost:8080/api/storage
-```
-
-**Note:** Requires `--persistent` flag when starting the emulator.
+**Note:** This only removes devices from memory.
 
 ---
 

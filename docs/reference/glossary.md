@@ -283,17 +283,20 @@ The process of finding LIFX devices on the network by sending GetService (type 2
 
 ## Storage and Persistence
 
+!!! warning "Deprecated"
+    Persistent storage (`--persistent`, `--persistent-scenarios`) is deprecated. Use [config file device definitions](../cli/configuration.md#per-device-definitions) and [config file scenarios](../cli/configuration.md#scenarios) instead.
+
 ### Persistent Storage
-The emulator's optional feature to save device state to disk across restarts using JSON files.
+The emulator's deprecated feature to save device state to disk across restarts using JSON files. Replaced by [config file](../cli/configuration.md) device definitions.
 
 ### Storage Directory
-The directory where persistent state is saved. Default: `~/.lifx-emulator/`
+The directory where persistent state was saved. Default: `~/.lifx-emulator/`
 
 ### Device State
 All the current settings of a device: color, power, label, location, group, zones, tiles, etc.
 
 ### State File
-A JSON file storing the persistent state of a single device, named by serial (e.g., `d073d5000001.json`).
+A JSON file storing the persistent state of a single device, named by serial (e.g., `d073d5000001.json`). Replaced by config file device definitions.
 
 ## HTTP API
 
