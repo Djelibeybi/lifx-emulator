@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v3.2.0 (2026-02-02)
+
+### Bug Fixes
+
+- **tests**: Replace flaky probabilistic drop rate tests with deterministic mocks
+  ([`5070d6e`](https://github.com/Djelibeybi/lifx-emulator/commit/5070d6e88495dfeffaffb8f54f6eb5e6098d0f43))
+
+### Features
+
+- **core**: Wire partial_responses scenario through packet handlers
+  ([`a799dba`](https://github.com/Djelibeybi/lifx-emulator/commit/a799dba3f2d04501dd5b0694359e3e71e2ed5bbb))
+
+
 ## v3.1.1 (2026-02-01)
 
 ### Bug Fixes
