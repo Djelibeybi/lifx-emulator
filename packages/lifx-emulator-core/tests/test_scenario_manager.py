@@ -1,5 +1,7 @@
 """Tests for hierarchical scenario manager."""
 
+from unittest.mock import patch
+
 from lifx_emulator.factories import (
     create_color_light,
     create_multizone_light,
@@ -293,29 +295,40 @@ class TestScenarioManagerMethods:
             assert manager.should_respond(102, scenario) is False
         assert manager.should_respond(103, scenario) is True
 
-    def test_should_respond_probabilistic(self):
-        """Test probabilistic packet dropping."""
+    def test_should_respond_drops_below_threshold(self):
+        """Test that a random roll below the drop rate causes a drop."""
         manager = HierarchicalScenarioManager()
         scenario = ScenarioConfig(drop_packets={101: 0.5})
 
-        # With drop_rate=0.5, approximately 50% should be dropped
-        responses = [manager.should_respond(101, scenario) for _ in range(100)]
-        dropped = responses.count(False)
+        # random() returns 0.3, which is < 0.5 drop_rate → should drop
+        with patch("lifx_emulator.scenarios.manager.random.random", return_value=0.3):
+            assert manager.should_respond(101, scenario) is False
 
-        # Should be roughly 50%, allowing 30-70% range for randomness
-        assert 30 <= dropped <= 70
+    def test_should_respond_keeps_at_or_above_threshold(self):
+        """Test that a random roll at or above the drop rate keeps the packet."""
+        manager = HierarchicalScenarioManager()
+        scenario = ScenarioConfig(drop_packets={101: 0.5})
 
-    def test_should_respond_never_drop(self):
-        """Test with very low drop rate."""
+        # random() returns 0.5, which is >= 0.5 drop_rate → should keep
+        with patch("lifx_emulator.scenarios.manager.random.random", return_value=0.5):
+            assert manager.should_respond(101, scenario) is True
+
+        # random() returns 0.9, which is >= 0.5 drop_rate → should keep
+        with patch("lifx_emulator.scenarios.manager.random.random", return_value=0.9):
+            assert manager.should_respond(101, scenario) is True
+
+    def test_should_respond_boundary_with_low_drop_rate(self):
+        """Test boundary behavior with a low drop rate."""
         manager = HierarchicalScenarioManager()
         scenario = ScenarioConfig(drop_packets={101: 0.1})
 
-        # With drop_rate=0.1, approximately 10% should be dropped
-        responses = [manager.should_respond(101, scenario) for _ in range(100)]
-        dropped = responses.count(False)
+        # random() returns 0.09, which is < 0.1 → drop
+        with patch("lifx_emulator.scenarios.manager.random.random", return_value=0.09):
+            assert manager.should_respond(101, scenario) is False
 
-        # Should be roughly 10%, allowing 0-20% range for randomness
-        assert 0 <= dropped <= 20
+        # random() returns 0.1, which is >= 0.1 → keep
+        with patch("lifx_emulator.scenarios.manager.random.random", return_value=0.1):
+            assert manager.should_respond(101, scenario) is True
 
     def test_get_response_delay(self):
         """Test response delay retrieval."""
