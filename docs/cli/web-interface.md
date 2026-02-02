@@ -308,7 +308,7 @@ TX StatePower                 <- Device responds
 1. Click "Remove All" button (top right of Devices section)
 2. Confirmation dialog shows: "Remove all X device(s)?"
 3. Click OK to confirm
-4. All devices removed from runtime (storage preserved)
+4. All devices removed from runtime
 
 ---
 
