@@ -117,7 +117,7 @@ from lifx_emulator import (
   - `IDeviceStorageBackend` - Device state persistence
   - `IScenarioStorageBackend` - Scenario persistence
 
-**Implementations**
+#### Implementations
 
 - `repositories/device_repository.py` - In-memory dict storage
 - `devices/persistence.py` - Async file persistence with debouncing
@@ -402,28 +402,28 @@ lifx_emulator/
 
 ### By Feature
 
-**Device Creation**
+#### Device Creation
 
 - Entry: `factories/__init__.py`
 - Functions: `factories/factory.py`
 - Builder: `factories/builder.py`
 - Docs: `docs/library/factories.md`
 
-**Packet Processing**
+#### Packet Processing
 
 - Entry: `devices/device.py` (`process_packet`)
 - Handlers: `handlers/registry.py`
 - Protocol: `protocol/packets.py`
 - Docs: `docs/architecture/packet-flow.md`
 
-**State Management**
+#### State Management
 
 - States: `devices/states.py`
 - Persistence: `devices/persistence.py`
 - Serialization: `devices/state_serializer.py`
 - Docs: `docs/architecture/device-state.md`, `docs/library/storage.md`
 
-**Scenario Management**
+#### Scenario Management
 
 - Manager: `scenarios/manager.py`
 - Models: `scenarios/models.py`
@@ -431,7 +431,7 @@ lifx_emulator/
 - API: `api/routers/scenarios.py`
 - Docs: `docs/guide/testing-scenarios.md`, `docs/cli/scenario-api.md`
 
-**HTTP API**
+#### HTTP API
 
 - App: `api/app.py`
 - Routers: `api/routers/`
@@ -441,24 +441,24 @@ lifx_emulator/
 
 ### By Layer
 
-**Network Layer**
+#### Network Layer
 
 - `server.py` - UDP server
 - Docs: `docs/library/server.md`
 
-**Domain Layer**
+#### Domain Layer
 
 - `devices/manager.py` - Device management
 - `scenarios/manager.py` - Scenario management
 - Docs: `docs/architecture/overview.md`
 
-**Repository Layer**
+#### Repository Layer
 
 - `repositories/device_repository.py` - In-memory storage
 - `repositories/storage_backend.py` - Interfaces
 - Docs: `docs/architecture/overview.md` (Repository Pattern section)
 
-**Persistence Layer**
+#### Persistence Layer
 
 - `devices/persistence.py` - Device state files
 - `scenarios/persistence.py` - Scenario files
