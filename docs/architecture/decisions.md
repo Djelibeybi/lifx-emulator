@@ -26,7 +26,7 @@ This document captures the reasoning behind major architectural decisions in the
 - ⚠️ Requires careful dependency management
 - ⚠️ Independent versioning (semantic-release with conventional-monorepo)
 
-**Implementation**: `pyproject.toml:1` - uv workspace configuration
+**Implementation**: `pyproject.toml` - uv workspace configuration
 
 ---
 
@@ -53,7 +53,7 @@ EmulatedLifxServer  DeviceManager  DeviceRepository    AsyncFile
 - ⚠️ More complex initialization (requires explicit dependency wiring)
 - ⚠️ Developers must understand layer boundaries
 
-**Example** (`server.py:1`):
+**Example** (`server.py`):
 ```python
 # Constructor requires dependencies
 EmulatedLifxServer(
@@ -64,7 +64,7 @@ EmulatedLifxServer(
 )
 ```
 
-**Reference**: `docs/architecture/overview.md:1` - Repository Pattern section
+**Reference**: `docs/architecture/overview.md` - Repository Pattern section
 
 ---
 
@@ -87,7 +87,7 @@ EmulatedLifxServer(
 - ✅ Pyright validation of implementations
 - ⚠️ Must keep Protocol in sync with implementations
 
-**Implementation**: `repositories/storage_backend.py:1`
+**Implementation**: `repositories/storage_backend.py`
 
 ---
 
@@ -107,14 +107,14 @@ EmulatedLifxServer(
 - ⚠️ Generated code is verbose and not human-editable
 - ⚠️ Requires generator.py maintenance
 
-**DO NOT EDIT**: `protocol/packets.py:1`
+**DO NOT EDIT**: `protocol/packets.py`
 
 **Regenerate with**:
 ```bash
 python -m lifx_emulator.protocol.generator
 ```
 
-**Reference**: `protocol/generator.py:1`
+**Reference**: `protocol/generator.py`
 
 ---
 
@@ -133,14 +133,14 @@ python -m lifx_emulator.protocol.generator
 - ⚠️ Must regenerate when new products are released
 - ⚠️ Requires manual specs.yml updates for new multizone/matrix products
 
-**DO NOT EDIT**: `products/registry.py:1`
+**DO NOT EDIT**: `products/registry.py`
 
 **Regenerate with**:
 ```bash
 python -m lifx_emulator.products.generator
 ```
 
-**Reference**: `products/generator.py:1`
+**Reference**: `products/generator.py`
 
 ---
 
@@ -163,7 +163,7 @@ python -m lifx_emulator.products.generator
 - ⚠️ State changes have eventual consistency (100ms delay)
 - ⚠️ Must call shutdown() for clean exit
 
-**Implementation**: `devices/persistence.py:1` - `DevicePersistenceAsyncFile`
+**Implementation**: `devices/persistence.py` - `DevicePersistenceAsyncFile`
 
 **Usage**:
 ```python
@@ -177,7 +177,7 @@ device.state.label = "My Light"
 await storage.shutdown()
 ```
 
-**Reference**: `docs/library/storage.md:1`
+**Reference**: `docs/library/storage.md`
 
 ---
 
@@ -209,7 +209,7 @@ handlers/
 └── tile_handlers.py      # Tile.* packets (types 701-720)
 ```
 
-**Reference**: `docs/architecture/packet-flow.md:1`
+**Reference**: `docs/architecture/packet-flow.md`
 
 ---
 
@@ -246,9 +246,9 @@ class DeviceState:
 - ⚠️ Must update serialization when adding fields
 - ⚠️ Capability flags must stay in sync with state fields
 
-**Implementation**: `devices/states.py:1`
+**Implementation**: `devices/states.py`
 
-**Reference**: `docs/architecture/device-state.md:1`
+**Reference**: `docs/architecture/device-state.md`
 
 ---
 
@@ -290,9 +290,9 @@ manager.set_type_scenario("multizone", ScenarioConfig(response_delays={506: 0.2}
 manager.set_device_scenario("d073d5000001", ScenarioConfig(drop_packets={101: 1.0}))
 ```
 
-**Implementation**: `scenarios/manager.py:1`
+**Implementation**: `scenarios/manager.py`
 
-**Reference**: `docs/guide/testing-scenarios.md:1`, `docs/cli/scenario-api.md:1`
+**Reference**: `docs/guide/testing-scenarios.md`, `docs/cli/scenario-api.md`
 
 ---
 
@@ -304,7 +304,7 @@ manager.set_device_scenario("d073d5000001", ScenarioConfig(drop_packets={101: 1.
 
 **Decision**: Provide factory functions and builder pattern:
 
-**Simple factories** (`factories/factory.py:1`):
+**Simple factories** (`factories/factory.py`):
 ```python
 create_color_light(serial, storage)
 create_multizone_light(serial, zone_count, extended_multizone, storage)
@@ -312,7 +312,7 @@ create_tile_device(serial, tile_count, storage)
 create_device(product_id, serial, zone_count, tile_count, storage)
 ```
 
-**Builder pattern** (`factories/builder.py:1`):
+**Builder pattern** (`factories/builder.py`):
 ```python
 device = (
     DeviceBuilder()
@@ -330,7 +330,7 @@ device = (
 - ✅ Easy to test (no direct EmulatedLifxDevice construction)
 - ⚠️ Must update factories when adding device types
 
-**Reference**: `docs/library/factories.md:1`
+**Reference**: `docs/library/factories.md`
 
 ---
 
@@ -361,7 +361,7 @@ class ActivityObserver(Protocol):
 - `NullObserver` - No-op for testing
 - Custom observers can be added
 
-**Reference**: `devices/observers.py:1`
+**Reference**: `devices/observers.py`
 
 ---
 
@@ -390,9 +390,9 @@ class ActivityObserver(Protocol):
 - `/docs` - Swagger UI
 - `/redoc` - ReDoc
 
-**Implementation**: `api/app.py:1`, `api/models.py:1`
+**Implementation**: `api/app.py`, `api/models.py`
 
-**Reference**: `docs/cli/device-management-api.md:1`
+**Reference**: `docs/cli/device-management-api.md`
 
 ---
 
@@ -413,14 +413,14 @@ class ActivityObserver(Protocol):
 - ✅ Easy to add new device types with different capabilities
 - ⚠️ Must update filtering logic when adding capabilities
 
-**Example** (`devices/device.py:1`):
+**Example** (`devices/device.py`):
 ```python
 # Switches reject lighting packets
 if not self.state.has_color and pkt_type in LIGHT_PACKET_TYPES:
     return StateUnhandled(unhandled_type=pkt_type)
 ```
 
-**Reference**: `docs/guide/device-types.md:1`
+**Reference**: `docs/guide/device-types.md`
 
 ---
 
@@ -442,9 +442,9 @@ if not self.state.has_color and pkt_type in LIGHT_PACKET_TYPES:
 - ⚠️ More complex state management
 - ⚠️ Must handle CopyFrameBuffer with lazy init
 
-**Implementation**: `devices/states.py:1` - `MatrixState` class
+**Implementation**: `devices/states.py` - `MatrixState` class
 
-**Reference**: `docs/guide/framebuffers.md:1`
+**Reference**: `docs/guide/framebuffers.md`
 
 ---
 
@@ -466,7 +466,7 @@ if not self.state.has_color and pkt_type in LIGHT_PACKET_TYPES:
 - ⚠️ Requires temp file cleanup on errors
 - ⚠️ Slightly slower than direct writes
 
-**Implementation**: `scenarios/persistence.py:1` - `ScenarioPersistenceAsyncFile`
+**Implementation**: `scenarios/persistence.py` - `ScenarioPersistenceAsyncFile`
 
 ---
 

@@ -81,7 +81,7 @@ All layers depend on Protocol interfaces, not concrete implementations. `Emulate
 
 - **`__main__.py`**: CLI entry point using cyclopts. Config file loading, device creation, server startup.
 - **`config.py`**: Pydantic models (`EmulatorConfig` with `extra="forbid"`, `DeviceDefinition`, `HsbkConfig`, `ScenariosConfig`). Config resolution: CLI flag > env var `LIFX_EMULATOR_CONFIG` > auto-detect `lifx-emulator.yaml` in cwd. CLI args override config values.
-- **`api/`**: FastAPI app with routers (`monitoring`, `devices`, `scenarios`), Pydantic request/response models (`models.py`), service layer (`services/`).
+- **`api/`**: FastAPI app with routers (`monitoring`, `devices`, `scenarios`), Pydantic request/response models (`models.py`), service layer (`services/`). `DeviceService` handles device CRUD; `ScenarioService` handles scenario get/set/delete across all 5 scope levels with automatic cache invalidation and persistence.
 
 ### Import Guidelines
 
