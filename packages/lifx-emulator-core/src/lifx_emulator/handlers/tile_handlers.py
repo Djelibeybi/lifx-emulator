@@ -128,64 +128,71 @@ class Get64Handler(PacketHandler):
         if not device_state.has_matrix or not packet:
             return []
 
-        tile_index = packet.tile_index
         rect = packet.rect
+        length = max(1, packet.length)
 
-        if tile_index >= len(device_state.tile_devices):
-            return []
-
-        tile = device_state.tile_devices[tile_index]
-        tile_width = tile["width"]
-        tile_height = tile["height"]
-
-        # Get64 always returns framebuffer 0 (the visible buffer)
-        # regardless of which fb_index is in the request
-        tile_colors = tile["colors"]
-
-        # Calculate how many rows fit in 64 zones
-        rows_to_return = 64 // rect.width if rect.width > 0 else 1
-        rows_to_return = min(rows_to_return, tile_height - rect.y)
-
-        # Extract colors from the requested rectangle
-        colors = []
-        zones_extracted = 0
-
-        for row in range(rows_to_return):
-            y = rect.y + row
-            if y >= tile_height:
+        responses = []
+        for i in range(length):
+            idx = packet.tile_index + i
+            if idx >= len(device_state.tile_devices):
                 break
 
-            for col in range(rect.width):
-                x = rect.x + col
-                if x >= tile_width or zones_extracted >= 64:
-                    colors.append(
-                        LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
-                    )
+            tile = device_state.tile_devices[idx]
+            tile_width = tile["width"]
+            tile_height = tile["height"]
+
+            # Get64 always returns framebuffer 0 (the visible buffer)
+            # regardless of which fb_index is in the request
+            tile_colors = tile["colors"]
+
+            # Calculate how many rows fit in 64 zones
+            rows_to_return = 64 // rect.width if rect.width > 0 else 1
+            rows_to_return = min(rows_to_return, tile_height - rect.y)
+
+            # Extract colors from the requested rectangle
+            colors = []
+            zones_extracted = 0
+
+            for row in range(rows_to_return):
+                y = rect.y + row
+                if y >= tile_height:
+                    break
+
+                for col in range(rect.width):
+                    x = rect.x + col
+                    if x >= tile_width or zones_extracted >= 64:
+                        colors.append(
+                            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+                        )
+                        zones_extracted += 1
+                        continue
+
+                    # Calculate zone index in flat color array
+                    zone_idx = y * tile_width + x
+                    if zone_idx < len(tile_colors):
+                        colors.append(tile_colors[zone_idx])
+                    else:
+                        colors.append(
+                            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+                        )
                     zones_extracted += 1
-                    continue
 
-                # Calculate zone index in flat color array
-                zone_idx = y * tile_width + x
-                if zone_idx < len(tile_colors):
-                    colors.append(tile_colors[zone_idx])
-                else:
-                    colors.append(
-                        LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
-                    )
-                zones_extracted += 1
+            # Pad to exactly 64 colors
+            while len(colors) < 64:
+                colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
-        # Pad to exactly 64 colors
-        while len(colors) < 64:
-            colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
+            # Return with fb_index forced to 0 (visible buffer)
+            return_rect = TileBufferRect(
+                fb_index=0,  # Always return FB0
+                x=rect.x,
+                y=rect.y,
+                width=rect.width,
+            )
+            responses.append(
+                Tile.State64(tile_index=idx, rect=return_rect, colors=colors)
+            )
 
-        # Return with fb_index forced to 0 (visible buffer)
-        return_rect = TileBufferRect(
-            fb_index=0,  # Always return FB0
-            x=rect.x,
-            y=rect.y,
-            width=rect.width,
-        )
-        return [Tile.State64(tile_index=tile_index, rect=return_rect, colors=colors)]
+        return responses
 
 
 class Set64Handler(PacketHandler):

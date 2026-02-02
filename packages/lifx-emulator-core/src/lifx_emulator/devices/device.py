@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import logging
+import random
 import time
 from typing import Any
 
@@ -304,6 +305,24 @@ class EmulatedLifxDevice:
 
         # Handle specific packet types - handlers always return list
         response_packets = self._handle_packet_type(header, packet)
+
+        # Apply partial_responses: truncate multi-packet responses to random subset
+        if len(response_packets) > 1:
+            first_pkt = response_packets[0]
+            if (
+                hasattr(first_pkt, "PKT_TYPE")
+                and first_pkt.PKT_TYPE in scenario.partial_responses
+            ):
+                original_count = len(response_packets)
+                partial_count = random.randint(1, original_count - 1)  # nosec
+                response_packets = response_packets[:partial_count]
+                logger.info(
+                    "Sending partial response for packet type %s (%d of %d packets)",
+                    first_pkt.PKT_TYPE,
+                    partial_count,
+                    original_count,
+                )
+
         # Handlers now always return list (empty if no response)
         for resp_packet in response_packets:
             # Cache packed payload to avoid double packing (performance optimization)
