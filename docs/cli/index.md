@@ -45,7 +45,7 @@ devices:
     label: "Living Room"
 ```
 
-The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
+The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path. You can also set `LIFX_EMULATOR_CONFIG` to override the config path.
 
 👉 **[Configuration Guide](configuration.md)**
 
