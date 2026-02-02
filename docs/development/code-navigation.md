@@ -6,7 +6,7 @@
 
 - **Core Library**: 13,654 lines of Python across 41 files
 - **Standalone App**: 1,672 lines of Python across modules
-- **Test Coverage**: 95% (764 test cases)
+- **Test Coverage**: 92% (953 test cases)
 - **Documentation**: 41 markdown files
 
 ## Package Structure
@@ -42,7 +42,8 @@ lifx-emulator/
 
 ### Entry Points
 
-**Main exports** (`packages/lifx-emulator-core/src/lifx_emulator/__init__.py:1`)
+**Main exports** (`packages/lifx-emulator-core/src/lifx_emulator/__init__.py`)
+
 ```python
 from lifx_emulator import (
     EmulatedLifxServer,      # UDP server
@@ -58,7 +59,7 @@ from lifx_emulator import (
 #### 1. Network Layer
 **Purpose**: UDP protocol handling
 
-- `server.py:1` - `EmulatedLifxServer`
+- `server.py` - `EmulatedLifxServer`
   - Responsibilities: Network I/O, packet routing
   - Dependencies: `DeviceManager`, `HierarchicalScenarioManager`
   - Protocol: asyncio DatagramProtocol
@@ -67,59 +68,66 @@ from lifx_emulator import (
 **Purpose**: Business logic and device management
 
 **Device Management** (`devices/`)
-- `devices/manager.py:1` - `DeviceManager`
+
+- `devices/manager.py` - `DeviceManager`
   - Device lifecycle: add, remove, get, count
   - Packet routing: target resolution, broadcast handling
   - Scenario cache invalidation
 
-- `devices/device.py:1` - `EmulatedLifxDevice`
+- `devices/device.py` - `EmulatedLifxDevice`
   - Main entry: `process_packet()` (line ~100)
   - Packet dispatcher: `_handle_packet_type()` (line ~200)
   - State storage: `DeviceState` dataclass
 
 **Scenario Management** (`scenarios/`)
-- `scenarios/manager.py:1` - `HierarchicalScenarioManager`
+
+- `scenarios/manager.py` - `HierarchicalScenarioManager`
   - 5-level precedence: device > type > location > group > global
   - Scenario merging and caching
   - Configuration: `ScenarioConfig` dataclass
 
 **Protocol Layer** (`protocol/`)
-- `protocol/packets.py:1` - Auto-generated packet classes
+
+- `protocol/packets.py` - Auto-generated packet classes
   - 44+ packet types organized by namespace (Device, Light, MultiZone, Tile)
   - Each class: `PKT_TYPE`, `pack()`, `unpack()`
   - Registry: `PACKET_REGISTRY` dict
 
-- `protocol/header.py:1` - `LifxHeader`
+- `protocol/header.py` - `LifxHeader`
   - 36-byte LIFX packet header
   - Key fields: target, source, sequence, pkt_type, flags
 
 **Handler Registry** (`handlers/`)
-- `handlers/registry.py:1` - `PacketHandlerRegistry`
+
+- `handlers/registry.py` - `PacketHandlerRegistry`
   - Maps packet types → handler functions
   - Modular handlers by namespace:
-    - `device_handlers.py:1` - Device.* packets (types 2-59)
-    - `light_handlers.py:1` - Light.* packets (types 101-149)
-    - `multizone_handlers.py:1` - MultiZone.* packets (types 501-512)
-    - `tile_handlers.py:1` - Tile.* packets (types 701-720)
+    - `device_handlers.py` - Device.* packets (types 2-59)
+    - `light_handlers.py` - Light.* packets (types 101-149)
+    - `multizone_handlers.py` - MultiZone.* packets (types 501-512)
+    - `tile_handlers.py` - Tile.* packets (types 701-720)
 
 #### 3. Repository Layer
 **Purpose**: Storage abstraction
 
 **Interfaces** (`repositories/`)
-- `repositories/storage_backend.py:1`
+
+- `repositories/storage_backend.py`
   - `IDeviceRepository` - In-memory device collection
   - `IDeviceStorageBackend` - Device state persistence
   - `IScenarioStorageBackend` - Scenario persistence
 
 **Implementations**
-- `repositories/device_repository.py:1` - In-memory dict storage
-- `devices/persistence.py:1` - Async file persistence with debouncing
-- `scenarios/persistence.py:1` - Atomic scenario file writes
+
+- `repositories/device_repository.py` - In-memory dict storage
+- `devices/persistence.py` - Async file persistence with debouncing
+- `scenarios/persistence.py` - Atomic scenario file writes
 
 #### 4. State Management
 **Purpose**: Device state representation
 
-**State Dataclasses** (`devices/states.py:1`)
+**State Dataclasses** (`devices/states.py`)
+
 ```python
 @dataclass
 class DeviceState:
@@ -134,12 +142,14 @@ class DeviceState:
 ```
 
 **Capability Detection**
+
 - `has_color`, `has_infrared`, `has_multizone`, `has_matrix`, `has_hev`
 - `has_relays`, `has_buttons` (for LIFX Switch devices)
 
 ### Factory System
 
-**Factory Functions** (`factories/factory.py:1`)
+**Factory Functions** (`factories/factory.py`)
+
 ```python
 # Simple factories
 create_color_light(serial, storage) -> EmulatedLifxDevice
@@ -151,7 +161,8 @@ create_switch(serial, product_id, storage)
 create_device(product_id, serial, zone_count, tile_count, storage)
 ```
 
-**Builder Pattern** (`factories/builder.py:1`)
+**Builder Pattern** (`factories/builder.py`)
+
 ```python
 builder = (
     DeviceBuilder()
@@ -164,23 +175,27 @@ builder = (
 ```
 
 **Configuration Services**
-- `factories/serial_generator.py:1` - Serial number generation
-- `factories/firmware_config.py:1` - Firmware version logic
-- `factories/default_config.py:1` - Default color/power values
+
+- `factories/serial_generator.py` - Serial number generation
+- `factories/firmware_config.py` - Firmware version logic
+- `factories/default_config.py` - Default color/power values
 
 ### Product Registry
 
-**Registry** (`products/registry.py:1`)
+**Registry** (`products/registry.py`)
+
 - **Auto-generated** from LIFX GitHub (DO NOT EDIT)
 - 137+ product definitions with capabilities
 - Pre-built `ProductInfo` instances
 
-**Specs** (`products/specs.py:1` + `specs.yml`)
+**Specs** (`products/specs.py` + `specs.yml`)
+
 - Product-specific configuration
 - Zone counts, tile dimensions, defaults
 - Manually maintained for accuracy
 
-**Generator** (`products/generator.py:1`)
+**Generator** (`products/generator.py`)
+
 ```bash
 python -m lifx_emulator.products.generator
 # Downloads latest products.json
@@ -190,16 +205,19 @@ python -m lifx_emulator.products.generator
 
 ### Protocol Components
 
-**Serializer** (`protocol/serializer.py:1`)
+**Serializer** (`protocol/serializer.py`)
+
 - Low-level binary packing/unpacking
 - Handles: byte arrays, enums, nested types, arrays
 
-**Types** (`protocol/protocol_types.py:1`)
+**Types** (`protocol/protocol_types.py`)
+
 - `LightHsbk` - Color representation
 - `TileStateDevice` - Tile configuration
 - Effect settings, enums, constants
 
-**Generator** (`protocol/generator.py:1`)
+**Generator** (`protocol/generator.py`)
+
 ```bash
 python -m lifx_emulator.protocol.generator
 # Regenerates packets.py from LIFX YAML spec
@@ -209,7 +227,8 @@ python -m lifx_emulator.protocol.generator
 
 ### CLI Entry Point
 
-**Main** (`packages/lifx-emulator/src/lifx_emulator_app/__main__.py:1`)
+**Main** (`packages/lifx-emulator/src/lifx_emulator_app/__main__.py`)
+
 - Command-line argument parsing (cyclopts)
 - Device creation from CLI parameters
 - Server startup and lifecycle management
@@ -217,7 +236,8 @@ python -m lifx_emulator.protocol.generator
 
 ### HTTP API Module
 
-**FastAPI App** (`api/app.py:1`)
+**FastAPI App** (`api/app.py`)
+
 ```python
 def create_api_app(server: EmulatedLifxServer) -> FastAPI:
     """Creates OpenAPI 3.1.0 compliant FastAPI application"""
@@ -227,100 +247,91 @@ def run_api_server(server, host, port):
 ```
 
 **Routers** (`api/routers/`)
+
 - `monitoring.py` - `/api/stats`, `/api/activity`
 - `devices.py` - `/api/devices`, `/api/devices/{serial}`
 - `scenarios.py` - `/api/scenarios/*` (5 scope levels)
 
-**Models** (`api/models.py:1`)
+**Models** (`api/models.py`)
+
 - Pydantic request/response validation
 - OpenAPI schema generation
 - Type-safe API contracts
 
 **Services** (`api/services/`)
-- Business logic layer
-- Separates API concerns from domain logic
+
+- Business logic layer separating API concerns from domain logic
+- `device_service.py` - `DeviceService`: device CRUD (list, get, create, delete, clear)
+- `scenario_service.py` - `ScenarioService`: scenario get/set/delete across all 5 scope levels (global, device, type, location, group) with automatic cache invalidation and persistence
 
 ## Key File Locations
 
 ### Configuration
-- `pyproject.toml:1` - Workspace configuration
-- `packages/lifx-emulator-core/pyproject.toml:1` - Library package config
-- `packages/lifx-emulator/pyproject.toml:1` - App package config
+
+- `pyproject.toml` - Workspace configuration
+- `packages/lifx-emulator-core/pyproject.toml` - Library package config
+- `packages/lifx-emulator/pyproject.toml` - App package config
 
 ### Testing
+
 - `packages/lifx-emulator-core/tests/` - Library tests
 - `packages/lifx-emulator/tests/` - App/API tests
-- Test count: 764 total
+- Test count: 953 total
 
 ### Documentation
+
 - `docs/` - MkDocs documentation (41 files)
-- `CLAUDE.md:1` - AI assistant guidance
-- `README.md:1` - Project overview
+- `CLAUDE.md` - AI assistant guidance
+- `README.md` - Project overview
 
 ### Auto-Generated (DO NOT EDIT)
-- `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py:1`
-- `packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py:1`
+
+- `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py`
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py`
 
 ## Common Code Paths
 
 ### Creating a Device
-```
-CLI Args
-  ↓
-__main__.py:main()
-  ↓
-factories/factory.py:create_*()
-  ↓
-factories/builder.py:DeviceBuilder
-  ↓
-devices/device.py:EmulatedLifxDevice()
+```mermaid
+graph TD
+    A[CLI Args] --> B["__main__.py:main()"]
+    B --> C["factories/factory.py:create_*()"]
+    C --> D[factories/builder.py:DeviceBuilder]
+    D --> E["devices/device.py:EmulatedLifxDevice()"]
 ```
 
 ### Processing a Packet
-```
-UDP Socket
-  ↓
-server.py:EmulatedLifxServer.handle_packet()
-  ↓
-devices/manager.py:DeviceManager.route_packet()
-  ↓
-devices/device.py:EmulatedLifxDevice.process_packet()
-  ↓
-handlers/registry.py:PacketHandlerRegistry.get_handler()
-  ↓
-handlers/*_handlers.py:handle_*()
-  ↓
-Response packets sent via UDP
+```mermaid
+graph TD
+    A[UDP Socket] --> B["EmulatedLifxServer.handle_packet()"]
+    B --> C["DeviceManager.route_packet()"]
+    C --> D["EmulatedLifxDevice.process_packet()"]
+    D --> E["PacketHandlerRegistry.get_handler()"]
+    E --> F["handlers/*_handlers.py:handle_*()"]
+    F --> G[Response packets sent via UDP]
 ```
 
 ### Scenario Application
-```
-Scenario Config
-  ↓
-scenarios/manager.py:HierarchicalScenarioManager.set_*_scenario()
-  ↓
-Cache invalidation
-  ↓
-devices/device.py:EmulatedLifxDevice.invalidate_scenario_cache()
-  ↓
-Next packet: get_scenario_for_device()
-  ↓
-Merged scenario applied (drop/delay/malform)
+```mermaid
+graph TD
+    A[HTTP Request: PUT /api/scenarios/*] --> B[scenarios router]
+    B --> C[ScenarioService.set_*_scenario]
+    C --> D[HierarchicalScenarioManager.set_*_scenario]
+    C --> E[ScenarioService._persist]
+    E --> F[invalidate_all_scenario_caches]
+    E --> G[ScenarioPersistenceAsyncFile.save]
+    F --> H[Next packet: get_scenario_for_device]
+    H --> I[Merged scenario applied]
 ```
 
 ### State Persistence
-```
-State Change
-  ↓
-devices/device.py:EmulatedLifxDevice.state (modified)
-  ↓
-Observer pattern: notify state change
-  ↓
-devices/persistence.py:DevicePersistenceAsyncFile.save_device_state()
-  ↓
-Debounced async write (100ms default)
-  ↓
-JSON file: ~/.lifx-emulator/{serial}.json
+```mermaid
+graph TD
+    A[State Change] --> B["EmulatedLifxDevice.state modified"]
+    B --> C[Observer pattern: notify state change]
+    C --> D["DevicePersistenceAsyncFile.save_device_state()"]
+    D --> E["Debounced async write (100ms default)"]
+    E --> F["JSON file: ~/.lifx-emulator/{serial}.json"]
 ```
 
 ## Development Workflow
@@ -379,6 +390,7 @@ lifx_emulator/
 ```
 
 ### External Dependencies
+
 - **pydantic**: State validation, API models
 - **pyyaml**: Product specs loading
 - **fastapi**: HTTP API (app only)
@@ -391,63 +403,74 @@ lifx_emulator/
 ### By Feature
 
 **Device Creation**
-- Entry: `factories/__init__.py:1`
-- Functions: `factories/factory.py:1`
-- Builder: `factories/builder.py:1`
-- Docs: `docs/library/factories.md:1`
+
+- Entry: `factories/__init__.py`
+- Functions: `factories/factory.py`
+- Builder: `factories/builder.py`
+- Docs: `docs/library/factories.md`
 
 **Packet Processing**
-- Entry: `devices/device.py:100` (process_packet)
-- Handlers: `handlers/registry.py:1`
-- Protocol: `protocol/packets.py:1`
-- Docs: `docs/architecture/packet-flow.md:1`
+
+- Entry: `devices/device.py` (`process_packet`)
+- Handlers: `handlers/registry.py`
+- Protocol: `protocol/packets.py`
+- Docs: `docs/architecture/packet-flow.md`
 
 **State Management**
-- States: `devices/states.py:1`
-- Persistence: `devices/persistence.py:1`
-- Serialization: `devices/state_serializer.py:1`
-- Docs: `docs/architecture/device-state.md:1`, `docs/library/storage.md:1`
+
+- States: `devices/states.py`
+- Persistence: `devices/persistence.py`
+- Serialization: `devices/state_serializer.py`
+- Docs: `docs/architecture/device-state.md`, `docs/library/storage.md`
 
 **Scenario Management**
-- Manager: `scenarios/manager.py:1`
-- Models: `scenarios/models.py:1`
-- API: `api/routers/scenarios.py:1`
-- Docs: `docs/guide/testing-scenarios.md:1`, `docs/cli/scenario-api.md:1`
+
+- Manager: `scenarios/manager.py`
+- Models: `scenarios/models.py`
+- Service: `api/services/scenario_service.py`
+- API: `api/routers/scenarios.py`
+- Docs: `docs/guide/testing-scenarios.md`, `docs/cli/scenario-api.md`
 
 **HTTP API**
-- App: `api/app.py:1`
+
+- App: `api/app.py`
 - Routers: `api/routers/`
-- Models: `api/models.py:1`
-- Docs: `docs/cli/web-interface.md:1`, `docs/cli/device-management-api.md:1`
+- Services: `api/services/device_service.py`, `api/services/scenario_service.py`
+- Models: `api/models.py`
+- Docs: `docs/cli/web-interface.md`, `docs/cli/device-management-api.md`
 
 ### By Layer
 
 **Network Layer**
-- `server.py:1` - UDP server
-- Docs: `docs/library/server.md:1`
+
+- `server.py` - UDP server
+- Docs: `docs/library/server.md`
 
 **Domain Layer**
-- `devices/manager.py:1` - Device management
-- `scenarios/manager.py:1` - Scenario management
-- Docs: `docs/architecture/overview.md:1`
+
+- `devices/manager.py` - Device management
+- `scenarios/manager.py` - Scenario management
+- Docs: `docs/architecture/overview.md`
 
 **Repository Layer**
-- `repositories/device_repository.py:1` - In-memory storage
-- `repositories/storage_backend.py:1` - Interfaces
-- Docs: `docs/architecture/overview.md:1` (Repository Pattern section)
+
+- `repositories/device_repository.py` - In-memory storage
+- `repositories/storage_backend.py` - Interfaces
+- Docs: `docs/architecture/overview.md` (Repository Pattern section)
 
 **Persistence Layer**
-- `devices/persistence.py:1` - Device state files
-- `scenarios/persistence.py:1` - Scenario files
-- Docs: `docs/library/storage.md:1`, `docs/cli/storage.md:1`
+
+- `devices/persistence.py` - Device state files
+- `scenarios/persistence.py` - Scenario files
+- Docs: `docs/library/storage.md`, `docs/cli/storage.md`
 
 ## Next Steps
 
-- **New to the codebase?** Start with `docs/getting-started/quickstart.md:1`
-- **Adding features?** Review `docs/architecture/overview.md:1`
-- **Writing tests?** Check `docs/guide/integration-testing.md:1`
-- **Using the API?** See `docs/cli/device-management-api.md:1`
-- **Understanding protocol?** Read `docs/architecture/protocol.md:1`
+- **New to the codebase?** Start with `docs/getting-started/quickstart.md`
+- **Adding features?** Review `docs/architecture/overview.md`
+- **Writing tests?** Check `docs/guide/integration-testing.md`
+- **Using the API?** See `docs/cli/device-management-api.md`
+- **Understanding protocol?** Read `docs/architecture/protocol.md`
 
 ## Related Documentation
 
