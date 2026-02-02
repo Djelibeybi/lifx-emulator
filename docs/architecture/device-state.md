@@ -74,29 +74,29 @@ The essential identity and light state every device has:
 - `color` — `LightHsbk` (hue, saturation, brightness, kelvin)
 - `vendor`, `product` — Product identification
 - `version_major`, `version_minor` — Firmware version
-- `build_timestamp` — Firmware build time (nanoseconds since epoch)
+- `build_timestamp` — Firmware build time (seconds since epoch)
 - `mac_address`, `port` — Network identity
 
 ### MultiZoneState
 
 For devices with independently controllable linear zones (strips, beams):
 
-- `zone_count` — Number of zones (minimum 8)
+- `zone_count` — Number of zones (product-dependent; e.g., LIFX Z: 8–16, Beam: 10–82, Neon: 24–48)
 - `zone_colors` — List of `LightHsbk`, one per zone
 - `effect_type`, `effect_speed` — Multizone effect state
 
-Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.
+Zone count ranges are defined per product in `specs.yml`. Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.
 
 ### MatrixState
 
 For devices with a 2D zone grid (tiles, candles, ceilings):
 
-- `tile_count` — Number of tiles in the chain (1-5)
-- `tile_width`, `tile_height` — Dimensions of each tile
+- `tile_count` — Number of tiles in the chain (product-dependent; LIFX Tile: 1–5, most other matrix devices: 1 only)
+- `tile_width`, `tile_height` — Dimensions of each tile (product-dependent; e.g., Tile: 8x8, Candle: 5x6, Ceiling: 8x8)
 - `tile_devices` — List of tile metadata dicts (position, colors, dimensions)
 - `tile_framebuffers` — List of `TileFramebuffers` for non-visible buffers
 
-Each tile's visible colors are in `tile_devices[i]["colors"]`. Non-visible framebuffers are stored separately in `TileFramebuffers` and lazily initialized on first access.
+Tile count ranges and dimensions are defined per product in `specs.yml`. Each tile's visible colors are in `tile_devices[i]["colors"]`. Non-visible framebuffers are stored separately in `TileFramebuffers` and lazily initialized on first access.
 
 ### HevState
 
