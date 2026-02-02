@@ -1182,17 +1182,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1904,17 +1893,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2183,8 +2161,12 @@
 </span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># State + scenario config both persist across restarts</span>
 </span></code></pre></div>
 <h2 id="persistent-scenarios">Persistent Scenarios<a class="headerlink" href="#persistent-scenarios" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated</p>
+<p>Use <a href="../configuration/#scenarios">config file scenarios</a> instead.</p>
+</div>
 <p>In addition to device state, test scenarios can also be persisted:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Enable both device state and scenario persistence</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Enable both device state and scenario persistence (deprecated)</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>lifx-emulator<span class="w"> </span>--persistent<span class="w"> </span>--persistent-scenarios
 </span></code></pre></div>
 <p>This saves scenario configurations to <code>~/.lifx-emulator/scenarios.json</code>.</p>
@@ -2250,19 +2232,11 @@
 </span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="k">for</span><span class="w"> </span>serial<span class="w"> </span><span class="k">in</span><span class="w"> </span>storage.list_devices<span class="o">()</span>:
 </span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span>storage.delete_device_state<span class="o">(</span>serial<span class="o">)</span>
 </span></code></pre></div>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Use storage for integration tests</strong> - Persist state across test sessions</li>
-<li><strong>Back up important state</strong> - Use <code>cp -r ~/.lifx-emulator ~/.lifx-emulator.backup</code></li>
-<li><strong>Clean up after tests</strong> - Delete device state when tests complete</li>
-<li><strong>Use meaningful serials</strong> - Make it easy to identify saved devices</li>
-<li><strong>Version your state</strong> - Keep track of state changes in git if needed</li>
-</ol>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>Migrate to config files for a better experience:</p>
 <ul>
-<li><a href="../../guide/testing-scenarios/">Testing Scenarios Guide</a> - Combine with error scenarios</li>
-<li><a href="../../library/storage/">Storage API Reference</a> - Detailed API documentation</li>
-<li><a href="../../guide/integration-testing/">Advanced Testing Guide</a> - Integration patterns</li>
+<li><a href="../configuration/">Configuration File Guide</a> - Recommended replacement for persistent storage</li>
+<li><a href="../../library/storage/">Storage API Reference</a> - Detailed API documentation for library users</li>
 </ul>
 
 
@@ -2286,7 +2260,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 1, 2026 22:33:28 UTC">February 1, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 2, 2026 20:24:26 UTC">February 2, 2026</span>
   </span>
 
     

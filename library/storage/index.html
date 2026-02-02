@@ -2738,6 +2738,10 @@
 <p>Persistent storage for device state across emulator restarts</p>
 </blockquote>
 <p>The storage module provides asynchronous persistent storage of device state using JSON files on disk. When enabled, device state (color, power, label, zones, tiles, etc.) is automatically saved and restored across emulator sessions with high-performance non-blocking I/O.</p>
+<div class="admonition note">
+<p class="admonition-title">CLI users</p>
+<p>The CLI flags <code>--persistent</code> and <code>--persistent-scenarios</code> are deprecated. Use <a href="../../cli/configuration/#per-device-definitions">config file device definitions</a> and <a href="../../cli/configuration/#scenarios">config file scenarios</a> instead. The storage API documented here is unaffected and remains available for library users.</p>
+</div>
 <hr />
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
@@ -3095,6 +3099,10 @@
 </span></code></pre></div>
 <hr />
 <h2 id="cli-integration">CLI Integration<a class="headerlink" href="#cli-integration" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated</p>
+<p>The <code>--persistent</code> CLI flag is deprecated. Use <a href="../../cli/configuration/#per-device-definitions">config file device definitions</a> instead. Run <code>lifx-emulator export-config</code> to migrate.</p>
+</div>
 <h3 id="enabling-persistent-storage-from-cli">Enabling Persistent Storage from CLI<a class="headerlink" href="#enabling-persistent-storage-from-cli" title="Permanent link">&para;</a></h3>
 <p>Use the <code>--persistent</code> flag to enable state persistence:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Enable persistence with default location (~/.lifx-emulator)</span>
@@ -3243,9 +3251,8 @@
 - <code>src/lifx_emulator/async_storage.py</code> - Async storage variant</p>
 <p><strong>Related Documentation:</strong>
 - <a href="../device/">Device API</a> - Device state structure
-- <a href="../../cli/cli-reference/">CLI Reference</a> - Using <code>--persistent</code> flag
-- <a href="../../getting-started/quickstart/">Getting Started</a> - Quick start with persistence
-- <a href="../../guide/best-practices/">Best Practices</a> - Storage best practices</p>
+- <a href="../../cli/cli-reference/">CLI Reference</a> - CLI flags reference
+- <a href="../../cli/configuration/">Configuration File Guide</a> - Recommended replacement for <code>--persistent</code></p>
 <p><strong>See Also:</strong>
 - Persistent storage is optional and disabled by default
 - Storage uses standard JSON format for easy inspection and editing
@@ -3273,7 +3280,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 11, 2025 07:55:42 UTC">November 11, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 2, 2026 20:24:26 UTC">February 2, 2026</span>
   </span>
 
     

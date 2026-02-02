@@ -2028,7 +2028,7 @@
 <ul>
 <li><strong>Core Library</strong>: 13,654 lines of Python across 41 files</li>
 <li><strong>Standalone App</strong>: 1,672 lines of Python across modules</li>
-<li><strong>Test Coverage</strong>: 95% (764 test cases)</li>
+<li><strong>Test Coverage</strong>: 92% (953 test cases)</li>
 <li><strong>Documentation</strong>: 41 markdown files</li>
 </ul>
 <h2 id="package-structure">Package Structure<a class="headerlink" href="#package-structure" title="Permanent link">&para;</a></h2>
@@ -2059,7 +2059,7 @@
 </span></code></pre></div>
 <h2 id="core-library-lifx-emulator-core">Core Library (<code>lifx-emulator-core</code>)<a class="headerlink" href="#core-library-lifx-emulator-core" title="Permanent link">&para;</a></h2>
 <h3 id="entry-points">Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h3>
-<p><strong>Main exports</strong> (<code>packages/lifx-emulator-core/src/lifx_emulator/__init__.py:1</code>)
+<p><strong>Main exports</strong> (<code>packages/lifx-emulator-core/src/lifx_emulator/__init__.py</code>)</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">EmulatedLifxServer</span><span class="p">,</span>      <span class="c1"># UDP server</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">EmulatedLifxDevice</span><span class="p">,</span>      <span class="c1"># Device instance</span>
@@ -2067,66 +2067,84 @@
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">create_multizone_light</span><span class="p">,</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">create_tile_device</span><span class="p">,</span>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span>
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h3 id="layer-architecture">Layer Architecture<a class="headerlink" href="#layer-architecture" title="Permanent link">&para;</a></h3>
 <h4 id="1-network-layer">1. Network Layer<a class="headerlink" href="#1-network-layer" title="Permanent link">&para;</a></h4>
 <p><strong>Purpose</strong>: UDP protocol handling</p>
 <ul>
-<li><code>server.py:1</code> - <code>EmulatedLifxServer</code></li>
+<li><code>server.py</code> - <code>EmulatedLifxServer</code></li>
 <li>Responsibilities: Network I/O, packet routing</li>
 <li>Dependencies: <code>DeviceManager</code>, <code>HierarchicalScenarioManager</code></li>
 <li>Protocol: asyncio DatagramProtocol</li>
 </ul>
 <h4 id="2-domain-layer">2. Domain Layer<a class="headerlink" href="#2-domain-layer" title="Permanent link">&para;</a></h4>
 <p><strong>Purpose</strong>: Business logic and device management</p>
-<p><strong>Device Management</strong> (<code>devices/</code>)
-- <code>devices/manager.py:1</code> - <code>DeviceManager</code>
-  - Device lifecycle: add, remove, get, count
-  - Packet routing: target resolution, broadcast handling
-  - Scenario cache invalidation</p>
+<p><strong>Device Management</strong> (<code>devices/</code>)</p>
 <ul>
-<li><code>devices/device.py:1</code> - <code>EmulatedLifxDevice</code></li>
+<li><code>devices/manager.py</code> - <code>DeviceManager</code></li>
+<li>Device lifecycle: add, remove, get, count</li>
+<li>Packet routing: target resolution, broadcast handling</li>
+<li>
+<p>Scenario cache invalidation</p>
+</li>
+<li>
+<p><code>devices/device.py</code> - <code>EmulatedLifxDevice</code></p>
+</li>
 <li>Main entry: <code>process_packet()</code> (line ~100)</li>
 <li>Packet dispatcher: <code>_handle_packet_type()</code> (line ~200)</li>
 <li>State storage: <code>DeviceState</code> dataclass</li>
 </ul>
-<p><strong>Scenario Management</strong> (<code>scenarios/</code>)
-- <code>scenarios/manager.py:1</code> - <code>HierarchicalScenarioManager</code>
-  - 5-level precedence: device &gt; type &gt; location &gt; group &gt; global
-  - Scenario merging and caching
-  - Configuration: <code>ScenarioConfig</code> dataclass</p>
-<p><strong>Protocol Layer</strong> (<code>protocol/</code>)
-- <code>protocol/packets.py:1</code> - Auto-generated packet classes
-  - 44+ packet types organized by namespace (Device, Light, MultiZone, Tile)
-  - Each class: <code>PKT_TYPE</code>, <code>pack()</code>, <code>unpack()</code>
-  - Registry: <code>PACKET_REGISTRY</code> dict</p>
+<p><strong>Scenario Management</strong> (<code>scenarios/</code>)</p>
 <ul>
-<li><code>protocol/header.py:1</code> - <code>LifxHeader</code></li>
+<li><code>scenarios/manager.py</code> - <code>HierarchicalScenarioManager</code></li>
+<li>5-level precedence: device &gt; type &gt; location &gt; group &gt; global</li>
+<li>Scenario merging and caching</li>
+<li>Configuration: <code>ScenarioConfig</code> dataclass</li>
+</ul>
+<p><strong>Protocol Layer</strong> (<code>protocol/</code>)</p>
+<ul>
+<li><code>protocol/packets.py</code> - Auto-generated packet classes</li>
+<li>44+ packet types organized by namespace (Device, Light, MultiZone, Tile)</li>
+<li>Each class: <code>PKT_TYPE</code>, <code>pack()</code>, <code>unpack()</code></li>
+<li>
+<p>Registry: <code>PACKET_REGISTRY</code> dict</p>
+</li>
+<li>
+<p><code>protocol/header.py</code> - <code>LifxHeader</code></p>
+</li>
 <li>36-byte LIFX packet header</li>
 <li>Key fields: target, source, sequence, pkt_type, flags</li>
 </ul>
-<p><strong>Handler Registry</strong> (<code>handlers/</code>)
-- <code>handlers/registry.py:1</code> - <code>PacketHandlerRegistry</code>
-  - Maps packet types → handler functions
-  - Modular handlers by namespace:
-    - <code>device_handlers.py:1</code> - Device.* packets (types 2-59)
-    - <code>light_handlers.py:1</code> - Light.* packets (types 101-149)
-    - <code>multizone_handlers.py:1</code> - MultiZone.* packets (types 501-512)
-    - <code>tile_handlers.py:1</code> - Tile.* packets (types 701-720)</p>
+<p><strong>Handler Registry</strong> (<code>handlers/</code>)</p>
+<ul>
+<li><code>handlers/registry.py</code> - <code>PacketHandlerRegistry</code></li>
+<li>Maps packet types → handler functions</li>
+<li>Modular handlers by namespace:<ul>
+<li><code>device_handlers.py</code> - Device.* packets (types 2-59)</li>
+<li><code>light_handlers.py</code> - Light.* packets (types 101-149)</li>
+<li><code>multizone_handlers.py</code> - MultiZone.* packets (types 501-512)</li>
+<li><code>tile_handlers.py</code> - Tile.* packets (types 701-720)</li>
+</ul>
+</li>
+</ul>
 <h4 id="3-repository-layer">3. Repository Layer<a class="headerlink" href="#3-repository-layer" title="Permanent link">&para;</a></h4>
 <p><strong>Purpose</strong>: Storage abstraction</p>
-<p><strong>Interfaces</strong> (<code>repositories/</code>)
-- <code>repositories/storage_backend.py:1</code>
-  - <code>IDeviceRepository</code> - In-memory device collection
-  - <code>IDeviceStorageBackend</code> - Device state persistence
-  - <code>IScenarioStorageBackend</code> - Scenario persistence</p>
-<p><strong>Implementations</strong>
-- <code>repositories/device_repository.py:1</code> - In-memory dict storage
-- <code>devices/persistence.py:1</code> - Async file persistence with debouncing
-- <code>scenarios/persistence.py:1</code> - Atomic scenario file writes</p>
+<p><strong>Interfaces</strong> (<code>repositories/</code>)</p>
+<ul>
+<li><code>repositories/storage_backend.py</code></li>
+<li><code>IDeviceRepository</code> - In-memory device collection</li>
+<li><code>IDeviceStorageBackend</code> - Device state persistence</li>
+<li><code>IScenarioStorageBackend</code> - Scenario persistence</li>
+</ul>
+<h4 id="implementations">Implementations<a class="headerlink" href="#implementations" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>repositories/device_repository.py</code> - In-memory dict storage</li>
+<li><code>devices/persistence.py</code> - Async file persistence with debouncing</li>
+<li><code>scenarios/persistence.py</code> - Atomic scenario file writes</li>
+</ul>
 <h4 id="4-state-management">4. State Management<a class="headerlink" href="#4-state-management" title="Permanent link">&para;</a></h4>
 <p><strong>Purpose</strong>: Device state representation</p>
-<p><strong>State Dataclasses</strong> (<code>devices/states.py:1</code>)
+<p><strong>State Dataclasses</strong> (<code>devices/states.py</code>)</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@dataclass</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">DeviceState</span><span class="p">:</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete device state&quot;&quot;&quot;</span>
@@ -2137,12 +2155,14 @@
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">multizone</span><span class="p">:</span> <span class="n">MultiZoneState</span> <span class="o">|</span> <span class="kc">None</span>
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">matrix</span><span class="p">:</span> <span class="n">MatrixState</span> <span class="o">|</span> <span class="kc">None</span>
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">relay</span><span class="p">:</span> <span class="n">RelayState</span> <span class="o">|</span> <span class="kc">None</span>
-</span></code></pre></div></p>
-<p><strong>Capability Detection</strong>
-- <code>has_color</code>, <code>has_infrared</code>, <code>has_multizone</code>, <code>has_matrix</code>, <code>has_hev</code>
-- <code>has_relays</code>, <code>has_buttons</code> (for LIFX Switch devices)</p>
+</span></code></pre></div>
+<p><strong>Capability Detection</strong></p>
+<ul>
+<li><code>has_color</code>, <code>has_infrared</code>, <code>has_multizone</code>, <code>has_matrix</code>, <code>has_hev</code></li>
+<li><code>has_relays</code>, <code>has_buttons</code> (for LIFX Switch devices)</li>
+</ul>
 <h3 id="factory-system">Factory System<a class="headerlink" href="#factory-system" title="Permanent link">&para;</a></h3>
-<p><strong>Factory Functions</strong> (<code>factories/factory.py:1</code>)
+<p><strong>Factory Functions</strong> (<code>factories/factory.py</code>)</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Simple factories</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">create_color_light</span><span class="p">(</span><span class="n">serial</span><span class="p">,</span> <span class="n">storage</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmulatedLifxDevice</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">create_multizone_light</span><span class="p">(</span><span class="n">serial</span><span class="p">,</span> <span class="n">zone_count</span><span class="p">,</span> <span class="n">extended_multizone</span><span class="p">,</span> <span class="n">storage</span><span class="p">)</span>
@@ -2151,8 +2171,8 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Universal factory</span>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">create_device</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">serial</span><span class="p">,</span> <span class="n">zone_count</span><span class="p">,</span> <span class="n">tile_count</span><span class="p">,</span> <span class="n">storage</span><span class="p">)</span>
-</span></code></pre></div></p>
-<p><strong>Builder Pattern</strong> (<code>factories/builder.py:1</code>)
+</span></code></pre></div>
+<p><strong>Builder Pattern</strong> (<code>factories/builder.py</code>)</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">builder</span> <span class="o">=</span> <span class="p">(</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">DeviceBuilder</span><span class="p">()</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="o">.</span><span class="n">with_serial</span><span class="p">(</span><span class="s2">&quot;d073d5000001&quot;</span><span class="p">)</span>
@@ -2161,187 +2181,185 @@
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="o">.</span><span class="n">with_infrared_support</span><span class="p">()</span>
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">)</span>
-</span></code></pre></div></p>
-<p><strong>Configuration Services</strong>
-- <code>factories/serial_generator.py:1</code> - Serial number generation
-- <code>factories/firmware_config.py:1</code> - Firmware version logic
-- <code>factories/default_config.py:1</code> - Default color/power values</p>
+</span></code></pre></div>
+<p><strong>Configuration Services</strong></p>
+<ul>
+<li><code>factories/serial_generator.py</code> - Serial number generation</li>
+<li><code>factories/firmware_config.py</code> - Firmware version logic</li>
+<li><code>factories/default_config.py</code> - Default color/power values</li>
+</ul>
 <h3 id="product-registry">Product Registry<a class="headerlink" href="#product-registry" title="Permanent link">&para;</a></h3>
-<p><strong>Registry</strong> (<code>products/registry.py:1</code>)
-- <strong>Auto-generated</strong> from LIFX GitHub (DO NOT EDIT)
-- 137+ product definitions with capabilities
-- Pre-built <code>ProductInfo</code> instances</p>
-<p><strong>Specs</strong> (<code>products/specs.py:1</code> + <code>specs.yml</code>)
-- Product-specific configuration
-- Zone counts, tile dimensions, defaults
-- Manually maintained for accuracy</p>
-<p><strong>Generator</strong> (<code>products/generator.py:1</code>)
+<p><strong>Registry</strong> (<code>products/registry.py</code>)</p>
+<ul>
+<li><strong>Auto-generated</strong> from LIFX GitHub (DO NOT EDIT)</li>
+<li>137+ product definitions with capabilities</li>
+<li>Pre-built <code>ProductInfo</code> instances</li>
+</ul>
+<p><strong>Specs</strong> (<code>products/specs.py</code> + <code>specs.yml</code>)</p>
+<ul>
+<li>Product-specific configuration</li>
+<li>Zone counts, tile dimensions, defaults</li>
+<li>Manually maintained for accuracy</li>
+</ul>
+<p><strong>Generator</strong> (<code>products/generator.py</code>)</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.products.generator
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># Downloads latest products.json</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Regenerates registry.py</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Updates specs.yml templates</span>
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h3 id="protocol-components">Protocol Components<a class="headerlink" href="#protocol-components" title="Permanent link">&para;</a></h3>
-<p><strong>Serializer</strong> (<code>protocol/serializer.py:1</code>)
-- Low-level binary packing/unpacking
-- Handles: byte arrays, enums, nested types, arrays</p>
-<p><strong>Types</strong> (<code>protocol/protocol_types.py:1</code>)
-- <code>LightHsbk</code> - Color representation
-- <code>TileStateDevice</code> - Tile configuration
-- Effect settings, enums, constants</p>
-<p><strong>Generator</strong> (<code>protocol/generator.py:1</code>)
+<p><strong>Serializer</strong> (<code>protocol/serializer.py</code>)</p>
+<ul>
+<li>Low-level binary packing/unpacking</li>
+<li>Handles: byte arrays, enums, nested types, arrays</li>
+</ul>
+<p><strong>Types</strong> (<code>protocol/protocol_types.py</code>)</p>
+<ul>
+<li><code>LightHsbk</code> - Color representation</li>
+<li><code>TileStateDevice</code> - Tile configuration</li>
+<li>Effect settings, enums, constants</li>
+</ul>
+<p><strong>Generator</strong> (<code>protocol/generator.py</code>)</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.protocol.generator
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># Regenerates packets.py from LIFX YAML spec</span>
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h2 id="standalone-app-lifx-emulator">Standalone App (<code>lifx-emulator</code>)<a class="headerlink" href="#standalone-app-lifx-emulator" title="Permanent link">&para;</a></h2>
 <h3 id="cli-entry-point">CLI Entry Point<a class="headerlink" href="#cli-entry-point" title="Permanent link">&para;</a></h3>
-<p><strong>Main</strong> (<code>packages/lifx-emulator/src/lifx_emulator_app/__main__.py:1</code>)
-- Command-line argument parsing (cyclopts)
-- Device creation from CLI parameters
-- Server startup and lifecycle management
-- Subcommands: <code>list-products</code></p>
+<p><strong>Main</strong> (<code>packages/lifx-emulator/src/lifx_emulator_app/__main__.py</code>)</p>
+<ul>
+<li>Command-line argument parsing (cyclopts)</li>
+<li>Device creation from CLI parameters</li>
+<li>Server startup and lifecycle management</li>
+<li>Subcommands: <code>list-products</code></li>
+</ul>
 <h3 id="http-api-module">HTTP API Module<a class="headerlink" href="#http-api-module" title="Permanent link">&para;</a></h3>
-<p><strong>FastAPI App</strong> (<code>api/app.py:1</code>)
+<p><strong>FastAPI App</strong> (<code>api/app.py</code>)</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">create_api_app</span><span class="p">(</span><span class="n">server</span><span class="p">:</span> <span class="n">EmulatedLifxServer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FastAPI</span><span class="p">:</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates OpenAPI 3.1.0 compliant FastAPI application&quot;&quot;&quot;</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_api_server</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run uvicorn ASGI server&quot;&quot;&quot;</span>
-</span></code></pre></div></p>
-<p><strong>Routers</strong> (<code>api/routers/</code>)
-- <code>monitoring.py</code> - <code>/api/stats</code>, <code>/api/activity</code>
-- <code>devices.py</code> - <code>/api/devices</code>, <code>/api/devices/{serial}</code>
-- <code>scenarios.py</code> - <code>/api/scenarios/*</code> (5 scope levels)</p>
-<p><strong>Models</strong> (<code>api/models.py:1</code>)
-- Pydantic request/response validation
-- OpenAPI schema generation
-- Type-safe API contracts</p>
-<p><strong>Services</strong> (<code>api/services/</code>)
-- Business logic layer
-- Separates API concerns from domain logic</p>
+</span></code></pre></div>
+<p><strong>Routers</strong> (<code>api/routers/</code>)</p>
+<ul>
+<li><code>monitoring.py</code> - <code>/api/stats</code>, <code>/api/activity</code></li>
+<li><code>devices.py</code> - <code>/api/devices</code>, <code>/api/devices/{serial}</code></li>
+<li><code>scenarios.py</code> - <code>/api/scenarios/*</code> (5 scope levels)</li>
+</ul>
+<p><strong>Models</strong> (<code>api/models.py</code>)</p>
+<ul>
+<li>Pydantic request/response validation</li>
+<li>OpenAPI schema generation</li>
+<li>Type-safe API contracts</li>
+</ul>
+<p><strong>Services</strong> (<code>api/services/</code>)</p>
+<ul>
+<li>Business logic layer separating API concerns from domain logic</li>
+<li><code>device_service.py</code> - <code>DeviceService</code>: device CRUD (list, get, create, delete, clear)</li>
+<li><code>scenario_service.py</code> - <code>ScenarioService</code>: scenario get/set/delete across all 5 scope levels (global, device, type, location, group) with automatic cache invalidation and persistence</li>
+</ul>
 <h2 id="key-file-locations">Key File Locations<a class="headerlink" href="#key-file-locations" title="Permanent link">&para;</a></h2>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>pyproject.toml:1</code> - Workspace configuration</li>
-<li><code>packages/lifx-emulator-core/pyproject.toml:1</code> - Library package config</li>
-<li><code>packages/lifx-emulator/pyproject.toml:1</code> - App package config</li>
+<li><code>pyproject.toml</code> - Workspace configuration</li>
+<li><code>packages/lifx-emulator-core/pyproject.toml</code> - Library package config</li>
+<li><code>packages/lifx-emulator/pyproject.toml</code> - App package config</li>
 </ul>
 <h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>packages/lifx-emulator-core/tests/</code> - Library tests</li>
 <li><code>packages/lifx-emulator/tests/</code> - App/API tests</li>
-<li>Test count: 764 total</li>
+<li>Test count: 953 total</li>
 </ul>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>docs/</code> - MkDocs documentation (41 files)</li>
-<li><code>CLAUDE.md:1</code> - AI assistant guidance</li>
-<li><code>README.md:1</code> - Project overview</li>
+<li><code>CLAUDE.md</code> - AI assistant guidance</li>
+<li><code>README.md</code> - Project overview</li>
 </ul>
 <h3 id="auto-generated-do-not-edit">Auto-Generated (DO NOT EDIT)<a class="headerlink" href="#auto-generated-do-not-edit" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>packages/lifx-emulator-core/src/lifx_emulator/products/registry.py:1</code></li>
-<li><code>packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py:1</code></li>
+<li><code>packages/lifx-emulator-core/src/lifx_emulator/products/registry.py</code></li>
+<li><code>packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py</code></li>
 </ul>
 <h2 id="common-code-paths">Common Code Paths<a class="headerlink" href="#common-code-paths" title="Permanent link">&para;</a></h2>
 <h3 id="creating-a-device">Creating a Device<a class="headerlink" href="#creating-a-device" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>CLI Args
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  ↓
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>__main__.py:main()
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  ↓
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>factories/factory.py:create_*()
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  ↓
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>factories/builder.py:DeviceBuilder
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>  ↓
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>devices/device.py:EmulatedLifxDevice()
-</span></code></pre></div>
+<pre class="mermaid"><code>graph TD
+    A[CLI Args] --&gt; B["__main__.py:main()"]
+    B --&gt; C["factories/factory.py:create_*()"]
+    C --&gt; D[factories/builder.py:DeviceBuilder]
+    D --&gt; E["devices/device.py:EmulatedLifxDevice()"]</code></pre>
 <h3 id="processing-a-packet">Processing a Packet<a class="headerlink" href="#processing-a-packet" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>UDP Socket
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  ↓
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>server.py:EmulatedLifxServer.handle_packet()
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  ↓
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>devices/manager.py:DeviceManager.route_packet()
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  ↓
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>devices/device.py:EmulatedLifxDevice.process_packet()
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>  ↓
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>handlers/registry.py:PacketHandlerRegistry.get_handler()
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>  ↓
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>handlers/*_handlers.py:handle_*()
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>  ↓
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>Response packets sent via UDP
-</span></code></pre></div>
+<pre class="mermaid"><code>graph TD
+    A[UDP Socket] --&gt; B["EmulatedLifxServer.handle_packet()"]
+    B --&gt; C["DeviceManager.route_packet()"]
+    C --&gt; D["EmulatedLifxDevice.process_packet()"]
+    D --&gt; E["PacketHandlerRegistry.get_handler()"]
+    E --&gt; F["handlers/*_handlers.py:handle_*()"]
+    F --&gt; G[Response packets sent via UDP]</code></pre>
 <h3 id="scenario-application">Scenario Application<a class="headerlink" href="#scenario-application" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Scenario Config
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  ↓
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>scenarios/manager.py:HierarchicalScenarioManager.set_*_scenario()
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  ↓
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>Cache invalidation
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  ↓
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>devices/device.py:EmulatedLifxDevice.invalidate_scenario_cache()
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  ↓
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>Next packet: get_scenario_for_device()
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>  ↓
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>Merged scenario applied (drop/delay/malform)
-</span></code></pre></div>
+<pre class="mermaid"><code>graph TD
+    A[HTTP Request: PUT /api/scenarios/*] --&gt; B[scenarios router]
+    B --&gt; C[ScenarioService.set_*_scenario]
+    C --&gt; D[HierarchicalScenarioManager.set_*_scenario]
+    C --&gt; E[ScenarioService._persist]
+    E --&gt; F[invalidate_all_scenario_caches]
+    E --&gt; G[ScenarioPersistenceAsyncFile.save]
+    F --&gt; H[Next packet: get_scenario_for_device]
+    H --&gt; I[Merged scenario applied]</code></pre>
 <h3 id="state-persistence">State Persistence<a class="headerlink" href="#state-persistence" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>State Change
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  ↓
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>devices/device.py:EmulatedLifxDevice.state (modified)
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  ↓
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>Observer pattern: notify state change
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  ↓
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>devices/persistence.py:DevicePersistenceAsyncFile.save_device_state()
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>  ↓
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>Debounced async write (100ms default)
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>  ↓
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>JSON file: ~/.lifx-emulator/{serial}.json
-</span></code></pre></div>
+<pre class="mermaid"><code>graph TD
+    A[State Change] --&gt; B["EmulatedLifxDevice.state modified"]
+    B --&gt; C[Observer pattern: notify state change]
+    C --&gt; D["DevicePersistenceAsyncFile.save_device_state()"]
+    D --&gt; E["Debounced async write (100ms default)"]
+    E --&gt; F["JSON file: ~/.lifx-emulator/{serial}.json"]</code></pre>
 <h2 id="development-workflow">Development Workflow<a class="headerlink" href="#development-workflow" title="Permanent link">&para;</a></h2>
 <h3 id="quick-commands">Quick Commands<a class="headerlink" href="#quick-commands" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Code quality</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>--fix<span class="w"> </span>.<span class="w">                </span><span class="c1"># Lint and auto-fix</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>pyright<span class="w">                          </span><span class="c1"># Type checking</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>pytest<span class="w"> </span>-v<span class="w">                        </span><span class="c1"># Run all tests</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Run emulator</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator_app<span class="w">      </span><span class="c1"># CLI mode</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>lifx-emulator<span class="w"> </span>--api<span class="w">              </span><span class="c1"># With HTTP API</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="c1"># Regenerate code</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.products.generator<span class="w">   </span><span class="c1"># Update registry</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.protocol.generator<span class="w">   </span><span class="c1"># Update packets</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Code quality</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>--fix<span class="w"> </span>.<span class="w">                </span><span class="c1"># Lint and auto-fix</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>pyright<span class="w">                          </span><span class="c1"># Type checking</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>pytest<span class="w"> </span>-v<span class="w">                        </span><span class="c1"># Run all tests</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># Run emulator</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator_app<span class="w">      </span><span class="c1"># CLI mode</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>lifx-emulator<span class="w"> </span>--api<span class="w">              </span><span class="c1"># With HTTP API</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Regenerate code</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.products.generator<span class="w">   </span><span class="c1"># Update registry</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>python<span class="w"> </span>-m<span class="w"> </span>lifx_emulator.protocol.generator<span class="w">   </span><span class="c1"># Update packets</span>
 </span></code></pre></div>
 <h3 id="testing-specific-components">Testing Specific Components<a class="headerlink" href="#testing-specific-components" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Test specific module</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>pytest<span class="w"> </span>packages/lifx-emulator-core/tests/test_device.py<span class="w"> </span>-v
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Test with coverage</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>pytest<span class="w"> </span>--cov<span class="o">=</span>lifx_emulator<span class="w"> </span>--cov-report<span class="o">=</span>html
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Run specific test</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>pytest<span class="w"> </span>packages/lifx-emulator-core/tests/test_device.py::test_process_packet<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Test specific module</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>pytest<span class="w"> </span>packages/lifx-emulator-core/tests/test_device.py<span class="w"> </span>-v
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Test with coverage</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>pytest<span class="w"> </span>--cov<span class="o">=</span>lifx_emulator<span class="w"> </span>--cov-report<span class="o">=</span>html
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Run specific test</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>pytest<span class="w"> </span>packages/lifx-emulator-core/tests/test_device.py::test_process_packet<span class="w"> </span>-v
 </span></code></pre></div>
 <h2 id="module-dependencies">Module Dependencies<a class="headerlink" href="#module-dependencies" title="Permanent link">&para;</a></h2>
 <h3 id="core-library-dependencies">Core Library Dependencies<a class="headerlink" href="#core-library-dependencies" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>lifx_emulator/
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>├── server.py → devices.manager, scenarios.manager
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>├── devices/
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>│   ├── device.py → states, handlers.registry, scenarios.models
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>│   ├── manager.py → repositories.device_repository
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>│   ├── persistence.py → repositories.storage_backend
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>│   └── states.py → (no internal deps)
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>├── scenarios/
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>│   ├── manager.py → models, persistence
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>│   └── models.py → (pydantic only)
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>├── protocol/
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>│   ├── packets.py → header, serializer, protocol_types
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>│   └── header.py → (struct only)
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>├── handlers/
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>│   └── *_handlers.py → protocol.packets, devices.states
-</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>├── products/
-</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>│   └── registry.py → specs
-</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>└── factories/
-</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>    └── factory.py → builder, devices.device, products.registry
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>lifx_emulator/
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>├── server.py → devices.manager, scenarios.manager
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>├── devices/
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>│   ├── device.py → states, handlers.registry, scenarios.models
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>│   ├── manager.py → repositories.device_repository
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>│   ├── persistence.py → repositories.storage_backend
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>│   └── states.py → (no internal deps)
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>├── scenarios/
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>│   ├── manager.py → models, persistence
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>│   └── models.py → (pydantic only)
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>├── protocol/
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>│   ├── packets.py → header, serializer, protocol_types
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>│   └── header.py → (struct only)
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>├── handlers/
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>│   └── *_handlers.py → protocol.packets, devices.states
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>├── products/
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>│   └── registry.py → specs
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>└── factories/
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>    └── factory.py → builder, devices.device, products.registry
 </span></code></pre></div>
 <h3 id="external-dependencies">External Dependencies<a class="headerlink" href="#external-dependencies" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2354,54 +2372,74 @@
 </ul>
 <h2 id="cross-reference-index">Cross-Reference Index<a class="headerlink" href="#cross-reference-index" title="Permanent link">&para;</a></h2>
 <h3 id="by-feature">By Feature<a class="headerlink" href="#by-feature" title="Permanent link">&para;</a></h3>
-<p><strong>Device Creation</strong>
-- Entry: <code>factories/__init__.py:1</code>
-- Functions: <code>factories/factory.py:1</code>
-- Builder: <code>factories/builder.py:1</code>
-- Docs: <code>docs/library/factories.md:1</code></p>
-<p><strong>Packet Processing</strong>
-- Entry: <code>devices/device.py:100</code> (process_packet)
-- Handlers: <code>handlers/registry.py:1</code>
-- Protocol: <code>protocol/packets.py:1</code>
-- Docs: <code>docs/architecture/packet-flow.md:1</code></p>
-<p><strong>State Management</strong>
-- States: <code>devices/states.py:1</code>
-- Persistence: <code>devices/persistence.py:1</code>
-- Serialization: <code>devices/state_serializer.py:1</code>
-- Docs: <code>docs/architecture/device-state.md:1</code>, <code>docs/library/storage.md:1</code></p>
-<p><strong>Scenario Management</strong>
-- Manager: <code>scenarios/manager.py:1</code>
-- Models: <code>scenarios/models.py:1</code>
-- API: <code>api/routers/scenarios.py:1</code>
-- Docs: <code>docs/guide/testing-scenarios.md:1</code>, <code>docs/cli/scenario-api.md:1</code></p>
-<p><strong>HTTP API</strong>
-- App: <code>api/app.py:1</code>
-- Routers: <code>api/routers/</code>
-- Models: <code>api/models.py:1</code>
-- Docs: <code>docs/cli/web-interface.md:1</code>, <code>docs/cli/device-management-api.md:1</code></p>
+<h4 id="device-creation">Device Creation<a class="headerlink" href="#device-creation" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Entry: <code>factories/__init__.py</code></li>
+<li>Functions: <code>factories/factory.py</code></li>
+<li>Builder: <code>factories/builder.py</code></li>
+<li>Docs: <code>docs/library/factories.md</code></li>
+</ul>
+<h4 id="packet-processing">Packet Processing<a class="headerlink" href="#packet-processing" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Entry: <code>devices/device.py</code> (<code>process_packet</code>)</li>
+<li>Handlers: <code>handlers/registry.py</code></li>
+<li>Protocol: <code>protocol/packets.py</code></li>
+<li>Docs: <code>docs/architecture/packet-flow.md</code></li>
+</ul>
+<h4 id="state-management">State Management<a class="headerlink" href="#state-management" title="Permanent link">&para;</a></h4>
+<ul>
+<li>States: <code>devices/states.py</code></li>
+<li>Persistence: <code>devices/persistence.py</code></li>
+<li>Serialization: <code>devices/state_serializer.py</code></li>
+<li>Docs: <code>docs/architecture/device-state.md</code>, <code>docs/library/storage.md</code></li>
+</ul>
+<h4 id="scenario-management">Scenario Management<a class="headerlink" href="#scenario-management" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Manager: <code>scenarios/manager.py</code></li>
+<li>Models: <code>scenarios/models.py</code></li>
+<li>Service: <code>api/services/scenario_service.py</code></li>
+<li>API: <code>api/routers/scenarios.py</code></li>
+<li>Docs: <code>docs/guide/testing-scenarios.md</code>, <code>docs/cli/scenario-api.md</code></li>
+</ul>
+<h4 id="http-api">HTTP API<a class="headerlink" href="#http-api" title="Permanent link">&para;</a></h4>
+<ul>
+<li>App: <code>api/app.py</code></li>
+<li>Routers: <code>api/routers/</code></li>
+<li>Services: <code>api/services/device_service.py</code>, <code>api/services/scenario_service.py</code></li>
+<li>Models: <code>api/models.py</code></li>
+<li>Docs: <code>docs/cli/web-interface.md</code>, <code>docs/cli/device-management-api.md</code></li>
+</ul>
 <h3 id="by-layer">By Layer<a class="headerlink" href="#by-layer" title="Permanent link">&para;</a></h3>
-<p><strong>Network Layer</strong>
-- <code>server.py:1</code> - UDP server
-- Docs: <code>docs/library/server.md:1</code></p>
-<p><strong>Domain Layer</strong>
-- <code>devices/manager.py:1</code> - Device management
-- <code>scenarios/manager.py:1</code> - Scenario management
-- Docs: <code>docs/architecture/overview.md:1</code></p>
-<p><strong>Repository Layer</strong>
-- <code>repositories/device_repository.py:1</code> - In-memory storage
-- <code>repositories/storage_backend.py:1</code> - Interfaces
-- Docs: <code>docs/architecture/overview.md:1</code> (Repository Pattern section)</p>
-<p><strong>Persistence Layer</strong>
-- <code>devices/persistence.py:1</code> - Device state files
-- <code>scenarios/persistence.py:1</code> - Scenario files
-- Docs: <code>docs/library/storage.md:1</code>, <code>docs/cli/storage.md:1</code></p>
+<h4 id="network-layer">Network Layer<a class="headerlink" href="#network-layer" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>server.py</code> - UDP server</li>
+<li>Docs: <code>docs/library/server.md</code></li>
+</ul>
+<h4 id="domain-layer">Domain Layer<a class="headerlink" href="#domain-layer" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>devices/manager.py</code> - Device management</li>
+<li><code>scenarios/manager.py</code> - Scenario management</li>
+<li>Docs: <code>docs/architecture/overview.md</code></li>
+</ul>
+<h4 id="repository-layer">Repository Layer<a class="headerlink" href="#repository-layer" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>repositories/device_repository.py</code> - In-memory storage</li>
+<li><code>repositories/storage_backend.py</code> - Interfaces</li>
+<li>Docs: <code>docs/architecture/overview.md</code> (Repository Pattern section)</li>
+</ul>
+<h4 id="persistence-layer">Persistence Layer<a class="headerlink" href="#persistence-layer" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>devices/persistence.py</code> - Device state files</li>
+<li><code>scenarios/persistence.py</code> - Scenario files</li>
+<li>Docs: <code>docs/library/storage.md</code>, <code>docs/cli/storage.md</code></li>
+</ul>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>New to the codebase?</strong> Start with <code>docs/getting-started/quickstart.md:1</code></li>
-<li><strong>Adding features?</strong> Review <code>docs/architecture/overview.md:1</code></li>
-<li><strong>Writing tests?</strong> Check <code>docs/guide/integration-testing.md:1</code></li>
-<li><strong>Using the API?</strong> See <code>docs/cli/device-management-api.md:1</code></li>
-<li><strong>Understanding protocol?</strong> Read <code>docs/architecture/protocol.md:1</code></li>
+<li><strong>New to the codebase?</strong> Start with <code>docs/getting-started/quickstart.md</code></li>
+<li><strong>Adding features?</strong> Review <code>docs/architecture/overview.md</code></li>
+<li><strong>Writing tests?</strong> Check <code>docs/guide/integration-testing.md</code></li>
+<li><strong>Using the API?</strong> See <code>docs/cli/device-management-api.md</code></li>
+<li><strong>Understanding protocol?</strong> Read <code>docs/architecture/protocol.md</code></li>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2433,7 +2471,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 8, 2025 02:36:47 UTC">December 8, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 2, 2026 10:18:48 UTC">February 2, 2026</span>
   </span>
 
     

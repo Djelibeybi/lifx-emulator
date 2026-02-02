@@ -163,14 +163,6 @@ Non-visible framebuffers are created on first access:
 # Initialized with black (hue=0, saturation=0, brightness=0)
 ```
 
-### Persistence
-
-Non-visible framebuffers are saved with device state when persistence is enabled:
-
-```bash
-lifx-emulator --persistent --tile 1
-```
-
 ## Best Practices
 
 ### For Tiles ≤64 Zones

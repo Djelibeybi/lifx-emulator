@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#protocol" class="md-skip">
+        <a href="#protocol-layer" class="md-skip">
           Skip to content
         </a>
       
@@ -1162,6 +1162,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol Layer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1178,6 +1196,152 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#header-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Header Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Header Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frame-8-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame (8 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-address-16-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame Address (16 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-header-12-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol Header (12 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packet-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binary-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binary Serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packet-type-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet Type Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1574,6 +1738,141 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#header-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Header Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Header Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frame-8-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame (8 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frame-address-16-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame Address (16 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-header-12-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol Header (12 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packet-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binary-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binary Serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packet-type-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet Type Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1666,8 +1965,191 @@
   
 
 
-<h1 id="protocol">Protocol<a class="headerlink" href="#protocol" title="Permanent link">&para;</a></h1>
-<p>Coming soon.</p>
+<h1 id="protocol-layer">Protocol Layer<a class="headerlink" href="#protocol-layer" title="Permanent link">&para;</a></h1>
+<p>How the LIFX LAN protocol is implemented: header structure, packet serialization, and code generation.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The LIFX LAN protocol is a binary UDP protocol documented at <a href="https://lan.developer.lifx.com">lan.developer.lifx.com</a>. Every message consists of a 36-byte header followed by a variable-length payload. All multi-byte values use little-endian byte order.</p>
+<p>The emulator's protocol layer handles:</p>
+<ul>
+<li>Parsing and constructing the 36-byte header</li>
+<li>Serializing and deserializing packet payloads</li>
+<li>Mapping packet type numbers to typed Python classes</li>
+</ul>
+<h2 id="header-structure">Header Structure<a class="headerlink" href="#header-structure" title="Permanent link">&para;</a></h2>
+<p>The <code>LifxHeader</code> dataclass represents the 36-byte header, which has three sections:</p>
+<h3 id="frame-8-bytes">Frame (8 bytes)<a class="headerlink" href="#frame-8-bytes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>size</code></td>
+<td>16 bits</td>
+<td>Total message size (header + payload)</td>
+</tr>
+<tr>
+<td>origin / tagged / addressable / protocol</td>
+<td>16 bits</td>
+<td>Bitfield: origin (2), tagged (1), addressable (1), protocol (12)</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>32 bits</td>
+<td>Unique client identifier</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>protocol</code> field is always 1024. The <code>addressable</code> bit is always 1. The <code>tagged</code> bit indicates broadcast (<code>True</code>) vs unicast (<code>False</code>).</p>
+<h3 id="frame-address-16-bytes">Frame Address (16 bytes)<a class="headerlink" href="#frame-address-16-bytes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target</code></td>
+<td>64 bits</td>
+<td>6-byte MAC address + 2 null bytes</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td>48 bits</td>
+<td>Reserved (zeros)</td>
+</tr>
+<tr>
+<td>flags</td>
+<td>8 bits</td>
+<td>Bitfield: res_required (1), ack_required (1), reserved (6)</td>
+</tr>
+<tr>
+<td><code>sequence</code></td>
+<td>8 bits</td>
+<td>Sequence number for request/response matching</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>target</code> field encodes the device serial: a 12-character hex string like <code>"d073d5000001"</code> becomes 6 bytes <code>d0 73 d5 00 00 01</code> followed by 2 null bytes.</p>
+<h3 id="protocol-header-12-bytes">Protocol Header (12 bytes)<a class="headerlink" href="#protocol-header-12-bytes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reserved</td>
+<td>64 bits</td>
+<td>Reserved (zeros)</td>
+</tr>
+<tr>
+<td><code>pkt_type</code></td>
+<td>16 bits</td>
+<td>Packet type identifier</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td>16 bits</td>
+<td>Reserved (zeros)</td>
+</tr>
+</tbody>
+</table>
+<p>The header is packed and unpacked using a pre-compiled <code>struct.Struct("&lt;HHI Q6sBB QHH")</code> for performance.</p>
+<h2 id="packet-classes">Packet Classes<a class="headerlink" href="#packet-classes" title="Permanent link">&para;</a></h2>
+<p>Packet payloads are represented as typed dataclasses organized by protocol namespace:</p>
+<ul>
+<li><strong><code>Device</code></strong> — Discovery, identity, power, label, location, group (types 2-59)</li>
+<li><strong><code>Light</code></strong> — Color, waveform, infrared, HEV (types 101-149)</li>
+<li><strong><code>MultiZone</code></strong> — Zone colors, extended zones, effects (types 501-512)</li>
+<li><strong><code>Tile</code></strong> — Matrix colors, framebuffers, effects (types 701-720)</li>
+</ul>
+<p>Each packet class has:</p>
+<ul>
+<li><code>PKT_TYPE</code> — Class variable with the packet type number</li>
+<li><code>pack()</code> — Serialize fields to bytes</li>
+<li><code>unpack(data)</code> — Class method to deserialize bytes to a packet instance</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.protocol.packets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Light</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Unpack a SetColor payload</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">packet</span> <span class="o">=</span> <span class="n">Light</span><span class="o">.</span><span class="n">SetColor</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">payload_bytes</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">print</span><span class="p">(</span><span class="n">packet</span><span class="o">.</span><span class="n">color</span><span class="o">.</span><span class="n">hue</span><span class="p">)</span>  <span class="c1"># Access typed fields</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Pack a State response</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">response</span> <span class="o">=</span> <span class="n">Light</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">device_state</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="n">device_state</span><span class="o">.</span><span class="n">power_level</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">response_bytes</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">pack</span><span class="p">()</span>
+</span></code></pre></div>
+<h2 id="binary-serialization">Binary Serialization<a class="headerlink" href="#binary-serialization" title="Permanent link">&para;</a></h2>
+<p>The <code>serializer.py</code> module handles struct-based binary packing with:</p>
+<ul>
+<li><strong>Type mapping</strong> — Python types to struct format codes (<code>uint16</code> → <code>"H"</code>, <code>uint32</code> → <code>"I"</code>, etc.)</li>
+<li><strong>Little-endian</strong> — All values packed as <code>&lt;</code> (little-endian) per the LIFX specification</li>
+<li><strong>Pre-compiled structs</strong> — A cache of <code>struct.Struct</code> objects avoids repeated compilation</li>
+<li><strong>Composite types</strong> — <code>LightHsbk</code> (8 bytes: 4 × uint16), <code>TileStateDevice</code> (55 bytes), and other protocol structures</li>
+</ul>
+<h2 id="protocol-types">Protocol Types<a class="headerlink" href="#protocol-types" title="Permanent link">&para;</a></h2>
+<p><code>protocol_types.py</code> defines the data structures used within packets:</p>
+<ul>
+<li><strong><code>LightHsbk</code></strong> — Color representation (hue, saturation, brightness, kelvin), each uint16</li>
+<li><strong><code>TileStateDevice</code></strong> — Tile metadata (position, dimensions, firmware version)</li>
+<li><strong><code>TileBufferRect</code></strong> — Rectangle specification for Get64/Set64 (framebuffer index, x, y, width)</li>
+<li><strong>Enums</strong> — <code>DeviceService</code>, <code>LightWaveform</code>, <code>MultiZoneEffectType</code>, <code>MultiZoneApplicationRequest</code>, etc.</li>
+</ul>
+<h2 id="code-generation">Code Generation<a class="headerlink" href="#code-generation" title="Permanent link">&para;</a></h2>
+<p>Two modules are auto-generated from the <a href="https://github.com/LIFX/public-protocol">LIFX public protocol</a> specification and must not be edited manually:</p>
+<table>
+<thead>
+<tr>
+<th>Generated File</th>
+<th>Generator</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>protocol/packets.py</code></td>
+<td><code>python -m lifx_emulator.protocol.generator</code></td>
+<td><code>protocol.yml</code></td>
+</tr>
+<tr>
+<td><code>products/registry.py</code></td>
+<td><code>python -m lifx_emulator.products.generator</code></td>
+<td>LIFX product data</td>
+</tr>
+</tbody>
+</table>
+<p>The generators produce:</p>
+<ul>
+<li><strong><code>packets.py</code></strong> — All packet classes with nested <code>Device.*</code>, <code>Light.*</code>, <code>MultiZone.*</code>, <code>Tile.*</code> namespaces, field definitions, <code>pack()</code>/<code>unpack()</code> methods, and <code>PKT_TYPE</code> constants</li>
+<li><strong><code>protocol_types.py</code></strong> — Dataclasses and enums for composite protocol structures (also auto-generated)</li>
+<li><strong><code>registry.py</code></strong> — Product definitions (137+ products with capability flags)</li>
+</ul>
+<h2 id="packet-type-resolution">Packet Type Resolution<a class="headerlink" href="#packet-type-resolution" title="Permanent link">&para;</a></h2>
+<p><code>get_packet_class(pkt_type)</code> maps a numeric packet type to its class:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">get_packet_class</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># → Device.GetService</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">get_packet_class</span><span class="p">(</span><span class="mi">101</span><span class="p">)</span> <span class="c1"># → Light.Get (GetColor)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">get_packet_class</span><span class="p">(</span><span class="mi">502</span><span class="p">)</span> <span class="c1"># → MultiZone.GetColorZones</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">get_packet_class</span><span class="p">(</span><span class="mi">707</span><span class="p">)</span> <span class="c1"># → Tile.Get64</span>
+</span></code></pre></div>
+<p>Unknown packet types return <code>None</code>, and the device either ignores the packet or returns <code>StateUnhandled</code> (type 223) depending on configuration.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../overview/">Architecture Overview</a> — How the protocol layer fits in</li>
+<li><a href="../packet-flow/">Packet Flow</a> — End-to-end packet processing</li>
+<li><a href="../device-state/">Device State</a> — State structures that handlers read and write</li>
+<li><a href="https://lan.developer.lifx.com">LIFX LAN Protocol</a> — Official protocol specification</li>
+</ul>
 
 
 
@@ -1690,7 +2172,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 6, 2025 12:55:25 UTC">November 6, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 2, 2026 20:42:10 UTC">February 2, 2026</span>
   </span>
 
     

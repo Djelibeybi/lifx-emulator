@@ -4,6 +4,10 @@
 
 The storage module provides asynchronous persistent storage of device state using JSON files on disk. When enabled, device state (color, power, label, zones, tiles, etc.) is automatically saved and restored across emulator sessions with high-performance non-blocking I/O.
 
+CLI users
+
+The CLI flags `--persistent` and `--persistent-scenarios` are deprecated. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) and [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead. The storage API documented here is unaffected and remains available for library users.
+
 ______________________________________________________________________
 
 ## Table of Contents
@@ -484,6 +488,10 @@ ______________________________________________________________________
 
 ## CLI Integration
 
+Deprecated
+
+The `--persistent` CLI flag is deprecated. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) instead. Run `lifx-emulator export-config` to migrate.
+
 ### Enabling Persistent Storage from CLI
 
 Use the `--persistent` flag to enable state persistence:
@@ -689,9 +697,8 @@ ______________________________________________________________________
 **Related Documentation:**
 
 - [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state structure
-- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Using `--persistent` flag
-- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start with persistence
-- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Storage best practices
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - CLI flags reference
+- [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) - Recommended replacement for `--persistent`
 
 **See Also:**
 

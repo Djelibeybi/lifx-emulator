@@ -505,7 +505,7 @@ The `lifx-emulator` package provides a ready-to-run CLI tool and HTTP management
 
 This section covers the standalone emulator's advanced features for complex testing needs. These features are optional but powerful for:
 
-- Maintaining device state across test runs
+- Defining reproducible device setups via configuration files
 - Runtime device management
 - Comprehensive error simulation
 - Complex multi-scenario testing
@@ -523,7 +523,7 @@ Before exploring advanced features, you should:
 
 Read these guides in order from simple to complex:
 
-1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
+1. **[Configuration File](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)** - Define devices and scenarios in YAML
 1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
 1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
 1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios
@@ -544,21 +544,9 @@ devices:
     label: "Living Room"
 ```
 
-The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
+The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path. You can also set `LIFX_EMULATOR_CONFIG` to override the config path.
 
 👉 **[Configuration Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)**
-
-### Persistent Storage
-
-Save device state (colors, labels, power) across emulator restarts:
-
-```bash
-lifx-emulator --persistent --color 2
-```
-
-Device states are saved to `~/.lifx-emulator/` and automatically restored on subsequent runs.
-
-👉 **[Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)**
 
 ### Device Management API
 
@@ -605,7 +593,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 | Create devices     | ✅    | ✅            |
 | Device discovery   | ✅    | ✅            |
 | Control devices    | ✅    | ✅            |
-| State persistence  | ❌    | ✅            |
 | Runtime management | ❌    | ✅            |
 | Error simulation   | Basic | Comprehensive |
 | Web UI             | ❌    | ✅            |
@@ -619,13 +606,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 - Sharing configurations with team members
 - Running tests in CI/CD pipelines
 - You want version-controlled emulator settings
-
-### Use Persistent Storage When:
-
-- Running long test suites where state matters
-- Testing state restoration after failures
-- Developing iteratively and want to preserve state
-- Simulating real-world device persistence
 
 ### Use Device Management API When:
 
@@ -647,8 +627,8 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 Use multiple advanced features together:
 
 ```bash
-# Start with persistence, API, and scenarios
-lifx-emulator --persistent --api --color 2
+# Start with API and devices
+lifx-emulator --api --color 2
 
 # Configure global scenario for packet loss
 curl -X PUT http://localhost:8080/api/scenarios/global \
@@ -661,7 +641,6 @@ curl -X POST http://localhost:8080/api/devices \
   -d '{"product_id": 32, "zone_count": 16}'
 
 # Run your tests...
-# State persists across restarts
 ```
 
 ## Next Steps
@@ -669,7 +648,6 @@ curl -X POST http://localhost:8080/api/devices \
 Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.
 
 1. **[Configuration File](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)** - YAML-based configuration
-1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
 1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
 1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
 1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios
@@ -1704,16 +1682,6 @@ lifx-emulator --color 1 --api --api-port 9090
 lifx-emulator --color 1 --api --api-activity=false
 ```
 
-### Persistent Storage
-
-```bash
-# Enable state persistence
-lifx-emulator --persistent --color 2
-
-# Enable both state and scenario persistence
-lifx-emulator --persistent --persistent-scenarios --api
-```
-
 ### Non-Extended Multizone
 
 ```bash
@@ -1811,14 +1779,14 @@ lifx-emulator list-products --filter-type multizone
 
 ### State Preservation
 
-Enable persistence to maintain device state across test runs:
+Use a config file to define device state for reproducible test runs:
 
 ```bash
-lifx-emulator --persistent --color 2
-
-# On subsequent runs, saved devices are restored automatically
-lifx-emulator --persistent
+# Define devices in a config file
+lifx-emulator --config my-devices.yaml
 ```
+
+See the [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) for details on defining device state.
 
 ### Realistic Configurations
 
@@ -1837,8 +1805,8 @@ lifx-emulator --tile 1
 For development with full observability:
 
 ```bash
-# Verbose logging, API dashboard, persistent state
-lifx-emulator --verbose --api --persistent --color 2 --multizone 1
+# Verbose logging, API dashboard
+lifx-emulator --verbose --api --color 2 --multizone 1
 ```
 
 ### Testing Mode
@@ -1950,7 +1918,7 @@ ______________________________________________________________________
 Displays all emulated devices with detailed status:
 
 ```text
-Devices (3)                    [Remove All]  [Clear Storage]
+Devices (3)                                    [Remove All]
 
 ┌─ Device Card ─────────────────────────────────────────┐
 │ d073d5000001                                    [Del]  │
@@ -2079,7 +2047,7 @@ ______________________________________________________________________
 1. Click "Add Device" button
 1. New device appears in the Devices section with auto-generated serial
 
-The device is immediately available to LIFX clients and is added to the emulator runtime (not persisted to disk unless `--persistent` flag is used).
+The device is immediately available to LIFX clients and is added to the emulator runtime.
 
 ______________________________________________________________________
 
@@ -2173,20 +2141,7 @@ ______________________________________________________________________
 1. Click "Remove All" button (top right of Devices section)
 1. Confirmation dialog shows: "Remove all X device(s)?"
 1. Click OK to confirm
-1. All devices removed from runtime (storage preserved)
-
-______________________________________________________________________
-
-### Clear Persistent Storage
-
-If `--persistent` flag was used to enable state persistence:
-
-1. Click "Clear Storage" button (top right of Devices section)
-1. Confirmation dialog shows: "Clear all persistent device state?"
-1. Click OK to confirm
-1. All saved device state files deleted from disk
-1. Currently running devices NOT affected
-1. Next restart will start with no saved state
+1. All devices removed from runtime
 
 ______________________________________________________________________
 
@@ -2762,42 +2717,7 @@ Removes all emulated devices from the server. All devices will stop responding t
 curl -X DELETE http://localhost:8080/api/devices
 ```
 
-**Note:** This only removes devices from memory. Persistent state files remain intact.
-
-______________________________________________________________________
-
-### Clear Persistent Storage
-
-```text
-DELETE /api/storage
-```
-
-Deletes all persistent device state files from disk. This does not affect currently running devices, only saved state files.
-
-**Response (200 OK):**
-
-```json
-{
-  "deleted": 3,
-  "message": "Deleted 3 device state(s) from persistent storage"
-}
-```
-
-**Error Response (503):**
-
-```json
-{
-  "detail": "Persistent storage is not enabled"
-}
-```
-
-**Example:**
-
-```bash
-curl -X DELETE http://localhost:8080/api/storage
-```
-
-**Note:** Requires `--persistent` flag when starting the emulator.
+**Note:** This only removes devices from memory.
 
 ______________________________________________________________________
 
@@ -4136,10 +4056,14 @@ device.scenarios = ScenarioConfig(
 
 ## Persistent Scenarios
 
+Deprecated
+
+Use [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead.
+
 In addition to device state, test scenarios can also be persisted:
 
 ```bash
-# Enable both device state and scenario persistence
+# Enable both device state and scenario persistence (deprecated)
 lifx-emulator --persistent --persistent-scenarios
 ```
 
@@ -4223,19 +4147,12 @@ for serial in storage.list_devices():
     storage.delete_device_state(serial)
 ```
 
-## Best Practices
-
-1. **Use storage for integration tests** - Persist state across test sessions
-1. **Back up important state** - Use `cp -r ~/.lifx-emulator ~/.lifx-emulator.backup`
-1. **Clean up after tests** - Delete device state when tests complete
-1. **Use meaningful serials** - Make it easy to identify saved devices
-1. **Version your state** - Keep track of state changes in git if needed
-
 ## Next Steps
 
-- [Testing Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/guide/testing-scenarios/index.md) - Combine with error scenarios
-- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Detailed API documentation
-- [Advanced Testing Guide](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Integration patterns
+Migrate to config files for a better experience:
+
+- [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) - Recommended replacement for persistent storage
+- [Storage API Reference](https://djelibeybi.github.io/lifx-emulator/library/storage/index.md) - Detailed API documentation for library users
 
 # Custom Test Scenarios
 
@@ -4605,9 +4522,14 @@ manager.set_device_scenario(
 
 ## Persistent Scenarios
 
+Deprecated
+
+`--persistent-scenarios` is deprecated. Use [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead. Run `lifx-emulator export-config` to migrate existing scenarios.
+
 Save scenarios across emulator restarts:
 
 ```bash
+# Deprecated — use config file scenarios instead
 lifx-emulator --api --persistent --persistent-scenarios
 ```
 
@@ -7596,6 +7518,10 @@ ______________________________________________________________________
 
 The storage module provides asynchronous persistent storage of device state using JSON files on disk. When enabled, device state (color, power, label, zones, tiles, etc.) is automatically saved and restored across emulator sessions with high-performance non-blocking I/O.
 
+CLI users
+
+The CLI flags `--persistent` and `--persistent-scenarios` are deprecated. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) and [config file scenarios](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#scenarios) instead. The storage API documented here is unaffected and remains available for library users.
+
 ______________________________________________________________________
 
 ## Table of Contents
@@ -8076,6 +8002,10 @@ ______________________________________________________________________
 
 ## CLI Integration
 
+Deprecated
+
+The `--persistent` CLI flag is deprecated. Use [config file device definitions](https://djelibeybi.github.io/lifx-emulator/cli/configuration/#per-device-definitions) instead. Run `lifx-emulator export-config` to migrate.
+
 ### Enabling Persistent Storage from CLI
 
 Use the `--persistent` flag to enable state persistence:
@@ -8281,9 +8211,8 @@ ______________________________________________________________________
 **Related Documentation:**
 
 - [Device API](https://djelibeybi.github.io/lifx-emulator/library/device/index.md) - Device state structure
-- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - Using `--persistent` flag
-- [Getting Started](https://djelibeybi.github.io/lifx-emulator/getting-started/quickstart/index.md) - Quick start with persistence
-- [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Storage best practices
+- [CLI Reference](https://djelibeybi.github.io/lifx-emulator/cli/cli-reference/index.md) - CLI flags reference
+- [Configuration File Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md) - Recommended replacement for `--persistent`
 
 **See Also:**
 
@@ -9307,15 +9236,395 @@ device.scenarios = {
 
 # Packet Flow
 
-Coming soon.
+How UDP packets are received, routed, processed, and responded to.
 
-# Protocol
+## Overview
 
-Coming soon.
+Every interaction with the emulator follows the same path:
+
+1. UDP packet arrives at `EmulatedLifxServer`
+1. Header is parsed to determine target device(s)
+1. Payload is unpacked into a typed packet object
+1. Device processes the packet through its handler registry
+1. Scenarios are applied (drops, delays, malformed responses)
+1. Response packets are packed and sent back via UDP
+
+## Step-by-Step Flow
+
+### 1. Reception
+
+The server listens on a UDP socket via `asyncio.DatagramProtocol`. When bytes arrive:
+
+```python
+# EmulatedLifxServer.handle_packet(data, addr)
+header = LifxHeader.unpack(data[:36])
+```
+
+The 36-byte header is parsed first. If the header is malformed or too short, the packet is silently dropped (matching real LIFX device behavior).
+
+### 2. Payload Unpacking
+
+The `pkt_type` field from the header determines which packet class to use:
+
+```python
+packet_class = get_packet_class(header.pkt_type)
+packet = packet_class.unpack(data[36:])
+```
+
+Packet classes are organized by protocol namespace:
+
+- `Device.*` — types 2-59 (discovery, identity, power)
+- `Light.*` — types 101-149 (color, waveform, infrared, HEV)
+- `MultiZone.*` — types 501-512 (zone colors, effects)
+- `Tile.*` — types 701-720 (matrix colors, effects, framebuffers)
+
+### 3. Device Routing
+
+The header's `target` field (6-byte MAC + 2 null bytes) determines which device(s) receive the packet:
+
+- **Broadcast** (`tagged=True` or target is all zeros): packet forwarded to every device
+- **Unicast** (`tagged=False` with specific target): routed to the device matching the serial encoded in the target field
+- **Unknown target**: packet silently dropped
+
+### 4. Packet Processing
+
+Each device processes the packet through `EmulatedLifxDevice.process_packet()`:
+
+```text
+process_packet(header, packet)
+├── Look up handler in HandlerRegistry by pkt_type
+├── If no handler found → return empty (or StateUnhandled for switches)
+├── Apply scenario: check for packet drops
+├── Call handler.handle(device_state, packet, res_required)
+├── Handler reads/updates state and returns response packet(s)
+├── Apply scenario: response delays, malformed packets, partial responses
+├── Construct response headers
+└── Return list of (header, packet) tuples
+```
+
+### 5. Handler Dispatch
+
+The `HandlerRegistry` maps packet type numbers to handler instances using the Strategy pattern:
+
+```python
+handler = registry.get_handler(pkt_type)  # e.g., 101 → GetColorHandler
+response = handler.handle(device_state, packet, res_required)
+```
+
+Handlers are split across four modules matching the protocol namespaces:
+
+| Module                  | Packet Types | Examples                             |
+| ----------------------- | ------------ | ------------------------------------ |
+| `device_handlers.py`    | 2-59         | GetService, GetVersion, SetLabel     |
+| `light_handlers.py`     | 101-149      | GetColor, SetColor, GetInfrared      |
+| `multizone_handlers.py` | 501-512      | GetColorZones, SetExtendedColorZones |
+| `tile_handlers.py`      | 701-720      | Get64, Set64, CopyFrameBuffer        |
+
+### 6. Response Construction
+
+Handlers return packet objects (not headers). The device wraps each response in a header:
+
+- `source` and `sequence` are copied from the request header
+- `target` is set to the device's own serial
+- `pkt_type` is set to the response packet's type
+- `size` is calculated from header + payload length
+
+If `ack_required=True` in the request header, an Acknowledgment packet (type 45) is automatically appended to the response list.
+
+### 7. Multi-Packet Responses
+
+Some handlers return multiple packets:
+
+- **Multizone** (`GetColorZones`): one `StateMultiZone` (type 506) per 8 zones
+- **Extended multizone** (`GetExtendedColorZones`): one or more `ExtendedStateMultiZone` (type 512) per 82 zones
+- **Tile** (`Get64`): one `StateTileState64` per tile in the chain, with up to 64 zones per packet
+
+Handlers return these as lists, and `process_packet()` constructs a separate header for each.
+
+### 8. Sending
+
+The server packs each (header, packet) tuple to bytes and sends via UDP back to the client's address and port.
+
+## Scenario Interception Points
+
+Scenarios modify the flow at several points during `process_packet()`:
+
+| Scenario               | When Applied            | Effect                                        |
+| ---------------------- | ----------------------- | --------------------------------------------- |
+| `drop_packets`         | Before handler dispatch | Packet silently dropped (no response)         |
+| `response_delays`      | After handler returns   | `asyncio.sleep()` before sending              |
+| `malformed_packets`    | After handler returns   | Response payload truncated/corrupted          |
+| `invalid_field_values` | After handler returns   | All response bytes set to 0xFF                |
+| `partial_responses`    | After handler returns   | Multi-packet response list randomly truncated |
+| `send_unhandled`       | When no handler found   | Forces `StateUnhandled` (type 223) response   |
+| `firmware_version`     | During state reads      | Overrides reported firmware version           |
+
+## Switch Device Behavior
+
+Switch devices (`has_relays=True`) handle Device namespace packets (types 2-59) normally but return `StateUnhandled` (type 223) for Light, MultiZone, and Tile packets. This matches physical LIFX Switch behavior.
+
+## See Also
+
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) — High-level component diagram
+- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) — Header and packet structure details
+- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md) — How state is read and updated by handlers
+
+# Protocol Layer
+
+How the LIFX LAN protocol is implemented: header structure, packet serialization, and code generation.
+
+## Overview
+
+The LIFX LAN protocol is a binary UDP protocol documented at [lan.developer.lifx.com](https://lan.developer.lifx.com). Every message consists of a 36-byte header followed by a variable-length payload. All multi-byte values use little-endian byte order.
+
+The emulator's protocol layer handles:
+
+- Parsing and constructing the 36-byte header
+- Serializing and deserializing packet payloads
+- Mapping packet type numbers to typed Python classes
+
+## Header Structure
+
+The `LifxHeader` dataclass represents the 36-byte header, which has three sections:
+
+### Frame (8 bytes)
+
+| Field                                    | Size    | Description                                                      |
+| ---------------------------------------- | ------- | ---------------------------------------------------------------- |
+| `size`                                   | 16 bits | Total message size (header + payload)                            |
+| origin / tagged / addressable / protocol | 16 bits | Bitfield: origin (2), tagged (1), addressable (1), protocol (12) |
+| `source`                                 | 32 bits | Unique client identifier                                         |
+
+The `protocol` field is always 1024. The `addressable` bit is always 1. The `tagged` bit indicates broadcast (`True`) vs unicast (`False`).
+
+### Frame Address (16 bytes)
+
+| Field      | Size    | Description                                                |
+| ---------- | ------- | ---------------------------------------------------------- |
+| `target`   | 64 bits | 6-byte MAC address + 2 null bytes                          |
+| reserved   | 48 bits | Reserved (zeros)                                           |
+| flags      | 8 bits  | Bitfield: res_required (1), ack_required (1), reserved (6) |
+| `sequence` | 8 bits  | Sequence number for request/response matching              |
+
+The `target` field encodes the device serial: a 12-character hex string like `"d073d5000001"` becomes 6 bytes `d0 73 d5 00 00 01` followed by 2 null bytes.
+
+### Protocol Header (12 bytes)
+
+| Field      | Size    | Description            |
+| ---------- | ------- | ---------------------- |
+| reserved   | 64 bits | Reserved (zeros)       |
+| `pkt_type` | 16 bits | Packet type identifier |
+| reserved   | 16 bits | Reserved (zeros)       |
+
+The header is packed and unpacked using a pre-compiled `struct.Struct("<HHI Q6sBB QHH")` for performance.
+
+## Packet Classes
+
+Packet payloads are represented as typed dataclasses organized by protocol namespace:
+
+- **`Device`** — Discovery, identity, power, label, location, group (types 2-59)
+- **`Light`** — Color, waveform, infrared, HEV (types 101-149)
+- **`MultiZone`** — Zone colors, extended zones, effects (types 501-512)
+- **`Tile`** — Matrix colors, framebuffers, effects (types 701-720)
+
+Each packet class has:
+
+- `PKT_TYPE` — Class variable with the packet type number
+- `pack()` — Serialize fields to bytes
+- `unpack(data)` — Class method to deserialize bytes to a packet instance
+
+```python
+from lifx_emulator.protocol.packets import Light
+
+# Unpack a SetColor payload
+packet = Light.SetColor.unpack(payload_bytes)
+print(packet.color.hue)  # Access typed fields
+
+# Pack a State response
+response = Light.State(color=device_state.color, power=device_state.power_level, ...)
+response_bytes = response.pack()
+```
+
+## Binary Serialization
+
+The `serializer.py` module handles struct-based binary packing with:
+
+- **Type mapping** — Python types to struct format codes (`uint16` → `"H"`, `uint32` → `"I"`, etc.)
+- **Little-endian** — All values packed as `<` (little-endian) per the LIFX specification
+- **Pre-compiled structs** — A cache of `struct.Struct` objects avoids repeated compilation
+- **Composite types** — `LightHsbk` (8 bytes: 4 × uint16), `TileStateDevice` (55 bytes), and other protocol structures
+
+## Protocol Types
+
+`protocol_types.py` defines the data structures used within packets:
+
+- **`LightHsbk`** — Color representation (hue, saturation, brightness, kelvin), each uint16
+- **`TileStateDevice`** — Tile metadata (position, dimensions, firmware version)
+- **`TileBufferRect`** — Rectangle specification for Get64/Set64 (framebuffer index, x, y, width)
+- **Enums** — `DeviceService`, `LightWaveform`, `MultiZoneEffectType`, `MultiZoneApplicationRequest`, etc.
+
+## Code Generation
+
+Two modules are auto-generated from the [LIFX public protocol](https://github.com/LIFX/public-protocol) specification and must not be edited manually:
+
+| Generated File         | Generator                                    | Source            |
+| ---------------------- | -------------------------------------------- | ----------------- |
+| `protocol/packets.py`  | `python -m lifx_emulator.protocol.generator` | `protocol.yml`    |
+| `products/registry.py` | `python -m lifx_emulator.products.generator` | LIFX product data |
+
+The generators produce:
+
+- **`packets.py`** — All packet classes with nested `Device.*`, `Light.*`, `MultiZone.*`, `Tile.*` namespaces, field definitions, `pack()`/`unpack()` methods, and `PKT_TYPE` constants
+- **`protocol_types.py`** — Dataclasses and enums for composite protocol structures (also auto-generated)
+- **`registry.py`** — Product definitions (137+ products with capability flags)
+
+## Packet Type Resolution
+
+`get_packet_class(pkt_type)` maps a numeric packet type to its class:
+
+```python
+get_packet_class(2)   # → Device.GetService
+get_packet_class(101) # → Light.Get (GetColor)
+get_packet_class(502) # → MultiZone.GetColorZones
+get_packet_class(707) # → Tile.Get64
+```
+
+Unknown packet types return `None`, and the device either ignores the packet or returns `StateUnhandled` (type 223) depending on configuration.
+
+## See Also
+
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) — How the protocol layer fits in
+- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md) — End-to-end packet processing
+- [Device State](https://djelibeybi.github.io/lifx-emulator/architecture/device-state/index.md) — State structures that handlers read and write
+- [LIFX LAN Protocol](https://lan.developer.lifx.com) — Official protocol specification
 
 # Device State
 
-Coming soon.
+How device state is structured, accessed, and updated.
+
+## Overview
+
+Each emulated device holds a `DeviceState` object that represents its complete state: identity, capabilities, light settings, zone colors, tile data, and more. The state is composed from focused sub-state dataclasses following the Single Responsibility Principle.
+
+## Composed State Architecture
+
+`DeviceState` is not a monolithic dataclass. It delegates to specialized sub-state objects:
+
+```text
+DeviceState
+├── core: CoreDeviceState          (serial, label, power, color, firmware)
+├── network: NetworkState          (WiFi signal strength)
+├── location: LocationState        (location ID, label, timestamp)
+├── group: GroupState              (group ID, label, timestamp)
+├── waveform: WaveformState        (waveform effect parameters)
+├── infrared: InfraredState | None (IR brightness — color lights with IR only)
+├── hev: HevState | None           (HEV cycle state — LIFX Clean only)
+├── multizone: MultiZoneState | None (zone count, zone colors, effects)
+└── matrix: MatrixState | None     (tile count, dimensions, tile data, framebuffers)
+```
+
+The first five sub-states are always present. The last four are `None` when the device lacks the corresponding capability.
+
+## Capability Flags
+
+Boolean flags indicate what a device supports:
+
+| Flag                     | Meaning                     | Enables                               |
+| ------------------------ | --------------------------- | ------------------------------------- |
+| `has_color`              | Full RGB color              | Hue/saturation control                |
+| `has_infrared`           | IR LED                      | `InfraredState` sub-state             |
+| `has_multizone`          | Linear zones                | `MultiZoneState` sub-state            |
+| `has_extended_multizone` | Extended multizone protocol | 82-zone packets                       |
+| `has_matrix`             | 2D zone grid                | `MatrixState` sub-state               |
+| `has_hev`                | Germicidal UV-C             | `HevState` sub-state                  |
+| `has_relays`             | Physical relays             | Switch behavior                       |
+| `has_buttons`            | Physical buttons            | Button protocol (not yet implemented) |
+
+These flags are set by factory functions based on the product specification and cannot change at runtime.
+
+## Attribute Delegation
+
+Rather than defining hundreds of property getter/setter methods, `DeviceState` uses `__getattr__` and `__setattr__` with a routing map to delegate attribute access to the correct sub-state:
+
+```python
+state.label          # → state.core.label
+state.wifi_signal    # → state.network.wifi_signal
+state.zone_count     # → state.multizone.zone_count (or 0 if multizone is None)
+state.tile_width     # → state.matrix.tile_width (or 8 if matrix is None)
+```
+
+The `_ATTRIBUTE_ROUTES` dictionary maps attribute names to their sub-state. Some attributes use tuple routing for name translation:
+
+```python
+"multizone_effect_type": ("multizone", "effect_type")
+# state.multizone_effect_type → state.multizone.effect_type
+```
+
+When an optional sub-state is `None`, reads return a default value from `_OPTIONAL_DEFAULTS` and writes are silently ignored.
+
+## Sub-State Details
+
+### CoreDeviceState
+
+The essential identity and light state every device has:
+
+- `serial` — 12-character hex string (e.g., `"d073d5000001"`)
+- `label` — Device name (up to 32 bytes)
+- `power_level` — 0 (off) or 65535 (on)
+- `color` — `LightHsbk` (hue, saturation, brightness, kelvin)
+- `vendor`, `product` — Product identification
+- `version_major`, `version_minor` — Firmware version
+- `build_timestamp` — Firmware build time (seconds since epoch)
+- `mac_address`, `port` — Network identity
+
+### MultiZoneState
+
+For devices with independently controllable linear zones (strips, beams):
+
+- `zone_count` — Number of zones (product-dependent; e.g., LIFX Z: 8–16, Beam: 10–82, Neon: 24–48)
+- `zone_colors` — List of `LightHsbk`, one per zone
+- `effect_type`, `effect_speed` — Multizone effect state
+
+Zone count ranges are defined per product in `specs.yml`. Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.
+
+### MatrixState
+
+For devices with a 2D zone grid (tiles, candles, ceilings):
+
+- `tile_count` — Number of tiles in the chain (product-dependent; LIFX Tile: 1–5, most other matrix devices: 1 only)
+- `tile_width`, `tile_height` — Dimensions of each tile (product-dependent; e.g., Tile: 8x8, Candle: 5x6, Ceiling: 8x8)
+- `tile_devices` — List of tile metadata dicts (position, colors, dimensions)
+- `tile_framebuffers` — List of `TileFramebuffers` for non-visible buffers
+
+Tile count ranges and dimensions are defined per product in `specs.yml`. Each tile's visible colors are in `tile_devices[i]["colors"]`. Non-visible framebuffers are stored separately in `TileFramebuffers` and lazily initialized on first access.
+
+### HevState
+
+For LIFX Clean devices with germicidal UV-C:
+
+- `hev_cycle_duration_s` — Cycle duration (default: 7200s / 2 hours)
+- `hev_cycle_remaining_s` — Time remaining in active cycle
+- `hev_cycle_last_power` — Whether HEV was on when last cycle ended
+- `hev_indication` — Whether HEV indicator light is enabled
+- `hev_last_result` — Result code of last HEV cycle
+
+## State Updates
+
+Handlers update state by writing directly to `DeviceState` attributes:
+
+```python
+# In a handler's handle() method:
+device_state.color = packet.color
+device_state.power_level = 65535
+```
+
+These writes are routed through `__setattr__` to the correct sub-state object. The device's `process_packet()` method calls the handler and then optionally triggers a persistence save if storage is configured.
+
+## See Also
+
+- [Architecture Overview](https://djelibeybi.github.io/lifx-emulator/architecture/overview/index.md) — Component relationships
+- [Packet Flow](https://djelibeybi.github.io/lifx-emulator/architecture/packet-flow/index.md) — How handlers interact with state
+- [Protocol Layer](https://djelibeybi.github.io/lifx-emulator/architecture/protocol/index.md) — Packet structures that carry state
 # Guides
 
 # User Guide Overview
@@ -11137,14 +11446,6 @@ Non-visible framebuffers are created on first access:
 ```python
 # First Set64 to framebuffer 2 creates it automatically
 # Initialized with black (hue=0, saturation=0, brightness=0)
-```
-
-### Persistence
-
-Non-visible framebuffers are saved with device state when persistence is enabled:
-
-```bash
-lifx-emulator --persistent --tile 1
 ```
 
 ## Best Practices

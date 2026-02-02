@@ -6,7 +6,7 @@ The `lifx-emulator` package provides a ready-to-run CLI tool and HTTP management
 
 This section covers the standalone emulator's advanced features for complex testing needs. These features are optional but powerful for:
 
-- Maintaining device state across test runs
+- Defining reproducible device setups via configuration files
 - Runtime device management
 - Comprehensive error simulation
 - Complex multi-scenario testing
@@ -24,7 +24,7 @@ Before exploring advanced features, you should:
 
 Read these guides in order from simple to complex:
 
-1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
+1. **[Configuration File](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)** - Define devices and scenarios in YAML
 1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
 1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
 1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios
@@ -45,21 +45,9 @@ devices:
     label: "Living Room"
 ```
 
-The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path.
+The emulator auto-detects `lifx-emulator.yaml` in the current directory, or use `--config` to specify a path. You can also set `LIFX_EMULATOR_CONFIG` to override the config path.
 
 👉 **[Configuration Guide](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)**
-
-### Persistent Storage
-
-Save device state (colors, labels, power) across emulator restarts:
-
-```bash
-lifx-emulator --persistent --color 2
-```
-
-Device states are saved to `~/.lifx-emulator/` and automatically restored on subsequent runs.
-
-👉 **[Storage Guide](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)**
 
 ### Device Management API
 
@@ -106,7 +94,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 | Create devices     | ✅    | ✅            |
 | Device discovery   | ✅    | ✅            |
 | Control devices    | ✅    | ✅            |
-| State persistence  | ❌    | ✅            |
 | Runtime management | ❌    | ✅            |
 | Error simulation   | Basic | Comprehensive |
 | Web UI             | ❌    | ✅            |
@@ -120,13 +107,6 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 - Sharing configurations with team members
 - Running tests in CI/CD pipelines
 - You want version-controlled emulator settings
-
-### Use Persistent Storage When:
-
-- Running long test suites where state matters
-- Testing state restoration after failures
-- Developing iteratively and want to preserve state
-- Simulating real-world device persistence
 
 ### Use Device Management API When:
 
@@ -148,8 +128,8 @@ Supports device-specific, type-based, location-based, group-based, and global sc
 Use multiple advanced features together:
 
 ```bash
-# Start with persistence, API, and scenarios
-lifx-emulator --persistent --api --color 2
+# Start with API and devices
+lifx-emulator --api --color 2
 
 # Configure global scenario for packet loss
 curl -X PUT http://localhost:8080/api/scenarios/global \
@@ -162,7 +142,6 @@ curl -X POST http://localhost:8080/api/devices \
   -d '{"product_id": 32, "zone_count": 16}'
 
 # Run your tests...
-# State persists across restarts
 ```
 
 ## Next Steps
@@ -170,7 +149,6 @@ curl -X POST http://localhost:8080/api/devices \
 Choose a topic based on your needs, or read through all guides in order for comprehensive understanding.
 
 1. **[Configuration File](https://djelibeybi.github.io/lifx-emulator/cli/configuration/index.md)** - YAML-based configuration
-1. **[Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md)** - Save device state across restarts
 1. **[Device Management API](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md)** - Add/remove devices at runtime
 1. **[Scenarios](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md)** - Comprehensive error simulation concepts
 1. **[Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md)** - REST API for managing test scenarios

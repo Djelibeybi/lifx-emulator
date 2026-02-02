@@ -90,7 +90,7 @@ ______________________________________________________________________
 Displays all emulated devices with detailed status:
 
 ```text
-Devices (3)                    [Remove All]  [Clear Storage]
+Devices (3)                                    [Remove All]
 
 ┌─ Device Card ─────────────────────────────────────────┐
 │ d073d5000001                                    [Del]  │
@@ -219,7 +219,7 @@ ______________________________________________________________________
 1. Click "Add Device" button
 1. New device appears in the Devices section with auto-generated serial
 
-The device is immediately available to LIFX clients and is added to the emulator runtime (not persisted to disk unless `--persistent` flag is used).
+The device is immediately available to LIFX clients and is added to the emulator runtime.
 
 ______________________________________________________________________
 
@@ -313,20 +313,7 @@ ______________________________________________________________________
 1. Click "Remove All" button (top right of Devices section)
 1. Confirmation dialog shows: "Remove all X device(s)?"
 1. Click OK to confirm
-1. All devices removed from runtime (storage preserved)
-
-______________________________________________________________________
-
-### Clear Persistent Storage
-
-If `--persistent` flag was used to enable state persistence:
-
-1. Click "Clear Storage" button (top right of Devices section)
-1. Confirmation dialog shows: "Clear all persistent device state?"
-1. Click OK to confirm
-1. All saved device state files deleted from disk
-1. Currently running devices NOT affected
-1. Next restart will start with no saved state
+1. All devices removed from runtime
 
 ______________________________________________________________________
 

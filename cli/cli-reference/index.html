@@ -1363,17 +1363,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#persistent-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Persistent Storage
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#non-extended-multizone" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2796,17 +2785,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#persistent-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Persistent Storage
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#non-extended-multizone" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3397,59 +3375,52 @@
 </span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># API without activity logging (reduces traffic)</span>
 </span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--api<span class="w"> </span>--api-activity<span class="o">=</span><span class="nb">false</span>
 </span></code></pre></div>
-<h3 id="persistent-storage">Persistent Storage<a class="headerlink" href="#persistent-storage" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Enable state persistence</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>lifx-emulator<span class="w"> </span>--persistent<span class="w"> </span>--color<span class="w"> </span><span class="m">2</span>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Enable both state and scenario persistence</span>
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>lifx-emulator<span class="w"> </span>--persistent<span class="w"> </span>--persistent-scenarios<span class="w"> </span>--api
-</span></code></pre></div>
 <h3 id="non-extended-multizone">Non-Extended Multizone<a class="headerlink" href="#non-extended-multizone" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Create LIFX Z (non-extended, 16 zones max)</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>lifx-emulator<span class="w"> </span>--multizone<span class="w"> </span><span class="m">2</span><span class="w"> </span>--no-multizone-extended<span class="w"> </span>--multizone-zones<span class="w"> </span><span class="m">16</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Create LIFX Z (non-extended, 16 zones max)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>lifx-emulator<span class="w"> </span>--multizone<span class="w"> </span><span class="m">2</span><span class="w"> </span>--no-multizone-extended<span class="w"> </span>--multizone-zones<span class="w"> </span><span class="m">16</span>
 </span></code></pre></div>
 <h2 id="list-products-command">List Products Command<a class="headerlink" href="#list-products-command" title="Permanent link">&para;</a></h2>
 <h3 id="basic-list">Basic List<a class="headerlink" href="#basic-list" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>lifx-emulator<span class="w"> </span>list-products
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>lifx-emulator<span class="w"> </span>list-products
 </span></code></pre></div>
 <p>Output:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>LIFX Product Registry (137 products)
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a> product ID │ Product Name                              │ Capabilities
-</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>─────┼───────────────────────────────────────────┼─────────────────────
-</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>  27 │ LIFX A19                                  │ full color
-</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>  29 │ LIFX A19 Night Vision                     │ full color, infrared
-</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>  32 │ LIFX Z                                    │ full color, multizone
-</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>  38 │ LIFX Beam                                 │ full color, extended-multizone
-</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>  55 │ LIFX Tile                                 │ full color, matrix
-</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>  90 │ LIFX Clean                                │ full color, HEV
-</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a> ...
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>LIFX Product Registry (137 products)
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a> product ID │ Product Name                              │ Capabilities
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>─────┼───────────────────────────────────────────┼─────────────────────
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>  27 │ LIFX A19                                  │ full color
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  29 │ LIFX A19 Night Vision                     │ full color, infrared
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  32 │ LIFX Z                                    │ full color, multizone
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  38 │ LIFX Beam                                 │ full color, extended-multizone
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>  55 │ LIFX Tile                                 │ full color, matrix
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>  90 │ LIFX Clean                                │ full color, HEV
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a> ...
 </span></code></pre></div></p>
 <h3 id="filter-by-type">Filter by Type<a class="headerlink" href="#filter-by-type" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Only multizone products</span>
-</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>multizone
-</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
-</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># Only matrix products</span>
-</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>matrix
-</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>
-</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="c1"># Only HEV products</span>
-</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>HEV
-</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>
-</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="c1"># Only infrared products</span>
-</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>infrared
-</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>
-</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="c1"># Only full color products</span>
-</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>color
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Only multizone products</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>multizone
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># Only matrix products</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>matrix
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="c1"># Only HEV products</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>HEV
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="c1"># Only infrared products</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>infrared
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="c1"># Only full color products</span>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>color
 </span></code></pre></div>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <h3 id="quick-testing">Quick Testing<a class="headerlink" href="#quick-testing" title="Permanent link">&para;</a></h3>
 <p>For quick testing, use verbose mode to see all traffic:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--verbose
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--verbose
 </span></code></pre></div>
 <h3 id="visual-monitoring">Visual Monitoring<a class="headerlink" href="#visual-monitoring" title="Permanent link">&para;</a></h3>
 <p>Use the HTTP API for visual monitoring during development:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--api<span class="w"> </span>--verbose
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="c1"># Open http://localhost:8080 in your browser</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--api<span class="w"> </span>--verbose
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># Open http://localhost:8080 in your browser</span>
 </span></code></pre></div>
 <p>The web dashboard shows:
 - Real-time server statistics
@@ -3458,40 +3429,39 @@
 - REST API for runtime device management</p>
 <h3 id="cicd-integration">CI/CD Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">&para;</a></h3>
 <p>Use specific ports and localhost binding in CI:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--bind<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span>--port<span class="w"> </span><span class="m">56701</span><span class="w"> </span><span class="p">&amp;</span>
-</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="nv">EMULATOR_PID</span><span class="o">=</span><span class="nv">$!</span>
-</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="c1"># Run your tests</span>
-</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="nb">kill</span><span class="w"> </span><span class="nv">$EMULATOR_PID</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>lifx-emulator<span class="w"> </span>--color<span class="w"> </span><span class="m">1</span><span class="w"> </span>--bind<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span>--port<span class="w"> </span><span class="m">56701</span><span class="w"> </span><span class="p">&amp;</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="nv">EMULATOR_PID</span><span class="o">=</span><span class="nv">$!</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Run your tests</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="nb">kill</span><span class="w"> </span><span class="nv">$EMULATOR_PID</span>
 </span></code></pre></div>
 <h3 id="product-discovery">Product Discovery<a class="headerlink" href="#product-discovery" title="Permanent link">&para;</a></h3>
 <p>List products to find the right product ID for your tests:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>multizone
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>lifx-emulator<span class="w"> </span>list-products<span class="w"> </span>--filter-type<span class="w"> </span>multizone
 </span></code></pre></div>
 <h3 id="state-preservation">State Preservation<a class="headerlink" href="#state-preservation" title="Permanent link">&para;</a></h3>
-<p>Enable persistence to maintain device state across test runs:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>lifx-emulator<span class="w"> </span>--persistent<span class="w"> </span>--color<span class="w"> </span><span class="m">2</span>
-</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
-</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="c1"># On subsequent runs, saved devices are restored automatically</span>
-</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>lifx-emulator<span class="w"> </span>--persistent
+<p>Use a config file to define device state for reproducible test runs:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Define devices in a config file</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>lifx-emulator<span class="w"> </span>--config<span class="w"> </span>my-devices.yaml
 </span></code></pre></div>
+<p>See the <a href="../configuration/">Configuration File Guide</a> for details on defining device state.</p>
 <h3 id="realistic-configurations">Realistic Configurations<a class="headerlink" href="#realistic-configurations" title="Permanent link">&para;</a></h3>
 <p>Use product defaults for realistic device configurations:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># LIFX Beam with default 80 zones (extended by default)</span>
-</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>lifx-emulator<span class="w"> </span>--multizone<span class="w"> </span><span class="m">1</span>
-</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>
-</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="c1"># LIFX Tile with default 5 tiles</span>
-</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>lifx-emulator<span class="w"> </span>--tile<span class="w"> </span><span class="m">1</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># LIFX Beam with default 80 zones (extended by default)</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>lifx-emulator<span class="w"> </span>--multizone<span class="w"> </span><span class="m">1</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># LIFX Tile with default 5 tiles</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>lifx-emulator<span class="w"> </span>--tile<span class="w"> </span><span class="m">1</span>
 </span></code></pre></div>
 <h3 id="development-mode">Development Mode<a class="headerlink" href="#development-mode" title="Permanent link">&para;</a></h3>
 <p>For development with full observability:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Verbose logging, API dashboard, persistent state</span>
-</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>lifx-emulator<span class="w"> </span>--verbose<span class="w"> </span>--api<span class="w"> </span>--persistent<span class="w"> </span>--color<span class="w"> </span><span class="m">2</span><span class="w"> </span>--multizone<span class="w"> </span><span class="m">1</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Verbose logging, API dashboard</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>lifx-emulator<span class="w"> </span>--verbose<span class="w"> </span>--api<span class="w"> </span>--color<span class="w"> </span><span class="m">2</span><span class="w"> </span>--multizone<span class="w"> </span><span class="m">1</span>
 </span></code></pre></div>
 <h3 id="testing-mode">Testing Mode<a class="headerlink" href="#testing-mode" title="Permanent link">&para;</a></h3>
 <p>For testing network issues and edge cases:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># API enabled for runtime scenario configuration</span>
-</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>lifx-emulator<span class="w"> </span>--api<span class="w"> </span>--color<span class="w"> </span><span class="m">3</span>
-</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="c1"># Then use the REST API to configure packet loss, delays, etc.</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># API enabled for runtime scenario configuration</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>lifx-emulator<span class="w"> </span>--api<span class="w"> </span>--color<span class="w"> </span><span class="m">3</span>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="c1"># Then use the REST API to configure packet loss, delays, etc.</span>
 </span></code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3522,7 +3492,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 1, 2026 22:33:28 UTC">February 1, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 2, 2026 20:24:26 UTC">February 2, 2026</span>
   </span>
 
     
