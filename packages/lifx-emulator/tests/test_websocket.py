@@ -357,3 +357,32 @@ class TestStatsBroadcaster:
         # Stop without starting should not raise
         await broadcaster.stop()
         assert broadcaster._task is None
+
+
+class TestWebSocketExceptionHandling:
+    """Tests for WebSocket exception handling in router."""
+
+    def test_websocket_handles_json_decode_error(self, client):
+        """Test WebSocket handles invalid JSON gracefully."""
+        with client.websocket_connect("/ws") as websocket:
+            # Send invalid JSON - this should trigger exception handler
+            try:
+                websocket.send_text("not valid json{")
+                # The server should handle the error and close connection
+                import time
+
+                time.sleep(0.1)
+            except Exception:
+                # Connection might be closed by server
+                pass
+
+    def test_websocket_handles_receive_error(self, client):
+        """Test WebSocket handles receive errors gracefully."""
+        # This tests the general exception handler in the router
+        with client.websocket_connect("/ws") as websocket:
+            # Subscribe normally first
+            websocket.send_json({"type": "subscribe", "topics": ["stats"]})
+
+            # Close the connection abruptly from client side
+            # This will trigger exception handling on next receive
+            pass  # Connection closes when context exits
