@@ -807,3 +807,4 @@ jobs:
 - [Integration Testing](../guide/integration-testing.md) - Using scenarios in test suites
 - [Best Practices](../guide/best-practices.md) - Testing strategies
 - [API Reference](../library/index.md) - Full API documentation
+- [WebSocket API](./websocket-api.md) - Real-time scenario change notifications

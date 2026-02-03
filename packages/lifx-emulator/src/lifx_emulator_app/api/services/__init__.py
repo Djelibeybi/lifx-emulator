@@ -2,5 +2,6 @@
 
 from lifx_emulator_app.api.services.device_service import DeviceService
 from lifx_emulator_app.api.services.scenario_service import ScenarioService
+from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
 
-__all__ = ["DeviceService", "ScenarioService"]
+__all__ = ["DeviceService", "ScenarioService", "WebSocketManager"]
