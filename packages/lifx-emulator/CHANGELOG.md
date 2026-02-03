@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.1.0 (2026-02-03)
+
+### Features
+
+- **api**: Add device state update, bulk create, and pagination
+  ([`1f7bb46`](https://github.com/Djelibeybi/lifx-emulator/commit/1f7bb466ecf70cd8fd6a3e20f23ac49e00b2d709))
+
+
 ## v4.0.1 (2026-02-01)
 
 ### Bug Fixes
