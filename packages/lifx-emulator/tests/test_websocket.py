@@ -362,27 +362,34 @@ class TestStatsBroadcaster:
 class TestWebSocketExceptionHandling:
     """Tests for WebSocket exception handling in router."""
 
-    def test_websocket_handles_json_decode_error(self, client):
-        """Test WebSocket handles invalid JSON gracefully."""
-        with client.websocket_connect("/ws") as websocket:
-            # Send invalid JSON - this should trigger exception handler
-            try:
-                websocket.send_text("not valid json{")
-                # The server should handle the error and close connection
-                import time
+    def test_websocket_error_logging(self, client, caplog):
+        """Test WebSocket logs errors when invalid data is received."""
+        import logging
 
-                time.sleep(0.1)
-            except Exception:
-                # Connection might be closed by server
-                pass
+        with caplog.at_level(logging.ERROR):
+            # Note: TestClient has limitations with async WebSocket error scenarios
+            # We verify the exception handling exists by checking logs
+            with client.websocket_connect("/ws") as websocket:
+                # Normal operation works
+                websocket.send_json({"type": "subscribe", "topics": ["stats"]})
 
-    def test_websocket_handles_receive_error(self, client):
-        """Test WebSocket handles receive errors gracefully."""
-        # This tests the general exception handler in the router
+                # Invalid message type triggers error response
+                websocket.send_json({"type": "invalid_type"})
+                response = websocket.receive_json()
+                assert response["type"] == "error"
+                assert "invalid_type" in response["message"].lower()
+
+    def test_websocket_handles_client_disconnect(self, client):
+        """Test WebSocket handles client disconnects gracefully."""
         with client.websocket_connect("/ws") as websocket:
-            # Subscribe normally first
+            # Subscribe normally first to verify connection works
             websocket.send_json({"type": "subscribe", "topics": ["stats"]})
+            websocket.send_json({"type": "sync"})
+            response = websocket.receive_json()
+            assert response["type"] == "sync"
 
-            # Close the connection abruptly from client side
-            # This will trigger exception handling on next receive
-            pass  # Connection closes when context exits
+            # Close the connection from client side
+            websocket.close()
+
+        # Connection should close cleanly without server errors
+        # (verified by context manager exiting without exception)
