@@ -54,6 +54,7 @@ Dataclass holding all stateful information for an emulated LIFX device.
 - **`has_infrared`** (`bool` = `False`) - Supports infrared (night vision)
 - **`has_multizone`** (`bool` = `False`) - Supports multizone (linear strips)
 - **`has_matrix`** (`bool` = `False`) - Supports matrix (2D tiles)
+- **`has_chain`** (`bool` = `False`) - Supports multiple tiles
 - **`has_hev`** (`bool` = `False`) - Supports HEV (germicidal light)
 
 #### Location & Group
@@ -277,6 +278,7 @@ Capability flags in `DeviceState` determine which features the device supports a
 | `has_multizone` | Linear zone control (strips) | LIFX Z (32), Beam (38) | `MultiZone.GetColorZones`, `MultiZone.SetColorZones`, `MultiZone.StateZone`, `MultiZone.StateMultiZone` |
 | `has_extended_multizone` | Extended multizone support | Beam (38), LIFX Z (32) | `MultiZone.GetExtendedColorZones`, `MultiZone.SetExtendedColorZones`, `MultiZone.ExtendedStateMultiZone` |
 | `has_matrix` | 2D tile/matrix control | Tile (55), Candle (57), Ceiling (176) | `Tile.GetDeviceChain`, `Tile.Get64`, `Tile.Set64`, `Tile.StateDeviceChain`, `Tile.State64` |
+| `has_chain` | Supports multiple tiles | Tile (55) | `Tile.GetDeviceChain`, `Tile.StateDeviceChain` |
 | `has_hev` | Germicidal UV-C light | LIFX Clean (90) | `Hev.GetCycle`, `Hev.SetCycle`, `Hev.StateCycle` |
 | `has_relays` | Relay/switch control | LIFX Switch (70) | `Device.*` only (returns `StateUnhandled` for Light/MultiZone/Tile) |
 | `has_buttons` | Physical button configuration | LIFX Switch (70), LIFX Luna (199) | Button-related device packets |
