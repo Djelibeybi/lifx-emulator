@@ -93,6 +93,17 @@ class TestWebSocketEndpoint:
             assert "global" in response["data"]["scenarios"]
             assert "devices" in response["data"]["scenarios"]
 
+    def test_websocket_sync_with_activity(self, client):
+        """Test sync returns activity when subscribed."""
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json({"type": "subscribe", "topics": ["activity"]})
+            websocket.send_json({"type": "sync"})
+            response = websocket.receive_json()
+            assert response["type"] == "sync"
+            assert "activity" in response["data"]
+            # Activity should be a list (empty or with events)
+            assert isinstance(response["data"]["activity"], list)
+
     def test_websocket_unknown_message_type(self, client):
         """Test unknown message type returns error."""
         with client.websocket_connect("/ws") as websocket:
@@ -158,55 +169,6 @@ class TestWebSocketManagerInApp:
 
 class TestWebSocketDeviceEvents:
     """Tests for device event broadcasting via WebSocket."""
-
-    @pytest.mark.skip(
-        reason="TestClient runs in sync context without event loop for device callbacks"
-    )
-    def test_device_added_broadcast(self, client, server):
-        """Test device_added event is broadcast to WebSocket clients."""
-        import time
-
-        with client.websocket_connect("/ws") as websocket:
-            # Subscribe to devices topic
-            websocket.send_json({"type": "subscribe", "topics": ["devices"]})
-
-            # Add a device (triggers device_added event)
-            device = create_color_light("d073d5aabbcc")
-            server.add_device(device)
-
-            # Small delay to allow async broadcast to complete
-            time.sleep(0.05)
-
-            # Receive the device_added message
-            response = websocket.receive_json(timeout=1)
-            assert response["type"] == "device_added"
-            assert response["data"]["serial"] == "d073d5aabbcc"
-
-    @pytest.mark.skip(
-        reason="TestClient runs in sync context without event loop for device callbacks"
-    )
-    def test_device_removed_broadcast(self, client, server):
-        """Test device_removed event is broadcast to WebSocket clients."""
-        import time
-
-        # Add device first
-        device = create_color_light("d073d5ddeeff")
-        server.add_device(device)
-
-        with client.websocket_connect("/ws") as websocket:
-            # Subscribe to devices topic
-            websocket.send_json({"type": "subscribe", "topics": ["devices"]})
-
-            # Remove the device (triggers device_removed event)
-            server.remove_device("d073d5ddeeff")
-
-            # Small delay to allow async broadcast to complete
-            time.sleep(0.05)
-
-            # Receive the device_removed message
-            response = websocket.receive_json(timeout=1)
-            assert response["type"] == "device_removed"
-            assert response["data"]["serial"] == "d073d5ddeeff"
 
     def test_device_event_not_received_without_subscription(self, client, server):
         """Test device events are not received without devices subscription."""
@@ -357,6 +319,93 @@ class TestStatsBroadcaster:
         # Stop without starting should not raise
         await broadcaster.stop()
         assert broadcaster._task is None
+
+
+class TestWebSocketManagerBroadcasting:
+    """Async unit tests for WebSocketManager broadcasting."""
+
+    @pytest.mark.asyncio
+    async def test_broadcast_methods_coverage(self, ws_manager):
+        """Test all broadcast methods for coverage."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        # Create mock WebSocket and register with all subscriptions
+        mock_ws = MagicMock()
+        mock_ws.accept = AsyncMock()
+        mock_ws.send_json = AsyncMock()
+
+        await ws_manager.connect(mock_ws)
+        await ws_manager.subscribe(mock_ws, ["devices", "activity", "scenarios"])
+
+        # Test broadcast_device_added
+        await ws_manager.broadcast_device_added({"serial": "test"})
+        assert mock_ws.send_json.call_count == 1
+
+        # Test broadcast_device_removed
+        await ws_manager.broadcast_device_removed("test")
+        assert mock_ws.send_json.call_count == 2
+
+        # Test broadcast_device_updated
+        await ws_manager.broadcast_device_updated("test", {"power": 65535})
+        assert mock_ws.send_json.call_count == 3
+
+        # Test broadcast_activity
+        await ws_manager.broadcast_activity({"event": "test"})
+        assert mock_ws.send_json.call_count == 4
+
+        # Test broadcast_scenario_changed
+        await ws_manager.broadcast_scenario_changed("global", None, {"test": True})
+        assert mock_ws.send_json.call_count == 5
+
+    @pytest.mark.asyncio
+    async def test_broadcast_error_handling(self, ws_manager):
+        """Test broadcast handles client send failures."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        # Create mock that fails on send
+        mock_ws = MagicMock()
+        mock_ws.accept = AsyncMock()
+        mock_ws.send_json = AsyncMock(side_effect=RuntimeError("Send failed"))
+
+        await ws_manager.connect(mock_ws)
+        await ws_manager.subscribe(mock_ws, ["stats"])
+
+        initial_count = ws_manager.client_count
+        assert initial_count == 1
+
+        # Broadcast should handle error and disconnect client
+        await ws_manager.broadcast_stats({"uptime": 100})
+
+        # Client should be disconnected after error
+        assert ws_manager.client_count == 0
+
+    @pytest.mark.asyncio
+    async def test_send_to_client_error_handling(self, ws_manager):
+        """Test _send_to_client method handles exceptions."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_ws = MagicMock()
+        mock_ws.accept = AsyncMock()
+        mock_ws.send_json = AsyncMock(side_effect=RuntimeError("Network error"))
+
+        await ws_manager.connect(mock_ws)
+        assert ws_manager.client_count == 1
+
+        # _send_to_client should catch exception and disconnect
+        await ws_manager._send_to_client(mock_ws, {"type": "test", "data": {}})
+
+        assert ws_manager.client_count == 0
+
+    @pytest.mark.asyncio
+    async def test_sync_with_nonexistent_client(self, ws_manager):
+        """Test _send_full_sync handles nonexistent client gracefully."""
+        from unittest.mock import MagicMock
+
+        # Create a mock websocket that was never connected
+        mock_ws = MagicMock()
+
+        # Should return early without error
+        await ws_manager._send_full_sync(mock_ws)
 
 
 class TestWebSocketExceptionHandling:
