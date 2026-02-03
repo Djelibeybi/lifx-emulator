@@ -847,3 +847,4 @@ jobs:
 - [Integration Testing](https://djelibeybi.github.io/lifx-emulator/guide/integration-testing/index.md) - Using scenarios in test suites
 - [Best Practices](https://djelibeybi.github.io/lifx-emulator/guide/best-practices/index.md) - Testing strategies
 - [API Reference](https://djelibeybi.github.io/lifx-emulator/library/index.md) - Full API documentation
+- [WebSocket API](https://djelibeybi.github.io/lifx-emulator/cli/websocket-api/index.md) - Real-time scenario change notifications

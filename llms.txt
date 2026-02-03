@@ -29,6 +29,7 @@ protocol edge cases, packet loss, delays, and malformed responses.
 - [Web Interface](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md): HTTP management API and web interface
 - [Device Management](https://djelibeybi.github.io/lifx-emulator/cli/device-management-api/index.md): Device management REST API
 - [Scenario API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md): Scenario management REST API
+- [WebSocket API](https://djelibeybi.github.io/lifx-emulator/cli/websocket-api/index.md): WebSocket API for real-time updates
 - [Persistent Storage](https://djelibeybi.github.io/lifx-emulator/cli/storage/index.md): Persistent storage
 - [Scenarios Guide](https://djelibeybi.github.io/lifx-emulator/cli/scenarios/index.md): Custom scenarios
 

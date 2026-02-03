@@ -848,3 +848,4 @@ ______________________________________________________________________
 
 - [Web Interface Guide](https://djelibeybi.github.io/lifx-emulator/cli/web-interface/index.md) - Browser-based monitoring dashboard
 - [Scenario Management API](https://djelibeybi.github.io/lifx-emulator/cli/scenario-api/index.md) - Test scenario configuration
+- [WebSocket API](https://djelibeybi.github.io/lifx-emulator/cli/websocket-api/index.md) - Real-time updates via WebSocket
