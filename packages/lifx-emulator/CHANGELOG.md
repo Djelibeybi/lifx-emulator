@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v4.2.0 (2026-02-03)
+
+### Bug Fixes
+
+- Address CodeRabbit PR review feedback
+  ([`e302407`](https://github.com/Djelibeybi/lifx-emulator/commit/e302407e19f73de9a49361372b5c776b761d61e1))
+
+- Correct $derived usage in ActivityLog.svelte for reactive filtering
+  ([`a5e8280`](https://github.com/Djelibeybi/lifx-emulator/commit/a5e82809776e45a3f39f2b789fea3e5ca62185a7))
+
+### Features
+
+- **api**: Add WebSocket endpoint for real-time updates
+  ([`b1e9889`](https://github.com/Djelibeybi/lifx-emulator/commit/b1e98893049109cbe3d016c550b16e65d6a6c955))
+
+- **api**: Complete WebSocket real-time event infrastructure
+  ([`81cfa6f`](https://github.com/Djelibeybi/lifx-emulator/commit/81cfa6f11dfb7d216b40d6672ba73883841be11a))
+
+- **app**: Add PyApp binary distribution support (Phase 5)
+  ([`3c893a8`](https://github.com/Djelibeybi/lifx-emulator/commit/3c893a866b0c0c1a5578bf45146994eec8c37493))
+
+- **dashboard**: Add activity filtering and device toolbar (Phase 3)
+  ([`249964a`](https://github.com/Djelibeybi/lifx-emulator/commit/249964ac782c0d38e7af7341302c3cb49d430ce9))
+
+- **dashboard**: Add scenario panel, pagination, and tabbed interface (Phase 4)
+  ([`a50951d`](https://github.com/Djelibeybi/lifx-emulator/commit/a50951d805592787ea70a86441e44c781e307c1c))
+
+- **dashboard**: Replace vanilla JS with SvelteKit frontend
+  ([`a143c2c`](https://github.com/Djelibeybi/lifx-emulator/commit/a143c2c0aee31a809a027fa010c5046492ecd243))
+
+
 ## v4.1.0 (2026-02-03)
 
 ### Features
