@@ -21,6 +21,7 @@ function createConnectionStore() {
 	let ws: WebSocket | null = null;
 	let reconnectDelay = RECONNECT_DELAY_MS;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+	let shouldReconnect = true;
 
 	function getWebSocketUrl(): string {
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -72,6 +73,7 @@ function createConnectionStore() {
 	}
 
 	function connect() {
+		shouldReconnect = true;
 		if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
 			return;
 		}
@@ -102,7 +104,7 @@ function createConnectionStore() {
 			ws.onclose = () => {
 				status = 'disconnected';
 				ws = null;
-				scheduleReconnect();
+				if (shouldReconnect) scheduleReconnect();
 			};
 
 			ws.onerror = () => {
@@ -131,6 +133,7 @@ function createConnectionStore() {
 	}
 
 	function disconnect() {
+		shouldReconnect = false;
 		if (reconnectTimeout) {
 			clearTimeout(reconnectTimeout);
 			reconnectTimeout = null;

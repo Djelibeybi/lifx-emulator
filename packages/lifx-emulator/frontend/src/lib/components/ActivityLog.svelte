@@ -40,7 +40,7 @@
 	{#if !stats.value.activity_enabled}
 		<div class="activity-disabled">
 			<p>Activity logging is disabled.</p>
-			<p class="hint">Start the emulator with <code>--activity</code> to enable packet logging.</p>
+			<p class="hint">Start the emulator with <code>--api-activity</code> to enable packet logging.</p>
 		</div>
 	{:else}
 		<!-- Filters -->
