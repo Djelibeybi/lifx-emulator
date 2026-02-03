@@ -9,7 +9,7 @@
 		return new Date(timestamp * 1000).toLocaleTimeString();
 	}
 
-	let filteredActivity = $derived(() => {
+	let filteredActivity = $derived.by(() => {
 		let items = activity.reversed;
 
 		if (filterDirection !== 'all') {
@@ -91,10 +91,10 @@
 		<div class="activity-log">
 			{#if activity.count === 0}
 				<div style="color: var(--text-dimmed);">No activity yet</div>
-			{:else if filteredActivity().length === 0}
+			{:else if filteredActivity.length === 0}
 				<div style="color: var(--text-dimmed);">No matching activity</div>
 			{:else}
-				{#each filteredActivity() as act}
+				{#each filteredActivity as act}
 					<div class="activity-item">
 						<span class="activity-time">{formatTime(act.timestamp)}</span>
 						<span class={act.direction === 'rx' ? 'activity-rx' : 'activity-tx'}>
