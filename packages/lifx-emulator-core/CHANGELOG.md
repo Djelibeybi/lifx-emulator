@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.4.0 (2026-02-03)
+
+### Features
+
+- **core**: Add has_chain capability flag to DeviceState
+  ([`66c639c`](https://github.com/Djelibeybi/lifx-emulator/commit/66c639c3b76cfc14892119e26f854927bb0155bf))
+
+
 ## v3.3.0 (2026-02-03)
 
 ### Bug Fixes
