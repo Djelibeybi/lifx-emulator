@@ -244,15 +244,11 @@ class EmulatedLifxServer:
         """
         # Send ack immediately before device processing when no scenario
         # targets ack behavior (fast path for the common case)
-        if header.ack_required:
-            scenario = device._get_resolved_scenario()
-            if not scenario.affects_acks:
-                self._send_ack(device, header, addr)
+        scenario = device._get_resolved_scenario()
+        if header.ack_required and not scenario.affects_acks:
+            self._send_ack(device, header, addr)
 
         responses = device.process_packet(header, packet)
-
-        # Get resolved scenario for response delays
-        scenario = device._get_resolved_scenario()
 
         # Send responses with delay if configured
         for resp_header, resp_packet in responses:
