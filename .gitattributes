@@ -1,0 +1,11 @@
+# Mark auto-generated files as linguist-generated
+# This excludes them from language statistics and marks them in diffs
+
+# SvelteKit build output (frontend static assets)
+packages/lifx-emulator/src/lifx_emulator_app/api/static/_app/** linguist-generated=true
+
+# Python auto-generated protocol definitions
+packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py linguist-generated=true
+
+# Python auto-generated product registry
+packages/lifx-emulator-core/src/lifx_emulator/products/registry.py linguist-generated=true
