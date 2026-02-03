@@ -93,3 +93,9 @@ exclude_lines = [
 
 [tool.bandit]
 exclude_dirs = ["packages/lifx-emulator/tests", "packages/lifx-emulator-core/tests"]
+
+[tool.codespell]
+skip = [
+    "packages/lifx-emulator/src/lifx_emulator_app/api/static/_app/*",
+    "packages/lifx-emulator/frontend/package-lock.json",
+]
