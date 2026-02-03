@@ -280,10 +280,10 @@ class EmulatedLifxDevice:
                     ack_packet.PKT_TYPE,
                     len(ack_payload),
                 )
-                responses.append((ack_header, ack_packet))
+                responses.append((ack_header, ack_packet, ack_payload))
 
-            responses.append((unhandled_header, state_unhandled))
-            return responses
+            responses.append((unhandled_header, state_unhandled, unhandled_payload))
+            return self._apply_error_scenarios(responses, scenario)
 
         # Update uptime
         self.state.uptime_ns = self.get_uptime_ns()
@@ -337,16 +337,29 @@ class EmulatedLifxDevice:
             # Store both header and pre-packed payload for error scenario processing
             responses.append((resp_header, resp_packet, resp_payload))
 
-        # Apply error scenarios to responses
-        modified_responses = []
+        return self._apply_error_scenarios(responses, scenario)
+
+    def _apply_error_scenarios(
+        self,
+        responses: list[tuple],
+        scenario: ScenarioConfig,
+    ) -> list[tuple[LifxHeader, Any]]:
+        """Apply malformed/invalid-field error scenarios to response packets.
+
+        Args:
+            responses: List of (header, packet, payload) tuples
+            scenario: Resolved scenario config
+
+        Returns:
+            List of (header, packet) tuples with error scenarios applied
+        """
+        modified_responses: list[tuple[LifxHeader, Any]] = []
         for resp_header, resp_packet, resp_payload in responses:
             # Check if we should send malformed packet (truncate payload)
             if resp_header.pkt_type in scenario.malformed_packets:
-                # For malformed packets, truncate the pre-packed payload
                 truncated_len = len(resp_payload) // 2
                 resp_payload_modified = resp_payload[:truncated_len]
                 resp_header.size = LIFX_HEADER_SIZE + truncated_len + 10  # Wrong size
-                # Convert back to bytes for malformed case
                 modified_responses.append((resp_header, resp_payload_modified))
                 logger.info(
                     "Sending malformed packet type %s (truncated)", resp_header.pkt_type
@@ -355,7 +368,6 @@ class EmulatedLifxDevice:
 
             # Check if we should send invalid field values
             if resp_header.pkt_type in scenario.invalid_field_values:
-                # Corrupt the pre-packed payload
                 resp_payload_modified = b"\xff" * len(resp_payload)
                 modified_responses.append((resp_header, resp_payload_modified))
                 pkt_type = resp_header.pkt_type
