@@ -6717,10 +6717,13 @@ Process an incoming LIFX protocol packet and generate response packets.
 
 This is the main entry point for packet processing. It:
 
-1. Checks if an acknowledgment is required (`ack_required` flag)
 1. Routes the packet to the appropriate handler based on packet type
 1. Applies testing scenarios (delays, drops, malformed responses)
 1. Returns a list of response packets (header, payload) tuples
+
+Note
+
+Acknowledgment packets (type 45) are normally sent by the server immediately before calling `process_packet()`. The device only generates acks itself when a scenario targets ack behavior (e.g., delaying, dropping, or corrupting type 45).
 
 **Parameters:**
 
@@ -6754,19 +6757,22 @@ ______________________________________________________________________
 
 Capability flags in `DeviceState` determine which features the device supports and which packet types it can handle.
 
-| Flag            | Description                  | Example Products                      | Supported Packets                                                                                       |
-| --------------- | ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `has_color`     | Full RGB color control       | A19 (27), BR30 (43), GU10 (66)        | `Light.Get`, `Light.SetColor`, `Light.State`                                                            |
-| `has_infrared`  | Night vision IR capability   | A19 Night Vision (29), BR30 NV (44)   | `Light.GetInfrared`, `Light.SetInfrared`, `Light.StateInfrared`                                         |
-| `has_multizone` | Linear zone control (strips) | LIFX Z (32), Beam (38)                | `MultiZone.GetColorZones`, `MultiZone.SetColorZones`, `MultiZone.StateZone`, `MultiZone.StateMultiZone` |
-| `has_matrix`    | 2D tile/matrix control       | Tile (55), Candle (57), Ceiling (176) | `Tile.GetDeviceChain`, `Tile.Get64`, `Tile.Set64`, `Tile.StateDeviceChain`, `Tile.State64`              |
-| `has_hev`       | Germicidal UV-C light        | LIFX Clean (90)                       | `Hev.GetCycle`, `Hev.SetCycle`, `Hev.StateCycle`                                                        |
+| Flag                     | Description                   | Example Products                      | Supported Packets                                                                                        |
+| ------------------------ | ----------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `has_color`              | Full RGB color control        | A19 (27), BR30 (43), GU10 (66)        | `Light.Get`, `Light.SetColor`, `Light.State`                                                             |
+| `has_infrared`           | Night vision IR capability    | A19 Night Vision (29), BR30 NV (44)   | `Light.GetInfrared`, `Light.SetInfrared`, `Light.StateInfrared`                                          |
+| `has_multizone`          | Linear zone control (strips)  | LIFX Z (32), Beam (38)                | `MultiZone.GetColorZones`, `MultiZone.SetColorZones`, `MultiZone.StateZone`, `MultiZone.StateMultiZone`  |
+| `has_extended_multizone` | Extended multizone support    | Beam (38), LIFX Z (32)                | `MultiZone.GetExtendedColorZones`, `MultiZone.SetExtendedColorZones`, `MultiZone.ExtendedStateMultiZone` |
+| `has_matrix`             | 2D tile/matrix control        | Tile (55), Candle (57), Ceiling (176) | `Tile.GetDeviceChain`, `Tile.Get64`, `Tile.Set64`, `Tile.StateDeviceChain`, `Tile.State64`               |
+| `has_hev`                | Germicidal UV-C light         | LIFX Clean (90)                       | `Hev.GetCycle`, `Hev.SetCycle`, `Hev.StateCycle`                                                         |
+| `has_relays`             | Relay/switch control          | LIFX Switch (70)                      | `Device.*` only (returns `StateUnhandled` for Light/MultiZone/Tile)                                      |
+| `has_buttons`            | Physical button configuration | LIFX Switch (70), LIFX Luna (199)     | Button-related device packets                                                                            |
 
 **Notes:**
 
 - Devices without a capability flag will ignore related packets
 - Most devices have `has_color=True` (except switches and relays)
-- Extended multizone (>16 zones) is indicated by `zone_count > 16`
+- `has_extended_multizone` is independent of zone count — it indicates firmware support for the extended multizone protocol
 - Matrix devices store tile data in `tile_devices` list
 
 **Example:**
@@ -6925,48 +6931,39 @@ The packet processing flow in `EmulatedLifxDevice.process_packet()` follows thes
 
 ```
 graph TD
-    A[Incoming Packet] --> B{ack_required?}
-    B -->|Yes| C[Add Acknowledgment]
-    B -->|No| D{res_required?}
+    S[Server receives packet] --> SA{ack_required?}
+    SA -->|Yes| SB{Scenario targets acks?}
+    SA -->|No| A
+    SB -->|No| SC[Server sends ack immediately]
+    SB -->|Yes| A
+    SC --> A
 
-    D -->|Yes| E[Route to Handler]
-    D -->|No| F[Route to Handler]
+    A[process_packet called] --> B{Drop packet?}
+    B -->|Yes| L[Return empty]
+    B -->|No| C[Route to handler]
 
-    E --> G{Handler Returns Response?}
-    F --> H{Handler Returns Response?}
+    C --> D["handler.handle(state, packet, res_required)"]
+    D --> E{Handler returns response?}
 
-    G -->|Yes| I[Apply Scenarios]
-    G -->|No| J[Return Responses]
+    E -->|No| L
+    E -->|Yes| F{Malformed?}
 
-    H -->|Yes| I
+    F -->|Yes| G[Truncate packet]
+    F -->|No| H{Invalid fields?}
+
+    G --> J[Return responses]
+    H -->|Yes| I[Set fields to 0xFF]
     H -->|No| J
 
-    I --> K{Drop Packet?}
-    K -->|Yes| L[Return Empty]
-    K -->|No| M{Delay?}
-
-    M -->|Yes| N[Wait Delay Time]
-    M -->|No| O{Malformed?}
-
-    N --> O
-    O -->|Yes| P[Truncate Packet]
-    O -->|No| Q{Invalid Fields?}
-
-    P --> J
-    Q -->|Yes| R[Set Fields to 0xFF]
-    Q -->|No| J
-
-    R --> J
-    C --> J
-    J[Return Responses]
+    I --> J
 ```
 
 **Key Points:**
 
-- Acknowledgments (packet type 45) are sent when `ack_required=True` in header
-- Response packets are sent when `res_required=True` in header
+- Acknowledgments (packet type 45) are sent by the server immediately before `process_packet()` for minimal latency. When a scenario targets ack behavior, the device generates the ack instead so it goes through scenario processing.
+- `res_required` is passed to the handler, which decides whether to return a response based on its value
 - Handlers are registered by packet type and dispatched via `HandlerRegistry`
-- Testing scenarios are applied after handler execution, before returning responses
+- Testing scenarios (malformed, invalid fields) are applied after handler execution, before returning responses
 - Multiple response packets may be returned (e.g., multizone queries return multiple `StateMultiZone` packets)
 
 **See Also:**
@@ -9448,6 +9445,7 @@ Every interaction with the emulator follows the same path:
 
 1. UDP packet arrives at `EmulatedLifxServer`
 1. Header is parsed to determine target device(s)
+1. Acknowledgment sent immediately (unless a scenario targets acks)
 1. Payload is unpacked into a typed packet object
 1. Device processes the packet through its handler registry
 1. Scenarios are applied (drops, delays, malformed responses)
@@ -9482,7 +9480,13 @@ Packet classes are organized by protocol namespace:
 - `MultiZone.*` — types 501-512 (zone colors, effects)
 - `Tile.*` — types 701-720 (matrix colors, effects, framebuffers)
 
-### 3. Device Routing
+### 3. Acknowledgment Handling
+
+If `ack_required=True` in the request header and no scenario targets ack behavior, the server sends an Acknowledgment packet (type 45) immediately via UDP before routing the packet to device handlers. This ensures the client receives the ack with minimal latency.
+
+When a scenario does target acks (e.g., delaying, dropping, or corrupting type 45), the server defers to the device, which includes the ack in its response list for scenario processing.
+
+### 4. Device Routing
 
 The header's `target` field (6-byte MAC + 2 null bytes) determines which device(s) receive the packet:
 
@@ -9490,7 +9494,7 @@ The header's `target` field (6-byte MAC + 2 null bytes) determines which device(
 - **Unicast** (`tagged=False` with specific target): routed to the device matching the serial encoded in the target field
 - **Unknown target**: packet silently dropped
 
-### 4. Packet Processing
+### 5. Packet Processing
 
 Each device processes the packet through `EmulatedLifxDevice.process_packet()`:
 
@@ -9506,7 +9510,7 @@ process_packet(header, packet)
 └── Return list of (header, packet) tuples
 ```
 
-### 5. Handler Dispatch
+### 6. Handler Dispatch
 
 The `HandlerRegistry` maps packet type numbers to handler instances using the Strategy pattern:
 
@@ -9524,7 +9528,7 @@ Handlers are split across four modules matching the protocol namespaces:
 | `multizone_handlers.py` | 501-512      | GetColorZones, SetExtendedColorZones |
 | `tile_handlers.py`      | 701-720      | Get64, Set64, CopyFrameBuffer        |
 
-### 6. Response Construction
+### 7. Response Construction
 
 Handlers return packet objects (not headers). The device wraps each response in a header:
 
@@ -9533,9 +9537,7 @@ Handlers return packet objects (not headers). The device wraps each response in 
 - `pkt_type` is set to the response packet's type
 - `size` is calculated from header + payload length
 
-If `ack_required=True` in the request header, an Acknowledgment packet (type 45) is automatically appended to the response list.
-
-### 7. Multi-Packet Responses
+### 8. Multi-Packet Responses
 
 Some handlers return multiple packets:
 
@@ -9545,7 +9547,7 @@ Some handlers return multiple packets:
 
 Handlers return these as lists, and `process_packet()` constructs a separate header for each.
 
-### 8. Sending
+### 9. Sending
 
 The server packs each (header, packet) tuple to bytes and sends via UDP back to the client's address and port.
 

@@ -2336,44 +2336,59 @@
 <p><strong>Returns:</strong> <code>int</code> - Uptime in nanoseconds</p>
 <h4 id="should_respondpacket_type-int-bool"><code>should_respond(packet_type: int) -&gt; bool</code><a class="headerlink" href="#should_respondpacket_type-int-bool" title="Permanent link">&para;</a></h4>
 <p>Check if device should respond to a packet (for testing packet drop scenarios).</p>
-<p><strong>Parameters:</strong>
-- <strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</li>
+</ul>
 <p><strong>Returns:</strong> <code>bool</code> - <code>False</code> if packet should be dropped, <code>True</code> otherwise</p>
 <h4 id="get_response_delaypacket_type-int-float"><code>get_response_delay(packet_type: int) -&gt; float</code><a class="headerlink" href="#get_response_delaypacket_type-int-float" title="Permanent link">&para;</a></h4>
 <p>Get configured response delay for a packet type (for testing timeout scenarios).</p>
-<p><strong>Parameters:</strong>
-- <strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</li>
+</ul>
 <p><strong>Returns:</strong> <code>float</code> - Delay in seconds (0.0 if no delay configured)</p>
 <h4 id="should_send_malformedpacket_type-int-bool"><code>should_send_malformed(packet_type: int) -&gt; bool</code><a class="headerlink" href="#should_send_malformedpacket_type-int-bool" title="Permanent link">&para;</a></h4>
 <p>Check if response packet should be malformed (for testing error handling).</p>
-<p><strong>Parameters:</strong>
-- <strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</li>
+</ul>
 <p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if response should be truncated/corrupted</p>
 <h4 id="should_send_invalid_fieldspacket_type-int-bool"><code>should_send_invalid_fields(packet_type: int) -&gt; bool</code><a class="headerlink" href="#should_send_invalid_fieldspacket_type-int-bool" title="Permanent link">&para;</a></h4>
 <p>Check if response packet should have invalid field values (all 0xFF bytes).</p>
-<p><strong>Parameters:</strong>
-- <strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</li>
+</ul>
 <p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if response fields should be invalid</p>
 <h4 id="get_firmware_version_override-tupleint-int-none"><code>get_firmware_version_override() -&gt; tuple[int, int] | None</code><a class="headerlink" href="#get_firmware_version_override-tupleint-int-none" title="Permanent link">&para;</a></h4>
 <p>Get firmware version override from scenarios configuration.</p>
 <p><strong>Returns:</strong> <code>tuple[int, int] | None</code> - (major, minor) version tuple or <code>None</code></p>
 <h4 id="should_send_partial_responsepacket_type-int-bool"><code>should_send_partial_response(packet_type: int) -&gt; bool</code><a class="headerlink" href="#should_send_partial_responsepacket_type-int-bool" title="Permanent link">&para;</a></h4>
 <p>Check if multizone/tile response should be partial (incomplete data for testing).</p>
-<p><strong>Parameters:</strong>
-- <strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>packet_type</code></strong> (<code>int</code>) - LIFX packet type number</li>
+</ul>
 <p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if response should be incomplete</p>
 <h4 id="process_packetheader-lifxheader-packet-any-none-listtuplelifxheader-any"><code>process_packet(header: LifxHeader, packet: Any | None) -&gt; list[tuple[LifxHeader, Any]]</code><a class="headerlink" href="#process_packetheader-lifxheader-packet-any-none-listtuplelifxheader-any" title="Permanent link">&para;</a></h4>
 <p>Process an incoming LIFX protocol packet and generate response packets.</p>
 <p>This is the main entry point for packet processing. It:</p>
 <ol>
-<li>Checks if an acknowledgment is required (<code>ack_required</code> flag)</li>
 <li>Routes the packet to the appropriate handler based on packet type</li>
 <li>Applies testing scenarios (delays, drops, malformed responses)</li>
 <li>Returns a list of response packets (header, payload) tuples</li>
 </ol>
-<p><strong>Parameters:</strong>
-- <strong><code>header</code></strong> (<code>LifxHeader</code>) - Parsed packet header
-- <strong><code>packet</code></strong> (<code>Any | None</code>) - Parsed packet payload (None for header-only packets)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Acknowledgment packets (type 45) are normally sent by the server immediately before calling <code>process_packet()</code>. The device only generates acks itself when a scenario targets ack behavior (e.g., delaying, dropping, or corrupting type 45).</p>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong><code>header</code></strong> (<code>LifxHeader</code>) - Parsed packet header</li>
+<li><strong><code>packet</code></strong> (<code>Any | None</code>) - Parsed packet payload (None for header-only packets)</li>
+</ul>
 <p><strong>Returns:</strong> <code>list[tuple[LifxHeader, Any]]</code> - List of response packets to send</p>
 <p><strong>Example:</strong>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">lifx_emulator.protocol.header</span><span class="w"> </span><span class="kn">import</span> <span class="n">LifxHeader</span>
@@ -2423,6 +2438,12 @@
 <td><code>MultiZone.GetColorZones</code>, <code>MultiZone.SetColorZones</code>, <code>MultiZone.StateZone</code>, <code>MultiZone.StateMultiZone</code></td>
 </tr>
 <tr>
+<td><code>has_extended_multizone</code></td>
+<td>Extended multizone support</td>
+<td>Beam (38), LIFX Z (32)</td>
+<td><code>MultiZone.GetExtendedColorZones</code>, <code>MultiZone.SetExtendedColorZones</code>, <code>MultiZone.ExtendedStateMultiZone</code></td>
+</tr>
+<tr>
 <td><code>has_matrix</code></td>
 <td>2D tile/matrix control</td>
 <td>Tile (55), Candle (57), Ceiling (176)</td>
@@ -2434,13 +2455,27 @@
 <td>LIFX Clean (90)</td>
 <td><code>Hev.GetCycle</code>, <code>Hev.SetCycle</code>, <code>Hev.StateCycle</code></td>
 </tr>
+<tr>
+<td><code>has_relays</code></td>
+<td>Relay/switch control</td>
+<td>LIFX Switch (70)</td>
+<td><code>Device.*</code> only (returns <code>StateUnhandled</code> for Light/MultiZone/Tile)</td>
+</tr>
+<tr>
+<td><code>has_buttons</code></td>
+<td>Physical button configuration</td>
+<td>LIFX Switch (70), LIFX Luna (199)</td>
+<td>Button-related device packets</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Notes:</strong>
-- Devices without a capability flag will ignore related packets
-- Most devices have <code>has_color=True</code> (except switches and relays)
-- Extended multizone (&gt;16 zones) is indicated by <code>zone_count &gt; 16</code>
-- Matrix devices store tile data in <code>tile_devices</code> list</p>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Devices without a capability flag will ignore related packets</li>
+<li>Most devices have <code>has_color=True</code> (except switches and relays)</li>
+<li><code>has_extended_multizone</code> is independent of zone count — it indicates firmware support for the extended multizone protocol</li>
+<li>Matrix devices store tile data in <code>tile_devices</code> list</li>
+</ul>
 <p><strong>Example:</strong>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Create a multizone device</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">state</span> <span class="o">=</span> <span class="n">DeviceState</span><span class="p">(</span>
@@ -2598,59 +2633,56 @@
 <h2 id="packet-processing-flow">Packet Processing Flow<a class="headerlink" href="#packet-processing-flow" title="Permanent link">&para;</a></h2>
 <p>The packet processing flow in <code>EmulatedLifxDevice.process_packet()</code> follows these steps:</p>
 <pre class="mermaid"><code>graph TD
-    A[Incoming Packet] --&gt; B{ack_required?}
-    B --&gt;|Yes| C[Add Acknowledgment]
-    B --&gt;|No| D{res_required?}
+    S[Server receives packet] --&gt; SA{ack_required?}
+    SA --&gt;|Yes| SB{Scenario targets acks?}
+    SA --&gt;|No| A
+    SB --&gt;|No| SC[Server sends ack immediately]
+    SB --&gt;|Yes| A
+    SC --&gt; A
 
-    D --&gt;|Yes| E[Route to Handler]
-    D --&gt;|No| F[Route to Handler]
+    A[process_packet called] --&gt; B{Drop packet?}
+    B --&gt;|Yes| L[Return empty]
+    B --&gt;|No| C[Route to handler]
 
-    E --&gt; G{Handler Returns Response?}
-    F --&gt; H{Handler Returns Response?}
+    C --&gt; D["handler.handle(state, packet, res_required)"]
+    D --&gt; E{Handler returns response?}
 
-    G --&gt;|Yes| I[Apply Scenarios]
-    G --&gt;|No| J[Return Responses]
+    E --&gt;|No| L
+    E --&gt;|Yes| F{Malformed?}
 
-    H --&gt;|Yes| I
+    F --&gt;|Yes| G[Truncate packet]
+    F --&gt;|No| H{Invalid fields?}
+
+    G --&gt; J[Return responses]
+    H --&gt;|Yes| I[Set fields to 0xFF]
     H --&gt;|No| J
 
-    I --&gt; K{Drop Packet?}
-    K --&gt;|Yes| L[Return Empty]
-    K --&gt;|No| M{Delay?}
-
-    M --&gt;|Yes| N[Wait Delay Time]
-    M --&gt;|No| O{Malformed?}
-
-    N --&gt; O
-    O --&gt;|Yes| P[Truncate Packet]
-    O --&gt;|No| Q{Invalid Fields?}
-
-    P --&gt; J
-    Q --&gt;|Yes| R[Set Fields to 0xFF]
-    Q --&gt;|No| J
-
-    R --&gt; J
-    C --&gt; J
-    J[Return Responses]</code></pre>
-<p><strong>Key Points:</strong>
-- Acknowledgments (packet type 45) are sent when <code>ack_required=True</code> in header
-- Response packets are sent when <code>res_required=True</code> in header
-- Handlers are registered by packet type and dispatched via <code>HandlerRegistry</code>
-- Testing scenarios are applied after handler execution, before returning responses
-- Multiple response packets may be returned (e.g., multizone queries return multiple <code>StateMultiZone</code> packets)</p>
-<p><strong>See Also:</strong>
-- <a href="../server/">EmulatedLifxServer</a> - UDP server that routes packets to devices
-- <a href="../protocol/">Protocol Packets</a> - LIFX protocol packet definitions
-- <a href="../factories/">Factories</a> - Helper functions for creating pre-configured devices
-- <a href="../storage/">Storage</a> - Persistent state storage API</p>
+    I --&gt; J</code></pre>
+<p><strong>Key Points:</strong></p>
+<ul>
+<li>Acknowledgments (packet type 45) are sent by the server immediately before <code>process_packet()</code> for minimal latency. When a scenario targets ack behavior, the device generates the ack instead so it goes through scenario processing.</li>
+<li><code>res_required</code> is passed to the handler, which decides whether to return a response based on its value</li>
+<li>Handlers are registered by packet type and dispatched via <code>HandlerRegistry</code></li>
+<li>Testing scenarios (malformed, invalid fields) are applied after handler execution, before returning responses</li>
+<li>Multiple response packets may be returned (e.g., multizone queries return multiple <code>StateMultiZone</code> packets)</li>
+</ul>
+<p><strong>See Also:</strong></p>
+<ul>
+<li><a href="../server/">EmulatedLifxServer</a> - UDP server that routes packets to devices</li>
+<li><a href="../protocol/">Protocol Packets</a> - LIFX protocol packet definitions</li>
+<li><a href="../factories/">Factories</a> - Helper functions for creating pre-configured devices</li>
+<li><a href="../storage/">Storage</a> - Persistent state storage API</li>
+</ul>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <p><strong>Source:</strong> <code>src/lifx_emulator/device.py</code></p>
-<p><strong>Related Documentation:</strong>
-- <a href="../../getting-started/quickstart/">Getting Started</a> - Quick start guide
-- <a href="../../guide/device-types/">Device Types</a> - Supported device types and capabilities
-- <a href="../../guide/testing-scenarios/">Testing Scenarios</a> - Detailed testing scenario guide
-- <a href="../../architecture/overview/">Architecture Overview</a> - System architecture</p>
+<p><strong>Related Documentation:</strong></p>
+<ul>
+<li><a href="../../getting-started/quickstart/">Getting Started</a> - Quick start guide</li>
+<li><a href="../../guide/device-types/">Device Types</a> - Supported device types and capabilities</li>
+<li><a href="../../guide/testing-scenarios/">Testing Scenarios</a> - Detailed testing scenario guide</li>
+<li><a href="../../architecture/overview/">Architecture Overview</a> - System architecture</li>
+</ul>
 
 
 
@@ -2673,7 +2705,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 18, 2025 08:11:35 UTC">November 18, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 3, 2026 01:48:31 UTC">February 3, 2026</span>
   </span>
 
     
