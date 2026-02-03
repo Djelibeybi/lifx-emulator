@@ -442,3 +442,42 @@ class TestDeviceIntegration:
 
         assert 101 in scenario.drop_packets
         assert 102 in scenario.drop_packets
+
+
+class TestAffectsAcks:
+    """Test ScenarioConfig.affects_acks property."""
+
+    def test_default_does_not_affect_acks(self):
+        """Test default ScenarioConfig does not affect acks."""
+        config = ScenarioConfig()
+        assert config.affects_acks is False
+
+    def test_drop_packets_with_ack_type(self):
+        """Test affects_acks when ack type 45 is in drop_packets."""
+        config = ScenarioConfig(drop_packets={45: 1.0})
+        assert config.affects_acks is True
+
+    def test_response_delays_with_ack_type(self):
+        """Test affects_acks when ack type 45 is in response_delays."""
+        config = ScenarioConfig(response_delays={45: 0.5})
+        assert config.affects_acks is True
+
+    def test_malformed_packets_with_ack_type(self):
+        """Test affects_acks when ack type 45 is in malformed_packets."""
+        config = ScenarioConfig(malformed_packets=[45])
+        assert config.affects_acks is True
+
+    def test_invalid_field_values_with_ack_type(self):
+        """Test affects_acks when ack type 45 is in invalid_field_values."""
+        config = ScenarioConfig(invalid_field_values=[45])
+        assert config.affects_acks is True
+
+    def test_other_packet_types_do_not_affect_acks(self):
+        """Test affects_acks is False when other types are configured but not 45."""
+        config = ScenarioConfig(
+            drop_packets={101: 1.0},
+            response_delays={107: 0.5},
+            malformed_packets=[102],
+            invalid_field_values=[103],
+        )
+        assert config.affects_acks is False

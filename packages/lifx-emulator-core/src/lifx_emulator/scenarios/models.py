@@ -6,6 +6,8 @@ of the application (domain, API, persistence, etc.).
 
 from pydantic import BaseModel, Field, field_validator
 
+ACK_PACKET_TYPE = 45
+
 
 class ScenarioConfig(BaseModel):
     """Scenario configuration for testing LIFX protocol behavior.
@@ -51,6 +53,16 @@ class ScenarioConfig(BaseModel):
     send_unhandled: bool = Field(
         False, description="Send unhandled message responses for unknown packet types"
     )
+
+    @property
+    def affects_acks(self) -> bool:
+        """Whether this scenario configuration modifies acknowledgment behavior."""
+        return (
+            ACK_PACKET_TYPE in self.drop_packets
+            or ACK_PACKET_TYPE in self.response_delays
+            or ACK_PACKET_TYPE in self.malformed_packets
+            or ACK_PACKET_TYPE in self.invalid_field_values
+        )
 
     @field_validator("drop_packets", mode="before")
     @classmethod

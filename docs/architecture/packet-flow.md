@@ -8,10 +8,11 @@ Every interaction with the emulator follows the same path:
 
 1. UDP packet arrives at `EmulatedLifxServer`
 2. Header is parsed to determine target device(s)
-3. Payload is unpacked into a typed packet object
-4. Device processes the packet through its handler registry
-5. Scenarios are applied (drops, delays, malformed responses)
-6. Response packets are packed and sent back via UDP
+3. Acknowledgment sent immediately (unless a scenario targets acks)
+4. Payload is unpacked into a typed packet object
+5. Device processes the packet through its handler registry
+6. Scenarios are applied (drops, delays, malformed responses)
+7. Response packets are packed and sent back via UDP
 
 ## Step-by-Step Flow
 
@@ -42,7 +43,13 @@ Packet classes are organized by protocol namespace:
 - `MultiZone.*` — types 501-512 (zone colors, effects)
 - `Tile.*` — types 701-720 (matrix colors, effects, framebuffers)
 
-### 3. Device Routing
+### 3. Acknowledgment Handling
+
+If `ack_required=True` in the request header and no scenario targets ack behavior, the server sends an Acknowledgment packet (type 45) immediately via UDP before routing the packet to device handlers. This ensures the client receives the ack with minimal latency.
+
+When a scenario does target acks (e.g., delaying, dropping, or corrupting type 45), the server defers to the device, which includes the ack in its response list for scenario processing.
+
+### 4. Device Routing
 
 The header's `target` field (6-byte MAC + 2 null bytes) determines which device(s) receive the packet:
 
@@ -50,7 +57,7 @@ The header's `target` field (6-byte MAC + 2 null bytes) determines which device(
 - **Unicast** (`tagged=False` with specific target): routed to the device matching the serial encoded in the target field
 - **Unknown target**: packet silently dropped
 
-### 4. Packet Processing
+### 5. Packet Processing
 
 Each device processes the packet through `EmulatedLifxDevice.process_packet()`:
 
@@ -66,7 +73,7 @@ process_packet(header, packet)
 └── Return list of (header, packet) tuples
 ```
 
-### 5. Handler Dispatch
+### 6. Handler Dispatch
 
 The `HandlerRegistry` maps packet type numbers to handler instances using the Strategy pattern:
 
@@ -84,7 +91,7 @@ Handlers are split across four modules matching the protocol namespaces:
 | `multizone_handlers.py` | 501-512 | GetColorZones, SetExtendedColorZones |
 | `tile_handlers.py` | 701-720 | Get64, Set64, CopyFrameBuffer |
 
-### 6. Response Construction
+### 7. Response Construction
 
 Handlers return packet objects (not headers). The device wraps each response in a header:
 
@@ -93,9 +100,7 @@ Handlers return packet objects (not headers). The device wraps each response in 
 - `pkt_type` is set to the response packet's type
 - `size` is calculated from header + payload length
 
-If `ack_required=True` in the request header, an Acknowledgment packet (type 45) is automatically appended to the response list.
-
-### 7. Multi-Packet Responses
+### 8. Multi-Packet Responses
 
 Some handlers return multiple packets:
 
@@ -105,7 +110,7 @@ Some handlers return multiple packets:
 
 Handlers return these as lists, and `process_packet()` constructs a separate header for each.
 
-### 8. Sending
+### 9. Sending
 
 The server packs each (header, packet) tuple to bytes and sends via UDP back to the client's address and port.
 

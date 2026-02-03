@@ -503,8 +503,12 @@ class TestTileHandlers:
 class TestAcknowledgment:
     """Test acknowledgment packet generation."""
 
-    def test_ack_required_generates_acknowledgment(self, color_device):
-        """Test ack_required flag generates Acknowledgement packet."""
+    def test_ack_not_generated_without_scenario(self, color_device):
+        """Test process_packet does not include ack when no scenario targets acks.
+
+        The server sends acks immediately before calling process_packet,
+        so the device should not include one in its response list.
+        """
         header = LifxHeader(
             source=12345,
             target=color_device.state.get_target_bytes(),
@@ -516,10 +520,36 @@ class TestAcknowledgment:
 
         responses = color_device.process_packet(header, None)
 
-        # Should have at least 2 responses: ACK + StatePower
-        assert len(responses) >= 2
+        # Should only have StatePower, no ACK (server handles ack)
+        assert len(responses) == 1
+        resp_header, resp_packet = responses[0]
+        assert resp_header.pkt_type == 22  # StatePower
 
-        # First response should be ACK
+    def test_ack_generated_when_scenario_affects_acks(self, color_device):
+        """Test process_packet includes ack when scenario targets ack behavior."""
+        from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(response_delays={45: 1.0}),
+        )
+        color_device.scenario_manager = scenario_manager
+        color_device.invalidate_scenario_cache()
+
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=20,  # GetPower
+            ack_required=True,
+            res_required=True,
+        )
+
+        responses = color_device.process_packet(header, None)
+
+        # Should have ACK + StatePower
+        assert len(responses) >= 2
         ack_header, ack_packet = responses[0]
         assert ack_header.pkt_type == 45
         assert isinstance(ack_packet, Device.Acknowledgement)

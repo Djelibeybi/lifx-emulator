@@ -568,3 +568,128 @@ class TestSequenceHandling:
         sent_data, _ = server.transport.sendto.call_args[0]
         resp_header = LifxHeader.unpack(sent_data)
         assert resp_header.source == 99999
+
+
+class TestServerAckBehavior:
+    """Test server sends acks immediately before device processing."""
+
+    @pytest.mark.asyncio
+    async def test_ack_sent_first_before_handler_response(self, color_device):
+        """Test ack is the first sendto call when ack_required=True."""
+        from lifx_emulator.constants import HEADER_SIZE
+        from lifx_emulator.protocol.packets import Light
+        from lifx_emulator.protocol.protocol_types import LightHsbk
+
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
+
+        color = LightHsbk(hue=10000, saturation=65535, brightness=50000, kelvin=3500)
+        set_color_packet = Light.SetColor(color=color, duration=0)
+        payload = set_color_packet.pack()
+
+        header = LifxHeader(
+            size=HEADER_SIZE + len(payload),
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=102,  # SetColor
+            ack_required=True,
+            res_required=True,
+        )
+
+        packet_data = header.pack() + payload
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # First sendto call should be the ack (type 45)
+        assert server.transport.sendto.call_count >= 2
+        first_call_data = server.transport.sendto.call_args_list[0][0][0]
+        first_resp_header = LifxHeader.unpack(first_call_data)
+        assert first_resp_header.pkt_type == 45  # Acknowledgement
+
+        # Second call should be the handler response (StateColor = 107)
+        second_call_data = server.transport.sendto.call_args_list[1][0][0]
+        second_resp_header = LifxHeader.unpack(second_call_data)
+        assert second_resp_header.pkt_type == 107  # StateColor
+
+    @pytest.mark.asyncio
+    async def test_server_does_not_send_ack_when_scenario_affects_acks(
+        self, color_device
+    ):
+        """Test server skips ack when scenario targets ack behavior."""
+        from lifx_emulator.scenarios.manager import (
+            HierarchicalScenarioManager,
+            ScenarioConfig,
+        )
+
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(response_delays={45: 0.0}),  # Targets ack type
+        )
+
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56700,
+            scenario_manager=scenario_manager,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=20,  # GetPower
+            ack_required=True,
+            res_required=True,
+        )
+
+        packet_data = header.pack()
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # All responses should come from device.process_packet()
+        # The first should be the ack (device handles it when scenario targets acks)
+        assert server.transport.sendto.call_count >= 2
+        first_call_data = server.transport.sendto.call_args_list[0][0][0]
+        first_resp_header = LifxHeader.unpack(first_call_data)
+        assert first_resp_header.pkt_type == 45  # Ack from device
+
+    @pytest.mark.asyncio
+    async def test_no_ack_when_not_required(self, color_device):
+        """Test no ack is sent when ack_required=False."""
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer([color_device], device_manager, "127.0.0.1", 56700)
+
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=23,  # GetLabel
+            ack_required=False,
+            res_required=True,
+        )
+
+        packet_data = header.pack()
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # Should have exactly 1 response (StateLabel), no ack
+        assert server.transport.sendto.call_count == 1
+        sent_data = server.transport.sendto.call_args_list[0][0][0]
+        resp_header = LifxHeader.unpack(sent_data)
+        assert resp_header.pkt_type == 25  # StateLabel
