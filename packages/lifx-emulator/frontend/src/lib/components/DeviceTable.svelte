@@ -108,7 +108,7 @@
 	// Pagination calculations
 	let totalPages = $derived(Math.max(1, Math.ceil(devices.count / ui.pageSize)));
 
-	let paginatedDevices = $derived(() => {
+	let paginatedDevices = $derived.by(() => {
 		const start = (ui.currentPage - 1) * ui.pageSize;
 		const end = start + ui.pageSize;
 		return devices.list.slice(start, end);
@@ -168,7 +168,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each paginatedDevices() as device (device.serial)}
+					{#each paginatedDevices as device (device.serial)}
 						<tr>
 							<td class="cell-serial">{device.serial}</td>
 							<td class="cell-label">{device.label}</td>

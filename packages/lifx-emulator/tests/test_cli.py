@@ -1912,3 +1912,145 @@ class TestRunWithConfigDevices:
             "Loaded config from" in str(call)
             for call in mock_logger.info.call_args_list
         )
+
+
+class TestBrowserFlag:
+    """Tests for --browser flag functionality."""
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.webbrowser.open")
+    @patch("lifx_emulator_app.api.run_api_server")
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_browser_flag_opens_browser(
+        self,
+        mock_load_cfg,
+        mock_setup_logging,
+        mock_server_class,
+        mock_resolve,
+        mock_run_api,
+        mock_webbrowser_open,
+    ):
+        """--browser flag opens dashboard in default browser when API enabled."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        mock_load_cfg.return_value = _make_cfg(
+            api=True, browser=True, color=1, api_host="127.0.0.1", api_port=8080
+        )
+
+        mock_server = MagicMock()
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+        mock_server_class.return_value = mock_server
+
+        # Mock run_api_server to return a completed future
+        api_future = asyncio.Future()
+        api_future.set_result(None)
+        mock_run_api.return_value = api_future
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.2)  # Give more time for browser opening
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        # Verify webbrowser.open was called with the dashboard URL
+        mock_webbrowser_open.assert_called_once_with("http://127.0.0.1:8080")
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.webbrowser.open")
+    @patch("lifx_emulator_app.api.run_api_server")
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_browser_flag_not_called_when_false(
+        self,
+        mock_load_cfg,
+        mock_setup_logging,
+        mock_server_class,
+        mock_resolve,
+        mock_run_api,
+        mock_webbrowser_open,
+    ):
+        """Browser is not opened when --browser flag is not set."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        mock_load_cfg.return_value = _make_cfg(
+            api=True,
+            browser=False,
+            color=1,  # browser=False
+        )
+
+        mock_server = MagicMock()
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+        mock_server_class.return_value = mock_server
+
+        # Mock run_api_server to return a completed future
+        api_future = asyncio.Future()
+        api_future.set_result(None)
+        mock_run_api.return_value = api_future
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.2)  # Give more time for browser check
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        # Verify webbrowser.open was NOT called
+        mock_webbrowser_open.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.webbrowser.open")
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_browser_flag_not_called_without_api(
+        self,
+        mock_load_cfg,
+        mock_setup_logging,
+        mock_server_class,
+        mock_resolve,
+        mock_webbrowser_open,
+    ):
+        """Browser is not opened when --api flag is not set."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        mock_load_cfg.return_value = _make_cfg(
+            api=False,
+            browser=True,
+            color=1,  # api=False
+        )
+
+        mock_server = MagicMock()
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+        mock_server_class.return_value = mock_server
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        # Verify webbrowser.open was NOT called (API not enabled)
+        mock_webbrowser_open.assert_not_called()

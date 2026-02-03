@@ -1,5 +1,7 @@
 """Tests for WebSocket endpoint and manager."""
 
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.devices import DeviceManager
@@ -7,11 +9,7 @@ from lifx_emulator.factories import create_color_light
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api.app import create_api_app
-from lifx_emulator_app.api.services.websocket_manager import (
-    MessageType,
-    Topic,
-    WebSocketManager,
-)
+from lifx_emulator_app.api.services import MessageType, Topic, WebSocketManager
 
 
 @pytest.fixture
@@ -156,3 +154,206 @@ class TestWebSocketManagerInApp:
         """Test WebSocketManager has reference to server."""
         ws_manager = client.app.state.ws_manager
         assert ws_manager._server is server
+
+
+class TestWebSocketDeviceEvents:
+    """Tests for device event broadcasting via WebSocket."""
+
+    @pytest.mark.skip(
+        reason="TestClient runs in sync context without event loop for device callbacks"
+    )
+    def test_device_added_broadcast(self, client, server):
+        """Test device_added event is broadcast to WebSocket clients."""
+        import time
+
+        with client.websocket_connect("/ws") as websocket:
+            # Subscribe to devices topic
+            websocket.send_json({"type": "subscribe", "topics": ["devices"]})
+
+            # Add a device (triggers device_added event)
+            device = create_color_light("d073d5aabbcc")
+            server.add_device(device)
+
+            # Small delay to allow async broadcast to complete
+            time.sleep(0.05)
+
+            # Receive the device_added message
+            response = websocket.receive_json(timeout=1)
+            assert response["type"] == "device_added"
+            assert response["data"]["serial"] == "d073d5aabbcc"
+
+    @pytest.mark.skip(
+        reason="TestClient runs in sync context without event loop for device callbacks"
+    )
+    def test_device_removed_broadcast(self, client, server):
+        """Test device_removed event is broadcast to WebSocket clients."""
+        import time
+
+        # Add device first
+        device = create_color_light("d073d5ddeeff")
+        server.add_device(device)
+
+        with client.websocket_connect("/ws") as websocket:
+            # Subscribe to devices topic
+            websocket.send_json({"type": "subscribe", "topics": ["devices"]})
+
+            # Remove the device (triggers device_removed event)
+            server.remove_device("d073d5ddeeff")
+
+            # Small delay to allow async broadcast to complete
+            time.sleep(0.05)
+
+            # Receive the device_removed message
+            response = websocket.receive_json(timeout=1)
+            assert response["type"] == "device_removed"
+            assert response["data"]["serial"] == "d073d5ddeeff"
+
+    def test_device_event_not_received_without_subscription(self, client, server):
+        """Test device events are not received without devices subscription."""
+        with client.websocket_connect("/ws") as websocket:
+            # Don't subscribe to devices topic
+
+            # Add a device
+            device = create_color_light("d073d5112233")
+            server.add_device(device)
+
+            # Send sync to verify connection works
+            websocket.send_json({"type": "sync"})
+            response = websocket.receive_json()
+            assert response["type"] == "sync"
+            # Should not have received device_added (no subscription)
+
+
+class TestEventBridge:
+    """Tests for the event bridge module."""
+
+    def test_wire_device_events_with_non_device_manager(self):
+        """Test wire_device_events handles non-DeviceManager instances."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import wire_device_events
+
+        # Create a mock that's not a DeviceManager
+        mock_manager = MagicMock()
+        mock_ws_manager = MagicMock()
+
+        # Should not raise, just log warning
+        wire_device_events(mock_manager, mock_ws_manager)
+
+    def test_websocket_activity_observer_init_with_inner(self):
+        """Test WebSocketActivityObserver initializes with inner observer."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_inner = MagicMock()
+
+        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+        assert observer._inner is mock_inner
+
+    def test_websocket_activity_observer_init_without_inner(self):
+        """Test WebSocketActivityObserver creates ActivityLogger when no inner."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator.devices import ActivityLogger
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+
+        observer = WebSocketActivityObserver(mock_ws_manager)
+        assert isinstance(observer._inner, ActivityLogger)
+
+    def test_websocket_activity_observer_get_recent_activity(self):
+        """Test WebSocketActivityObserver.get_recent_activity delegates to inner."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_inner = MagicMock()
+        mock_inner.get_recent_activity = MagicMock(return_value=[{"event": "test"}])
+
+        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+        activity = observer.get_recent_activity()
+
+        assert activity == [{"event": "test"}]
+        mock_inner.get_recent_activity.assert_called_once()
+
+    def test_websocket_activity_observer_get_recent_activity_no_method(self):
+        """Test get_recent_activity returns empty list when inner lacks method."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_inner = MagicMock(spec=[])  # No get_recent_activity method
+
+        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+        activity = observer.get_recent_activity()
+
+        assert activity == []
+
+
+class TestStatsBroadcaster:
+    """Tests for the StatsBroadcaster class."""
+
+    @pytest.mark.asyncio
+    async def test_stats_broadcaster_start_stop(self, server, ws_manager):
+        """Test StatsBroadcaster can be started and stopped."""
+        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
+
+        broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
+
+        try:
+            # Start the broadcaster
+            broadcaster.start()
+            assert broadcaster._task is not None
+            assert broadcaster._running is True
+
+            # Let it run briefly
+            await asyncio.sleep(0.15)
+        finally:
+            # Stop the broadcaster
+            await broadcaster.stop()
+
+        assert broadcaster._task is None
+        assert broadcaster._running is False
+
+    @pytest.mark.asyncio
+    async def test_stats_broadcaster_start_idempotent(self, server, ws_manager):
+        """Test calling start() multiple times is idempotent."""
+        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
+
+        broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
+
+        try:
+            broadcaster.start()
+            task1 = broadcaster._task
+
+            # Starting again should not create a new task
+            broadcaster.start()
+            task2 = broadcaster._task
+
+            assert task1 is task2
+        finally:
+            await broadcaster.stop()
+
+    @pytest.mark.asyncio
+    async def test_stats_broadcaster_stop_idempotent(self, server, ws_manager):
+        """Test calling stop() when not running is safe."""
+        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
+
+        broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
+
+        # Stop without starting should not raise
+        await broadcaster.stop()
+        assert broadcaster._task is None

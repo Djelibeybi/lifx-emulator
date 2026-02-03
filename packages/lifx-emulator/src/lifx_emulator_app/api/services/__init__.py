@@ -7,12 +7,18 @@ from lifx_emulator_app.api.services.event_bridge import (
     wire_device_events,
 )
 from lifx_emulator_app.api.services.scenario_service import ScenarioService
-from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
+from lifx_emulator_app.api.services.websocket_manager import (
+    MessageType,
+    Topic,
+    WebSocketManager,
+)
 
 __all__ = [
     "DeviceService",
+    "MessageType",
     "ScenarioService",
     "StatsBroadcaster",
+    "Topic",
     "WebSocketManager",
     "WebSocketActivityObserver",
     "wire_device_events",

@@ -31,7 +31,7 @@
 	// Pagination calculations
 	let totalPages = $derived(Math.max(1, Math.ceil(devices.count / ui.pageSize)));
 
-	let paginatedDevices = $derived(() => {
+	let paginatedDevices = $derived.by(() => {
 		const start = (ui.currentPage - 1) * ui.pageSize;
 		const end = start + ui.pageSize;
 		return devices.list.slice(start, end);
@@ -80,7 +80,7 @@
 		<div class="no-devices">No devices emulated</div>
 	{:else}
 		<div class="devices-grid">
-			{#each paginatedDevices() as device (device.serial)}
+			{#each paginatedDevices as device (device.serial)}
 				<DeviceCard {device} />
 			{/each}
 		</div>

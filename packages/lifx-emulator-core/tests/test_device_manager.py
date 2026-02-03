@@ -285,3 +285,126 @@ class TestDeviceManager:
 
         # Verify storage deletion was NOT called
         mock_storage.delete_all_device_states.assert_not_called()
+
+
+class TestDeviceManagerCallbacks:
+    """Test DeviceManager callback functionality."""
+
+    def test_on_device_added_callback_invoked(self):
+        """on_device_added callback is invoked when device is added."""
+        from unittest.mock import Mock
+
+        callback = Mock()
+        manager = DeviceManager(DeviceRepository(), on_device_added=callback)
+        device = create_color_light("d073d5000001")
+
+        manager.add_device(device)
+
+        callback.assert_called_once_with(device)
+
+    def test_on_device_added_not_called_on_duplicate(self):
+        """on_device_added callback is not called when adding duplicate device."""
+        from unittest.mock import Mock
+
+        callback = Mock()
+        manager = DeviceManager(DeviceRepository(), on_device_added=callback)
+        device = create_color_light("d073d5000001")
+
+        manager.add_device(device)
+        callback.reset_mock()
+
+        # Adding duplicate should not trigger callback
+        manager.add_device(device)
+        callback.assert_not_called()
+
+    def test_on_device_added_callback_exception_logged(self):
+        """Exception in on_device_added callback is logged but doesn't prevent add."""
+        from unittest.mock import Mock
+
+        callback = Mock(side_effect=Exception("callback error"))
+        manager = DeviceManager(DeviceRepository(), on_device_added=callback)
+        device = create_color_light("d073d5000001")
+
+        # Should still succeed despite callback exception
+        result = manager.add_device(device)
+        assert result is True
+        assert manager.count_devices() == 1
+
+    def test_on_device_removed_callback_invoked(self):
+        """on_device_removed callback is invoked when device is removed."""
+        from unittest.mock import Mock
+
+        callback = Mock()
+        manager = DeviceManager(DeviceRepository(), on_device_removed=callback)
+        device = create_color_light("d073d5000001")
+        manager.add_device(device)
+
+        manager.remove_device("d073d5000001")
+
+        callback.assert_called_once_with("d073d5000001")
+
+    def test_on_device_removed_not_called_on_nonexistent(self):
+        """on_device_removed callback is not called when removing nonexistent device."""
+        from unittest.mock import Mock
+
+        callback = Mock()
+        manager = DeviceManager(DeviceRepository(), on_device_removed=callback)
+
+        # Removing nonexistent device should not trigger callback
+        manager.remove_device("d073d5000001")
+        callback.assert_not_called()
+
+    def test_on_device_removed_callback_exception_logged(self):
+        """Exception in callback is logged but doesn't prevent remove."""
+        from unittest.mock import Mock
+
+        callback = Mock(side_effect=Exception("callback error"))
+        manager = DeviceManager(DeviceRepository(), on_device_removed=callback)
+        device = create_color_light("d073d5000001")
+        manager.add_device(device)
+
+        # Should still succeed despite callback exception
+        result = manager.remove_device("d073d5000001")
+        assert result is True
+        assert manager.count_devices() == 0
+
+    def test_remove_all_devices_invokes_callback_for_each(self):
+        """on_device_removed callback is invoked for each device when removing all."""
+        from unittest.mock import Mock
+
+        callback = Mock()
+        manager = DeviceManager(DeviceRepository(), on_device_removed=callback)
+
+        # Add multiple devices
+        manager.add_device(create_color_light("d073d5000001"))
+        manager.add_device(create_color_light("d073d5000002"))
+        manager.add_device(create_color_light("d073d5000003"))
+
+        manager.remove_all_devices()
+
+        assert callback.call_count == 3
+        # Verify all serials were passed to callback
+        called_serials = {call.args[0] for call in callback.call_args_list}
+        assert called_serials == {"d073d5000001", "d073d5000002", "d073d5000003"}
+
+    def test_both_callbacks_can_be_set(self):
+        """Both on_device_added and on_device_removed callbacks can be set."""
+        from unittest.mock import Mock
+
+        add_callback = Mock()
+        remove_callback = Mock()
+        manager = DeviceManager(
+            DeviceRepository(),
+            on_device_added=add_callback,
+            on_device_removed=remove_callback,
+        )
+        device = create_color_light("d073d5000001")
+
+        manager.add_device(device)
+        add_callback.assert_called_once_with(device)
+        remove_callback.assert_not_called()
+
+        add_callback.reset_mock()
+        manager.remove_device("d073d5000001")
+        add_callback.assert_not_called()
+        remove_callback.assert_called_once_with("d073d5000001")

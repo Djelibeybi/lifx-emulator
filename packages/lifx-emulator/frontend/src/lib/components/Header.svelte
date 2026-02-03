@@ -32,7 +32,7 @@
 				<rect x="11" y="1" width="3" height="14" rx="0.5" />
 			</svg>
 		</button>
-		<button class="control-btn" onclick={() => theme.toggle()} title="Toggle theme ({theme.mode})">
+		<button class="control-btn" onclick={() => theme.toggle()} title={`Toggle theme (${theme.mode})`}>
 			{themeIcons[theme.mode]}
 		</button>
 	</div>

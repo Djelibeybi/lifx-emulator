@@ -61,7 +61,7 @@ Server Statistics
 
 Manage devices with unified toolbar:
 
-```
+```text
 Device Management                              [Remove All]
 ├─ Product: [dropdown menu] [Add Device button]
 ```
@@ -172,7 +172,7 @@ For matrix/tile devices:
 
 Displays the last 100 LIFX protocol packets in real-time with **filtering capabilities**:
 
-```
+```text
 Recent Activity
 
 Direction: [All ▼]  Device/Target: [______]  Packet: [______]  [Clear]
