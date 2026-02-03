@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v3.3.0 (2026-02-03)
+
+### Bug Fixes
+
+- **device**: Apply error scenarios to unhandled-packet responses
+  ([`7571ab7`](https://github.com/Djelibeybi/lifx-emulator/commit/7571ab7a9d9833c1b79e0941d0d348c82ebcf34c))
+
+### Features
+
+- **server**: Send acks immediately before device processing
+  ([`3d4ec66`](https://github.com/Djelibeybi/lifx-emulator/commit/3d4ec66388099d2b672483cf85d47f100fe67549))
+
+
 ## v3.2.0 (2026-02-02)
 
 ### Bug Fixes
