@@ -693,3 +693,101 @@ class TestServerAckBehavior:
         sent_data = server.transport.sendto.call_args_list[0][0][0]
         resp_header = LifxHeader.unpack(sent_data)
         assert resp_header.pkt_type == 25  # StateLabel
+
+
+class TestServerStatsAndActivity:
+    """Tests for server stats and activity tracking."""
+
+    def test_get_stats_with_activity_enabled(self):
+        """Test get_stats() includes activity_enabled when observer supports it."""
+        from lifx_emulator.devices import ActivityLogger
+
+        device_manager = DeviceManager(DeviceRepository())
+        activity_logger = ActivityLogger(max_events=100)
+        server = EmulatedLifxServer(
+            [], device_manager, "127.0.0.1", 56700, activity_observer=activity_logger
+        )
+
+        stats = server.get_stats()
+        assert stats["activity_enabled"] is True
+        assert "uptime_seconds" in stats
+        assert "packets_received" in stats
+
+    def test_get_stats_with_activity_disabled(self):
+        """Test get_stats() shows activity disabled with NullObserver."""
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [], device_manager, "127.0.0.1", 56700, track_activity=False
+        )
+
+        stats = server.get_stats()
+        assert stats["activity_enabled"] is False
+
+    def test_get_recent_activity_with_logger(self):
+        """Test get_recent_activity() returns events when observer supports it."""
+        from lifx_emulator.devices import ActivityLogger, PacketEvent
+
+        device_manager = DeviceManager(DeviceRepository())
+        activity_logger = ActivityLogger(max_events=100)
+        server = EmulatedLifxServer(
+            [], device_manager, "127.0.0.1", 56700, activity_observer=activity_logger
+        )
+
+        # Add an event
+        event = PacketEvent(
+            timestamp="12:34:56",
+            direction="rx",
+            packet_type=2,
+            packet_name="GetService",
+            target=None,
+            device=None,
+            addr=("192.168.1.100", 56700),
+        )
+        activity_logger.on_packet_received(event)
+
+        activity = server.get_recent_activity()
+        assert len(activity) == 1
+        assert activity[0]["packet_name"] == "GetService"
+
+    def test_get_recent_activity_without_support(self):
+        """Test get_recent_activity() returns empty list with no support."""
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [], device_manager, "127.0.0.1", 56700, track_activity=False
+        )
+
+        activity = server.get_recent_activity()
+        assert activity == []
+
+    def test_get_recent_activity_with_custom_observer(self):
+        """Test get_recent_activity() with WebSocketActivityObserver."""
+        from lifx_emulator.devices import ActivityLogger
+
+        # This simulates the WebSocketActivityObserver pattern
+        device_manager = DeviceManager(DeviceRepository())
+        inner_logger = ActivityLogger(max_events=50)
+
+        # Create a mock observer that wraps the inner logger
+        class CustomObserver:
+            def __init__(self, inner):
+                self._inner = inner
+
+            def get_recent_activity(self):
+                return self._inner.get_recent_activity()
+
+            def on_packet_received(self, event):
+                self._inner.on_packet_received(event)
+
+            def on_packet_sent(self, event):
+                self._inner.on_packet_sent(event)
+
+        custom_observer = CustomObserver(inner_logger)
+        server = EmulatedLifxServer(
+            [], device_manager, "127.0.0.1", 56700, activity_observer=custom_observer
+        )
+
+        stats = server.get_stats()
+        assert stats["activity_enabled"] is True
+
+        activity = server.get_recent_activity()
+        assert activity == []
