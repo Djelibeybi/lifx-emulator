@@ -182,6 +182,7 @@ class DeviceState:
     has_multizone: bool = False
     has_extended_multizone: bool = False
     has_matrix: bool = False
+    has_chain: bool = False
     has_hev: bool = False
     has_relays: bool = False
     has_buttons: bool = False
@@ -348,6 +349,7 @@ class DeviceState:
             "has_multizone",
             "has_extended_multizone",
             "has_matrix",
+            "has_chain",
             "has_hev",
             "has_relays",
             "has_buttons",
