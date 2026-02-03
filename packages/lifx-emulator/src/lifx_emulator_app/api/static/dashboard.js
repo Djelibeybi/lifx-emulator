@@ -391,9 +391,10 @@ async function fetchDevices() {
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        const devices = await response.json();
+        const data = await response.json();
+        const devices = data.devices;
 
-        document.getElementById('device-count').textContent = devices.length;
+        document.getElementById('device-count').textContent = data.total;
 
         // Clear container
         devicesContainer.textContent = '';
