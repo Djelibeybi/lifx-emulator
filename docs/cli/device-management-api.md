@@ -816,3 +816,4 @@ All error responses follow this format:
 
 - [Web Interface Guide](web-interface.md) - Browser-based monitoring dashboard
 - [Scenario Management API](./scenario-api.md) - Test scenario configuration
+- [WebSocket API](./websocket-api.md) - Real-time updates via WebSocket

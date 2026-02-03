@@ -490,3 +490,4 @@ See `lifx-emulator list-products` for complete list.
 
 - [Device Management API](../cli/device-management-api.md) - Programmatic API access
 - [Scenario Management API](../cli/scenario-api.md) - Test scenario configuration
+- [WebSocket API](../cli/websocket-api.md) - Real-time updates via WebSocket

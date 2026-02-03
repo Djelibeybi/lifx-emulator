@@ -77,6 +77,7 @@ plugins:
       - cli/web-interface.md: HTTP management API and web interface
       - cli/device-management-api.md: Device management REST API
       - cli/scenario-api.md: Scenario management REST API
+      - cli/websocket-api.md: WebSocket API for real-time updates
       - cli/storage.md: Persistent storage
       - cli/scenarios.md: Custom scenarios
       lifx-emulator-core (Python Library):
@@ -221,6 +222,7 @@ nav:
   - REST API:
     - Device Management: cli/device-management-api.md
     - Scenario API: cli/scenario-api.md
+    - WebSocket API: cli/websocket-api.md
   - Persistent Storage: cli/storage.md
   - Scenarios Guide: cli/scenarios.md
 

@@ -4,6 +4,7 @@ This module creates the main FastAPI application by assembling routers for:
 - Monitoring (server stats, activity)
 - Devices (CRUD operations)
 - Scenarios (test scenario management)
+- WebSocket (real-time updates)
 """
 
 from __future__ import annotations
@@ -24,6 +25,8 @@ from lifx_emulator_app.api.routers.devices import create_devices_router
 from lifx_emulator_app.api.routers.monitoring import create_monitoring_router
 from lifx_emulator_app.api.routers.products import create_products_router
 from lifx_emulator_app.api.routers.scenarios import create_scenarios_router
+from lifx_emulator_app.api.routers.websocket import create_websocket_router
+from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +105,10 @@ The API is organized into four main routers:
                 "name": "products",
                 "description": "LIFX product registry",
             },
+            {
+                "name": "websocket",
+                "description": "Real-time updates via WebSocket",
+            },
         ],
     )
 
@@ -113,18 +120,24 @@ The API is organized into four main routers:
     # Mount static files for JS/CSS assets (cached by browsers)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+    # Create WebSocket manager and store in app state for access by event handlers
+    ws_manager = WebSocketManager(server)
+    app.state.ws_manager = ws_manager
+
     # Include routers with server dependency injection
     monitoring_router = create_monitoring_router(server)
     devices_router = create_devices_router(server)
     scenarios_router = create_scenarios_router(server)
     products_router = create_products_router()
+    websocket_router = create_websocket_router(ws_manager)
 
     app.include_router(monitoring_router)
     app.include_router(devices_router)
     app.include_router(scenarios_router)
     app.include_router(products_router)
+    app.include_router(websocket_router)
 
-    logger.info("API application created with 4 routers")
+    logger.info("API application created with 5 routers")
 
     return app
 
