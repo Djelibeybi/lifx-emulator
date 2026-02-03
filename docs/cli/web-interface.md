@@ -2,9 +2,11 @@
 
 ## Overview
 
-The LIFX Emulator includes a built-in web interface for real-time monitoring and device management. The dashboard provides a browser-based alternative to the REST API, with live updates of server statistics, device status, and packet activity.
+The LIFX Emulator includes a modern web interface built with SvelteKit for real-time monitoring and device management. The dashboard uses WebSocket for instant updates, eliminating polling delays, and provides a browser-based alternative to the REST API.
 
 **Access**: Open `http://localhost:8080` in your web browser (after starting the emulator with `--api`)
+
+**Technology**: Built with SvelteKit and real-time WebSocket updates for instant state synchronization
 
 ## Getting Started
 
@@ -24,7 +26,7 @@ lifx-emulator --api --api-host 127.0.0.1 --api-port 9090
 
 ## Interface Layout
 
-The web interface is organized into three main sections:
+The web interface features a dark theme by default (with light and system theme options) and is organized into four main sections:
 
 ### Server Statistics Card (Top Left)
 
@@ -55,32 +57,27 @@ Server Statistics
 
 ---
 
-### Add Device Card (Top Right)
+### Device Management Card (Top Right)
 
-Creates new devices on the fly:
+Manage devices with unified toolbar:
 
 ```
-Add Device
-├─ Product ID: [dropdown menu]
-└─ [Add Device button]
+Device Management                              [Remove All]
+├─ Product: [dropdown menu] [Add Device button]
 ```
 
 **Features:**
 
-- Dropdown list of common products:
-  - 27 - LIFX A19 (color light)
-  - 29 - LIFX A19 Night Vision
-  - 32 - LIFX Z (multizone strip)
-  - 38 - LIFX Beam (extended multizone)
-  - 50 - LIFX Mini White to Warm
-  - 55 - LIFX Tile (matrix device)
-  - 90 - LIFX Clean (HEV)
+- Dropdown list of all available products (137+ options)
 - Serial numbers are auto-generated
+- **Remove All** button with confirmation (disabled when no devices exist)
+- Instant WebSocket updates when devices are added/removed
 
 **Use Cases:**
 
 - Quick device creation for testing
 - Create multiple device types without CLI
+- Bulk removal of all devices
 - Test with different device configurations
 
 ---
@@ -173,10 +170,12 @@ For matrix/tile devices:
 
 ### Recent Activity Log (Bottom)
 
-Displays the last 100 LIFX protocol packets in real-time:
+Displays the last 100 LIFX protocol packets in real-time with **filtering capabilities**:
 
 ```
 Recent Activity
+
+Direction: [All ▼]  Device/Target: [______]  Packet: [______]  [Clear]
 
 12:34:56  RX  GetColor           d073d5000001  192.168.1.100:54321
 12:34:56  TX  State              d073d5000001  192.168.1.100:54321
@@ -194,12 +193,22 @@ Recent Activity
 - **Device**: Target device serial number
 - **Address**: Client IP address and port
 
+**Filtering Options:**
+
+- **Direction**: Filter by RX (received) or TX (transmitted)
+- **Device/Target**: Text filter for device serial numbers
+- **Packet**: Text filter for packet names (e.g., "GetColor", "SetPower")
+- **Clear**: Reset all filters to show all activity
+
+Filters are applied in real-time as you type, with instant feedback.
+
 **Use Cases:**
 
 - Debugging LIFX client communication
-- Verifying packet flow
-- Monitoring protocol interactions
+- Verifying packet flow for specific devices
+- Monitoring specific packet types
 - Identifying communication problems
+- Isolating RX vs TX traffic
 
 **Note:** Activity log is only visible if activity logging is enabled (`--api-activity` flag, default: true). Disable to reduce server traffic.
 
@@ -269,12 +278,30 @@ For matrix devices (tiles, candles, ceiling):
 ### Monitor Packet Activity
 
 1. Scroll to "Recent Activity" section (bottom)
-2. Watch for real-time packet updates
-3. Filter mentally by:
-   - **Direction**: RX (requests) vs TX (responses)
-   - **Packet type**: GetColor, SetColor, StatePower, etc.
-   - **Device**: Compare multiple devices
-   - **Client address**: Identify different clients
+2. Watch for real-time WebSocket packet updates
+3. Use filter controls to narrow down activity:
+   - **Direction dropdown**: Select "All", "RX", or "TX"
+   - **Device/Target filter**: Type device serial to filter (e.g., "d073d5000001")
+   - **Packet filter**: Type packet name to filter (e.g., "GetColor", "Power")
+   - **Clear button**: Reset all filters
+
+**Filter Examples:**
+
+```bash
+# Show only received packets
+Direction: RX
+
+# Show only packets for specific device
+Device/Target: d073d5000001
+
+# Show only power-related packets
+Packet: Power
+
+# Combine filters: RX packets for GetColor on device d073d5000001
+Direction: RX
+Device/Target: d073d5000001
+Packet: GetColor
+```
 
 **Common Packet Patterns:**
 ```
@@ -314,13 +341,14 @@ TX StatePower                 <- Device responds
 
 ## Features and Capabilities
 
-### Real-Time Updates
+### Real-Time Updates via WebSocket
 
-- Dashboard auto-refreshes every 2 seconds
-- Server statistics updated in real-time
-- Device list and status refreshed
-- Activity log scrolls with new packets
-- No manual refresh button needed
+- **Instant updates** - no polling delay
+- Server statistics pushed every second
+- Device changes reflected immediately
+- Activity events stream in real-time
+- Automatic reconnection on connection loss
+- No manual refresh needed
 
 ### Persistent UI State
 
@@ -342,12 +370,15 @@ Colors are displayed accurately:
 - Brightness: Light level
 - Kelvin: Color temperature (white point)
 
-### Responsive Design
+### Modern UI Design
 
+- **Theme support**: Dark (default), Light, and System themes
+- Theme toggle in header (☀/☾/◐ icon)
+- Theme preference persisted in browser localStorage
 - Adapts to different screen sizes
 - Device cards responsive grid layout
 - Touch-friendly on tablets
-- Dark theme optimized for monitoring
+- Built with SvelteKit for optimal performance
 
 ---
 
@@ -379,10 +410,11 @@ lifx-emulator --api \
 
 For emulators with many devices (50+):
 
-- Activity log auto-update may slow down browser
-- Consider disabling activity logging (`--api-activity=false`)
-- Refresh page if UI becomes sluggish
-- Use REST API directly for automated monitoring
+- WebSocket updates are efficient and low-overhead
+- Activity log filtering helps focus on relevant events
+- Consider disabling activity logging (`--api-activity=false`) for extreme load
+- SvelteKit's reactive system provides excellent performance
+- Use REST API directly for automated monitoring if needed
 
 ---
 
@@ -402,8 +434,10 @@ curl http://localhost:8080/api/stats
 ### Activity Log Not Updating
 
 - Ensure `--api-activity` is not disabled (default: enabled)
-- Check browser developer console for errors
-- Try refreshing page
+- Check WebSocket connection status in header (should show green indicator)
+- Check browser developer console for WebSocket errors
+- Verify WebSocket endpoint is accessible: `ws://localhost:8080/ws`
+- Try refreshing page to reconnect WebSocket
 
 ### Devices Not Appearing
 
@@ -442,9 +476,10 @@ For tile/matrix devices:
 
 **Required:**
 
-- JavaScript enabled
-- LocalStorage for UI state persistence
-- CSS Grid support
+- JavaScript enabled (ES2022+ features)
+- WebSocket support
+- LocalStorage for UI state and theme persistence
+- CSS Grid and Custom Properties support
 
 ---
 
