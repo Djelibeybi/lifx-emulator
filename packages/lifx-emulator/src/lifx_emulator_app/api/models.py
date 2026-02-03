@@ -21,7 +21,7 @@ class DeviceCreateRequest(BaseModel):
         None, description="Number of zones for multizone devices", ge=0, le=1000
     )
     tile_count: int | None = Field(
-        None, description="Number of tiles for matrix devices", ge=0, le=100
+        None, description="Number of tiles for matrix devices", ge=0, le=5
     )
     tile_width: int | None = Field(
         None, description="Width of each tile in zones", ge=1, le=256
@@ -116,6 +116,37 @@ class ActivityEvent(BaseModel):
     device: str | None = None
     target: str | None = None
     addr: str
+
+
+class TileColorUpdate(BaseModel):
+    """Color update for a specific tile in a matrix device."""
+
+    tile_index: int = Field(..., ge=0, le=4)
+    colors: list[ColorHsbk] = Field(..., min_length=1, max_length=1024)
+
+
+class DeviceStateUpdate(BaseModel):
+    """PATCH request body for updating device state — all fields optional."""
+
+    power_level: int | None = Field(None, ge=0, le=65535)
+    color: ColorHsbk | None = None
+    zone_colors: list[ColorHsbk] | None = Field(default=None, min_length=1)
+    tile_colors: list[TileColorUpdate] | None = Field(default=None, min_length=1)
+
+
+class BulkDeviceCreateRequest(BaseModel):
+    """Request to create multiple devices at once."""
+
+    devices: list[DeviceCreateRequest] = Field(..., min_length=1, max_length=100)
+
+
+class PaginatedDeviceList(BaseModel):
+    """Paginated list of devices."""
+
+    devices: list[DeviceInfo]
+    total: int
+    offset: int
+    limit: int
 
 
 class ScenarioResponse(BaseModel):

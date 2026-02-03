@@ -4,17 +4,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
-from lifx_emulator_app.api.models import DeviceCreateRequest, DeviceInfo
+from lifx_emulator_app.api.models import (
+    BulkDeviceCreateRequest,
+    DeviceCreateRequest,
+    DeviceInfo,
+    DeviceStateUpdate,
+    PaginatedDeviceList,
+)
 from lifx_emulator_app.api.services.device_service import (
     DeviceAlreadyExistsError,
     DeviceCreationError,
     DeviceNotFoundError,
     DeviceService,
+    DeviceStateUpdateError,
 )
 
 
@@ -35,15 +42,24 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
 
     @router.get(
         "",
-        response_model=list[DeviceInfo],
+        response_model=PaginatedDeviceList,
         summary="List all devices",
         description=(
-            "Returns a list of all emulated devices with their current configuration."
+            "Returns a paginated list of all emulated devices "
+            "with their current configuration."
         ),
     )
-    async def list_devices():
-        """List all emulated devices."""
-        return device_service.list_all_devices()
+    async def list_devices(
+        offset: int = Query(0, ge=0, description="Number of devices to skip"),
+        limit: int = Query(
+            50, ge=1, le=1000, description="Maximum number of devices to return"
+        ),
+    ):
+        """List all emulated devices with pagination."""
+        devices, total = device_service.list_devices_paginated(offset, limit)
+        return PaginatedDeviceList(
+            devices=devices, total=total, offset=offset, limit=limit
+        )
 
     @router.get(
         "/{serial}",
@@ -62,6 +78,27 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
             return device_service.get_device_info(serial)
         except DeviceNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
+
+    @router.post(
+        "/bulk",
+        response_model=list[DeviceInfo],
+        status_code=201,
+        summary="Create multiple devices",
+        description="Creates multiple emulated devices at once.",
+        responses={
+            201: {"description": "All devices created successfully"},
+            400: {"description": "Invalid product ID or parameters"},
+            409: {"description": "Duplicate serial in batch or existing device"},
+        },
+    )
+    async def create_devices_bulk(request: BulkDeviceCreateRequest):
+        """Create multiple devices at once."""
+        try:
+            return device_service.create_devices_bulk(request.devices)
+        except DeviceCreationError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except DeviceAlreadyExistsError as e:
+            raise HTTPException(status_code=409, detail=str(e))
 
     @router.post(
         "",
@@ -86,6 +123,26 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
             raise HTTPException(status_code=400, detail=str(e))
         except DeviceAlreadyExistsError as e:
             raise HTTPException(status_code=409, detail=str(e))
+
+    @router.patch(
+        "/{serial}/state",
+        response_model=DeviceInfo,
+        summary="Update device state",
+        description="Updates the state of an existing device. All fields are optional.",
+        responses={
+            200: {"description": "Device state updated successfully"},
+            400: {"description": "Invalid state update for device capabilities"},
+            404: {"description": "Device not found"},
+        },
+    )
+    async def update_device_state(serial: str, update: DeviceStateUpdate):
+        """Update device state."""
+        try:
+            return device_service.update_device_state(serial, update)
+        except DeviceNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except DeviceStateUpdateError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     @router.delete(
         "/{serial}",

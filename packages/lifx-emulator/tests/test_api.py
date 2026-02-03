@@ -3,7 +3,11 @@
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.devices.manager import DeviceManager
-from lifx_emulator.factories import create_color_light, create_multizone_light
+from lifx_emulator.factories import (
+    create_color_light,
+    create_multizone_light,
+    create_tile_device,
+)
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api import create_api_app
@@ -44,14 +48,17 @@ class TestAPIEndpoints:
         assert "error_count" in data
 
     def test_list_devices(self, api_client):
-        """Test GET /api/devices returns all devices."""
+        """Test GET /api/devices returns paginated device list."""
         response = api_client.get("/api/devices")
         assert response.status_code == 200
-        devices = response.json()
+        data = response.json()
 
-        assert len(devices) == 2
-        assert devices[0]["serial"] == "d073d5000001"
-        assert devices[1]["serial"] == "d073d5000002"
+        assert data["total"] == 2
+        assert data["offset"] == 0
+        assert data["limit"] == 50
+        assert len(data["devices"]) == 2
+        assert data["devices"][0]["serial"] == "d073d5000001"
+        assert data["devices"][1]["serial"] == "d073d5000002"
 
     def test_get_device(self, api_client):
         """Test GET /api/devices/{serial} returns specific device."""
@@ -712,6 +719,363 @@ class TestScenarioConfiguration:
         assert 116 in resolved_scenario.response_delays
         assert "116" not in resolved_scenario.response_delays
         assert resolved_scenario.response_delays[116] == 1.0
+
+
+class TestDeviceStateUpdate:
+    """Test PATCH /api/devices/{serial}/state endpoint."""
+
+    def test_update_power_level(self, api_client):
+        """Test updating power level."""
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={"power_level": 65535},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["power_level"] == 65535
+
+        # Verify via GET
+        response = api_client.get("/api/devices/d073d5000001")
+        assert response.json()["power_level"] == 65535
+
+    def test_update_color(self, api_client):
+        """Test updating color on a color light."""
+        color = {"hue": 10000, "saturation": 50000, "brightness": 40000, "kelvin": 3500}
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={"color": color},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["color"]["hue"] == 10000
+        assert data["color"]["saturation"] == 50000
+
+    def test_update_color_fills_zones(self, api_client):
+        """Test that updating color on a multizone device fills all zones."""
+        color = {"hue": 20000, "saturation": 30000, "brightness": 40000, "kelvin": 4000}
+        response = api_client.patch(
+            "/api/devices/d073d5000002/state",
+            json={"color": color},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["color"]["hue"] == 20000
+        # All zones should have the same color
+        for zone in data["zone_colors"]:
+            assert zone["hue"] == 20000
+            assert zone["saturation"] == 30000
+
+    def test_update_color_fills_tiles(self, api_client, server_with_devices):
+        """Test that updating color on a matrix device fills all tiles."""
+        tile_device = create_tile_device("d073d5000003")
+        server_with_devices.add_device(tile_device)
+
+        color = {"hue": 15000, "saturation": 25000, "brightness": 35000, "kelvin": 3500}
+        response = api_client.patch(
+            "/api/devices/d073d5000003/state",
+            json={"color": color},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        for tile in data["tile_devices"]:
+            for c in tile["colors"]:
+                assert c["hue"] == 15000
+
+    def test_update_zone_colors(self, api_client):
+        """Test updating zone colors on a multizone device."""
+        colors = [
+            {"hue": i * 1000, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+            for i in range(16)
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000002/state",
+            json={"zone_colors": colors},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["zone_colors"]) == 16
+        assert data["zone_colors"][0]["hue"] == 0
+        assert data["zone_colors"][5]["hue"] == 5000
+
+    def test_update_zone_colors_too_short(self, api_client):
+        """Test that short zone_colors list is padded with last color."""
+        colors = [
+            {"hue": 100, "saturation": 200, "brightness": 300, "kelvin": 3500},
+            {"hue": 999, "saturation": 999, "brightness": 999, "kelvin": 4000},
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000002/state",
+            json={"zone_colors": colors},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["zone_colors"]) == 16
+        # First color
+        assert data["zone_colors"][0]["hue"] == 100
+        # Second color
+        assert data["zone_colors"][1]["hue"] == 999
+        # Padded with last color
+        assert data["zone_colors"][2]["hue"] == 999
+        assert data["zone_colors"][15]["hue"] == 999
+
+    def test_update_zone_colors_too_long(self, api_client):
+        """Test that long zone_colors list is truncated."""
+        colors = [
+            {"hue": i * 100, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+            for i in range(30)
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000002/state",
+            json={"zone_colors": colors},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["zone_colors"]) == 16
+
+    def test_update_zone_colors_not_multizone(self, api_client):
+        """Test that updating zone_colors on a non-multizone device returns 400."""
+        colors = [{"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}]
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={"zone_colors": colors},
+        )
+        assert response.status_code == 400
+
+    def test_update_tile_colors(self, api_client, server_with_devices):
+        """Test updating tile colors on a matrix device."""
+        tile_device = create_tile_device("d073d5000004")
+        server_with_devices.add_device(tile_device)
+
+        assert tile_device.state.matrix is not None
+        tile_size = (
+            tile_device.state.matrix.tile_width * tile_device.state.matrix.tile_height
+        )
+        colors = [
+            {"hue": i * 10, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+            for i in range(tile_size)
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000004/state",
+            json={"tile_colors": [{"tile_index": 0, "colors": colors}]},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["tile_devices"][0]["colors"]) == tile_size
+
+    def test_update_tile_colors_too_short(self, api_client, server_with_devices):
+        """Test that short tile colors list is padded."""
+        tile_device = create_tile_device("d073d5000005")
+        server_with_devices.add_device(tile_device)
+
+        colors = [
+            {"hue": 5000, "saturation": 65535, "brightness": 65535, "kelvin": 3500},
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000005/state",
+            json={"tile_colors": [{"tile_index": 0, "colors": colors}]},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert tile_device.state.matrix is not None
+        tile_size = (
+            tile_device.state.matrix.tile_width * tile_device.state.matrix.tile_height
+        )
+        assert len(data["tile_devices"][0]["colors"]) == tile_size
+        # All padded with last color
+        for c in data["tile_devices"][0]["colors"]:
+            assert c["hue"] == 5000
+
+    def test_update_tile_colors_too_long(self, api_client, server_with_devices):
+        """Test that long tile colors list is truncated."""
+        tile_device = create_tile_device("d073d5000006")
+        server_with_devices.add_device(tile_device)
+
+        assert tile_device.state.matrix is not None
+        tile_size = (
+            tile_device.state.matrix.tile_width * tile_device.state.matrix.tile_height
+        )
+        colors = [
+            {"hue": i, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+            for i in range(tile_size + 50)
+        ]
+        response = api_client.patch(
+            "/api/devices/d073d5000006/state",
+            json={"tile_colors": [{"tile_index": 0, "colors": colors}]},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["tile_devices"][0]["colors"]) == tile_size
+
+    def test_update_tile_colors_not_matrix(self, api_client):
+        """Test that updating tile_colors on a non-matrix device returns 400."""
+        colors = [{"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}]
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={"tile_colors": [{"tile_index": 0, "colors": colors}]},
+        )
+        assert response.status_code == 400
+
+    def test_update_device_not_found(self, api_client):
+        """Test PATCH on non-existent device returns 404."""
+        response = api_client.patch(
+            "/api/devices/aabbccddeeff/state",
+            json={"power_level": 0},
+        )
+        assert response.status_code == 404
+
+    def test_update_empty_body(self, api_client):
+        """Test PATCH with empty body is a no-op, returns current state."""
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["serial"] == "d073d5000001"
+
+    def test_update_multiple_fields(self, api_client):
+        """Test updating power and color in one request."""
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={
+                "power_level": 65535,
+                "color": {
+                    "hue": 32768,
+                    "saturation": 65535,
+                    "brightness": 65535,
+                    "kelvin": 3500,
+                },
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["power_level"] == 65535
+        assert data["color"]["hue"] == 32768
+
+
+class TestBulkDeviceCreation:
+    """Test POST /api/devices/bulk endpoint."""
+
+    def test_bulk_create_devices(self, api_client, server_with_devices):
+        """Test creating multiple devices at once."""
+        response = api_client.post(
+            "/api/devices/bulk",
+            json={
+                "devices": [
+                    {"product_id": 27, "serial": "aabbccdd0001"},
+                    {"product_id": 27, "serial": "aabbccdd0002"},
+                    {"product_id": 27, "serial": "aabbccdd0003"},
+                ]
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert len(data) == 3
+        assert data[0]["serial"] == "aabbccdd0001"
+        assert data[1]["serial"] == "aabbccdd0002"
+        assert data[2]["serial"] == "aabbccdd0003"
+        # Verify all were added (2 original + 3 new)
+        assert len(server_with_devices.get_all_devices()) == 5
+
+    def test_bulk_create_with_duplicate_serial_in_batch(self, api_client):
+        """Test bulk create with duplicate serial in batch returns 409."""
+        response = api_client.post(
+            "/api/devices/bulk",
+            json={
+                "devices": [
+                    {"product_id": 27, "serial": "aabbccdd0001"},
+                    {"product_id": 27, "serial": "aabbccdd0001"},
+                ]
+            },
+        )
+        assert response.status_code == 409
+
+    def test_bulk_create_with_existing_serial(self, api_client):
+        """Test bulk create with serial that already exists returns 409."""
+        response = api_client.post(
+            "/api/devices/bulk",
+            json={
+                "devices": [
+                    {"product_id": 27, "serial": "d073d5000001"},
+                ]
+            },
+        )
+        assert response.status_code == 409
+
+    def test_bulk_create_empty_list(self, api_client):
+        """Test bulk create with empty list returns 422."""
+        response = api_client.post(
+            "/api/devices/bulk",
+            json={"devices": []},
+        )
+        assert response.status_code == 422
+
+    def test_bulk_create_rollback_on_failure(self, api_client, server_with_devices):
+        """Test that failed bulk create rolls back already-created devices."""
+        initial_count = len(server_with_devices.get_all_devices())
+        # Second device has a serial that conflicts with an existing device
+        response = api_client.post(
+            "/api/devices/bulk",
+            json={
+                "devices": [
+                    {"product_id": 27, "serial": "aabbccdd0010"},
+                    {"product_id": 27, "serial": "d073d5000001"},
+                ]
+            },
+        )
+        assert response.status_code == 409
+        # No new devices should remain
+        assert len(server_with_devices.get_all_devices()) == initial_count
+
+
+class TestDeviceListPagination:
+    """Test paginated GET /api/devices endpoint."""
+
+    def test_list_devices_default_pagination(self, api_client):
+        """Test default pagination returns envelope with total/offset/limit."""
+        response = api_client.get("/api/devices")
+        assert response.status_code == 200
+        data = response.json()
+        assert "devices" in data
+        assert "total" in data
+        assert "offset" in data
+        assert "limit" in data
+        assert data["total"] == 2
+        assert data["offset"] == 0
+        assert data["limit"] == 50
+
+    def test_list_devices_with_offset(self, api_client):
+        """Test skipping devices with offset."""
+        response = api_client.get("/api/devices?offset=1")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["devices"]) == 1
+        assert data["total"] == 2
+        assert data["offset"] == 1
+        assert data["devices"][0]["serial"] == "d073d5000002"
+
+    def test_list_devices_with_limit(self, api_client):
+        """Test limiting results."""
+        response = api_client.get("/api/devices?limit=1")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["devices"]) == 1
+        assert data["total"] == 2
+        assert data["limit"] == 1
+        assert data["devices"][0]["serial"] == "d073d5000001"
+
+    def test_list_devices_offset_beyond_total(self, api_client):
+        """Test offset beyond total returns empty list but correct total."""
+        response = api_client.get("/api/devices?offset=100")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["devices"]) == 0
+        assert data["total"] == 2
+
+    def test_list_devices_negative_offset(self, api_client):
+        """Test negative offset returns 422."""
+        response = api_client.get("/api/devices?offset=-1")
+        assert response.status_code == 422
 
 
 class TestRunAPIServer:

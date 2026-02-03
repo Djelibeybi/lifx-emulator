@@ -1,7 +1,13 @@
 """Tests for API input validation using Pydantic models."""
 
 import pytest
-from lifx_emulator_app.api.models import ColorHsbk, DeviceCreateRequest
+from lifx_emulator_app.api.models import (
+    BulkDeviceCreateRequest,
+    ColorHsbk,
+    DeviceCreateRequest,
+    DeviceStateUpdate,
+    TileColorUpdate,
+)
 from pydantic import ValidationError
 
 
@@ -84,9 +90,9 @@ class TestDeviceCreateRequestValidation:
         assert request.tile_count == 5
 
     def test_tile_count_too_high(self):
-        """Test tile count > 100 is rejected."""
-        with pytest.raises(ValidationError, match="less than or equal to 100"):
-            DeviceCreateRequest(product_id=55, tile_count=101)
+        """Test tile count > 5 is rejected."""
+        with pytest.raises(ValidationError, match="less than or equal to 5"):
+            DeviceCreateRequest(product_id=55, tile_count=6)
 
     def test_tile_dimensions_valid(self):
         """Test valid tile dimensions."""
@@ -196,3 +202,99 @@ class TestColorHsbkValidation:
         """Test kelvin > 9000 is rejected."""
         with pytest.raises(ValidationError, match="less than or equal to 9000"):
             ColorHsbk(hue=0, saturation=0, brightness=0, kelvin=9001)
+
+
+class TestDeviceStateUpdateValidation:
+    """Test DeviceStateUpdate validation."""
+
+    def test_power_level_min(self):
+        """Test power_level minimum value."""
+        update = DeviceStateUpdate(power_level=0)
+        assert update.power_level == 0
+
+    def test_power_level_max(self):
+        """Test power_level maximum value."""
+        update = DeviceStateUpdate(power_level=65535)
+        assert update.power_level == 65535
+
+    def test_power_level_too_low(self):
+        """Test power_level below 0 is rejected."""
+        with pytest.raises(ValidationError, match="greater than or equal to 0"):
+            DeviceStateUpdate(power_level=-1)
+
+    def test_power_level_too_high(self):
+        """Test power_level above 65535 is rejected."""
+        with pytest.raises(ValidationError, match="less than or equal to 65535"):
+            DeviceStateUpdate(power_level=65536)
+
+    def test_color_field_bounds(self):
+        """Test color field validates HSBK bounds."""
+        with pytest.raises(ValidationError):
+            DeviceStateUpdate(
+                color=ColorHsbk(hue=70000, saturation=0, brightness=0, kelvin=3500)
+            )
+
+    def test_all_fields_none(self):
+        """Test that an empty update is valid."""
+        update = DeviceStateUpdate()
+        assert update.power_level is None
+        assert update.color is None
+        assert update.zone_colors is None
+        assert update.tile_colors is None
+
+    def test_zone_colors_empty_rejected(self):
+        """Test that an empty zone_colors list is rejected."""
+        with pytest.raises(ValidationError, match="at least 1"):
+            DeviceStateUpdate(zone_colors=[])
+
+    def test_tile_colors_empty_rejected(self):
+        """Test that an empty tile_colors list is rejected."""
+        with pytest.raises(ValidationError, match="at least 1"):
+            DeviceStateUpdate(tile_colors=[])
+
+    def test_tile_color_update_index_bounds(self):
+        """Test TileColorUpdate tile_index bounds."""
+        color = ColorHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+        # Valid index
+        tc = TileColorUpdate(tile_index=0, colors=[color])
+        assert tc.tile_index == 0
+
+        tc = TileColorUpdate(tile_index=4, colors=[color])
+        assert tc.tile_index == 4
+
+        # Invalid index
+        with pytest.raises(ValidationError, match="less than or equal to 4"):
+            TileColorUpdate(tile_index=5, colors=[color])
+
+        with pytest.raises(ValidationError, match="greater than or equal to 0"):
+            TileColorUpdate(tile_index=-1, colors=[color])
+
+    def test_tile_color_update_empty_colors(self):
+        """Test TileColorUpdate rejects empty colors list."""
+        with pytest.raises(ValidationError):
+            TileColorUpdate(tile_index=0, colors=[])
+
+
+class TestBulkDeviceCreateValidation:
+    """Test BulkDeviceCreateRequest validation."""
+
+    def test_empty_list_rejected(self):
+        """Test that an empty devices list is rejected."""
+        with pytest.raises(ValidationError):
+            BulkDeviceCreateRequest(devices=[])
+
+    def test_too_many_devices_rejected(self):
+        """Test that more than 100 devices is rejected."""
+        devices = [DeviceCreateRequest(product_id=27) for _ in range(101)]
+        with pytest.raises(ValidationError):
+            BulkDeviceCreateRequest(devices=devices)
+
+    def test_valid_bulk_request(self):
+        """Test valid bulk request."""
+        req = BulkDeviceCreateRequest(
+            devices=[
+                DeviceCreateRequest(product_id=27),
+                DeviceCreateRequest(product_id=32),
+            ]
+        )
+        assert len(req.devices) == 2

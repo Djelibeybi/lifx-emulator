@@ -141,7 +141,8 @@ class TestServerConfiguration:
         """Test default color device is created."""
         response = client.get("/api/devices")
         assert response.status_code == 200
-        devices = response.json()
+        data = response.json()
+        devices = data["devices"]
         assert len(devices) == 1
         assert devices[0]["has_color"] is True
 
@@ -162,7 +163,8 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            device_list = response.json()
+            data = response.json()
+            device_list = data["devices"]
             assert len(device_list) == 2
             for device in device_list:
                 assert device["has_color"] is True
@@ -181,7 +183,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert len(devices) == 1
             assert devices[0]["has_multizone"] is True
             assert devices[0]["zone_count"] == 24
@@ -200,7 +202,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["serial"] == "cafe00000001"
             assert devices[0]["serial"].startswith("cafe00")
 
@@ -222,7 +224,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            device_list = response.json()
+            device_list = response.json()["devices"]
             assert len(device_list) == 3
 
             # Verify device types
@@ -252,7 +254,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["has_matrix"] is True
             assert len(devices[0]["tile_devices"]) > 0
             assert any(t["width"] == 8 for t in devices[0]["tile_devices"])
@@ -271,7 +273,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["has_infrared"] is True
 
     def test_hev_device(self):
@@ -288,7 +290,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["has_hev"] is True
 
     def test_color_temperature_device(self):
@@ -305,7 +307,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["power_level"] >= 0
 
     def test_multizone_extended(self):
@@ -324,7 +326,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["has_multizone"] is True
             assert devices[0]["has_extended_multizone"] is True
             assert devices[0]["zone_count"] == 82
@@ -345,7 +347,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["has_multizone"] is True
             assert devices[0]["has_extended_multizone"] is False
 
@@ -406,7 +408,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            devices = response.json()
+            devices = response.json()["devices"]
             assert devices[0]["product"] == 27
             assert devices[0]["has_color"] is True
 
@@ -430,7 +432,7 @@ class TestServerConfiguration:
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
-            device_list = response.json()
+            device_list = response.json()["devices"]
             assert len(device_list) == 3
             products = {d["product"] for d in device_list}
             assert 27 in products
