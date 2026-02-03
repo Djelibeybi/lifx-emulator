@@ -2359,16 +2359,27 @@ lifx-emulator --api --api-activity=false
 # Get server statistics
 curl http://localhost:8080/api/stats
 
-# List all devices
+# List all devices (paginated)
 curl http://localhost:8080/api/devices
+curl 'http://localhost:8080/api/devices?offset=0&limit=10'
 
 # Create a new color light (product 27)
 curl -X POST http://localhost:8080/api/devices \
   -H "Content-Type: application/json" \
   -d '{"product_id": 27}'
 
+# Create multiple devices at once
+curl -X POST http://localhost:8080/api/devices/bulk \
+  -H "Content-Type: application/json" \
+  -d '{"devices": [{"product_id": 27}, {"product_id": 32, "zone_count": 16}]}'
+
 # Get specific device info
 curl http://localhost:8080/api/devices/d073d5000001
+
+# Update device state (power on, set color)
+curl -X PATCH http://localhost:8080/api/devices/d073d5000001/state \
+  -H "Content-Type: application/json" \
+  -d '{"power_level": 65535, "color": {"hue": 21845, "saturation": 65535, "brightness": 32768, "kelvin": 3500}}'
 
 # Delete a device
 curl -X DELETE http://localhost:8080/api/devices/d073d5000001
@@ -2383,7 +2394,7 @@ ______________________________________________________________________
 
 ### Get Server Statistics
 
-```text
+```http
 GET /api/stats
 ```
 
@@ -2424,7 +2435,7 @@ ______________________________________________________________________
 
 ### Get Recent Activity
 
-```text
+```http
 GET /api/activity
 ```
 
@@ -2480,48 +2491,67 @@ ______________________________________________________________________
 
 ### List All Devices
 
-```text
-GET /api/devices
+```http
+GET /api/devices?offset=0&limit=20
 ```
 
-Returns a list of all emulated devices with their current configuration.
+Returns a paginated list of all emulated devices with their current configuration.
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description                                  |
+| --------- | ---- | ------- | -------------------------------------------- |
+| `offset`  | int  | `0`     | Number of devices to skip (must be >= 0)     |
+| `limit`   | int  | `50`    | Maximum number of devices to return (1-1000) |
 
 **Response (200 OK):**
 
 ```json
-[
-  {
-    "serial": "d073d5000001",
-    "label": "Living Room Light",
-    "product": 27,
-    "vendor": 1,
-    "power_level": 65535,
-    "has_color": true,
-    "has_infrared": false,
-    "has_multizone": false,
-    "has_extended_multizone": false,
-    "has_matrix": false,
-    "has_hev": false,
-    "zone_count": 0,
-    "tile_count": 0,
-    "color": {
-      "hue": 32768,
-      "saturation": 65535,
-      "brightness": 65535,
-      "kelvin": 3500
-    },
-    "zone_colors": [],
-    "tile_devices": [],
-    "version_major": 3,
-    "version_minor": 70,
-    "build_timestamp": 0,
-    "group_label": "",
-    "location_label": "",
-    "uptime_ns": 123000000000,
-    "wifi_signal": -45.5
-  }
-]
+{
+  "devices": [
+    {
+      "serial": "d073d5000001",
+      "label": "Living Room Light",
+      "product": 27,
+      "vendor": 1,
+      "power_level": 65535,
+      "has_color": true,
+      "has_infrared": false,
+      "has_multizone": false,
+      "has_extended_multizone": false,
+      "has_matrix": false,
+      "has_hev": false,
+      "zone_count": 0,
+      "tile_count": 0,
+      "color": {
+        "hue": 32768,
+        "saturation": 65535,
+        "brightness": 65535,
+        "kelvin": 3500
+      },
+      "zone_colors": [],
+      "tile_devices": [],
+      "version_major": 3,
+      "version_minor": 70,
+      "build_timestamp": 0,
+      "group_label": "",
+      "location_label": "",
+      "uptime_ns": 123000000000,
+      "wifi_signal": -45.5
+    }
+  ],
+  "total": 1,
+  "offset": 0,
+  "limit": 20
+}
 ```
+
+**Envelope Fields:**
+
+- `devices`: Array of device objects for the current page
+- `total`: Total number of devices across all pages
+- `offset`: The offset used for this request
+- `limit`: The limit used for this request
 
 **Device Info Fields:**
 
@@ -2547,7 +2577,7 @@ ______________________________________________________________________
 
 ### Get Device Information
 
-```text
+```http
 GET /api/devices/{serial}
 ```
 
@@ -2577,7 +2607,7 @@ ______________________________________________________________________
 
 ### Create Device
 
-```text
+```http
 POST /api/devices
 ```
 
@@ -2664,9 +2694,178 @@ curl -X POST http://localhost:8080/api/devices \
 
 ______________________________________________________________________
 
+### Update Device State
+
+```http
+PATCH /api/devices/{serial}/state
+```
+
+Updates the state of an existing device. All fields are optional — only the fields you include will be changed.
+
+**Path Parameters:**
+
+- `serial`: Device serial number (e.g., `d073d5000001`)
+
+**Request Body:**
+
+```json
+{
+  "power_level": 65535,
+  "color": {
+    "hue": 32768,
+    "saturation": 65535,
+    "brightness": 65535,
+    "kelvin": 3500
+  },
+  "zone_colors": [
+    {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500},
+    {"hue": 10000, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+  ],
+  "tile_colors": [
+    {
+      "tile_index": 0,
+      "colors": [
+        {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+      ]
+    }
+  ]
+}
+```
+
+**Request Fields (all optional):**
+
+- `power_level`: Power level, 0 (off) or 65535 (on)
+- `color`: HSBK color to set. On multizone devices, this fills all zones with the color. On matrix devices, this fills all tile pixels with the color.
+- `zone_colors`: Array of HSBK colors replacing all zones on a multizone device. If the list is shorter than the zone count, the last color is repeated to fill the remaining zones. If longer, the list is truncated.
+- `tile_colors`: Array of tile color updates for matrix devices. Each entry specifies a `tile_index` (0-4) and a `colors` array. Colors are padded or truncated to match the tile size.
+
+**Response (200 OK):** Full device info object (same format as Get Device).
+
+**Error Responses:**
+
+- `400 Bad Request`: Capability mismatch (e.g., setting `zone_colors` on a non-multizone device)
+
+```json
+{
+  "detail": "Device d073d5000001 does not support multizone"
+}
+```
+
+- `404 Not Found`: Device not found
+
+**Examples:**
+
+```bash
+# Turn a device on
+curl -X PATCH http://localhost:8080/api/devices/d073d5000001/state \
+  -H "Content-Type: application/json" \
+  -d '{"power_level": 65535}'
+
+# Set color to red
+curl -X PATCH http://localhost:8080/api/devices/d073d5000001/state \
+  -H "Content-Type: application/json" \
+  -d '{"color": {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}}'
+
+# Set power and color in one request
+curl -X PATCH http://localhost:8080/api/devices/d073d5000001/state \
+  -H "Content-Type: application/json" \
+  -d '{
+    "power_level": 65535,
+    "color": {"hue": 21845, "saturation": 65535, "brightness": 32768, "kelvin": 3500}
+  }'
+
+# Set zone colors on a multizone device (short list is padded)
+curl -X PATCH http://localhost:8080/api/devices/d073d5000002/state \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_colors": [
+      {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500},
+      {"hue": 21845, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+    ]
+  }'
+```
+
+______________________________________________________________________
+
+### Create Multiple Devices (Bulk)
+
+```http
+POST /api/devices/bulk
+```
+
+Creates multiple emulated devices in a single request. If any device fails to create, all previously created devices in the batch are rolled back.
+
+**Request Body:**
+
+```json
+{
+  "devices": [
+    {"product_id": 27},
+    {"product_id": 32, "zone_count": 16},
+    {"product_id": 55, "tile_count": 3, "serial": "d073d5cafe00"}
+  ]
+}
+```
+
+**Request Fields:**
+
+- `devices` (required): Array of device creation requests (1-100 items). Each entry uses the same fields as [Create Device](#create-device).
+
+**Response (201 Created):**
+
+```json
+[
+  {"serial": "d073d5a00001", "product": 27, "...": "..."},
+  {"serial": "d073d5a00002", "product": 32, "...": "..."},
+  {"serial": "d073d5cafe00", "product": 55, "...": "..."}
+]
+```
+
+Array of device info objects in the same order as the request.
+
+**Error Responses:**
+
+- `400 Bad Request`: Invalid parameters for any device in the batch
+- `409 Conflict`: Duplicate serial within the batch, or a serial that already exists on the server. No devices are created.
+
+```json
+{
+  "detail": "Device with serial d073d5000001 already exists"
+}
+```
+
+- `422 Unprocessable Entity`: Empty device list or more than 100 devices
+
+**Examples:**
+
+```bash
+# Create three devices at once
+curl -X POST http://localhost:8080/api/devices/bulk \
+  -H "Content-Type: application/json" \
+  -d '{
+    "devices": [
+      {"product_id": 27},
+      {"product_id": 27},
+      {"product_id": 32, "zone_count": 16}
+    ]
+  }' | jq '.[].serial'
+
+# Create devices with specific serials
+curl -X POST http://localhost:8080/api/devices/bulk \
+  -H "Content-Type: application/json" \
+  -d '{
+    "devices": [
+      {"product_id": 27, "serial": "aabbccdd0001"},
+      {"product_id": 27, "serial": "aabbccdd0002"}
+    ]
+  }'
+```
+
+______________________________________________________________________
+
 ### Delete Device
 
-```text
+```http
 DELETE /api/devices/{serial}
 ```
 
@@ -2696,7 +2895,7 @@ ______________________________________________________________________
 
 ### Delete All Devices
 
-```text
+```http
 DELETE /api/devices
 ```
 
@@ -2738,9 +2937,10 @@ print(f"Devices: {stats['device_count']}")
 print(f"Packets RX: {stats['packets_received']}")
 print(f"Packets TX: {stats['packets_sent']}")
 
-# List all devices
-devices = requests.get(f"{BASE_URL}/devices").json()
-for device in devices:
+# List all devices (paginated)
+data = requests.get(f"{BASE_URL}/devices").json()
+print(f"Total devices: {data['total']}")
+for device in data["devices"]:
     print(f"\nDevice: {device['label']} ({device['serial']})")
     print(f"  Product: {device['product']}")
     print(f"  Power: {'ON' if device['power_level'] > 0 else 'OFF'}")
@@ -2764,7 +2964,7 @@ for event in activity[-5:]:  # Last 5 events
     print(f"{direction} {event['packet_name']} from {event['addr']}")
 
 # Delete a device
-serial = devices[0]['serial']
+serial = data["devices"][0]['serial']
 requests.delete(f"{BASE_URL}/devices/{serial}")
 print(f"Deleted device: {serial}")
 ```
@@ -2784,12 +2984,13 @@ async function getStats() {
     console.log(`Packets TX: ${stats.packets_sent}`);
 }
 
-// List all devices
+// List all devices (paginated)
 async function listDevices() {
     const response = await fetch(`${BASE_URL}/devices`);
-    const devices = await response.json();
+    const data = await response.json();
+    console.log(`Total devices: ${data.total}`);
 
-    for (const device of devices) {
+    for (const device of data.devices) {
         console.log(`\nDevice: ${device.label} (${device.serial})`);
         console.log(`  Product: ${device.product}`);
         console.log(`  Power: ${device.power_level > 0 ? "ON" : "OFF"}`);
@@ -2858,7 +3059,10 @@ getActivity();
 curl http://localhost:8080/api/stats | jq
 
 # List devices
-curl http://localhost:8080/api/devices | jq '.[] | {serial, label, product}'
+curl http://localhost:8080/api/devices | jq '.devices[] | {serial, label, product}'
+
+# List devices with pagination
+curl 'http://localhost:8080/api/devices?offset=0&limit=10' | jq '.devices[] | .serial'
 
 # Create color light
 curl -X POST http://localhost:8080/api/devices \
@@ -2910,14 +3114,14 @@ while True:
 
 ```python
 def ensure_min_devices(min_count, product_id):
-    devices = requests.get(f"{BASE_URL}/devices").json()
-    current = len(devices)
+    data = requests.get(f"{BASE_URL}/devices").json()
+    current = data["total"]
 
     if current < min_count:
-        for i in range(min_count - current):
-            requests.post(f"{BASE_URL}/devices",
-                         json={"product_id": product_id})
-            print(f"Created device {i+1}")
+        needed = min_count - current
+        requests.post(f"{BASE_URL}/devices/bulk",
+                     json={"devices": [{"product_id": product_id}] * needed})
+        print(f"Created {needed} device(s)")
 ```
 
 ### Log Activity to File
