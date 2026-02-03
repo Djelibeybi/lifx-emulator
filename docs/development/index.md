@@ -426,6 +426,59 @@ Every pull request runs:
 
 **All checks must pass before merge.**
 
+### Building Standalone Binaries
+
+The project uses [PyApp](https://github.com/ofek/pyapp) to create standalone executables that bundle Python and all dependencies into a single binary. Binaries are built automatically on release, but you can build them locally for testing.
+
+**Prerequisites**:
+```bash
+# Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+**Build locally**:
+```bash
+# Clone PyApp
+git clone --depth 1 --branch v0.26.0 https://github.com/ofek/pyapp pyapp
+
+# Build with environment variables
+cd pyapp
+PYAPP_PROJECT_NAME=lifx-emulator \
+PYAPP_PROJECT_VERSION=4.1.0 \
+PYAPP_PYTHON_VERSION=3.12 \
+PYAPP_EXEC_SPEC=lifx_emulator_app.__main__:main \
+cargo build --release
+
+# Binary is at target/release/pyapp
+mv target/release/pyapp ../lifx-emulator
+chmod +x ../lifx-emulator
+```
+
+**Optional: Embed Python distribution** (larger binary, no download on first run):
+```bash
+PYAPP_DISTRIBUTION_EMBED=1 cargo build --release
+```
+
+**Cross-compile for other platforms**:
+```bash
+# Add target (example: macOS ARM64)
+rustup target add aarch64-apple-darwin
+
+# Build for that target
+CARGO_BUILD_TARGET=aarch64-apple-darwin cargo build --release
+```
+
+**Supported platforms** (built automatically on release):
+
+| Platform | Target | Binary Name |
+|----------|--------|-------------|
+| Linux x86_64 | `x86_64-unknown-linux-gnu` | `lifx-emulator-linux-x86_64` |
+| macOS Intel | `x86_64-apple-darwin` | `lifx-emulator-macos-x86_64` |
+| macOS ARM | `aarch64-apple-darwin` | `lifx-emulator-macos-arm64` |
+| Windows x86_64 | `x86_64-pc-windows-msvc` | `lifx-emulator-windows-x86_64.exe` |
+
+See [PyApp documentation](https://ofek.dev/pyapp/latest/) for advanced configuration options.
+
 ### Semantic Release
 
 The project uses [semantic-release](https://python-semantic-release.readthedocs.io/) with conventional commits:
@@ -520,6 +573,7 @@ lifx-emulator/
 - [uv Package Manager](https://github.com/astral-sh/uv)
 - [Ruff Linter](https://docs.astral.sh/ruff/)
 - [Pyright Type Checker](https://github.com/microsoft/pyright)
+- [PyApp Binary Builder](https://ofek.dev/pyapp/latest/)
 - [MkDocs](https://www.mkdocs.org/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 

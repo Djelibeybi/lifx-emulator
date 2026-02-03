@@ -1297,6 +1297,7 @@ def _make_cfg(**overrides):
         "api_host": "127.0.0.1",
         "api_port": 8080,
         "api_activity": True,
+        "browser": False,
         "products": None,
         "color": 0,
         "color_temperature": 0,
