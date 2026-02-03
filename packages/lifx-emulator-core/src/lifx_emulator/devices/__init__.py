@@ -10,7 +10,12 @@ This module contains all device-related functionality including:
 """
 
 from lifx_emulator.devices.device import EmulatedLifxDevice
-from lifx_emulator.devices.manager import DeviceManager, IDeviceManager
+from lifx_emulator.devices.manager import (
+    DeviceAddedCallback,
+    DeviceManager,
+    DeviceRemovedCallback,
+    IDeviceManager,
+)
 from lifx_emulator.devices.observers import (
     ActivityLogger,
     ActivityObserver,
@@ -26,6 +31,8 @@ from lifx_emulator.devices.states import DeviceState
 __all__ = [
     "EmulatedLifxDevice",
     "DeviceManager",
+    "DeviceAddedCallback",
+    "DeviceRemovedCallback",
     "IDeviceManager",
     "DeviceState",
     "DevicePersistenceAsyncFile",

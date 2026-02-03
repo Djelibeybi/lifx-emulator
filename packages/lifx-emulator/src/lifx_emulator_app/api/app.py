@@ -10,6 +10,8 @@ This module creates the main FastAPI application by assembling routers for:
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -26,6 +28,11 @@ from lifx_emulator_app.api.routers.monitoring import create_monitoring_router
 from lifx_emulator_app.api.routers.products import create_products_router
 from lifx_emulator_app.api.routers.scenarios import create_scenarios_router
 from lifx_emulator_app.api.routers.websocket import create_websocket_router
+from lifx_emulator_app.api.services.event_bridge import (
+    StatsBroadcaster,
+    WebSocketActivityObserver,
+    wire_device_events,
+)
 from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
@@ -56,7 +63,21 @@ def create_api_app(server: EmulatedLifxServer) -> FastAPI:
         >>> app = create_api_app(server)
         >>> # Run with: uvicorn app:app --host 127.0.0.1 --port 8080
     """
+    # Create WebSocket manager early so we can reference it in lifespan
+    ws_manager = WebSocketManager(server)
+    stats_broadcaster = StatsBroadcaster(server, ws_manager)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+        """Manage application lifecycle - start/stop background tasks."""
+        # Startup: start the stats broadcaster
+        stats_broadcaster.start()
+        yield
+        # Shutdown: stop the stats broadcaster
+        await stats_broadcaster.stop()
+
     app = FastAPI(
+        lifespan=lifespan,
         title="LIFX Emulator API",
         description="""
 Runtime management and monitoring API for LIFX device emulator.
@@ -120,14 +141,22 @@ The API is organized into four main routers:
     # Mount static files for JS/CSS assets (cached by browsers)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    # Create WebSocket manager and store in app state for access by event handlers
-    ws_manager = WebSocketManager(server)
+    # Store WebSocket manager in app state for access by event handlers
     app.state.ws_manager = ws_manager
+
+    # Wire device lifecycle events to WebSocket broadcasts
+    wire_device_events(server._device_manager, ws_manager)
+
+    # Wrap the activity observer with WebSocket broadcasting
+    # This preserves activity logging while adding real-time WebSocket updates
+    server.activity_observer = WebSocketActivityObserver(
+        ws_manager, server.activity_observer
+    )
 
     # Include routers with server dependency injection
     monitoring_router = create_monitoring_router(server)
     devices_router = create_devices_router(server)
-    scenarios_router = create_scenarios_router(server)
+    scenarios_router = create_scenarios_router(server, ws_manager)
     products_router = create_products_router()
     websocket_router = create_websocket_router(ws_manager)
 

@@ -8,6 +8,7 @@ concerns principle by extracting domain logic from the network layer.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
@@ -17,6 +18,10 @@ if TYPE_CHECKING:
     from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 logger = logging.getLogger(__name__)
+
+# Type aliases for device lifecycle callbacks
+DeviceAddedCallback = Callable[["EmulatedLifxDevice"], None]
+DeviceRemovedCallback = Callable[[str], None]
 
 
 @runtime_checkable
@@ -116,15 +121,27 @@ class DeviceManager:
     This class extracts device management logic from EmulatedLifxServer,
     providing a clean separation between domain logic and network I/O.
     It mirrors the architecture of HierarchicalScenarioManager.
+
+    Supports optional callbacks for device lifecycle events, allowing
+    external systems (like WebSocket managers) to be notified of changes.
     """
 
-    def __init__(self, device_repository: IDeviceRepository):
+    def __init__(
+        self,
+        device_repository: IDeviceRepository,
+        on_device_added: DeviceAddedCallback | None = None,
+        on_device_removed: DeviceRemovedCallback | None = None,
+    ):
         """Initialize the device manager.
 
         Args:
             device_repository: Repository for device storage and retrieval
+            on_device_added: Optional callback invoked when a device is added
+            on_device_removed: Optional callback invoked when a device is removed
         """
         self._device_repository = device_repository
+        self.on_device_added = on_device_added
+        self.on_device_removed = on_device_removed
 
     def add_device(
         self,
@@ -152,6 +169,11 @@ class DeviceManager:
         if success:
             serial = device.state.serial
             logger.info("Added device: %s (product=%s)", serial, device.state.product)
+            if self.on_device_added is not None:
+                try:
+                    self.on_device_added(device)
+                except Exception:
+                    logger.exception("Error in on_device_added callback for %s", serial)
         return success
 
     def remove_device(self, serial: str, storage=None) -> bool:
@@ -172,6 +194,14 @@ class DeviceManager:
             if storage:
                 storage.delete_device_state(serial)
 
+            if self.on_device_removed is not None:
+                try:
+                    self.on_device_removed(serial)
+                except Exception:
+                    logger.exception(
+                        "Error in on_device_removed callback for %s", serial
+                    )
+
         return success
 
     def remove_all_devices(self, delete_storage: bool = False, storage=None) -> int:
@@ -184,6 +214,9 @@ class DeviceManager:
         Returns:
             Number of devices removed
         """
+        # Get all device serials before clearing (for callbacks)
+        serials = [d.state.serial for d in self._device_repository.get_all()]
+
         # Clear all devices from repository
         device_count = self._device_repository.clear()
         logger.info("Removed all %s device(s)", device_count)
@@ -192,6 +225,16 @@ class DeviceManager:
         if delete_storage and storage:
             deleted = storage.delete_all_device_states()
             logger.info("Deleted %s device state(s) from persistent storage", deleted)
+
+        # Notify callbacks for each removed device
+        if self.on_device_removed is not None:
+            for serial in serials:
+                try:
+                    self.on_device_removed(serial)
+                except Exception:
+                    logger.exception(
+                        "Error in on_device_removed callback for %s", serial
+                    )
 
         return device_count
 

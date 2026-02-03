@@ -9,6 +9,8 @@ from fastapi import APIRouter, HTTPException
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
+    from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
+
 from lifx_emulator_app.api.models import ScenarioConfig, ScenarioResponse
 from lifx_emulator_app.api.services.scenario_service import (
     InvalidDeviceSerialError,
@@ -224,17 +226,20 @@ def _add_group_endpoints(router: APIRouter, service: ScenarioService):
             raise HTTPException(404, f"No scenario set for group {group}")
 
 
-def create_scenarios_router(server: EmulatedLifxServer) -> APIRouter:
+def create_scenarios_router(
+    server: EmulatedLifxServer, ws_manager: WebSocketManager | None = None
+) -> APIRouter:
     """Create scenarios router with server dependency.
 
     Args:
         server: The LIFX emulator server instance
+        ws_manager: Optional WebSocket manager for real-time updates
 
     Returns:
         Configured APIRouter for scenario endpoints
     """
     router = APIRouter(prefix="/api/scenarios", tags=["scenarios"])
-    service = ScenarioService(server)
+    service = ScenarioService(server, ws_manager)
 
     _add_global_endpoints(router, service)
     _add_device_endpoints(router, service)

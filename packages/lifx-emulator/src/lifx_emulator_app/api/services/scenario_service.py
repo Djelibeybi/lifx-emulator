@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from lifx_emulator.scenarios import ScenarioConfig
     from lifx_emulator.server import EmulatedLifxServer
 
+    from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
+
 logger = logging.getLogger(__name__)
 
 Scope = Literal["device", "type", "location", "group"]
@@ -50,18 +52,39 @@ class InvalidDeviceSerialError(Exception):
 class ScenarioService:
     """Service for managing scenario configurations across all scope levels.
 
-    Wraps the HierarchicalScenarioManager and handles cache invalidation
-    and persistence after each mutation.
+    Wraps the HierarchicalScenarioManager and handles cache invalidation,
+    persistence, and WebSocket broadcasts after each mutation.
     """
 
-    def __init__(self, server: EmulatedLifxServer):
+    def __init__(
+        self, server: EmulatedLifxServer, ws_manager: WebSocketManager | None = None
+    ):
         self.server = server
+        self._ws_manager = ws_manager
 
     async def _persist(self) -> None:
         """Invalidate device scenario caches and persist to storage."""
         self.server.invalidate_all_scenario_caches()
         if self.server.scenario_persistence:
             await self.server.scenario_persistence.save(self.server.scenario_manager)
+
+    async def _broadcast_change(
+        self, scope: str, identifier: str | None, config: ScenarioConfig | None
+    ) -> None:
+        """Broadcast scenario change event via WebSocket.
+
+        Args:
+            scope: The scope level (global, device, type, location, group)
+            identifier: The scope identifier (serial, type, etc.) or None for global
+            config: The new scenario config, or None if deleted
+        """
+        if self._ws_manager is None:
+            return
+
+        config_dict = config.model_dump() if config is not None else None
+        await self._ws_manager.broadcast_scenario_changed(
+            scope, identifier, config_dict
+        )
 
     def get_global_scenario(self) -> ScenarioConfig:
         """Return the global scenario configuration."""
@@ -71,12 +94,14 @@ class ScenarioService:
         """Set the global scenario and persist."""
         self.server.scenario_manager.set_global_scenario(config)
         await self._persist()
+        await self._broadcast_change("global", None, config)
         logger.info("Set global scenario")
 
     async def clear_global_scenario(self) -> None:
         """Clear the global scenario and persist."""
         self.server.scenario_manager.clear_global_scenario()
         await self._persist()
+        await self._broadcast_change("global", None, None)
         logger.info("Cleared global scenario")
 
     def get_scope_scenario(self, scope: Scope, identifier: str) -> ScenarioConfig:
@@ -106,6 +131,7 @@ class ScenarioService:
         _, setter, _ = _SCOPE_METHODS[scope]
         getattr(self.server.scenario_manager, setter)(identifier, config)
         await self._persist()
+        await self._broadcast_change(scope, identifier, config)
         logger.info("Set %s scenario for %s", scope, identifier)
 
     async def delete_scope_scenario(self, scope: Scope, identifier: str) -> None:
@@ -118,6 +144,7 @@ class ScenarioService:
         if not getattr(self.server.scenario_manager, deleter)(identifier):
             raise ScenarioNotFoundError(scope, identifier)
         await self._persist()
+        await self._broadcast_change(scope, identifier, None)
         logger.info("Deleted %s scenario for %s", scope, identifier)
 
     @staticmethod
