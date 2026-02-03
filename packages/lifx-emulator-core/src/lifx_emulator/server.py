@@ -482,7 +482,7 @@ class EmulatedLifxServer:
             "packets_received_by_type": dict(self.packets_received_by_type),
             "packets_sent_by_type": dict(self.packets_sent_by_type),
             "error_count": self.error_count,
-            "activity_enabled": isinstance(self.activity_observer, ActivityLogger),
+            "activity_enabled": hasattr(self.activity_observer, "get_recent_activity"),
         }
 
     def get_recent_activity(self) -> list[dict[str, Any]]:
@@ -492,8 +492,9 @@ class EmulatedLifxServer:
             List of activity event dictionaries, or empty list if observer
             doesn't support activity tracking
         """
-        if isinstance(self.activity_observer, ActivityLogger):
-            return self.activity_observer.get_recent_activity()
+        get_activity = getattr(self.activity_observer, "get_recent_activity", None)
+        if get_activity is not None:
+            return get_activity()
         return []
 
     async def start(self):
