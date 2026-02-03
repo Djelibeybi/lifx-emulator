@@ -554,6 +554,41 @@ class TestAcknowledgment:
         assert ack_header.pkt_type == 45
         assert isinstance(ack_packet, Device.Acknowledgement)
 
+    def test_ack_generated_for_unhandled_packet_when_scenario_affects_acks(
+        self, color_device
+    ):
+        """Test ACK included for unsupported packets when scenario targets acks."""
+        from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(response_delays={45: 1.0}),
+        )
+        color_device.scenario_manager = scenario_manager
+        color_device.invalidate_scenario_cache()
+
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=501,  # MultiZone.GetColorZones — unsupported on color device
+            ack_required=True,
+            res_required=True,
+        )
+
+        responses = color_device.process_packet(header, None)
+
+        # Should have ACK followed by StateUnhandled
+        assert len(responses) == 2
+        ack_header, ack_packet = responses[0]
+        assert ack_header.pkt_type == 45
+        assert isinstance(ack_packet, Device.Acknowledgement)
+
+        unhandled_header, unhandled_packet = responses[1]
+        assert unhandled_header.pkt_type == 223  # StateUnhandled
+        assert unhandled_packet.unhandled_type == 501
+
     def test_no_ack_when_not_required(self, color_device):
         """Test no ACK when ack_required is False."""
         header = LifxHeader(
