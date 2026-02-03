@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v3.5.0 (2026-02-03)
+
+### Bug Fixes
+
+- Address CodeRabbit PR review feedback
+  ([`e302407`](https://github.com/Djelibeybi/lifx-emulator/commit/e302407e19f73de9a49361372b5c776b761d61e1))
+
+### Features
+
+- **api**: Complete WebSocket real-time event infrastructure
+  ([`81cfa6f`](https://github.com/Djelibeybi/lifx-emulator/commit/81cfa6f11dfb7d216b40d6672ba73883841be11a))
+
+- **dashboard**: Add scenario panel, pagination, and tabbed interface (Phase 4)
+  ([`a50951d`](https://github.com/Djelibeybi/lifx-emulator/commit/a50951d805592787ea70a86441e44c781e307c1c))
+
+
 ## v3.4.0 (2026-02-03)
 
 ### Features
