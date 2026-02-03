@@ -37,7 +37,7 @@ class TestScenarioPersistenceAsyncFile:
                 "invalid_field_values": [],
                 "firmware_version": None,
                 "partial_responses": [],
-                "send_unhandled": False,
+                "send_unhandled": True,  # Default is on
             }
             assert data["devices"] == {}
             assert data["types"] == {}

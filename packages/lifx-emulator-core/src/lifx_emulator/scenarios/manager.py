@@ -60,8 +60,9 @@ class HierarchicalScenarioManager:
         self.type_scenarios: dict[str, ScenarioConfig] = {}  # type → config
         self.location_scenarios: dict[str, ScenarioConfig] = {}  # location → config
         self.group_scenarios: dict[str, ScenarioConfig] = {}  # group → config
+        # Default global scenario: send_unhandled=True matches real LIFX behavior
         self.global_scenario: ScenarioConfig = ScenarioConfig(
-            firmware_version=None, send_unhandled=False
+            firmware_version=None, send_unhandled=True
         )
 
     def set_device_scenario(self, serial: str, config: ScenarioConfig):
@@ -101,9 +102,9 @@ class HierarchicalScenarioManager:
         return self.group_scenarios.pop(group, None) is not None
 
     def clear_global_scenario(self):
-        """Clear global scenario (reset to empty)."""
+        """Clear global scenario (reset to default with send_unhandled=True)."""
         self.global_scenario = ScenarioConfig(
-            firmware_version=None, send_unhandled=False
+            firmware_version=None, send_unhandled=True
         )
 
     def get_global_scenario(self) -> ScenarioConfig:
@@ -184,8 +185,8 @@ class HierarchicalScenarioManager:
         Returns:
             Merged ScenarioConfig
         """
-        # Start with empty config
-        merged = ScenarioConfig(firmware_version=None, send_unhandled=False)
+        # Start with default config (send_unhandled=True matches real LIFX behavior)
+        merged = ScenarioConfig(firmware_version=None, send_unhandled=True)
 
         # Layer in each scope (general to specific)
         # Later scopes override or merge with earlier ones
@@ -219,8 +220,8 @@ class HierarchicalScenarioManager:
             # Scalars: use most specific non-default value
             if config.firmware_version is not None:
                 merged.firmware_version = config.firmware_version
-            if config.send_unhandled:
-                merged.send_unhandled = True
+            # send_unhandled: most specific scope wins (explicit False overrides)
+            merged.send_unhandled = config.send_unhandled
 
         return merged
 

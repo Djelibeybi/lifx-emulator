@@ -125,7 +125,65 @@ The API is organized into four main routers:
             },
             {
                 "name": "websocket",
-                "description": "Real-time updates via WebSocket",
+                "description": """Real-time updates via WebSocket.
+
+## Connection
+
+Connect to `ws://<host>:<port>/ws` to receive real-time updates.
+
+## Client Messages
+
+### Subscribe to Topics
+
+```json
+{"type": "subscribe", "topics": ["stats", "devices", "activity", "scenarios"]}
+```
+
+**Available topics:**
+- `stats` - Server statistics (pushed every second)
+- `devices` - Device add/remove/update events
+- `activity` - Packet activity events (requires `--activity` flag)
+- `scenarios` - Scenario configuration changes
+
+### Request Full State Sync
+
+```json
+{"type": "sync"}
+```
+
+Returns current state for all subscribed topics.
+
+## Server Messages
+
+All server messages follow this format:
+
+```json
+{"type": "<message_type>", "data": {...}}
+```
+
+### Message Types
+
+| Type | Description |
+|------|-------------|
+| `sync` | Full state response containing `stats`, `devices`, `activity`, `scenarios` |
+| `stats` | Server statistics update |
+| `device_added` | New device created |
+| `device_removed` | Device deleted (data: `{"serial": "..."}`) |
+| `device_updated` | Device state changed (data: `{serial, changes}`) |
+| `activity` | Packet activity event |
+| `scenario_changed` | Scenario configuration changed |
+| `error` | Error message (data: `{"message": "..."}`) |
+
+## Example Session
+
+```
+-> {"type": "subscribe", "topics": ["devices", "stats"]}
+-> {"type": "sync"}
+<- {"type": "sync", "data": {"stats": {...}, "devices": [...]}}
+<- {"type": "stats", "data": {"uptime_seconds": 123, ...}}
+<- {"type": "device_added", "data": {"serial": "d073d5000001", ...}}
+```
+""",
             },
         ],
     )

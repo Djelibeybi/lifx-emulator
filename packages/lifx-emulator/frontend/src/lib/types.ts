@@ -64,12 +64,12 @@ export interface ActivityEvent {
 }
 
 export interface ScenarioConfig {
-	drop_packets?: Record<string, number>;
-	response_delays?: Record<string, { min_ms: number; max_ms: number }>;
-	partial_responses?: number;
-	malformed_packets?: boolean;
-	invalid_field_values?: Record<string, unknown>;
-	firmware_version?: { major: number; minor: number };
+	drop_packets?: Record<string, number>; // packet_type -> drop_rate (0.0-1.0)
+	response_delays?: Record<string, number>; // packet_type -> delay_seconds
+	malformed_packets?: number[]; // packet types to corrupt
+	invalid_field_values?: number[]; // packet types to send as 0xFF
+	firmware_version?: [number, number] | null; // [major, minor] tuple
+	partial_responses?: number[]; // packet types for incomplete data
 	send_unhandled?: boolean;
 }
 
@@ -129,3 +129,4 @@ export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'er
 // UI preferences
 export type ViewMode = 'card' | 'table';
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type ActiveTab = 'devices' | 'activity' | 'scenarios';

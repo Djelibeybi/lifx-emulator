@@ -11,6 +11,7 @@ import type {
 import { stats } from './stats.svelte';
 import { devices } from './devices.svelte';
 import { activity } from './activity.svelte';
+import { scenarios } from './scenarios.svelte';
 
 const RECONNECT_DELAY_MS = 2000;
 const MAX_RECONNECT_DELAY_MS = 30000;
@@ -36,6 +37,7 @@ function createConnectionStore() {
 					if (data.stats) stats.set(data.stats);
 					if (data.devices) devices.set(data.devices);
 					if (data.activity) activity.set(data.activity);
+					if (data.scenarios) scenarios.setAll(data.scenarios);
 					break;
 				}
 				case 'stats':
@@ -58,8 +60,7 @@ function createConnectionStore() {
 					activity.add(msg.data as ActivityEvent);
 					break;
 				case 'scenario_changed':
-					// Will be handled by scenarios store in Phase 4
-					console.log('Scenario changed:', msg.data as ScenarioChangedData);
+					scenarios.handleChange(msg.data as ScenarioChangedData);
 					break;
 				case 'error':
 					console.error('WebSocket error:', msg.message);

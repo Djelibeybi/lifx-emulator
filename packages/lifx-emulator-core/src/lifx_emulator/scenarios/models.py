@@ -51,7 +51,7 @@ class ScenarioConfig(BaseModel):
         description="List of packet types to send with incomplete data",
     )
     send_unhandled: bool = Field(
-        False, description="Send unhandled message responses for unknown packet types"
+        True, description="Send unhandled message responses for unknown packet types"
     )
 
     @property

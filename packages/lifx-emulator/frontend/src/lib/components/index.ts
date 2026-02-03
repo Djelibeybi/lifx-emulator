@@ -4,4 +4,6 @@ export { default as AddDeviceForm } from './AddDeviceForm.svelte';
 export { default as DeviceToolbar } from './DeviceToolbar.svelte';
 export { default as DeviceCard } from './DeviceCard.svelte';
 export { default as DeviceList } from './DeviceList.svelte';
+export { default as DeviceTable } from './DeviceTable.svelte';
 export { default as ActivityLog } from './ActivityLog.svelte';
+export { default as ScenarioPanel } from './ScenarioPanel.svelte';
