@@ -6,6 +6,7 @@ import logging
 import signal
 import uuid
 import warnings
+import webbrowser
 from pathlib import Path
 from typing import Annotated
 
@@ -610,6 +611,14 @@ async def run(
     api_host: Annotated[str | None, cyclopts.Parameter(group=api_group)] = None,
     api_port: Annotated[int | None, cyclopts.Parameter(group=api_group)] = None,
     api_activity: Annotated[bool | None, cyclopts.Parameter(group=api_group)] = None,
+    browser: Annotated[
+        bool | None,
+        cyclopts.Parameter(
+            negative="",
+            group=api_group,
+            help="Open dashboard in default browser when API starts.",
+        ),
+    ] = None,
     # Device Creation
     product: Annotated[
         list[int] | None, cyclopts.Parameter(negative_iterable="", group=device_group)
@@ -666,6 +675,8 @@ async def run(
         api_port: API server port. Default: 8080.
         api_activity: Enable activity logging in API. Disable to reduce traffic
             and save UI space on the monitoring dashboard. Default: true.
+        browser: Open the monitoring dashboard in the default browser when the
+            API server starts. Requires --api. Default: false.
         product: Create devices by product ID. Can be specified multiple times.
             Run 'lifx-emulator list-products' to see available products.
         color: Number of full-color RGB lights to emulate.
@@ -725,6 +736,7 @@ async def run(
         api_host=api_host,
         api_port=api_port,
         api_activity=api_activity,
+        browser=browser,
         products=product,
         color=color,
         color_temperature=color_temperature,
@@ -754,6 +766,7 @@ async def run(
     f_api_host: str = cfg["api_host"]
     f_api_port: int = cfg["api_port"]
     f_api_activity: bool = cfg["api_activity"]
+    f_browser: bool = cfg["browser"]
     f_products: list[int] | None = cfg["products"]
     f_color: int = cfg["color"]
     f_color_temperature: int = cfg["color_temperature"]
@@ -1073,6 +1086,12 @@ async def run(
 
         logger.info("Starting HTTP API server on http://%s:%s", f_api_host, f_api_port)
         api_task = asyncio.create_task(run_api_server(server, f_api_host, f_api_port))
+
+        # Open browser if requested
+        if f_browser:
+            dashboard_url = f"http://{f_api_host}:{f_api_port}"
+            logger.info("Opening dashboard in browser: %s", dashboard_url)
+            webbrowser.open(dashboard_url)
 
     # Set up graceful shutdown on signals
     shutdown_event = asyncio.Event()

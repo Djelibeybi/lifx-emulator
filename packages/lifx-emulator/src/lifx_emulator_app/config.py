@@ -170,6 +170,7 @@ class EmulatorConfig(BaseModel):
     api_host: str | None = None
     api_port: int | None = None
     api_activity: bool | None = None
+    browser: bool | None = None
 
     # Device creation (counts)
     products: list[int] | None = None
@@ -279,6 +280,7 @@ def merge_config(
         "api_host": "127.0.0.1",
         "api_port": 8080,
         "api_activity": True,
+        "browser": False,
         "products": None,
         "color": 0,
         "color_temperature": 0,
