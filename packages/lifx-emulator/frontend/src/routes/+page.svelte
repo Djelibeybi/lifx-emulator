@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { connection } from '$lib/stores';
-	import { Header, StatsBar, AddDeviceForm, DeviceList, ActivityLog } from '$lib/components';
+	import { Header, StatsBar, DeviceToolbar, DeviceList, ActivityLog } from '$lib/components';
 
 	onMount(() => {
 		connection.connect();
@@ -17,7 +17,7 @@
 
 	<div class="grid">
 		<StatsBar />
-		<AddDeviceForm />
+		<DeviceToolbar />
 	</div>
 
 	<DeviceList />

@@ -168,6 +168,31 @@ h2 {
 	border-color: var(--accent-primary);
 }
 
+/* Device Toolbar */
+.toolbar-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.form-row {
+	display: flex;
+	gap: 10px;
+	align-items: flex-end;
+}
+
+.form-row .form-group {
+	flex: 1;
+	margin-bottom: 0;
+}
+
+.form-row .btn {
+	padding: 8px 16px;
+	height: fit-content;
+	white-space: nowrap;
+}
+
 /* Stats */
 .stat {
 	display: flex;
@@ -386,6 +411,42 @@ h2 {
 }
 
 /* Activity log */
+.activity-filters {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 15px;
+	flex-wrap: wrap;
+	align-items: flex-end;
+}
+
+.filter-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.filter-group label {
+	color: var(--text-muted);
+	font-size: 0.85em;
+}
+
+.filter-group select,
+.filter-group input {
+	background: var(--bg-input);
+	border: 1px solid var(--border-primary);
+	color: var(--text-primary);
+	padding: 6px 8px;
+	border-radius: 4px;
+	font-size: 0.85em;
+	min-width: 150px;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+	outline: none;
+	border-color: var(--accent-primary);
+}
+
 .activity-log {
 	background: var(--bg-input);
 	border: 1px solid var(--border-primary);
