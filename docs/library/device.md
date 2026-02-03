@@ -175,6 +175,7 @@ Calculate current uptime in nanoseconds since device creation.
 Check if device should respond to a packet (for testing packet drop scenarios).
 
 **Parameters:**
+
 - **`packet_type`** (`int`) - LIFX packet type number
 
 **Returns:** `bool` - `False` if packet should be dropped, `True` otherwise
@@ -184,6 +185,7 @@ Check if device should respond to a packet (for testing packet drop scenarios).
 Get configured response delay for a packet type (for testing timeout scenarios).
 
 **Parameters:**
+
 - **`packet_type`** (`int`) - LIFX packet type number
 
 **Returns:** `float` - Delay in seconds (0.0 if no delay configured)
@@ -193,6 +195,7 @@ Get configured response delay for a packet type (for testing timeout scenarios).
 Check if response packet should be malformed (for testing error handling).
 
 **Parameters:**
+
 - **`packet_type`** (`int`) - LIFX packet type number
 
 **Returns:** `bool` - `True` if response should be truncated/corrupted
@@ -202,6 +205,7 @@ Check if response packet should be malformed (for testing error handling).
 Check if response packet should have invalid field values (all 0xFF bytes).
 
 **Parameters:**
+
 - **`packet_type`** (`int`) - LIFX packet type number
 
 **Returns:** `bool` - `True` if response fields should be invalid
@@ -217,6 +221,7 @@ Get firmware version override from scenarios configuration.
 Check if multizone/tile response should be partial (incomplete data for testing).
 
 **Parameters:**
+
 - **`packet_type`** (`int`) - LIFX packet type number
 
 **Returns:** `bool` - `True` if response should be incomplete
@@ -227,12 +232,15 @@ Process an incoming LIFX protocol packet and generate response packets.
 
 This is the main entry point for packet processing. It:
 
-1. Checks if an acknowledgment is required (`ack_required` flag)
-2. Routes the packet to the appropriate handler based on packet type
-3. Applies testing scenarios (delays, drops, malformed responses)
-4. Returns a list of response packets (header, payload) tuples
+1. Routes the packet to the appropriate handler based on packet type
+2. Applies testing scenarios (delays, drops, malformed responses)
+3. Returns a list of response packets (header, payload) tuples
+
+!!! note
+    Acknowledgment packets (type 45) are normally sent by the server immediately before calling `process_packet()`. The device only generates acks itself when a scenario targets ack behavior (e.g., delaying, dropping, or corrupting type 45).
 
 **Parameters:**
+
 - **`header`** (`LifxHeader`) - Parsed packet header
 - **`packet`** (`Any | None`) - Parsed packet payload (None for header-only packets)
 
@@ -267,13 +275,17 @@ Capability flags in `DeviceState` determine which features the device supports a
 | `has_color` | Full RGB color control | A19 (27), BR30 (43), GU10 (66) | `Light.Get`, `Light.SetColor`, `Light.State` |
 | `has_infrared` | Night vision IR capability | A19 Night Vision (29), BR30 NV (44) | `Light.GetInfrared`, `Light.SetInfrared`, `Light.StateInfrared` |
 | `has_multizone` | Linear zone control (strips) | LIFX Z (32), Beam (38) | `MultiZone.GetColorZones`, `MultiZone.SetColorZones`, `MultiZone.StateZone`, `MultiZone.StateMultiZone` |
+| `has_extended_multizone` | Extended multizone support | Beam (38), LIFX Z (32) | `MultiZone.GetExtendedColorZones`, `MultiZone.SetExtendedColorZones`, `MultiZone.ExtendedStateMultiZone` |
 | `has_matrix` | 2D tile/matrix control | Tile (55), Candle (57), Ceiling (176) | `Tile.GetDeviceChain`, `Tile.Get64`, `Tile.Set64`, `Tile.StateDeviceChain`, `Tile.State64` |
 | `has_hev` | Germicidal UV-C light | LIFX Clean (90) | `Hev.GetCycle`, `Hev.SetCycle`, `Hev.StateCycle` |
+| `has_relays` | Relay/switch control | LIFX Switch (70) | `Device.*` only (returns `StateUnhandled` for Light/MultiZone/Tile) |
+| `has_buttons` | Physical button configuration | LIFX Switch (70), LIFX Luna (199) | Button-related device packets |
 
 **Notes:**
+
 - Devices without a capability flag will ignore related packets
 - Most devices have `has_color=True` (except switches and relays)
-- Extended multizone (>16 zones) is indicated by `zone_count > 16`
+- `has_extended_multizone` is independent of zone count — it indicates firmware support for the extended multizone protocol
 - Matrix devices store tile data in `tile_devices` list
 
 **Example:**
@@ -427,50 +439,43 @@ The packet processing flow in `EmulatedLifxDevice.process_packet()` follows thes
 
 ```mermaid
 graph TD
-    A[Incoming Packet] --> B{ack_required?}
-    B -->|Yes| C[Add Acknowledgment]
-    B -->|No| D{res_required?}
+    S[Server receives packet] --> SA{ack_required?}
+    SA -->|Yes| SB{Scenario targets acks?}
+    SA -->|No| A
+    SB -->|No| SC[Server sends ack immediately]
+    SB -->|Yes| A
+    SC --> A
 
-    D -->|Yes| E[Route to Handler]
-    D -->|No| F[Route to Handler]
+    A[process_packet called] --> B{Drop packet?}
+    B -->|Yes| L[Return empty]
+    B -->|No| C[Route to handler]
 
-    E --> G{Handler Returns Response?}
-    F --> H{Handler Returns Response?}
+    C --> D["handler.handle(state, packet, res_required)"]
+    D --> E{Handler returns response?}
 
-    G -->|Yes| I[Apply Scenarios]
-    G -->|No| J[Return Responses]
+    E -->|No| L
+    E -->|Yes| F{Malformed?}
 
-    H -->|Yes| I
+    F -->|Yes| G[Truncate packet]
+    F -->|No| H{Invalid fields?}
+
+    G --> J[Return responses]
+    H -->|Yes| I[Set fields to 0xFF]
     H -->|No| J
 
-    I --> K{Drop Packet?}
-    K -->|Yes| L[Return Empty]
-    K -->|No| M{Delay?}
-
-    M -->|Yes| N[Wait Delay Time]
-    M -->|No| O{Malformed?}
-
-    N --> O
-    O -->|Yes| P[Truncate Packet]
-    O -->|No| Q{Invalid Fields?}
-
-    P --> J
-    Q -->|Yes| R[Set Fields to 0xFF]
-    Q -->|No| J
-
-    R --> J
-    C --> J
-    J[Return Responses]
+    I --> J
 ```
 
 **Key Points:**
-- Acknowledgments (packet type 45) are sent when `ack_required=True` in header
-- Response packets are sent when `res_required=True` in header
+
+- Acknowledgments (packet type 45) are sent by the server immediately before `process_packet()` for minimal latency. When a scenario targets ack behavior, the device generates the ack instead so it goes through scenario processing.
+- `res_required` is passed to the handler, which decides whether to return a response based on its value
 - Handlers are registered by packet type and dispatched via `HandlerRegistry`
-- Testing scenarios are applied after handler execution, before returning responses
+- Testing scenarios (malformed, invalid fields) are applied after handler execution, before returning responses
 - Multiple response packets may be returned (e.g., multizone queries return multiple `StateMultiZone` packets)
 
 **See Also:**
+
 - [EmulatedLifxServer](server.md) - UDP server that routes packets to devices
 - [Protocol Packets](protocol.md) - LIFX protocol packet definitions
 - [Factories](factories.md) - Helper functions for creating pre-configured devices
@@ -483,6 +488,7 @@ graph TD
 **Source:** `src/lifx_emulator/device.py`
 
 **Related Documentation:**
+
 - [Getting Started](../getting-started/quickstart.md) - Quick start guide
 - [Device Types](../guide/device-types.md) - Supported device types and capabilities
 - [Testing Scenarios](../guide/testing-scenarios.md) - Detailed testing scenario guide

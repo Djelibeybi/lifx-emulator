@@ -167,8 +167,12 @@ class TestSwitchStateUnhandled:
         assert resp_packet.PKT_TYPE == 223  # StateUnhandled
         assert resp_packet.unhandled_type == 102  # SetColor was rejected
 
-    def test_switch_returns_state_unhandled_with_ack(self):
-        """Test switch returns both StateUnhandled and Acknowledgement."""
+    def test_switch_returns_state_unhandled_without_ack(self):
+        """Test switch returns only StateUnhandled when no scenario targets acks.
+
+        The server sends acks before calling process_packet, so the device
+        should not include one in its response list by default.
+        """
         switch = create_switch("d073d7000001")
 
         header = LifxHeader(
@@ -184,17 +188,11 @@ class TestSwitchStateUnhandled:
 
         responses = switch.process_packet(header, None)
 
-        # Should get both StateUnhandled and Acknowledgement
-        assert len(responses) == 2
-
-        # First response: StateUnhandled
-        resp_header1, resp_packet1 = responses[0]
-        assert resp_packet1.PKT_TYPE == 223  # StateUnhandled
-        assert resp_packet1.unhandled_type == 101
-
-        # Second response: Acknowledgement
-        resp_header2, resp_packet2 = responses[1]
-        assert resp_packet2.PKT_TYPE == 45  # Acknowledgement
+        # Should get only StateUnhandled (server handles ack)
+        assert len(responses) == 1
+        resp_header, resp_packet = responses[0]
+        assert resp_packet.PKT_TYPE == 223  # StateUnhandled
+        assert resp_packet.unhandled_type == 101
 
     def test_switch_handles_device_packets_normally(self):
         """Test switch handles Device.* packets without StateUnhandled."""
@@ -321,7 +319,7 @@ class TestSwitchEdgeCases:
             tagged=False,
             pkt_type=101,  # Light.GetColor
             size=36,
-            ack_required=True,
+            ack_required=False,
             res_required=True,
         )
 

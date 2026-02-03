@@ -270,10 +270,8 @@ class EmulatedLifxDevice:
                 state_unhandled.PKT_TYPE,
                 len(unhandled_payload),
             )
-            responses.append((unhandled_header, state_unhandled))
-
-            # Still send acknowledgment if requested
-            if header.ack_required:
+            # Send ack before StateUnhandled when scenario controls ack behavior
+            if header.ack_required and scenario.affects_acks:
                 ack_packet = Device.Acknowledgement()
                 ack_payload = ack_packet.pack()
                 ack_header = self._create_response_header(
@@ -284,13 +282,16 @@ class EmulatedLifxDevice:
                 )
                 responses.append((ack_header, ack_packet))
 
+            responses.append((unhandled_header, state_unhandled))
             return responses
 
         # Update uptime
         self.state.uptime_ns = self.get_uptime_ns()
 
         # Handle acknowledgment (packet type 45, no payload)
-        if header.ack_required:
+        # Only generate ack here when a scenario targets ack behavior;
+        # otherwise the server sends the ack immediately before calling us.
+        if header.ack_required and scenario.affects_acks:
             ack_packet = Device.Acknowledgement()
             ack_payload = ack_packet.pack()
             ack_header = self._create_response_header(

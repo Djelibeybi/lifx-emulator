@@ -18,7 +18,7 @@ from lifx_emulator.devices import (
     PacketEvent,
 )
 from lifx_emulator.protocol.header import LifxHeader
-from lifx_emulator.protocol.packets import get_packet_class
+from lifx_emulator.protocol.packets import Device, get_packet_class
 from lifx_emulator.repositories import IScenarioStorageBackend
 from lifx_emulator.scenarios import HierarchicalScenarioManager
 
@@ -179,6 +179,54 @@ class EmulatedLifxServer:
                 # Fallback for edge case where loop not yet cached
                 asyncio.create_task(self.server.handle_packet(data, addr))
 
+    def _send_ack(
+        self,
+        device: EmulatedLifxDevice,
+        header: LifxHeader,
+        addr: tuple[str, int],
+    ) -> None:
+        """Send an acknowledgment packet immediately via UDP.
+
+        Args:
+            device: The device acknowledging the packet
+            header: Request header (source/sequence are copied)
+            addr: Client address (host, port)
+        """
+        ack_packet = Device.Acknowledgement()
+        ack_payload = ack_packet.pack()
+        ack_header = device._create_response_header(
+            header.source,
+            header.sequence,
+            ack_packet.PKT_TYPE,
+            len(ack_payload),
+        )
+        response_data = ack_header.pack() + ack_payload
+        if self.transport:
+            self.transport.sendto(response_data, addr)
+
+        self.packets_sent += 1
+        self.packets_sent_by_type[ack_header.pkt_type] += 1
+
+        logger.debug(
+            "→ TX %s to %s:%s (target=%s, seq=%s) [no fields]",
+            _get_packet_type_name(ack_header.pkt_type),
+            addr[0],
+            addr[1],
+            device.state.serial,
+            ack_header.sequence,
+        )
+
+        self.activity_observer.on_packet_sent(
+            PacketEvent(
+                timestamp=time.time(),
+                direction="tx",
+                packet_type=ack_header.pkt_type,
+                packet_name=_get_packet_type_name(ack_header.pkt_type),
+                addr=f"{addr[0]}:{addr[1]}",
+                device=device.state.serial,
+            )
+        )
+
     async def _process_device_packet(
         self,
         device: EmulatedLifxDevice,
@@ -194,6 +242,13 @@ class EmulatedLifxServer:
             packet: Parsed packet payload (or None)
             addr: Client address (host, port)
         """
+        # Send ack immediately before device processing when no scenario
+        # targets ack behavior (fast path for the common case)
+        if header.ack_required:
+            scenario = device._get_resolved_scenario()
+            if not scenario.affects_acks:
+                self._send_ack(device, header, addr)
+
         responses = device.process_packet(header, packet)
 
         # Get resolved scenario for response delays
