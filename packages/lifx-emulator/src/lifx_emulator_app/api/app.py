@@ -15,10 +15,9 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
@@ -37,10 +36,8 @@ from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
-# Asset directories for web UI
-TEMPLATES_DIR = Path(__file__).parent / "templates"
+# Asset directory for web UI (Svelte build output)
 STATIC_DIR = Path(__file__).parent / "static"
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 def create_api_app(server: EmulatedLifxServer) -> FastAPI:
@@ -133,12 +130,15 @@ The API is organized into four main routers:
         ],
     )
 
-    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-    async def root(request: Request):
-        """Serve embedded web UI dashboard."""
-        return templates.TemplateResponse(request, "dashboard.html")
+    @app.get("/", include_in_schema=False)
+    async def root():
+        """Serve embedded Svelte dashboard."""
+        return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
 
-    # Mount static files for JS/CSS assets (cached by browsers)
+    # Mount Svelte app assets at /_app (SvelteKit default)
+    app.mount("/_app", StaticFiles(directory=str(STATIC_DIR / "_app")), name="app")
+
+    # Mount static files for backward compatibility
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     # Store WebSocket manager in app state for access by event handlers
