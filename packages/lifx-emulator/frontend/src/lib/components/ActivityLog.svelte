@@ -34,10 +34,15 @@
 	});
 </script>
 
-{#if stats.value.activity_enabled}
-	<div class="card">
-		<h2>Recent Activity</h2>
+<div class="card">
+	<h2>Recent Activity</h2>
 
+	{#if !stats.value.activity_enabled}
+		<div class="activity-disabled">
+			<p>Activity logging is disabled.</p>
+			<p class="hint">Start the emulator with <code>--activity</code> to enable packet logging.</p>
+		</div>
+	{:else}
 		<!-- Filters -->
 		<div class="activity-filters">
 			<div class="filter-group">
@@ -102,5 +107,29 @@
 				{/each}
 			{/if}
 		</div>
-	</div>
-{/if}
+	{/if}
+</div>
+
+<style>
+	.activity-disabled {
+		padding: 20px;
+		text-align: center;
+		color: var(--text-muted);
+	}
+
+	.activity-disabled p {
+		margin: 8px 0;
+	}
+
+	.activity-disabled .hint {
+		font-size: 0.85em;
+		color: var(--text-dimmed);
+	}
+
+	.activity-disabled code {
+		background: var(--bg-secondary);
+		padding: 2px 6px;
+		border-radius: 3px;
+		font-family: monospace;
+	}
+</style>

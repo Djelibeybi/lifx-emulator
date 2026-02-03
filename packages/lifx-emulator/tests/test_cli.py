@@ -1081,7 +1081,7 @@ class TestScenarioDefToCore:
         assert isinstance(result, ScenarioConfig)
         assert result.drop_packets == {}
         assert result.malformed_packets == []
-        assert result.send_unhandled is False
+        assert result.send_unhandled is True  # Default is on
 
     def test_full_definition(self):
         """All fields populated are forwarded."""

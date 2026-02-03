@@ -1,1 +1,0 @@
-import{o as l,n as o,A as u,q as t}from"./BOE2s64r.js";function c(n){throw new Error("https://svelte.dev/e/lifecycle_outside_component")}function a(n){o===null&&c(),u&&o.l!==null?i(o).m.push(n):l(()=>{const e=t(n);if(typeof e=="function")return e})}function f(n){o===null&&c(),a(()=>()=>t(n))}function i(n){var e=n.l;return e.u??={a:[],b:[],m:[]}}export{f as a,a as o};

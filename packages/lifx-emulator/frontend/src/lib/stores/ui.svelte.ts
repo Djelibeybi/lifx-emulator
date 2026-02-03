@@ -1,8 +1,10 @@
-import type { ViewMode } from '$lib/types';
+import type { ViewMode, ActiveTab } from '$lib/types';
 
 const STORAGE_KEY_VIEW = 'lifx-emulator-view';
 const STORAGE_KEY_PAGE_SIZE = 'lifx-emulator-page-size';
 const STORAGE_KEY_EXPANDED = 'lifx-emulator-expanded';
+const STORAGE_KEY_TAB = 'lifx-emulator-tab';
+const STORAGE_KEY_SHOW_STATS = 'lifx-emulator-show-stats';
 
 function getStoredView(): ViewMode {
 	if (typeof localStorage === 'undefined') return 'card';
@@ -32,11 +34,26 @@ function getStoredExpanded(): Record<string, Set<string>> {
 	}
 }
 
+function getStoredTab(): ActiveTab {
+	if (typeof localStorage === 'undefined') return 'devices';
+	const stored = localStorage.getItem(STORAGE_KEY_TAB);
+	if (stored === 'activity' || stored === 'scenarios') return stored;
+	return 'devices';
+}
+
+function getStoredShowStats(): boolean {
+	if (typeof localStorage === 'undefined') return false;
+	const stored = localStorage.getItem(STORAGE_KEY_SHOW_STATS);
+	return stored === 'true';
+}
+
 function createUiStore() {
 	let viewMode = $state<ViewMode>(getStoredView());
 	let pageSize = $state<number>(getStoredPageSize());
 	let currentPage = $state<number>(1);
 	let expanded = $state<Record<string, Set<string>>>(getStoredExpanded());
+	let activeTab = $state<ActiveTab>(getStoredTab());
+	let showStats = $state<boolean>(getStoredShowStats());
 
 	function persistExpanded() {
 		if (typeof localStorage !== 'undefined') {
@@ -63,6 +80,12 @@ function createUiStore() {
 		get expanded() {
 			return expanded;
 		},
+		get activeTab() {
+			return activeTab;
+		},
+		get showStats() {
+			return showStats;
+		},
 
 		setViewMode(mode: ViewMode) {
 			viewMode = mode;
@@ -81,6 +104,20 @@ function createUiStore() {
 
 		setCurrentPage(page: number) {
 			currentPage = page;
+		},
+
+		setActiveTab(tab: ActiveTab) {
+			activeTab = tab;
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_TAB, tab);
+			}
+		},
+
+		toggleShowStats() {
+			showStats = !showStats;
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_SHOW_STATS, String(showStats));
+			}
 		},
 
 		toggleZonesExpanded(serial: string) {

@@ -26,7 +26,7 @@ class TestScenarioConfig:
         assert config.invalid_field_values == []
         assert config.firmware_version is None
         assert config.partial_responses == []
-        assert config.send_unhandled is False
+        assert config.send_unhandled is True  # Default is on
 
     def test_scenario_config_to_dict(self):
         """Test conversion to dictionary."""
