@@ -124,7 +124,7 @@ class EmulatedLifxDevice:
                             "accel_meas_x": 0,
                             "accel_meas_y": 0,
                             "accel_meas_z": 0,
-                            "user_x": float(i * self.state.tile_width),
+                            "user_x": float(i),
                             "user_y": 0.0,
                             "width": self.state.tile_width,
                             "height": self.state.tile_height,
