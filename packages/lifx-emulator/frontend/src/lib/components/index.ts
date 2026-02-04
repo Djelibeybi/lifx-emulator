@@ -7,3 +7,4 @@ export { default as DeviceList } from './DeviceList.svelte';
 export { default as DeviceTable } from './DeviceTable.svelte';
 export { default as ActivityLog } from './ActivityLog.svelte';
 export { default as ScenarioPanel } from './ScenarioPanel.svelte';
+export { default as Visualizer } from './Visualizer.svelte';

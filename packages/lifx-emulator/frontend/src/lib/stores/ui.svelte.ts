@@ -35,10 +35,16 @@ function getStoredExpanded(): Record<string, Set<string>> {
 }
 
 function getStoredTab(): ActiveTab {
-	if (typeof localStorage === 'undefined') return 'devices';
+	if (typeof localStorage === 'undefined') return 'visualizer';
 	const stored = localStorage.getItem(STORAGE_KEY_TAB);
-	if (stored === 'activity' || stored === 'scenarios') return stored;
-	return 'devices';
+	if (
+		stored === 'visualizer' ||
+		stored === 'devices' ||
+		stored === 'activity' ||
+		stored === 'scenarios'
+	)
+		return stored;
+	return 'visualizer';
 }
 
 function getStoredShowStats(): boolean {

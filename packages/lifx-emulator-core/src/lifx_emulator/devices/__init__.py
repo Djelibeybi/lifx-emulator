@@ -9,7 +9,11 @@ This module contains all device-related functionality including:
 - Device state observers (ActivityObserver, ActivityLogger, PacketEvent, NullObserver)
 """
 
-from lifx_emulator.devices.device import EmulatedLifxDevice
+from lifx_emulator.devices.device import (
+    STATE_CHANGING_PACKETS,
+    EmulatedLifxDevice,
+    StateChangeCallback,
+)
 from lifx_emulator.devices.manager import (
     DeviceAddedCallback,
     DeviceManager,
@@ -30,6 +34,8 @@ from lifx_emulator.devices.states import DeviceState
 
 __all__ = [
     "EmulatedLifxDevice",
+    "StateChangeCallback",
+    "STATE_CHANGING_PACKETS",
     "DeviceManager",
     "DeviceAddedCallback",
     "DeviceRemovedCallback",

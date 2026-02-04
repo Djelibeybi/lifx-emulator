@@ -30,7 +30,9 @@ from lifx_emulator_app.api.routers.websocket import create_websocket_router
 from lifx_emulator_app.api.services.event_bridge import (
     StatsBroadcaster,
     WebSocketActivityObserver,
+    WebSocketStateChangeObserver,
     wire_device_events,
+    wire_device_state_events,
 )
 from lifx_emulator_app.api.services.websocket_manager import WebSocketManager
 
@@ -204,6 +206,10 @@ All server messages follow this format:
 
     # Wire device lifecycle events to WebSocket broadcasts
     wire_device_events(server._device_manager, ws_manager)
+
+    # Wire device state change events to WebSocket broadcasts
+    state_observer = WebSocketStateChangeObserver(ws_manager)
+    wire_device_state_events(server._device_manager, state_observer)
 
     # Wrap the activity observer with WebSocket broadcasting
     # This preserves activity logging while adding real-time WebSocket updates
