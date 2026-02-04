@@ -9,10 +9,12 @@
 		DeviceList,
 		DeviceTable,
 		ActivityLog,
-		ScenarioPanel
+		ScenarioPanel,
+		Visualizer
 	} from '$lib/components';
 
 	const tabs: { id: ActiveTab; label: string }[] = [
+		{ id: 'visualizer', label: 'Visualizer' },
 		{ id: 'devices', label: 'Devices' },
 		{ id: 'activity', label: 'Activity' },
 		{ id: 'scenarios', label: 'Scenarios' }
@@ -43,7 +45,7 @@
 				onclick={() => ui.setActiveTab(tab.id)}
 			>
 				{tab.label}
-				{#if tab.id === 'devices'}
+				{#if tab.id === 'visualizer' || tab.id === 'devices'}
 					<span class="tab-count">{devices.count}</span>
 				{:else if tab.id === 'activity'}
 					<span class="tab-count">{activity.count}</span>
@@ -54,7 +56,9 @@
 
 	<!-- Tab content -->
 	<div class="tab-content">
-		{#if ui.activeTab === 'devices'}
+		{#if ui.activeTab === 'visualizer'}
+			<Visualizer />
+		{:else if ui.activeTab === 'devices'}
 			<DeviceToolbar />
 			{#if ui.viewMode === 'table'}
 				<DeviceTable />

@@ -7,6 +7,7 @@ import copy
 import logging
 import random
 import time
+from collections.abc import Callable
 from typing import Any
 
 from lifx_emulator.constants import LIFX_HEADER_SIZE
@@ -30,6 +31,25 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 
+# Type alias for state change callback
+# Signature: (device, packet_type, duration_ms) -> None
+StateChangeCallback = Callable[["EmulatedLifxDevice", int, int], None]
+
+# Packet types that modify device state (for state change notifications)
+STATE_CHANGING_PACKETS: frozenset[int] = frozenset(
+    {
+        21,  # Device.SetPower
+        102,  # Light.SetColor
+        103,  # Light.SetWaveform
+        117,  # Light.SetPower
+        119,  # Light.SetWaveformOptional
+        501,  # MultiZone.SetColorZones
+        510,  # MultiZone.ExtendedSetColorZones
+        715,  # Tile.Set64
+        716,  # Tile.CopyFrameBuffer
+    }
+)
+
 
 class EmulatedLifxDevice:
     """Emulated LIFX device with configurable scenarios and state management."""
@@ -40,8 +60,10 @@ class EmulatedLifxDevice:
         storage: DevicePersistenceAsyncFile | None = None,
         handler_registry: HandlerRegistry | None = None,
         scenario_manager: HierarchicalScenarioManager | None = None,
+        on_state_changed: StateChangeCallback | None = None,
     ):
         self.state = device_state
+        self.on_state_changed = on_state_changed
         # Use provided scenario manager or create a default empty one
         if scenario_manager is not None:
             self.scenario_manager = scenario_manager
@@ -400,6 +422,11 @@ class EmulatedLifxDevice:
             # Save state if storage is enabled (for SET operations)
             if packet and self.storage:
                 self._save_state()
+
+            # Notify state change callback for state-modifying packets
+            if pkt_type in STATE_CHANGING_PACKETS and self.on_state_changed:
+                duration_ms = getattr(packet, "duration", 0) if packet else 0
+                self.on_state_changed(self, pkt_type, duration_ms)
 
             return response
         else:

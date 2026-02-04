@@ -264,6 +264,116 @@ class TestEventBridge:
 
         assert activity == []
 
+    def test_wire_device_state_events_wires_existing_devices(self):
+        """Test wire_device_state_events wires callback to existing devices."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator.devices import DeviceManager
+        from lifx_emulator.repositories import DeviceRepository
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+            wire_device_state_events,
+        )
+
+        # Create manager with a device
+        device_manager = DeviceManager(DeviceRepository())
+        device = create_color_light("d073d5000001")
+        device_manager.add_device(device)
+
+        mock_ws_manager = MagicMock()
+        state_observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Wire state events
+        wire_device_state_events(device_manager, state_observer)
+
+        # Verify device has callback wired
+        assert device.on_state_changed is not None
+        assert device.on_state_changed == state_observer.on_state_changed
+
+    def test_wire_device_state_events_wires_new_devices(self):
+        """Test wire_device_state_events wires callback to newly added devices."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator.devices import DeviceManager
+        from lifx_emulator.repositories import DeviceRepository
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+            wire_device_events,
+            wire_device_state_events,
+        )
+
+        # Create empty manager
+        device_manager = DeviceManager(DeviceRepository())
+
+        mock_ws_manager = MagicMock()
+        state_observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Wire both events (lifecycle and state)
+        wire_device_events(device_manager, mock_ws_manager)
+        wire_device_state_events(device_manager, state_observer)
+
+        # Add a new device
+        device = create_color_light("d073d5000002")
+        device_manager.add_device(device)
+
+        # Verify device has callback wired
+        assert device.on_state_changed is not None
+        assert device.on_state_changed == state_observer.on_state_changed
+
+    def test_state_change_observer_invokes_broadcast(self, server):
+        """Test WebSocketStateChangeObserver broadcasts device updates."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_updated = AsyncMock()
+
+        observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        device = create_color_light("d073d5000001")
+
+        # Mock the async scheduling
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            observer.on_state_changed(device, 102, 1000)
+
+            # Verify _schedule_async was called with the broadcast coroutine
+            mock_schedule.assert_called_once()
+            args = mock_schedule.call_args[0]
+            # The first arg should be a coroutine
+            assert args[0] is not None
+
+    def test_state_change_observer_category_detection(self):
+        """Test WebSocketStateChangeObserver correctly categorizes packet types."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Test zone packets
+        assert observer._get_change_category(501) == "zones"
+        assert observer._get_change_category(510) == "zones"
+
+        # Test tile packets
+        assert observer._get_change_category(715) == "tiles"
+        assert observer._get_change_category(716) == "tiles"
+
+        # Test power packets
+        assert observer._get_change_category(21) == "power"
+        assert observer._get_change_category(117) == "power"
+
+        # Test color packets
+        assert observer._get_change_category(102) == "color"
+        assert observer._get_change_category(103) == "color"
+
 
 class TestStatsBroadcaster:
     """Tests for the StatsBroadcaster class."""

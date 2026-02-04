@@ -106,9 +106,18 @@ export interface SyncData {
 	scenarios?: ScenariosState;
 }
 
+export interface DeviceStateChanges {
+	category?: 'color' | 'zones' | 'tiles' | 'power';
+	duration_ms?: number;
+	color?: HsbkColor;
+	power_level?: number;
+	zone_colors?: HsbkColor[];
+	tile_devices?: TileDevice[];
+}
+
 export interface DeviceUpdatedData {
 	serial: string;
-	changes: Partial<Device>;
+	changes: Partial<Device> & DeviceStateChanges;
 }
 
 export interface ScenarioChangedData {
@@ -129,4 +138,11 @@ export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'er
 // UI preferences
 export type ViewMode = 'card' | 'table';
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type ActiveTab = 'devices' | 'activity' | 'scenarios';
+export type ActiveTab = 'visualizer' | 'devices' | 'activity' | 'scenarios';
+
+// Visualizer types
+export interface DeviceTransition {
+	serial: string;
+	duration_ms: number;
+	timestamp: number;
+}

@@ -9,6 +9,8 @@ from lifx_emulator.protocol.protocol_types import (
     DeviceService,
     LightHsbk,
     LightWaveform,
+    MultiZoneApplicationRequest,
+    TileBufferRect,
 )
 
 
@@ -69,6 +71,153 @@ class TestEmulatedLifxDevice:
         assert uptime2 > uptime1
         # Should be at least 10 million nanoseconds (10ms)
         assert (uptime2 - uptime1) >= 10_000_000
+
+
+class TestStateChangeCallback:
+    """Test state change callback functionality."""
+
+    def test_callback_invoked_on_set_color(self, color_device):
+        """Test state change callback is invoked for SetColor."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append((device.state.serial, pkt_type, duration_ms))
+
+        color_device.on_state_changed = callback
+
+        packet = Light.SetColor(
+            color=LightHsbk(hue=10000, saturation=50000, brightness=40000, kelvin=4000),
+            duration=1500,
+        )
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=102,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        serial, pkt_type, duration_ms = callback_calls[0]
+        assert serial == "d073d5000001"
+        assert pkt_type == 102
+        assert duration_ms == 1500
+
+    def test_callback_invoked_on_set_power(self, color_device):
+        """Test state change callback is invoked for SetPower."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append((pkt_type, duration_ms))
+
+        color_device.on_state_changed = callback
+
+        packet = Device.SetPower(level=65535)
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=21,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 21
+        assert duration_ms == 0  # SetPower doesn't have duration
+
+    def test_callback_not_invoked_on_get_packets(self, color_device):
+        """Test state change callback is not invoked for Get packets."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append(pkt_type)
+
+        color_device.on_state_changed = callback
+
+        # LightGet (101) should not trigger callback
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=101,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, None)
+
+        assert len(callback_calls) == 0
+
+    def test_callback_invoked_on_multizone_set(self, multizone_device):
+        """Test state change callback is invoked for SetColorZones."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append((pkt_type, duration_ms))
+
+        multizone_device.on_state_changed = callback
+
+        packet = MultiZone.SetColorZones(
+            start_index=0,
+            end_index=7,
+            color=LightHsbk(hue=32768, saturation=65535, brightness=65535, kelvin=3500),
+            duration=2000,
+            apply=MultiZoneApplicationRequest.APPLY_ONLY,
+        )
+        header = LifxHeader(
+            source=12345,
+            target=multizone_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=501,
+            res_required=True,
+        )
+
+        multizone_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 501
+        assert duration_ms == 2000
+
+    def test_callback_invoked_on_tile_set(self, tile_device):
+        """Test state change callback is invoked for Set64."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append((pkt_type, duration_ms))
+
+        tile_device.on_state_changed = callback
+
+        # Create 64 colors for the tile
+        colors = [
+            LightHsbk(hue=i * 1000, saturation=65535, brightness=32768, kelvin=3500)
+            for i in range(64)
+        ]
+        packet = Tile.Set64(
+            tile_index=0,
+            length=1,
+            rect=TileBufferRect(fb_index=0, x=0, y=0, width=8),
+            duration=3000,
+            colors=colors,
+        )
+        header = LifxHeader(
+            source=12345,
+            target=tile_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=715,
+            res_required=True,
+        )
+
+        tile_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 715
+        assert duration_ms == 3000
 
 
 class TestDevicePacketHandlers:
