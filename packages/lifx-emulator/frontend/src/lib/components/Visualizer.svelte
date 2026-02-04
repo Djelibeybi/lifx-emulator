@@ -26,14 +26,12 @@
 
 	// Get devices that have visual elements (color, zones, or tiles)
 	let visualDevices = $derived.by(() => {
-		const filtered = devices.list.filter(
+		return devices.list.filter(
 			(d) =>
 				(d.has_color && d.color) ||
 				(d.has_multizone && d.zone_colors && d.zone_colors.length > 0) ||
 				(d.has_matrix && d.tile_devices && d.tile_devices.length > 0)
 		);
-		console.log('Visualizer devices:', devices.list.length, 'total,', filtered.length, 'visual');
-		return filtered;
 	});
 
 	// Sort devices by span (largest first) for better grid packing
