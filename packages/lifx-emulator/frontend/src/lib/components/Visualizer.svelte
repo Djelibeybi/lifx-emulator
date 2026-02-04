@@ -3,6 +3,27 @@
 	import { devices } from '$lib/stores';
 	import { hsbkToRgb } from '$lib/utils/color';
 
+	// Track which devices have seamless tile mode enabled
+	let seamlessDevices = $state<Set<string>>(new Set());
+
+	function toggleSeamless(serial: string) {
+		seamlessDevices = new Set(seamlessDevices);
+		if (seamlessDevices.has(serial)) {
+			seamlessDevices.delete(serial);
+		} else {
+			seamlessDevices.add(serial);
+		}
+	}
+
+	function getDeviceSpan(device: Device): number {
+		if (device.has_matrix && device.tile_devices) {
+			// Span equals tile count (1-5)
+			return Math.min(device.tile_devices.length, 5);
+		}
+		if (device.has_multizone && device.zone_count > 50) return 2;
+		return 1;
+	}
+
 	// Get devices that have visual elements (color, zones, or tiles)
 	let visualDevices = $derived.by(() => {
 		const filtered = devices.list.filter(
@@ -13,6 +34,11 @@
 		);
 		console.log('Visualizer devices:', devices.list.length, 'total,', filtered.length, 'visual');
 		return filtered;
+	});
+
+	// Sort devices by span (largest first) for better grid packing
+	let sortedDevices = $derived.by(() => {
+		return [...visualDevices].sort((a, b) => getDeviceSpan(b) - getDeviceSpan(a));
 	});
 
 	function getTransitionDuration(serial: string): number {
@@ -51,9 +77,10 @@
 		</div>
 	{:else}
 		<div class="device-grid">
-			{#each visualDevices as device (device.serial)}
+			{#each sortedDevices as device (device.serial)}
 				{@const duration = getTransitionDuration(device.serial)}
-				<div class="viz-device" class:power-off={device.power_level === 0}>
+				{@const span = getDeviceSpan(device)}
+				<div class="viz-device span-{span}" class:power-off={device.power_level === 0}>
 					<!-- Header -->
 					<div class="viz-header">
 						<div class="viz-info">
@@ -65,6 +92,17 @@
 							{#if device.has_multizone || device.has_matrix}
 								<span class="viz-zones">{getTotalZones(device)} zones</span>
 							{/if}
+							{#if device.has_matrix && device.tile_devices && device.tile_devices.length > 1}
+								<button
+									class="viz-view-toggle"
+									class:seamless={seamlessDevices.has(device.serial)}
+									onclick={() => toggleSeamless(device.serial)}
+									title={seamlessDevices.has(device.serial) ? 'Show tiles separately' : 'Show as seamless matrix'}
+								>
+									<span class="toggle-option" class:active={!seamlessDevices.has(device.serial)}>Tiled</span>
+									<span class="toggle-option" class:active={seamlessDevices.has(device.serial)}>Seamless</span>
+								</button>
+							{/if}
 							<span class="viz-power" class:on={device.power_level > 0}>
 								{device.power_level > 0 ? 'ON' : 'OFF'}
 							</span>
@@ -75,10 +113,12 @@
 					<div class="viz-display">
 						{#if device.has_matrix && device.tile_devices && device.tile_devices.length > 0}
 							<!-- Matrix/Tile display -->
-							<div class="viz-tiles">
+							<div class="viz-tiles" class:seamless={seamlessDevices.has(device.serial)}>
 								{#each device.tile_devices as tile, i}
 									<div class="viz-tile-wrapper">
-										<div class="viz-tile-label">T{i + 1}</div>
+										{#if !seamlessDevices.has(device.serial)}
+											<div class="viz-tile-label">T{i + 1}</div>
+										{/if}
 										<div
 											class="viz-tile-grid"
 											style="
@@ -229,6 +269,34 @@
 		color: #000;
 	}
 
+	.viz-view-toggle {
+		display: flex;
+		padding: 2px;
+		border-radius: 6px;
+		font-size: 0.7em;
+		font-weight: 500;
+		background: var(--bg-tertiary);
+		border: 1px solid var(--border-primary);
+		cursor: pointer;
+		gap: 0;
+	}
+
+	.viz-view-toggle .toggle-option {
+		padding: 2px 8px;
+		border-radius: 4px;
+		color: var(--text-muted);
+		transition: all 0.2s ease;
+	}
+
+	.viz-view-toggle .toggle-option.active {
+		background: var(--accent-primary);
+		color: #000;
+	}
+
+	.viz-view-toggle:hover .toggle-option:not(.active) {
+		color: var(--text-primary);
+	}
+
 	.viz-display {
 		min-height: 60px;
 	}
@@ -250,7 +318,6 @@
 	/* Tile grid */
 	.viz-tiles {
 		display: flex;
-		flex-wrap: wrap;
 		gap: 16px;
 		justify-content: center;
 	}
@@ -260,6 +327,9 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 4px;
+		flex: 1;
+		min-width: 0;
+		max-width: 250px;
 	}
 
 	.viz-tile-label {
@@ -274,13 +344,33 @@
 		background: var(--bg-primary);
 		padding: 2px;
 		border-radius: 4px;
-		width: 120px;
+		width: 100%;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	}
 
 	.viz-tile-zone {
 		aspect-ratio: 1;
 		border-radius: 1px;
+	}
+
+	/* Seamless mode - tiles appear as one continuous matrix */
+	.viz-tiles.seamless {
+		gap: 1px;
+		background: var(--bg-primary);
+		border-radius: 6px;
+		padding: 2px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.viz-tiles.seamless .viz-tile-wrapper {
+		gap: 0;
+	}
+
+	.viz-tiles.seamless .viz-tile-grid {
+		border-radius: 0;
+		padding: 0;
+		box-shadow: none;
+		background: transparent;
 	}
 
 	/* Single color swatch */
@@ -295,29 +385,46 @@
 	@media (min-width: 768px) {
 		.device-grid {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+			grid-template-columns: repeat(3, 1fr);
 		}
 
 		.viz-zone-strip {
 			height: 64px;
 		}
 
-		.viz-tile-grid {
-			width: 160px;
-		}
-
 		.viz-color-swatch {
 			height: 120px;
 		}
+
+		/* Tablet: 3 columns, cap spans at 3 */
+		.viz-device.span-2 { grid-column: span 2; }
+		.viz-device.span-3,
+		.viz-device.span-4,
+		.viz-device.span-5 { grid-column: span 3; }
 	}
 
 	@media (min-width: 1200px) {
+		.device-grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+
 		.viz-zone-strip {
 			height: 80px;
 		}
 
-		.viz-tile-grid {
-			width: 200px;
+		/* Desktop: 4 columns, cap spans at 4 */
+		.viz-device.span-3 { grid-column: span 3; }
+		.viz-device.span-4,
+		.viz-device.span-5 { grid-column: span 4; }
+	}
+
+	@media (min-width: 1400px) {
+		.device-grid {
+			grid-template-columns: repeat(5, 1fr);
 		}
+
+		/* Wide: 5 columns, full spanning */
+		.viz-device.span-4 { grid-column: span 4; }
+		.viz-device.span-5 { grid-column: span 5; }
 	}
 </style>
