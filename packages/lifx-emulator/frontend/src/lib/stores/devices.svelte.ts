@@ -72,11 +72,11 @@ function createDevicesStore() {
 				updatedDevice.power_level = changes.power_level;
 				console.log('Updated power_level:', changes.power_level);
 			}
-			if (changes.zone_colors) {
+			if (changes.zone_colors !== undefined) {
 				updatedDevice.zone_colors = changes.zone_colors;
 				console.log('Updated zone_colors:', changes.zone_colors.length, 'zones');
 			}
-			if (changes.tile_devices) {
+			if (changes.tile_devices !== undefined) {
 				updatedDevice.tile_devices = changes.tile_devices;
 				console.log('Updated tile_devices:', changes.tile_devices.length, 'tiles');
 			}
@@ -93,6 +93,9 @@ function createDevicesStore() {
 					timestamp: Date.now()
 				});
 				console.log('Set transition:', changes.duration_ms, 'ms');
+			} else {
+				transitionMap = new Map(transitionMap);
+				transitionMap.delete(serial);
 			}
 		},
 
