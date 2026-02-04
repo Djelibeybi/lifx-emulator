@@ -54,10 +54,8 @@ function createConnectionStore() {
 				}
 				case 'device_updated': {
 					const { serial, changes } = msg.data as DeviceUpdatedData;
-					console.log('device_updated received:', serial, changes);
 					// Use transition-aware update if this is a state change with duration
 					if (changes.category !== undefined) {
-						console.log('Using updateWithTransition for category:', changes.category);
 						devices.updateWithTransition(serial, changes);
 					} else {
 						devices.update(serial, changes);

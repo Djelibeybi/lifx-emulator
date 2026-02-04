@@ -4,6 +4,43 @@ function createDevicesStore() {
 	let deviceMap = $state<Map<string, Device>>(new Map());
 	let transitionMap = $state<Map<string, DeviceTransition>>(new Map());
 
+	// Throttle high-frequency updates using requestAnimationFrame
+	let pendingUpdates = new Map<string, { device: Device; transition?: DeviceTransition }>();
+	let rafScheduled = false;
+
+	function flushPendingUpdates() {
+		if (pendingUpdates.size === 0) {
+			rafScheduled = false;
+			return;
+		}
+
+		// Apply all pending updates in one batch
+		const newDeviceMap = new Map(deviceMap);
+		const newTransitionMap = new Map(transitionMap);
+
+		for (const [serial, update] of pendingUpdates) {
+			newDeviceMap.set(serial, update.device);
+			if (update.transition) {
+				newTransitionMap.set(serial, update.transition);
+			} else {
+				newTransitionMap.delete(serial);
+			}
+		}
+
+		deviceMap = newDeviceMap;
+		transitionMap = newTransitionMap;
+		pendingUpdates.clear();
+		rafScheduled = false;
+	}
+
+	function scheduleUpdate(serial: string, device: Device, transition?: DeviceTransition) {
+		pendingUpdates.set(serial, { device, transition });
+		if (!rafScheduled) {
+			rafScheduled = true;
+			requestAnimationFrame(flushPendingUpdates);
+		}
+	}
+
 	return {
 		get map() {
 			return deviceMap;
@@ -54,49 +91,40 @@ function createDevicesStore() {
 		},
 
 		updateWithTransition(serial: string, changes: DeviceStateChanges) {
-			const existing = deviceMap.get(serial);
+			// Check pending updates first, then fall back to current state
+			const pending = pendingUpdates.get(serial);
+			const existing = pending?.device ?? deviceMap.get(serial);
 			if (!existing) {
-				console.warn('updateWithTransition: device not found:', serial);
 				return;
 			}
-
-			console.log('updateWithTransition:', serial, changes);
 
 			// Update device state
 			const updatedDevice: Device = { ...existing };
 			if (changes.color) {
 				updatedDevice.color = changes.color;
-				console.log('Updated color:', changes.color);
 			}
 			if (changes.power_level !== undefined) {
 				updatedDevice.power_level = changes.power_level;
-				console.log('Updated power_level:', changes.power_level);
 			}
 			if (changes.zone_colors !== undefined) {
 				updatedDevice.zone_colors = changes.zone_colors;
-				console.log('Updated zone_colors:', changes.zone_colors.length, 'zones');
 			}
 			if (changes.tile_devices !== undefined) {
 				updatedDevice.tile_devices = changes.tile_devices;
-				console.log('Updated tile_devices:', changes.tile_devices.length, 'tiles');
 			}
 
-			deviceMap = new Map(deviceMap);
-			deviceMap.set(serial, updatedDevice);
-
-			// Update transition info
+			// Build transition info
+			let transition: DeviceTransition | undefined;
 			if (changes.duration_ms !== undefined && changes.duration_ms > 0) {
-				transitionMap = new Map(transitionMap);
-				transitionMap.set(serial, {
+				transition = {
 					serial,
 					duration_ms: changes.duration_ms,
 					timestamp: Date.now()
-				});
-				console.log('Set transition:', changes.duration_ms, 'ms');
-			} else {
-				transitionMap = new Map(transitionMap);
-				transitionMap.delete(serial);
+				};
 			}
+
+			// Schedule the update to be applied on next animation frame
+			scheduleUpdate(serial, updatedDevice, transition);
 		},
 
 		clear() {
