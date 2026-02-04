@@ -264,6 +264,87 @@ class TestEventBridge:
 
         assert activity == []
 
+    def test_websocket_activity_observer_on_packet_received(self):
+        """Test on_packet_received broadcasts activity."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator.devices import PacketEvent
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_activity = AsyncMock()
+        mock_inner = MagicMock()
+
+        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+
+        event = PacketEvent(
+            timestamp=1704067200.0,
+            direction="rx",
+            packet_type=2,
+            packet_name="GetService",
+            target="d073d5000001",
+            addr="192.168.1.100:56700",
+        )
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            observer.on_packet_received(event)
+
+            mock_inner.on_packet_received.assert_called_once_with(event)
+            mock_schedule.assert_called_once()
+
+    def test_websocket_activity_observer_on_packet_sent(self):
+        """Test on_packet_sent broadcasts activity."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator.devices import PacketEvent
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketActivityObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_activity = AsyncMock()
+        mock_inner = MagicMock()
+
+        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+
+        event = PacketEvent(
+            timestamp=1704067200.0,
+            direction="tx",
+            packet_type=3,
+            packet_name="StateService",
+            device="d073d5000001",
+            addr="192.168.1.100:56700",
+        )
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            observer.on_packet_sent(event)
+
+            mock_inner.on_packet_sent.assert_called_once_with(event)
+            mock_schedule.assert_called_once()
+
+    def test_wire_device_state_events_with_non_device_manager(self):
+        """Test wire_device_state_events handles non-DeviceManager instances."""
+        from unittest.mock import MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+            wire_device_state_events,
+        )
+
+        # Create a mock that's not a DeviceManager
+        mock_manager = MagicMock()
+        mock_ws_manager = MagicMock()
+        state_observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Should not raise, just log warning
+        wire_device_state_events(mock_manager, state_observer)
+
     def test_wire_device_state_events_wires_existing_devices(self):
         """Test wire_device_state_events wires callback to existing devices."""
         from unittest.mock import MagicMock
@@ -374,6 +455,56 @@ class TestEventBridge:
         assert observer._get_change_category(102) == "color"
         assert observer._get_change_category(103) == "color"
 
+    def test_state_change_observer_with_zone_device(self):
+        """Test WebSocketStateChangeObserver broadcasts zone changes."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator.factories import create_multizone_light
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_updated = AsyncMock()
+
+        observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Create a multizone device
+        device = create_multizone_light("d073d5000001", zone_count=16)
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            # Trigger zone change (SetColorZones packet type 501)
+            observer.on_state_changed(device, 501, 500)
+
+            mock_schedule.assert_called_once()
+
+    def test_state_change_observer_with_tile_device(self):
+        """Test WebSocketStateChangeObserver broadcasts tile changes."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator.factories import create_tile_device
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_updated = AsyncMock()
+
+        observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        # Create a tile device
+        device = create_tile_device("d073d5000001")
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            # Trigger tile change (Set64 packet type 715)
+            observer.on_state_changed(device, 715, 500)
+
+            mock_schedule.assert_called_once()
+
 
 class TestStatsBroadcaster:
     """Tests for the StatsBroadcaster class."""
@@ -429,6 +560,30 @@ class TestStatsBroadcaster:
         # Stop without starting should not raise
         await broadcaster.stop()
         assert broadcaster._task is None
+
+    @pytest.mark.asyncio
+    async def test_stats_broadcaster_handles_broadcast_exception(self):
+        """Test StatsBroadcaster handles exceptions in broadcast loop."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
+
+        mock_server = MagicMock()
+        mock_server.get_stats = MagicMock(side_effect=RuntimeError("Stats error"))
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_stats = AsyncMock()
+
+        broadcaster = StatsBroadcaster(mock_server, mock_ws_manager, interval=0.05)
+
+        try:
+            broadcaster.start()
+            # Let it try to broadcast (and fail) at least once
+            await asyncio.sleep(0.1)
+            # Should still be running despite error
+            assert broadcaster._running is True
+        finally:
+            await broadcaster.stop()
 
 
 class TestWebSocketManagerBroadcasting:
