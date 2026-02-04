@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v4.3.0 (2026-02-04)
+
+### Bug Fixes
+
+- Address CodeRabbit review feedback
+  ([`0bc07f5`](https://github.com/Djelibeybi/lifx-emulator/commit/0bc07f5502d219a17159bdf1ecc0d049c85c2d94))
+
+- **frontend**: Clear pending updates on device removal and store clear
+  ([`933d22e`](https://github.com/Djelibeybi/lifx-emulator/commit/933d22e8a6405b42f9839dd3310bc860d5ab9267))
+
+- **security**: Update cookie to 0.7.0 to address CVE
+  ([`dcb7460`](https://github.com/Djelibeybi/lifx-emulator/commit/dcb74608b4930422dec22fd098105ec5f74bd6f9))
+
+### Features
+
+- **dashboard**: Add live device visualizer with real-time state updates
+  ([`51fbcc0`](https://github.com/Djelibeybi/lifx-emulator/commit/51fbcc0e17bafa51554594c146b884e35f96cfde))
+
+- **visualizer**: Add dynamic grid layout with span-based sizing for matrix devices
+  ([`9a7bb7e`](https://github.com/Djelibeybi/lifx-emulator/commit/9a7bb7e82e5fb0e403130b953bcc7024894fdc9c))
+
+### Performance Improvements
+
+- **frontend**: Improve dashboard performance for high-frequency updates
+  ([`7433077`](https://github.com/Djelibeybi/lifx-emulator/commit/74330779872b806a5f2d4af6cd5c5899f39e5712))
+
+
 ## v4.2.0 (2026-02-03)
 
 ### Bug Fixes
