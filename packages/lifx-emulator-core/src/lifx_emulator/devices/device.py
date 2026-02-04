@@ -426,7 +426,14 @@ class EmulatedLifxDevice:
             # Notify state change callback for state-modifying packets
             if pkt_type in STATE_CHANGING_PACKETS and self.on_state_changed:
                 duration_ms = getattr(packet, "duration", 0) if packet else 0
-                self.on_state_changed(self, pkt_type, duration_ms)
+                try:
+                    self.on_state_changed(self, pkt_type, duration_ms)
+                except Exception:
+                    logger.exception(
+                        "State change callback failed for %s (pkt_type=%s)",
+                        self.state.serial,
+                        pkt_type,
+                    )
 
             return response
         else:
