@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v3.6.0 (2026-02-04)
+
+### Bug Fixes
+
+- Address CodeRabbit review feedback
+  ([`0bc07f5`](https://github.com/Djelibeybi/lifx-emulator/commit/0bc07f5502d219a17159bdf1ecc0d049c85c2d94))
+
+- **tile**: Correct user_x coordinate calculation for tile positioning
+  ([`0b7ac27`](https://github.com/Djelibeybi/lifx-emulator/commit/0b7ac27fac318d9850ff53fe65f5675ea20ece9c))
+
+### Features
+
+- **dashboard**: Add live device visualizer with real-time state updates
+  ([`51fbcc0`](https://github.com/Djelibeybi/lifx-emulator/commit/51fbcc0e17bafa51554594c146b884e35f96cfde))
+
+
 ## v3.5.0 (2026-02-03)
 
 ### Bug Fixes
