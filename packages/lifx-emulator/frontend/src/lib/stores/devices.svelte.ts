@@ -76,6 +76,7 @@ function createDevicesStore() {
 		},
 
 		remove(serial: string) {
+			pendingUpdates.delete(serial);
 			deviceMap = new Map(deviceMap);
 			deviceMap.delete(serial);
 			transitionMap = new Map(transitionMap);
@@ -128,6 +129,7 @@ function createDevicesStore() {
 		},
 
 		clear() {
+			pendingUpdates.clear();
 			deviceMap = new Map();
 			transitionMap = new Map();
 		}
