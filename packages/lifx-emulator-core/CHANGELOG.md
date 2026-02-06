@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.6.2 (2026-02-06)
+
+### Bug Fixes
+
+- **server**: Check drop_packets before sending early ack
+  ([`6e3f494`](https://github.com/Djelibeybi/lifx-emulator/commit/6e3f4946cb8ddb8941bcf9fe5a94a7541c72cb8e))
+
+
 ## v3.6.1 (2026-02-06)
 
 ### Bug Fixes
