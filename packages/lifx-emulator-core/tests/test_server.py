@@ -695,6 +695,156 @@ class TestServerAckBehavior:
         assert resp_header.pkt_type == 25  # StateLabel
 
 
+class TestServerDropPackets:
+    """Test drop_packets scenario suppresses all responses including acks."""
+
+    @pytest.mark.asyncio
+    async def test_drop_packets_suppresses_ack_for_set_packet(self, color_device):
+        """Test drop_packets prevents early ack for SET packets (ack_required).
+
+        This is the key regression test: prior to the fix, the server sent an
+        ack before process_packet() could check drop_packets, so SET packets
+        were never truly dropped.
+        """
+        from lifx_emulator.protocol.packets import Device
+        from lifx_emulator.scenarios.manager import (
+            HierarchicalScenarioManager,
+            ScenarioConfig,
+        )
+
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(drop_packets={21: 1.0}),  # Drop SetPower
+        )
+
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56700,
+            scenario_manager=scenario_manager,
+        )
+
+        # Build a SetPower packet with ack_required=True
+        set_power = Device.SetPower(level=65535)
+        payload = set_power.pack()
+
+        header = LifxHeader(
+            size=HEADER_SIZE + len(payload),
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=21,  # SetPower
+            ack_required=True,
+        )
+
+        packet_data = header.pack() + payload
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # No response at all — no ack, no state response
+        server.transport.sendto.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_drop_packets_suppresses_get_packet(self, color_device):
+        """Test drop_packets suppresses GET packets (res_required)."""
+        from lifx_emulator.scenarios.manager import (
+            HierarchicalScenarioManager,
+            ScenarioConfig,
+        )
+
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(drop_packets={20: 1.0}),  # Drop GetPower
+        )
+
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56700,
+            scenario_manager=scenario_manager,
+        )
+
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=20,  # GetPower
+            res_required=True,
+        )
+
+        packet_data = header.pack()
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # No response — packet was dropped
+        server.transport.sendto.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_non_dropped_set_packet_still_gets_ack(self, color_device):
+        """Test SET packets still get acks when not in drop_packets."""
+        from lifx_emulator.protocol.packets import Device
+        from lifx_emulator.scenarios.manager import (
+            HierarchicalScenarioManager,
+            ScenarioConfig,
+        )
+
+        # Drop GetPower (20) but NOT SetPower (21)
+        scenario_manager = HierarchicalScenarioManager()
+        scenario_manager.set_device_scenario(
+            color_device.state.serial,
+            ScenarioConfig(drop_packets={20: 1.0}),
+        )
+
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56700,
+            scenario_manager=scenario_manager,
+        )
+
+        set_power = Device.SetPower(level=65535)
+        payload = set_power.pack()
+
+        header = LifxHeader(
+            size=HEADER_SIZE + len(payload),
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=21,  # SetPower
+            ack_required=True,
+        )
+
+        packet_data = header.pack() + payload
+        addr = ("127.0.0.1", 56700)
+
+        server.transport = Mock()
+        server.transport.sendto = Mock()
+
+        await server.handle_packet(packet_data, addr)
+
+        # Should get at least an ack (type 45)
+        assert server.transport.sendto.call_count >= 1
+        first_call_data = server.transport.sendto.call_args_list[0][0][0]
+        first_resp_header = LifxHeader.unpack(first_call_data)
+        assert first_resp_header.pkt_type == 45  # Acknowledgement
+
+
 class TestServerStatsAndActivity:
     """Tests for server stats and activity tracking."""
 
