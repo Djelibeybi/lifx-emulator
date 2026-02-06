@@ -243,9 +243,16 @@ class EmulatedLifxServer:
             addr: Client address (host, port)
         """
         # Send ack immediately before device processing when no scenario
-        # targets ack behavior (fast path for the common case)
+        # targets ack behavior (fast path for the common case).
+        # Skip ack for packets the device can't handle — those will get a
+        # StateUnhandled response instead (real switches don't ack packets
+        # they don't support).
         scenario = device._get_resolved_scenario()
-        if header.ack_required and not scenario.affects_acks:
+        if (
+            header.ack_required
+            and not scenario.affects_acks
+            and device._should_handle_packet(header.pkt_type)
+        ):
             self._send_ack(device, header, addr)
 
         responses = device.process_packet(header, packet)
