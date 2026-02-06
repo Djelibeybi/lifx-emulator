@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.6.1 (2026-02-06)
+
+### Bug Fixes
+
+- **server**: Skip early ack for packets that will get StateUnhandled
+  ([`33ec469`](https://github.com/Djelibeybi/lifx-emulator/commit/33ec469bdf07de4dab6c108c7e10f1889a7f7c9f))
+
+
 ## v3.6.0 (2026-02-04)
 
 ### Bug Fixes
