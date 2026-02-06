@@ -242,12 +242,20 @@ class EmulatedLifxServer:
             packet: Parsed packet payload (or None)
             addr: Client address (host, port)
         """
-        # Send ack immediately before device processing when no scenario
-        # targets ack behavior (fast path for the common case).
-        # Skip ack for packets the device can't handle — those will get a
-        # StateUnhandled response instead (real switches don't ack packets
-        # they don't support).
+        # Check if packet should be dropped BEFORE sending any ack.
+        # This must happen first so that drop_packets suppresses all
+        # responses including acknowledgements.
         scenario = device._get_resolved_scenario()
+        if not device.scenario_manager.should_respond(header.pkt_type, scenario):
+            logger.info("Dropping packet type %s per scenario", header.pkt_type)
+            return
+
+        # Fast-path ack: send before device processing when no scenario
+        # modifies the ack itself (e.g. delays or malforms type 45). When
+        # a scenario does target acks, process_packet() generates them so
+        # the scenario pipeline can apply its effects.
+        # Skip for packets the device can't handle — those get a
+        # StateUnhandled response instead.
         if (
             header.ack_required
             and not scenario.affects_acks
