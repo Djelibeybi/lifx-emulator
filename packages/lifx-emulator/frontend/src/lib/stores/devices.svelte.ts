@@ -113,6 +113,15 @@ function createDevicesStore() {
 			if (changes.tile_devices !== undefined) {
 				updatedDevice.tile_devices = changes.tile_devices;
 			}
+			if (changes.label !== undefined) {
+				updatedDevice.label = changes.label;
+			}
+			if (changes.group_label !== undefined) {
+				updatedDevice.group_label = changes.group_label;
+			}
+			if (changes.location_label !== undefined) {
+				updatedDevice.location_label = changes.location_label;
+			}
 
 			// Build transition info
 			let transition: DeviceTransition | undefined;

@@ -39,6 +39,9 @@ StateChangeCallback = Callable[["EmulatedLifxDevice", int, int], None]
 STATE_CHANGING_PACKETS: frozenset[int] = frozenset(
     {
         21,  # Device.SetPower
+        24,  # Device.SetLabel
+        49,  # Device.SetLocation
+        52,  # Device.SetGroup
         102,  # Light.SetColor
         103,  # Light.SetWaveform
         117,  # Light.SetPower

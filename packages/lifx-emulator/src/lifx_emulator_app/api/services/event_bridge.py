@@ -304,6 +304,10 @@ class WebSocketStateChangeObserver:
                 }
                 for tile in device_info.tile_devices
             ]
+        elif category == "metadata":
+            changes["label"] = device_info.label
+            changes["group_label"] = device_info.group_label
+            changes["location_label"] = device_info.location_label
         elif category in ("color", "power") and device_info.color:
             changes["color"] = device_info.color.model_dump()
 
@@ -326,6 +330,8 @@ class WebSocketStateChangeObserver:
             return "tiles"
         elif pkt_type in {21, 117}:  # Device.SetPower, Light.SetPower
             return "power"
+        elif pkt_type in {24, 49, 52}:  # SetLabel, SetLocation, SetGroup
+            return "metadata"
         return "color"
 
     def get_callback(self) -> StateChangeCallback:

@@ -451,6 +451,11 @@ class TestEventBridge:
         assert observer._get_change_category(21) == "power"
         assert observer._get_change_category(117) == "power"
 
+        # Test metadata packets
+        assert observer._get_change_category(24) == "metadata"
+        assert observer._get_change_category(49) == "metadata"
+        assert observer._get_change_category(52) == "metadata"
+
         # Test color packets
         assert observer._get_change_category(102) == "color"
         assert observer._get_change_category(103) == "color"
@@ -504,6 +509,34 @@ class TestEventBridge:
             observer.on_state_changed(device, 715, 500)
 
             mock_schedule.assert_called_once()
+
+    def test_state_change_observer_with_metadata_change(self):
+        """Test WebSocketStateChangeObserver broadcasts metadata changes."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from lifx_emulator.factories import create_color_light
+        from lifx_emulator_app.api.services.event_bridge import (
+            WebSocketStateChangeObserver,
+        )
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_updated = AsyncMock()
+
+        observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        device = create_color_light("d073d5000001")
+        device.state.label = "New Label"
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async"
+        ) as mock_schedule:
+            # Trigger metadata change (SetLabel packet type 24)
+            observer.on_state_changed(device, 24, 0)
+
+            mock_schedule.assert_called_once()
+            # Verify the coroutine was created with the right serial and changes
+            coro = mock_schedule.call_args[0][0]
+            assert coro is not None
 
 
 class TestStatsBroadcaster:

@@ -107,12 +107,15 @@ export interface SyncData {
 }
 
 export interface DeviceStateChanges {
-	category?: 'color' | 'zones' | 'tiles' | 'power';
+	category?: 'color' | 'zones' | 'tiles' | 'power' | 'metadata';
 	duration_ms?: number;
 	color?: HsbkColor;
 	power_level?: number;
 	zone_colors?: HsbkColor[];
 	tile_devices?: TileDevice[];
+	label?: string;
+	group_label?: string;
+	location_label?: string;
 }
 
 export interface DeviceUpdatedData {
