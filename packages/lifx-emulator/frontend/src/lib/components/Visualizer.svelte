@@ -152,7 +152,7 @@
 			<button
 				class="btn btn-sm"
 				class:active={ui.autoCompact}
-				onclick={() => ui.toggleAutoCompact(sortedDevices.map(d => d.serial))}
+				onclick={() => ui.toggleAutoCompact()}
 			>
 				{ui.autoCompact ? 'Default Layout' : 'Compact'}
 			</button>

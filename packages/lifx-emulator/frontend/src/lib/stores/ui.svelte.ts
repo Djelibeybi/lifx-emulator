@@ -212,7 +212,7 @@ function createUiStore() {
 			}
 		},
 
-		toggleAutoCompact(_serials: string[]) {
+		toggleAutoCompact() {
 			autoCompact = !autoCompact;
 			// In auto-compact, vizCollapsed holds exceptions (expanded devices).
 			// In default mode, vizCollapsed holds collapsed devices.
