@@ -22,19 +22,25 @@
 		return tile.width * PX_PER_TILE_COL;
 	}
 
-	function getDeviceSpan(device: Device): number {
+	function getCardWidthStyle(device: Device): string {
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
-			// Calculate total pixel width needed for all tiles
 			const tileWidths = device.tile_devices.reduce(
 				(sum, tile) => sum + tile.width * PX_PER_TILE_COL, 0
 			);
 			const gaps = (device.tile_devices.length - 1) * 12;
-			const totalPx = tileWidths + gaps + 40; // +padding
-			// Roughly 300px per grid column
-			return Math.min(Math.max(1, Math.ceil(totalPx / 300)), 4);
+			const padding = 42; // 20px padding + 1px border, each side
+			// Use CSS custom property so the width is only applied at 768px+
+			return `--card-width: ${Math.max(200, tileWidths + gaps + padding)}px;`;
 		}
-		if (device.has_multizone && device.zone_count > 50) return 2;
-		return 1;
+		return '';
+	}
+
+	function getDeviceSortKey(device: Device): number {
+		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
+			return device.tile_devices.reduce((sum, tile) => sum + tile.width * PX_PER_TILE_COL, 0);
+		}
+		if (device.has_multizone) return device.zone_count;
+		return 0;
 	}
 
 	// Get devices that have visual elements (color, zones, or tiles)
@@ -47,9 +53,9 @@
 		);
 	});
 
-	// Sort devices by span (largest first) for better grid packing
+	// Sort devices by visual width (largest first) for better flex packing
 	let sortedDevices = $derived.by(() => {
-		return [...visualDevices].sort((a, b) => getDeviceSpan(b) - getDeviceSpan(a));
+		return [...visualDevices].sort((a, b) => getDeviceSortKey(b) - getDeviceSortKey(a));
 	});
 
 	function getTransitionDuration(serial: string): number {
@@ -143,6 +149,13 @@
 		</div>
 	{:else}
 		<div class="viz-toolbar">
+			<button
+				class="btn btn-sm"
+				class:active={ui.autoCompact}
+				onclick={() => ui.toggleAutoCompact(sortedDevices.map(d => d.serial))}
+			>
+				{ui.autoCompact ? 'Default Layout' : 'Compact'}
+			</button>
 			<button class="btn btn-sm" onclick={() => ui.collapseAllViz(sortedDevices.map(d => d.serial))}>
 				Collapse All
 			</button>
@@ -150,17 +163,18 @@
 				Expand All
 			</button>
 		</div>
-		<div class="device-grid">
+		<div class="device-grid" class:compact={ui.autoCompact}>
 			{#each sortedDevices as device (device.serial)}
 				{@const duration = getTransitionDuration(device.serial)}
-				{@const span = getDeviceSpan(device)}
 				{@const glow = getDeviceGlow(device)}
 				{@const collapsed = ui.isVizCollapsed(device.serial)}
 				<div
-					class="viz-device span-{span}"
+					class="viz-device"
+					class:viz-matrix={device.has_matrix}
+					class:viz-multizone={device.has_multizone && !device.has_matrix}
 					class:power-off={device.power_level === 0}
 					class:collapsed
-					style="--device-glow: {glow};"
+					style="--device-glow: {glow}; {getCardWidthStyle(device)}"
 				>
 					<!-- Collapse chevron -->
 					<button
@@ -290,6 +304,7 @@
 
 	.viz-toolbar {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 8px;
 		justify-content: flex-end;
 		margin-bottom: 8px;
@@ -303,6 +318,7 @@
 		transition: opacity 0.3s ease, box-shadow 0.5s ease;
 		box-shadow: var(--device-glow, none);
 		position: relative;
+		max-width: 100%;
 	}
 
 	.viz-device.collapsed {
@@ -505,12 +521,66 @@
 		border-radius: 8px;
 	}
 
+	/* Compact layout — tighter spacing for maximum density */
+	.device-grid.compact {
+		gap: 8px;
+	}
+
+	.device-grid.compact .viz-device.collapsed {
+		padding: 4px;
+	}
+
+	.device-grid.compact .viz-collapse-btn {
+		top: 2px;
+		left: 2px;
+		padding: 1px 4px;
+		font-size: 0.75em;
+	}
+
+	/* Toolbar buttons use muted style; active compact toggle gets accent */
+	.viz-toolbar :global(.btn) {
+		background: var(--bg-tertiary);
+		color: var(--text-muted);
+		border: 1px solid var(--border-primary);
+	}
+
+	.viz-toolbar :global(.btn:hover) {
+		background: var(--bg-hover);
+		color: var(--text-primary);
+	}
+
+	.viz-toolbar :global(.btn.active) {
+		background: var(--accent-primary);
+		color: #fff;
+		border-color: var(--accent-primary);
+	}
+
 	/* Responsive adjustments */
 	@media (min-width: 768px) {
 		.device-grid {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			flex-direction: row;
+			flex-wrap: wrap;
+			justify-content: center;
 			align-items: start;
+		}
+
+		/* Non-matrix cards flex to fill available space */
+		.viz-device {
+			flex: 1 1 250px;
+			min-width: 200px;
+			max-width: 500px;
+		}
+
+		/* Matrix cards use calculated width from CSS custom property */
+		.viz-device.viz-matrix {
+			flex: 0 0 auto;
+			width: var(--card-width, auto);
+		}
+
+		/* Multizone cards prefer more width for zone visibility */
+		.viz-device.viz-multizone {
+			flex: 2 1 280px;
+			max-width: none;
 		}
 
 		.viz-zone-strip {
@@ -520,36 +590,11 @@
 		.viz-color-swatch {
 			height: 80px;
 		}
-
-		/* Tablet: 3 columns, cap spans at 3 */
-		.viz-device.span-2 { grid-column: span 2; }
-		.viz-device.span-3,
-		.viz-device.span-4,
-		.viz-device.span-5 { grid-column: span 3; }
 	}
 
 	@media (min-width: 1200px) {
-		.device-grid {
-			grid-template-columns: repeat(4, 1fr);
-		}
-
 		.viz-zone-strip {
 			height: 56px;
 		}
-
-		/* Desktop: 4 columns, cap spans at 4 */
-		.viz-device.span-3 { grid-column: span 3; }
-		.viz-device.span-4,
-		.viz-device.span-5 { grid-column: span 4; }
-	}
-
-	@media (min-width: 1400px) {
-		.device-grid {
-			grid-template-columns: repeat(5, 1fr);
-		}
-
-		/* Wide: 5 columns, full spanning */
-		.viz-device.span-4 { grid-column: span 4; }
-		.viz-device.span-5 { grid-column: span 5; }
 	}
 </style>

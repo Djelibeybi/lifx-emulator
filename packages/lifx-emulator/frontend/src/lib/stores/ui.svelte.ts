@@ -6,6 +6,7 @@ const STORAGE_KEY_EXPANDED = 'lifx-emulator-expanded';
 const STORAGE_KEY_TAB = 'lifx-emulator-tab';
 const STORAGE_KEY_SHOW_STATS = 'lifx-emulator-show-stats';
 const STORAGE_KEY_VIZ_COLLAPSED = 'lifx-emulator-viz-collapsed';
+const STORAGE_KEY_AUTO_COMPACT = 'lifx-emulator-auto-compact';
 
 function getStoredView(): ViewMode {
 	if (typeof localStorage === 'undefined') return 'card';
@@ -64,6 +65,11 @@ function getStoredVizCollapsed(): Set<string> {
 	}
 }
 
+function getStoredAutoCompact(): boolean {
+	if (typeof localStorage === 'undefined') return false;
+	return localStorage.getItem(STORAGE_KEY_AUTO_COMPACT) === 'true';
+}
+
 function createUiStore() {
 	let viewMode = $state<ViewMode>(getStoredView());
 	let pageSize = $state<number>(getStoredPageSize());
@@ -72,6 +78,7 @@ function createUiStore() {
 	let activeTab = $state<ActiveTab>(getStoredTab());
 	let showStats = $state<boolean>(getStoredShowStats());
 	let vizCollapsed = $state<Set<string>>(getStoredVizCollapsed());
+	let autoCompact = $state<boolean>(getStoredAutoCompact());
 
 	function persistExpanded() {
 		if (typeof localStorage !== 'undefined') {
@@ -103,6 +110,9 @@ function createUiStore() {
 		},
 		get showStats() {
 			return showStats;
+		},
+		get autoCompact() {
+			return autoCompact;
 		},
 
 		setViewMode(mode: ViewMode) {
@@ -193,6 +203,19 @@ function createUiStore() {
 			vizCollapsed = new Set();
 			if (typeof localStorage !== 'undefined') {
 				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([]));
+			}
+		},
+
+		toggleAutoCompact(serials: string[]) {
+			autoCompact = !autoCompact;
+			if (autoCompact) {
+				vizCollapsed = new Set(serials);
+			} else {
+				vizCollapsed = new Set();
+			}
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_AUTO_COMPACT, String(autoCompact));
+				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
 			}
 		}
 	};
