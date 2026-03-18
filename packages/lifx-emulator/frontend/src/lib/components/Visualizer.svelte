@@ -562,7 +562,7 @@
 			flex-direction: row;
 			flex-wrap: wrap;
 			justify-content: center;
-			align-items: start;
+			align-items: flex-start;
 		}
 
 		/* Non-matrix cards flex to fill available space */
