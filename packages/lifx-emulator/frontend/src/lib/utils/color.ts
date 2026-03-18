@@ -98,6 +98,15 @@ function linearRgbToOklab(r: number, g: number, b: number): [number, number, num
 	];
 }
 
+const cssCache = new Map<string, string>();
+const CSS_CACHE_MAX = 4096;
+
+function cacheAndReturn(key: string, value: string): string {
+	if (cssCache.size >= CSS_CACHE_MAX) cssCache.clear();
+	cssCache.set(key, value);
+	return value;
+}
+
 /**
  * Convert LIFX HSBK color to a CSS oklch() color string.
  *
@@ -108,12 +117,16 @@ function linearRgbToOklab(r: number, g: number, b: number): [number, number, num
  * Brightness controls overall lightness.
  */
 export function hsbkToCss(hsbk: HsbkColor): string {
+	const key = `${hsbk.hue},${hsbk.saturation},${hsbk.brightness},${hsbk.kelvin}`;
+	const cached = cssCache.get(key);
+	if (cached) return cached;
+
 	const h = hsbk.hue / 65535;
 	const s = hsbk.saturation / 65535;
 	const v = hsbk.brightness / 65535;
 
 	if (v === 0) {
-		return 'oklch(0% 0 none)';
+		return cacheAndReturn(key, 'oklch(0% 0 none)');
 	}
 
 	// Blend between pure hue color and kelvin white based on saturation
@@ -134,10 +147,10 @@ export function hsbkToCss(hsbk: HsbkColor): string {
 
 	// When chroma is negligible, use achromatic form
 	if (C < 0.002) {
-		return `oklch(${lPct.toFixed(1)}% 0 none)`;
+		return cacheAndReturn(key, `oklch(${lPct.toFixed(1)}% 0 none)`);
 	}
 
-	return `oklch(${lPct.toFixed(1)}% ${C.toFixed(4)} ${H.toFixed(1)})`;
+	return cacheAndReturn(key, `oklch(${lPct.toFixed(1)}% ${C.toFixed(4)} ${H.toFixed(1)})`);
 }
 
 /**
