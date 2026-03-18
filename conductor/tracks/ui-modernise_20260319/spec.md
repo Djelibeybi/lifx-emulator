@@ -11,7 +11,7 @@ Review and modernise the LIFX Emulator web UI to fix code quality issues identif
 
 ## Context
 
-The frontend is a SvelteKit 5 SPA that provides real-time monitoring and management of emulated LIFX devices. A comprehensive design review identified issues across visual design, usability, code quality, and performance. The visualizer tab — showing live color state of emulated bulbs, multizone strips, and matrix/tile devices — is the primary view and needs the most attention.
+The frontend is a SvelteKit 2 + Svelte 5 SPA that provides real-time monitoring and management of emulated LIFX devices. A comprehensive design review identified issues across visual design, usability, code quality, and performance. The visualizer tab — showing live color state of emulated bulbs, multizone strips, and matrix/tile devices — is the primary view and needs the most attention.
 
 ## Motivation
 
