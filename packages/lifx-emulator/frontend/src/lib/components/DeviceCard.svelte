@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Device } from '$lib/types';
 	import { ui } from '$lib/stores';
-	import { hsbkToRgb } from '$lib/utils/color';
+	import { hsbkToCss } from '$lib/utils/color';
 	import { deleteDevice } from '$lib/utils/api';
 
 	let { device }: { device: Device } = $props();
@@ -129,7 +129,7 @@
 		{#if zonesExpanded}
 			<div class="zone-strip">
 				{#each device.zone_colors as color}
-					<div class="zone-segment" style="background: {hsbkToRgb(color)};"></div>
+					<div class="zone-segment" style="background: {hsbkToCss(color)};"></div>
 				{/each}
 			</div>
 		{/if}
@@ -148,7 +148,7 @@
 								style="grid-template-columns: repeat({tile.width || 8}, 8px);"
 							>
 								{#each tile.colors.slice(0, (tile.width || 8) * (tile.height || 8)) as color}
-									<div class="tile-zone" style="background: {hsbkToRgb(color)};"></div>
+									<div class="tile-zone" style="background: {hsbkToCss(color)};"></div>
 								{/each}
 							</div>
 						{:else}
@@ -160,7 +160,7 @@
 		{/if}
 	{:else if device.has_color && device.color}
 		<div style="margin-top: 4px;">
-			<span class="color-swatch" style="background: {hsbkToRgb(device.color)};"></span>
+			<span class="color-swatch" style="background: {hsbkToCss(device.color)};"></span>
 			<span style="color: var(--text-muted); font-size: 0.75em;">Current color</span>
 		</div>
 	{/if}

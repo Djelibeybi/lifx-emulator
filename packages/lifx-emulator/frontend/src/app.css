@@ -20,6 +20,9 @@
 	--accent-danger: #d32f2f;
 	--accent-danger-hover: #e57373;
 
+	--bg-hover: #2a2a2a;
+	--border-color: #333;
+
 	--font-mono: 'Monaco', 'Courier New', monospace;
 	--font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
 		sans-serif;
@@ -41,6 +44,9 @@
 
 	--accent-primary: #0066cc;
 	--accent-hover: #0055aa;
+
+	--bg-hover: #f0f0f0;
+	--border-color: #ddd;
 }
 
 /* Reset and base styles */
@@ -66,25 +72,20 @@ body {
 .container {
 	max-width: 1400px;
 	margin: 0 auto;
-	padding: 20px;
+	padding: 12px 16px;
 }
 
 /* Typography */
 h1 {
 	color: var(--text-primary);
-	font-size: 2em;
-	margin-bottom: 10px;
+	font-size: 1.3em;
+	margin-bottom: 0;
 }
 
 h2 {
 	color: var(--text-primary);
-	font-size: 1.2em;
-	margin-bottom: 15px;
-}
-
-.subtitle {
-	color: var(--text-muted);
-	margin-bottom: 30px;
+	font-size: 1.1em;
+	margin-bottom: 12px;
 }
 
 /* Cards */
@@ -112,7 +113,7 @@ h2 {
 /* Buttons */
 .btn {
 	background: var(--accent-primary);
-	color: #000;
+	color: #fff;
 	border: none;
 	padding: 4px 8px;
 	border-radius: 3px;
@@ -498,13 +499,13 @@ h2 {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 20px;
+	margin-bottom: 8px;
 }
 
 .header-title {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
 }
 
 .header-controls {

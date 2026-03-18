@@ -5,6 +5,7 @@ const STORAGE_KEY_PAGE_SIZE = 'lifx-emulator-page-size';
 const STORAGE_KEY_EXPANDED = 'lifx-emulator-expanded';
 const STORAGE_KEY_TAB = 'lifx-emulator-tab';
 const STORAGE_KEY_SHOW_STATS = 'lifx-emulator-show-stats';
+const STORAGE_KEY_VIZ_COLLAPSED = 'lifx-emulator-viz-collapsed';
 
 function getStoredView(): ViewMode {
 	if (typeof localStorage === 'undefined') return 'card';
@@ -53,6 +54,16 @@ function getStoredShowStats(): boolean {
 	return stored === 'true';
 }
 
+function getStoredVizCollapsed(): Set<string> {
+	if (typeof localStorage === 'undefined') return new Set();
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY_VIZ_COLLAPSED);
+		return stored ? new Set(JSON.parse(stored)) : new Set();
+	} catch {
+		return new Set();
+	}
+}
+
 function createUiStore() {
 	let viewMode = $state<ViewMode>(getStoredView());
 	let pageSize = $state<number>(getStoredPageSize());
@@ -60,6 +71,7 @@ function createUiStore() {
 	let expanded = $state<Record<string, Set<string>>>(getStoredExpanded());
 	let activeTab = $state<ActiveTab>(getStoredTab());
 	let showStats = $state<boolean>(getStoredShowStats());
+	let vizCollapsed = $state<Set<string>>(getStoredVizCollapsed());
 
 	function persistExpanded() {
 		if (typeof localStorage !== 'undefined') {
@@ -152,6 +164,36 @@ function createUiStore() {
 
 		isMetadataExpanded(serial: string): boolean {
 			return expanded.metadata.has(serial);
+		},
+
+		isVizCollapsed(serial: string): boolean {
+			return vizCollapsed.has(serial);
+		},
+
+		toggleVizCollapsed(serial: string) {
+			vizCollapsed = new Set(vizCollapsed);
+			if (vizCollapsed.has(serial)) {
+				vizCollapsed.delete(serial);
+			} else {
+				vizCollapsed.add(serial);
+			}
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
+			}
+		},
+
+		collapseAllViz(serials: string[]) {
+			vizCollapsed = new Set(serials);
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
+			}
+		},
+
+		expandAllViz() {
+			vizCollapsed = new Set();
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([]));
+			}
 		}
 	};
 }

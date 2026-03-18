@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { devices, ui } from '$lib/stores';
 	import { deleteDevice, deleteAllDevices } from '$lib/utils/api';
-	import { hsbkToRgb } from '$lib/utils/color';
+	import { hsbkToCss } from '$lib/utils/color';
 
 	let removingAll = $state(false);
 	let deletingSerial = $state<string | null>(null);
@@ -186,14 +186,14 @@
 								{#if device.has_multizone && device.zone_colors && device.zone_colors.length > 0}
 									<div class="zone-mini-strip">
 										{#each device.zone_colors.slice(0, 16) as color}
-											<div class="zone-mini" style="background: {hsbkToRgb(color)};"></div>
+											<div class="zone-mini" style="background: {hsbkToCss(color)};"></div>
 										{/each}
 										{#if device.zone_colors.length > 16}
 											<span class="more-zones">+{device.zone_colors.length - 16}</span>
 										{/if}
 									</div>
 								{:else if device.has_color && device.color}
-									<span class="color-swatch" style="background: {hsbkToRgb(device.color)};"></span>
+									<span class="color-swatch" style="background: {hsbkToCss(device.color)};"></span>
 								{:else}
 									<span class="no-color">-</span>
 								{/if}

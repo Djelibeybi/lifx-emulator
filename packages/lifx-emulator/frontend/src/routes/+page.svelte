@@ -77,8 +77,8 @@
 	.tabs {
 		display: flex;
 		gap: 4px;
-		margin-bottom: 16px;
-		border-bottom: 2px solid var(--border-color);
+		margin-bottom: 12px;
+		border-bottom: 2px solid var(--border-primary);
 		padding-bottom: 0;
 	}
 

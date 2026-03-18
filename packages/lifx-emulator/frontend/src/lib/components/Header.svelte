@@ -10,7 +10,7 @@
 
 <header class="header">
 	<div class="header-title">
-		<h1>LIFX Emulator Monitor</h1>
+		<h1>LIFX Emulator</h1>
 		<span
 			class="status-indicator"
 			class:connecting={connection.status === 'connecting'}
@@ -18,6 +18,9 @@
 			class:error={connection.status === 'error'}
 			title={connection.status}
 		></span>
+		{#if connection.status !== 'connected'}
+			<span class="status-text">{connection.status}</span>
+		{/if}
 	</div>
 	<div class="header-controls">
 		<button
@@ -37,9 +40,19 @@
 		</button>
 	</div>
 </header>
-<p class="subtitle">Real-time monitoring and device management</p>
 
 <style>
+	.header-title h1 {
+		font-size: 1.3em;
+		margin: 0;
+	}
+
+	.status-text {
+		font-size: 0.75em;
+		color: var(--text-dimmed);
+		text-transform: capitalize;
+	}
+
 	.header-controls {
 		display: flex;
 		align-items: center;
@@ -50,19 +63,19 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
+		width: 28px;
+		height: 28px;
 		background: var(--bg-secondary);
-		border: 1px solid var(--border-color);
+		border: 1px solid var(--border-primary);
 		border-radius: 6px;
 		cursor: pointer;
-		font-size: 1.1em;
+		font-size: 1em;
 		color: var(--text-muted);
 		transition: all 0.15s ease;
 	}
 
 	.control-btn:hover {
-		background: var(--bg-hover);
+		border-color: var(--accent-primary);
 		color: var(--text-primary);
 	}
 
