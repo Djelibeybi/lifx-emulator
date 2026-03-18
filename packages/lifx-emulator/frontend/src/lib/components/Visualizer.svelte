@@ -20,15 +20,19 @@
 	const TILE_GAP = 12;          // matches .viz-tiles { gap }
 	const CARD_PADDING = 42;      // 20px padding + 1px border, each side
 	const MIN_CARD_WIDTH = 200;
+	const DEFAULT_TILE_DIM = 8;    // fallback if tile width/height is missing
+
+	function tileW(tile: TileDevice): number { return tile.width ?? DEFAULT_TILE_DIM; }
+	function tileH(tile: TileDevice): number { return tile.height ?? DEFAULT_TILE_DIM; }
 
 	function getTileMaxWidth(tile: TileDevice): number {
-		return tile.width * PX_PER_TILE_COL;
+		return tileW(tile) * PX_PER_TILE_COL;
 	}
 
 	function getCardWidthStyle(device: Device): string {
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
 			const tileWidths = device.tile_devices.reduce(
-				(sum, tile) => sum + tile.width * PX_PER_TILE_COL, 0
+				(sum, tile) => sum + tileW(tile) * PX_PER_TILE_COL, 0
 			);
 			const gaps = (device.tile_devices.length - 1) * TILE_GAP;
 			return `--card-width: ${Math.max(MIN_CARD_WIDTH, tileWidths + gaps + CARD_PADDING)}px;`;
@@ -38,7 +42,7 @@
 
 	function getDeviceSortKey(device: Device): number {
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
-			return device.tile_devices.reduce((sum, tile) => sum + tile.width * PX_PER_TILE_COL, 0);
+			return device.tile_devices.reduce((sum, tile) => sum + tileW(tile) * PX_PER_TILE_COL, 0);
 		}
 		if (device.has_multizone) return device.zone_count;
 		return 0;
