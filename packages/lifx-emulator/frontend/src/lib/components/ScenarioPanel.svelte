@@ -273,18 +273,39 @@
 			selectedIdentifier = ids[0];
 		}
 	});
+
+	const scopes: Scope[] = ['global', 'device', 'type', 'location', 'group'];
+
+	function handleScopeKeydown(e: KeyboardEvent) {
+		const current = scopes.indexOf(activeScope);
+		let next = -1;
+
+		if (e.key === 'ArrowRight') next = (current + 1) % scopes.length;
+		else if (e.key === 'ArrowLeft') next = (current - 1 + scopes.length) % scopes.length;
+		else if (e.key === 'Home') next = 0;
+		else if (e.key === 'End') next = scopes.length - 1;
+		else return;
+
+		e.preventDefault();
+		activeScope = scopes[next];
+		const el = document.getElementById(`scope-tab-${scopes[next]}`);
+		el?.focus();
+	}
 </script>
 
 <div class="card">
 	<h2>Scenario Configuration</h2>
 
 	<!-- Scope tabs -->
-	<div class="scope-tabs" role="tablist" aria-label="Scenario scope">
-		{#each ['global', 'device', 'type', 'location', 'group'] as scope}
+	<div class="scope-tabs" role="tablist" aria-label="Scenario scope" onkeydown={handleScopeKeydown}>
+		{#each scopes as scope}
 			<button
 				class="scope-tab"
 				role="tab"
+				id="scope-tab-{scope}"
 				aria-selected={activeScope === scope}
+				aria-controls="scenario-form"
+				tabindex={activeScope === scope ? 0 : -1}
 				class:active={activeScope === scope}
 				onclick={() => (activeScope = scope as Scope)}
 			>
@@ -312,7 +333,7 @@
 	{/if}
 
 	<!-- Scenario form -->
-	<div class="scenario-form">
+	<div class="scenario-form" id="scenario-form" role="tabpanel" aria-labelledby="scope-tab-{activeScope}">
 		<!-- Drop Packets -->
 		<div class="form-section">
 			<div class="section-header">
