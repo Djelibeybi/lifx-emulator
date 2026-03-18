@@ -92,3 +92,6 @@ Thumbs.db
 .notes/
 .claude/settings.local.json
 .envrc
+
+# Design artifacts
+.ui-design/

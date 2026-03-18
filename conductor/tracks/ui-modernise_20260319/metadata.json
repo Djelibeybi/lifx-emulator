@@ -1,0 +1,16 @@
+{
+  "id": "ui-modernise_20260319",
+  "title": "Review and Modernise the Web UI",
+  "type": "refactor",
+  "status": "complete",
+  "created": "2026-03-19T00:00:00Z",
+  "updated": "2026-03-19T00:00:00Z",
+  "phases": {
+    "total": 3,
+    "completed": 3
+  },
+  "tasks": {
+    "total": 22,
+    "completed": 22
+  }
+}
