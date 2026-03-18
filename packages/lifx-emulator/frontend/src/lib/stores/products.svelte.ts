@@ -5,6 +5,7 @@ function createProductsStore() {
 	let items = $state<Product[]>([]);
 	let loaded = false;
 	let loading = false;
+	let error = $state<string | null>(null);
 
 	return {
 		get list(): Product[] {
@@ -15,12 +16,19 @@ function createProductsStore() {
 			return loaded;
 		},
 
+		get error(): string | null {
+			return error;
+		},
+
 		async load() {
 			if (loaded || loading) return;
 			loading = true;
+			error = null;
 			try {
 				items = await fetchProducts();
 				loaded = true;
+			} catch (e) {
+				error = e instanceof Error ? e.message : 'Failed to load products';
 			} finally {
 				loading = false;
 			}
