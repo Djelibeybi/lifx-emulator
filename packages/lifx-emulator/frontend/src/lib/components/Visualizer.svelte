@@ -113,10 +113,10 @@
 			const rightEdge: HsbkColor[] = [];
 
 			for (const tile of device.tile_devices) {
-				const w = tile.width;
-				const h = tile.height;
+				const w = tileW(tile);
+				const h = tileH(tile);
 				const colors = tile.colors;
-				if (colors.length < w * h) continue;
+				if (w <= 0 || h <= 0 || colors.length < w * h) continue;
 
 				for (let x = 0; x < w; x++) {
 					topEdge.push(colors[x]);                    // first row
