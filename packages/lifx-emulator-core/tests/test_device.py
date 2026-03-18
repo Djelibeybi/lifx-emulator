@@ -130,6 +130,79 @@ class TestStateChangeCallback:
         assert pkt_type == 21
         assert duration_ms == 0  # SetPower doesn't have duration
 
+    def test_callback_invoked_on_set_label(self, color_device):
+        """Test state change callback is invoked for SetLabel."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append((pkt_type, duration_ms))
+
+        color_device.on_state_changed = callback
+
+        packet = Device.SetLabel(label="New Label")
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=24,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 24
+        assert duration_ms == 0  # SetLabel doesn't have duration
+
+    def test_callback_invoked_on_set_location(self, color_device):
+        """Test state change callback is invoked for SetLocation."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append(pkt_type)
+
+        color_device.on_state_changed = callback
+
+        packet = Device.SetLocation(
+            location=b"\x01" * 16, label="Living Room", updated_at=0
+        )
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=49,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        assert callback_calls[0] == 49
+
+    def test_callback_invoked_on_set_group(self, color_device):
+        """Test state change callback is invoked for SetGroup."""
+        callback_calls = []
+
+        def callback(device, pkt_type, duration_ms):
+            callback_calls.append(pkt_type)
+
+        color_device.on_state_changed = callback
+
+        packet = Device.SetGroup(group=b"\x02" * 16, label="Bedroom", updated_at=0)
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=52,
+            res_required=True,
+        )
+
+        color_device.process_packet(header, packet)
+
+        assert len(callback_calls) == 1
+        assert callback_calls[0] == 52
+
     def test_callback_not_invoked_on_get_packets(self, color_device):
         """Test state change callback is not invoked for Get packets."""
         callback_calls = []
