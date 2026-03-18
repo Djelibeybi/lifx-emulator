@@ -55,7 +55,7 @@
 	{/if}
 
 	<!-- Tab navigation -->
-	<div class="tabs" role="tablist" aria-label="Main navigation" onkeydown={handleTabKeydown}>
+	<div class="tabs" role="tablist" aria-label="Main navigation" tabindex="-1" onkeydown={handleTabKeydown}>
 		{#each tabs as tab}
 			<button
 				class="tab"

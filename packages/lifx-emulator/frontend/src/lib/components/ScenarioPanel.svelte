@@ -297,7 +297,7 @@
 	<h2>Scenario Configuration</h2>
 
 	<!-- Scope tabs -->
-	<div class="scope-tabs" role="tablist" aria-label="Scenario scope" onkeydown={handleScopeKeydown}>
+	<div class="scope-tabs" role="tablist" aria-label="Scenario scope" tabindex="-1" onkeydown={handleScopeKeydown}>
 		{#each scopes as scope}
 			<button
 				class="scope-tab"
