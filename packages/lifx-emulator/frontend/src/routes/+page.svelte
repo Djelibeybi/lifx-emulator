@@ -28,6 +28,23 @@
 	onDestroy(() => {
 		connection.disconnect();
 	});
+
+	function handleTabKeydown(e: KeyboardEvent) {
+		const ids = tabs.map((t) => t.id);
+		const current = ids.indexOf(ui.activeTab);
+		let next = -1;
+
+		if (e.key === 'ArrowRight') next = (current + 1) % ids.length;
+		else if (e.key === 'ArrowLeft') next = (current - 1 + ids.length) % ids.length;
+		else if (e.key === 'Home') next = 0;
+		else if (e.key === 'End') next = ids.length - 1;
+		else return;
+
+		e.preventDefault();
+		ui.setActiveTab(ids[next]);
+		const el = document.getElementById(`tab-${ids[next]}`);
+		el?.focus();
+	}
 </script>
 
 <div class="container">
@@ -38,13 +55,15 @@
 	{/if}
 
 	<!-- Tab navigation -->
-	<div class="tabs" role="tablist" aria-label="Main navigation">
+	<div class="tabs" role="tablist" aria-label="Main navigation" onkeydown={handleTabKeydown}>
 		{#each tabs as tab}
 			<button
 				class="tab"
 				role="tab"
 				id="tab-{tab.id}"
 				aria-selected={ui.activeTab === tab.id}
+				aria-controls="tabpanel-{tab.id}"
+				tabindex={ui.activeTab === tab.id ? 0 : -1}
 				class:active={ui.activeTab === tab.id}
 				onclick={() => ui.setActiveTab(tab.id)}
 			>
@@ -59,7 +78,7 @@
 	</div>
 
 	<!-- Tab content -->
-	<div class="tab-content" role="tabpanel" aria-labelledby="tab-{ui.activeTab}">
+	<div class="tab-content" role="tabpanel" id="tabpanel-{ui.activeTab}" aria-labelledby="tab-{ui.activeTab}">
 		{#if ui.activeTab === 'visualizer'}
 			<Visualizer />
 		{:else if ui.activeTab === 'devices'}
