@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.6.3 (2026-03-18)
+
+### Bug Fixes
+
+- **dashboard**: Broadcast metadata changes via WebSocket for live updates
+  ([`6b933ae`](https://github.com/Djelibeybi/lifx-emulator/commit/6b933aed9fff0ba3231b8e9913160cdac5ae62cf))
+
+
 ## v3.6.2 (2026-02-06)
 
 ### Bug Fixes
