@@ -156,7 +156,14 @@ export function hsbkToCss(hsbk: HsbkColor): string {
 /**
  * Convert a single HSBK to linear RGB [r, g, b] (not clamped, not gamma-encoded).
  */
+const linearRgbCache = new Map<string, [number, number, number]>();
+const LINEAR_RGB_CACHE_MAX = 4096;
+
 function hsbkToLinearRgb(hsbk: HsbkColor): [number, number, number] {
+	const key = `${hsbk.hue},${hsbk.saturation},${hsbk.brightness},${hsbk.kelvin}`;
+	const cached = linearRgbCache.get(key);
+	if (cached) return cached;
+
 	const h = hsbk.hue / 65535;
 	const s = hsbk.saturation / 65535;
 	const v = hsbk.brightness / 65535;
@@ -164,11 +171,15 @@ function hsbkToLinearRgb(hsbk: HsbkColor): [number, number, number] {
 	const hueRgb = hueToLinearRgb(h);
 	const kelvinRgb = kelvinToLinearRgb(hsbk.kelvin);
 
-	return [
+	const result: [number, number, number] = [
 		(s * hueRgb[0] + (1 - s) * kelvinRgb[0]) * v,
 		(s * hueRgb[1] + (1 - s) * kelvinRgb[1]) * v,
 		(s * hueRgb[2] + (1 - s) * kelvinRgb[2]) * v
 	];
+
+	if (linearRgbCache.size >= LINEAR_RGB_CACHE_MAX) linearRgbCache.clear();
+	linearRgbCache.set(key, result);
+	return result;
 }
 
 /**
