@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Device, TileDevice } from '$lib/types';
+	import type { Device, HsbkColor, TileDevice } from '$lib/types';
 	import { devices, ui } from '$lib/stores';
 	import { hsbkToCss, directionalGlow } from '$lib/utils/color';
 
@@ -102,10 +102,10 @@
 
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
 			// Matrix: extract edge pixels from all tiles combined
-			const topEdge: typeof device.zone_colors = [];
-			const bottomEdge: typeof device.zone_colors = [];
-			const leftEdge: typeof device.zone_colors = [];
-			const rightEdge: typeof device.zone_colors = [];
+			const topEdge: HsbkColor[] = [];
+			const bottomEdge: HsbkColor[] = [];
+			const leftEdge: HsbkColor[] = [];
+			const rightEdge: HsbkColor[] = [];
 
 			for (const tile of device.tile_devices) {
 				const w = tile.width;
