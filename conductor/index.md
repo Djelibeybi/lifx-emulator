@@ -12,9 +12,9 @@ Navigation hub for project context.
 - [Code Style: Python](./code_styleguides/python.md)
 - [Code Style: TypeScript/Svelte](./code_styleguides/typescript-svelte.md)
 
-## Active Tracks
+## Completed Tracks
 
-- [~] [Review and Modernise the Web UI](./tracks/ui-modernise_20260319/index.md) — Phase 3 remaining (card width fitting, auto-compact)
+- [x] [Review and Modernise the Web UI](./tracks/ui-modernise_20260319/index.md) — Oklch color, ambilight glow, content-based layout, auto-compact
 
 ## Getting Started
 
