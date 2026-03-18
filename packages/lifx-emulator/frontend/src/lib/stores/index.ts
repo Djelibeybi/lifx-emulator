@@ -5,3 +5,4 @@ export { activity } from './activity.svelte';
 export { ui } from './ui.svelte';
 export { theme } from './theme.svelte';
 export { scenarios } from './scenarios.svelte';
+export { products } from './products.svelte';

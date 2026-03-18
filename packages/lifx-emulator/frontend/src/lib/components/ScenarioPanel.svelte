@@ -279,10 +279,12 @@
 	<h2>Scenario Configuration</h2>
 
 	<!-- Scope tabs -->
-	<div class="scope-tabs">
+	<div class="scope-tabs" role="tablist" aria-label="Scenario scope">
 		{#each ['global', 'device', 'type', 'location', 'group'] as scope}
 			<button
 				class="scope-tab"
+				role="tab"
+				aria-selected={activeScope === scope}
 				class:active={activeScope === scope}
 				onclick={() => (activeScope = scope as Scope)}
 			>

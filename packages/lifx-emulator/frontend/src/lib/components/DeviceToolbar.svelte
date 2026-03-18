@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type { Product } from '$lib/types';
-	import { fetchProducts, createDevice, deleteAllDevices } from '$lib/utils/api';
-	import { devices, ui } from '$lib/stores';
+	import { createDevice, deleteAllDevices } from '$lib/utils/api';
+	import { devices, ui, products } from '$lib/stores';
 
-	let products = $state<Product[]>([]);
 	let selectedProductId = $state<number | null>(null);
 	let loading = $state(false);
 	let deleting = $state(false);
@@ -12,14 +9,10 @@
 
 	const PAGE_SIZES = [10, 20, 50, 100];
 
-	onMount(async () => {
-		try {
-			products = await fetchProducts();
-			if (products.length > 0) {
-				selectedProductId = products[0].pid;
-			}
-		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to load products';
+	// Set default selection when products load
+	$effect(() => {
+		if (products.list.length > 0 && selectedProductId === null) {
+			selectedProductId = products.list[0].pid;
 		}
 	});
 
@@ -121,11 +114,11 @@
 		<div class="form-row">
 			<div class="form-group">
 				<label for="product-id">Product</label>
-				<select id="product-id" bind:value={selectedProductId} disabled={products.length === 0}>
-					{#if products.length === 0}
+				<select id="product-id" bind:value={selectedProductId} disabled={products.list.length === 0}>
+					{#if products.list.length === 0}
 						<option value="">Loading products...</option>
 					{:else}
-						{#each products as product (product.pid)}
+						{#each products.list as product (product.pid)}
 							<option value={product.pid}>{product.pid} - {product.name}</option>
 						{/each}
 					{/if}

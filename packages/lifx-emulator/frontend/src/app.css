@@ -68,6 +68,16 @@ body {
 	line-height: 1.6;
 }
 
+/* Focus styles for keyboard navigation */
+:focus-visible {
+	outline: 2px solid var(--accent-primary);
+	outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+	outline: none;
+}
+
 /* Container */
 .container {
 	max-width: 1400px;
@@ -526,4 +536,34 @@ h2 {
 
 .theme-toggle:hover {
 	border-color: var(--accent-primary);
+}
+
+/* Mobile breakpoints */
+@media (max-width: 767px) {
+	.container {
+		padding: 8px;
+	}
+
+	.toolbar-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.form-row {
+		flex-direction: column;
+	}
+
+	.form-row .btn {
+		width: 100%;
+	}
+
+	.devices-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 480px) {
+	.devices-grid {
+		grid-template-columns: 1fr;
+	}
 }

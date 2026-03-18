@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { connection, ui, devices, activity } from '$lib/stores';
+	import { connection, ui, devices, activity, products } from '$lib/stores';
 	import type { ActiveTab } from '$lib/types';
 	import {
 		Header,
@@ -22,6 +22,7 @@
 
 	onMount(() => {
 		connection.connect();
+		products.load();
 	});
 
 	onDestroy(() => {
@@ -37,10 +38,13 @@
 	{/if}
 
 	<!-- Tab navigation -->
-	<div class="tabs">
+	<div class="tabs" role="tablist" aria-label="Main navigation">
 		{#each tabs as tab}
 			<button
 				class="tab"
+				role="tab"
+				id="tab-{tab.id}"
+				aria-selected={ui.activeTab === tab.id}
 				class:active={ui.activeTab === tab.id}
 				onclick={() => ui.setActiveTab(tab.id)}
 			>
@@ -55,7 +59,7 @@
 	</div>
 
 	<!-- Tab content -->
-	<div class="tab-content">
+	<div class="tab-content" role="tabpanel" aria-labelledby="tab-{ui.activeTab}">
 		{#if ui.activeTab === 'visualizer'}
 			<Visualizer />
 		{:else if ui.activeTab === 'devices'}
@@ -131,5 +135,18 @@
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+	}
+
+	@media (max-width: 767px) {
+		.tabs {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.tab {
+			padding: 8px 12px;
+			font-size: 0.85em;
+			white-space: nowrap;
+		}
 	}
 </style>
