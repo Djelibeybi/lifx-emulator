@@ -193,11 +193,10 @@ function createUiStore() {
 			}
 		},
 
-		collapseAllViz(_serials: string[]) {
+		collapseAllViz(serials: string[]) {
 			// In auto-compact: clear exceptions → all collapsed by default.
-			// In default: clear set → none collapsed, then... we need all collapsed.
-			// Actually: in default mode, set = collapsed serials; in auto-compact, set = expanded exceptions.
-			vizCollapsed = autoCompact ? new Set() : new Set(_serials);
+			// In default mode: set = collapsed serials.
+			vizCollapsed = autoCompact ? new Set() : new Set(serials);
 			if (typeof localStorage !== 'undefined') {
 				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
 			}
