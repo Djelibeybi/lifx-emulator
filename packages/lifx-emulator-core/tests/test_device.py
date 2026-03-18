@@ -160,7 +160,7 @@ class TestStateChangeCallback:
         callback_calls = []
 
         def callback(device, pkt_type, duration_ms):
-            callback_calls.append(pkt_type)
+            callback_calls.append((pkt_type, duration_ms))
 
         color_device.on_state_changed = callback
 
@@ -178,14 +178,16 @@ class TestStateChangeCallback:
         color_device.process_packet(header, packet)
 
         assert len(callback_calls) == 1
-        assert callback_calls[0] == 49
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 49
+        assert duration_ms == 0  # SetLocation doesn't have duration
 
     def test_callback_invoked_on_set_group(self, color_device):
         """Test state change callback is invoked for SetGroup."""
         callback_calls = []
 
         def callback(device, pkt_type, duration_ms):
-            callback_calls.append(pkt_type)
+            callback_calls.append((pkt_type, duration_ms))
 
         color_device.on_state_changed = callback
 
@@ -201,7 +203,9 @@ class TestStateChangeCallback:
         color_device.process_packet(header, packet)
 
         assert len(callback_calls) == 1
-        assert callback_calls[0] == 52
+        pkt_type, duration_ms = callback_calls[0]
+        assert pkt_type == 52
+        assert duration_ms == 0  # SetGroup doesn't have duration
 
     def test_callback_not_invoked_on_get_packets(self, color_device):
         """Test state change callback is not invoked for Get packets."""
