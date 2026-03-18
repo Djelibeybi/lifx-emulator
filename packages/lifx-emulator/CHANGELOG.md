@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v4.3.1 (2026-03-18)
+
+### Bug Fixes
+
+- **dashboard**: Broadcast metadata changes via WebSocket for live updates
+  ([`6b933ae`](https://github.com/Djelibeybi/lifx-emulator/commit/6b933aed9fff0ba3231b8e9913160cdac5ae62cf))
+
+### Documentation
+
+- **event-bridge**: Add metadata to _get_change_category return values
+  ([`15e2dd1`](https://github.com/Djelibeybi/lifx-emulator/commit/15e2dd10a3a71b8fb242314c71aa34da78e5e1d0))
+
+
 ## v4.3.0 (2026-02-04)
 
 ### Bug Fixes
