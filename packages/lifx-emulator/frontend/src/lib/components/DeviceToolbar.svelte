@@ -115,7 +115,9 @@
 			<div class="form-group">
 				<label for="product-id">Product</label>
 				<select id="product-id" bind:value={selectedProductId} disabled={products.list.length === 0}>
-					{#if products.list.length === 0}
+					{#if products.error}
+						<option value="">Failed to load products</option>
+					{:else if products.list.length === 0}
 						<option value="">Loading products...</option>
 					{:else}
 						{#each products.list as product (product.pid)}
