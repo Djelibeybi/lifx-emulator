@@ -101,8 +101,17 @@ function linearRgbToOklab(r: number, g: number, b: number): [number, number, num
 const cssCache = new Map<string, string>();
 const CSS_CACHE_MAX = 4096;
 
+function evictHalf(cache: Map<string, unknown>) {
+	let i = 0;
+	const half = Math.floor(cache.size / 2);
+	for (const k of cache.keys()) {
+		if (i++ >= half) break;
+		cache.delete(k);
+	}
+}
+
 function cacheAndReturn(key: string, value: string): string {
-	if (cssCache.size >= CSS_CACHE_MAX) cssCache.clear();
+	if (cssCache.size >= CSS_CACHE_MAX) evictHalf(cssCache);
 	cssCache.set(key, value);
 	return value;
 }
@@ -177,7 +186,7 @@ function hsbkToLinearRgb(hsbk: HsbkColor): [number, number, number] {
 		(s * hueRgb[2] + (1 - s) * kelvinRgb[2]) * v
 	];
 
-	if (linearRgbCache.size >= LINEAR_RGB_CACHE_MAX) linearRgbCache.clear();
+	if (linearRgbCache.size >= LINEAR_RGB_CACHE_MAX) evictHalf(linearRgbCache);
 	linearRgbCache.set(key, result);
 	return result;
 }
