@@ -15,8 +15,11 @@
 		}
 	}
 
-	// Pixels per tile column (8 columns = 160px)
-	const PX_PER_TILE_COL = 20;
+	// Layout constants — keep in sync with .viz-tiles gap and .viz-device padding/border
+	const PX_PER_TILE_COL = 20;  // 8 columns = 160px
+	const TILE_GAP = 12;          // matches .viz-tiles { gap }
+	const CARD_PADDING = 42;      // 20px padding + 1px border, each side
+	const MIN_CARD_WIDTH = 200;
 
 	function getTileMaxWidth(tile: TileDevice): number {
 		return tile.width * PX_PER_TILE_COL;
@@ -27,10 +30,8 @@
 			const tileWidths = device.tile_devices.reduce(
 				(sum, tile) => sum + tile.width * PX_PER_TILE_COL, 0
 			);
-			const gaps = (device.tile_devices.length - 1) * 12;
-			const padding = 42; // 20px padding + 1px border, each side
-			// Use CSS custom property so the width is only applied at 768px+
-			return `--card-width: ${Math.max(200, tileWidths + gaps + padding)}px;`;
+			const gaps = (device.tile_devices.length - 1) * TILE_GAP;
+			return `--card-width: ${Math.max(MIN_CARD_WIDTH, tileWidths + gaps + CARD_PADDING)}px;`;
 		}
 		return '';
 	}
