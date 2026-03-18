@@ -527,7 +527,14 @@ class TestEventBridge:
         device = create_color_light("d073d5000001")
         device.state.label = "New Label"
 
-        with patch("lifx_emulator_app.api.services.event_bridge._schedule_async"):
+        def close_coro(coro):
+            """Consume the coroutine to avoid RuntimeWarning."""
+            coro.close()
+
+        with patch(
+            "lifx_emulator_app.api.services.event_bridge._schedule_async",
+            side_effect=close_coro,
+        ):
             # Trigger metadata change (SetLabel packet type 24)
             observer.on_state_changed(device, 24, 0)
 
