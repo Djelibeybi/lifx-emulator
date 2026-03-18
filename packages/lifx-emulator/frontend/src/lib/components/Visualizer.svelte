@@ -180,7 +180,8 @@
 					<button
 						class="viz-collapse-btn"
 						onclick={() => ui.toggleVizCollapsed(device.serial)}
-						title={collapsed ? device.label : 'Collapse'}
+						aria-expanded={!collapsed}
+						aria-label={collapsed ? `Expand ${device.label}` : `Collapse ${device.label}`}
 					>
 						{collapsed ? '▸' : '▾'}
 					</button>
