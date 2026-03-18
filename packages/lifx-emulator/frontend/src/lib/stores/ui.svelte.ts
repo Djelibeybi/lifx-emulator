@@ -177,6 +177,7 @@ function createUiStore() {
 		},
 
 		isVizCollapsed(serial: string): boolean {
+			if (autoCompact) return !vizCollapsed.has(serial);
 			return vizCollapsed.has(serial);
 		},
 
@@ -192,8 +193,11 @@ function createUiStore() {
 			}
 		},
 
-		collapseAllViz(serials: string[]) {
-			vizCollapsed = new Set(serials);
+		collapseAllViz(_serials: string[]) {
+			// In auto-compact: clear exceptions → all collapsed by default.
+			// In default: clear set → none collapsed, then... we need all collapsed.
+			// Actually: in default mode, set = collapsed serials; in auto-compact, set = expanded exceptions.
+			vizCollapsed = autoCompact ? new Set() : new Set(_serials);
 			if (typeof localStorage !== 'undefined') {
 				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
 			}
@@ -206,13 +210,12 @@ function createUiStore() {
 			}
 		},
 
-		toggleAutoCompact(serials: string[]) {
+		toggleAutoCompact(_serials: string[]) {
 			autoCompact = !autoCompact;
-			if (autoCompact) {
-				vizCollapsed = new Set(serials);
-			} else {
-				vizCollapsed = new Set();
-			}
+			// In auto-compact, vizCollapsed holds exceptions (expanded devices).
+			// In default mode, vizCollapsed holds collapsed devices.
+			// Clear on toggle so we start fresh in either mode.
+			vizCollapsed = new Set();
 			if (typeof localStorage !== 'undefined') {
 				localStorage.setItem(STORAGE_KEY_AUTO_COMPACT, String(autoCompact));
 				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
