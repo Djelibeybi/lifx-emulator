@@ -16,6 +16,10 @@ function createProductsStore() {
 			return loaded;
 		},
 
+		get isLoading(): boolean {
+			return loading;
+		},
+
 		get error(): string | null {
 			return error;
 		},
