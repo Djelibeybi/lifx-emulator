@@ -527,16 +527,19 @@ class TestEventBridge:
         device = create_color_light("d073d5000001")
         device.state.label = "New Label"
 
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
+        with patch("lifx_emulator_app.api.services.event_bridge._schedule_async"):
             # Trigger metadata change (SetLabel packet type 24)
             observer.on_state_changed(device, 24, 0)
 
-            mock_schedule.assert_called_once()
-            # Verify the coroutine was created with the right serial and changes
-            coro = mock_schedule.call_args[0][0]
-            assert coro is not None
+        # AsyncMock records the call when invoked, before the coroutine
+        # is awaited, so we can assert on the arguments directly.
+        mock_ws_manager.broadcast_device_updated.assert_called_once()
+        serial, changes = mock_ws_manager.broadcast_device_updated.call_args[0]
+        assert serial == "d073d5000001"
+        assert changes["category"] == "metadata"
+        assert changes["label"] == "New Label"
+        assert "group_label" in changes
+        assert "location_label" in changes
 
 
 class TestStatsBroadcaster:
