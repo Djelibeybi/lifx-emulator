@@ -62,7 +62,7 @@
 				role="tab"
 				id="tab-{tab.id}"
 				aria-selected={ui.activeTab === tab.id}
-				aria-controls="tabpanel-{tab.id}"
+				aria-controls="tabpanel-main"
 				tabindex={ui.activeTab === tab.id ? 0 : -1}
 				class:active={ui.activeTab === tab.id}
 				onclick={() => ui.setActiveTab(tab.id)}
@@ -78,7 +78,7 @@
 	</div>
 
 	<!-- Tab content -->
-	<div class="tab-content" role="tabpanel" id="tabpanel-{ui.activeTab}" aria-labelledby="tab-{ui.activeTab}">
+	<div class="tab-content" role="tabpanel" id="tabpanel-main" aria-labelledby="tab-{ui.activeTab}">
 		{#if ui.activeTab === 'visualizer'}
 			<Visualizer />
 		{:else if ui.activeTab === 'devices'}
