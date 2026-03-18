@@ -159,7 +159,7 @@
 			<button class="btn btn-sm" onclick={() => ui.collapseAllViz(sortedDevices.map(d => d.serial))}>
 				Collapse All
 			</button>
-			<button class="btn btn-sm" onclick={() => ui.expandAllViz()}>
+			<button class="btn btn-sm" onclick={() => ui.expandAllViz(sortedDevices.map(d => d.serial))}>
 				Expand All
 			</button>
 		</div>

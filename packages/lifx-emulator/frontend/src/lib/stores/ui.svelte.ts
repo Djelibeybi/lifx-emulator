@@ -203,10 +203,12 @@ function createUiStore() {
 			}
 		},
 
-		expandAllViz() {
-			vizCollapsed = new Set();
+		expandAllViz(serials: string[]) {
+			// In auto-compact: set = expanded exceptions, so add all serials.
+			// In default: set = collapsed devices, so clear it.
+			vizCollapsed = autoCompact ? new Set(serials) : new Set();
 			if (typeof localStorage !== 'undefined') {
-				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([]));
+				localStorage.setItem(STORAGE_KEY_VIZ_COLLAPSED, JSON.stringify([...vizCollapsed]));
 			}
 		},
 
