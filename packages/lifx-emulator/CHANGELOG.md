@@ -2,6 +2,75 @@
 
 <!-- version list -->
 
+## v4.4.0 (2026-03-18)
+
+### Bug Fixes
+
+- **frontend**: Add aria-expanded and aria-label to collapse buttons
+  ([`8ffc547`](https://github.com/Djelibeybi/lifx-emulator/commit/8ffc547e32a594952f9296ef9850093100460bfe))
+
+- **frontend**: Add fallback for tile width/height in card calculations
+  ([`69499ea`](https://github.com/Djelibeybi/lifx-emulator/commit/69499ea3c879fe86145048f2a0e9aa5e219020d3))
+
+- **frontend**: Add full ARIA tab semantics to ScenarioPanel scope tabs
+  ([`514f333`](https://github.com/Djelibeybi/lifx-emulator/commit/514f333297e9dde37d5efc8260c8e0ba7c7d397d))
+
+- **frontend**: Add keyboard navigation to tablist
+  ([`e0b1a2b`](https://github.com/Djelibeybi/lifx-emulator/commit/e0b1a2bbc73654fa6d791c6bdebc0258776ad01b))
+
+- **frontend**: Derive auto-compact collapsed state from current devices
+  ([`9029c55`](https://github.com/Djelibeybi/lifx-emulator/commit/9029c5598b04fa53cb8a956a9174f20014d7a4e6))
+
+- **frontend**: Display products error state in DeviceToolbar
+  ([`2cf142a`](https://github.com/Djelibeybi/lifx-emulator/commit/2cf142a657339e9f3f147651b128349f0b73dd3d))
+
+- **frontend**: Explicitly type edge arrays as HsbkColor[]
+  ([`e21e837`](https://github.com/Djelibeybi/lifx-emulator/commit/e21e837ba6d006d8ae2aedae81f4a2557a7f06c9))
+
+- **frontend**: Expose isLoading from products store
+  ([`2365e6d`](https://github.com/Djelibeybi/lifx-emulator/commit/2365e6d2fb5e1cdfee094ab958e8adccb9c50d29))
+
+- **frontend**: Fix expandAllViz in auto-compact mode
+  ([`1a8bd31`](https://github.com/Djelibeybi/lifx-emulator/commit/1a8bd31762a309ca02286bb3ca5260c0be892ca5))
+
+- **frontend**: Guard glow edge extraction against invalid tile dimensions
+  ([`bd0a0df`](https://github.com/Djelibeybi/lifx-emulator/commit/bd0a0df528fff732ae6d91bab275ab2667d0b420))
+
+- **frontend**: Handle errors in products store load()
+  ([`cda2b4b`](https://github.com/Djelibeybi/lifx-emulator/commit/cda2b4b11fe8d0ad830e1a27d66977d23163cd70))
+
+- **frontend**: Make loaded/loading reactive with $state in products store
+  ([`ea671a1`](https://github.com/Djelibeybi/lifx-emulator/commit/ea671a1e835a3ff52ce5d608b334711c6810b59d))
+
+- **frontend**: Use flex-start instead of start for cross-browser compat
+  ([`45377db`](https://github.com/Djelibeybi/lifx-emulator/commit/45377db693160cd2637e1d068bcdb14f5a362640))
+
+- **frontend**: Use stable tabpanel ID for aria-controls
+  ([`3ea070e`](https://github.com/Djelibeybi/lifx-emulator/commit/3ea070e0e1c352950163b527885ea7cfa0047594))
+
+- **frontend**: Use void for fire-and-forget products.load() call
+  ([`efa6214`](https://github.com/Djelibeybi/lifx-emulator/commit/efa621468b3be3960688ec2fcf6f08916ccf5553))
+
+### Features
+
+- **frontend**: Content-based card widths, auto-compact layout, and responsive fixes
+  ([`cacd2a4`](https://github.com/Djelibeybi/lifx-emulator/commit/cacd2a4e92e7eac9db9b4c1efa28e185e8b954c6))
+
+- **frontend**: Overhaul visualizer with Oklch color, ambilight glow, and compact layout
+  ([`fcc7534`](https://github.com/Djelibeybi/lifx-emulator/commit/fcc753492b34be46c492e6a92758bba5d60dec2a))
+
+### Performance Improvements
+
+- **frontend**: Memoize hsbkToCss() for render loop performance
+  ([`d10f39b`](https://github.com/Djelibeybi/lifx-emulator/commit/d10f39b86989f98304df52c607d22dd1e5e2c744))
+
+- **frontend**: Memoize hsbkToLinearRgb for glow calculation performance
+  ([`d4e3151`](https://github.com/Djelibeybi/lifx-emulator/commit/d4e3151d30df3e9278d75722ca1cc25f53764f3b))
+
+- **frontend**: Use half-eviction instead of full cache clear
+  ([`8ebc522`](https://github.com/Djelibeybi/lifx-emulator/commit/8ebc5229c829c90f61ca9f5dc1c469dd05f1426a))
+
+
 ## v4.3.1 (2026-03-18)
 
 ### Bug Fixes
