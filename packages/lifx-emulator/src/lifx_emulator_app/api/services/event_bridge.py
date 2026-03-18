@@ -322,7 +322,7 @@ class WebSocketStateChangeObserver:
             pkt_type: The packet type number
 
         Returns:
-            Category string: "zones", "tiles", "power", or "color"
+            Category string: "zones", "tiles", "power", "metadata", or "color"
         """
         if pkt_type in {501, 510}:  # SetColorZones, ExtendedSetColorZones
             return "zones"
