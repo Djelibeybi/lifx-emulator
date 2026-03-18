@@ -3,8 +3,8 @@ import { fetchProducts } from '$lib/utils/api';
 
 function createProductsStore() {
 	let items = $state<Product[]>([]);
-	let loaded = false;
-	let loading = false;
+	let loaded = $state(false);
+	let loading = $state(false);
 	let error = $state<string | null>(null);
 
 	return {
