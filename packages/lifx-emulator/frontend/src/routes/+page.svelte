@@ -22,7 +22,7 @@
 
 	onMount(() => {
 		connection.connect();
-		products.load();
+		void products.load();
 	});
 
 	onDestroy(() => {
