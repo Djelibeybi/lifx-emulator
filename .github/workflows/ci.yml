@@ -98,7 +98,7 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
-      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de   # v5
+      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad   # v5
       with:
         slug: Djelibeybi/lifx-emulator
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -106,7 +106,7 @@ jobs:
 
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de   # v5
+      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad   # v5
       with:
         report_type: test_results
         fail_ci_if_error: false
