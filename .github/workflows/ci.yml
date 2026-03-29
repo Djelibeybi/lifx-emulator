@@ -258,7 +258,7 @@ jobs:
         path: dist
 
     - name: Publish lifx-emulator-core to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
       with:
         packages-dir: dist
         print-hash: true
@@ -288,7 +288,7 @@ jobs:
         path: dist
 
     - name: Publish lifx-emulator to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
       with:
         packages-dir: dist
         print-hash: true
