@@ -34,7 +34,7 @@ lifx-emulator/
 │               ├── routers/         # API endpoints
 │               └── services/        # Business logic
 │
-├── docs/                            # MkDocs documentation (41 files)
+├── docs/                            # Zensical documentation (41 files)
 └── pyproject.toml                   # Workspace config
 ```
 
@@ -280,7 +280,7 @@ def run_api_server(server, host, port):
 
 ### Documentation
 
-- `docs/` - MkDocs documentation (41 files)
+- `docs/` - Zensical documentation (41 files)
 - `CLAUDE.md` - AI assistant guidance
 - `README.md` - Project overview
 

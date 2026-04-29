@@ -131,14 +131,15 @@ uv run lifx-emulator --help
 
 ## Documentation
 
-Documentation is built with MkDocs:
+Documentation is built with Zensical:
 
 ```bash
 # Serve docs locally
-uv run mkdocs serve
+uv run zensical serve
 
 # Build docs
-uv run mkdocs build
+uv run zensical build
+uv run llmstxt-standalone build
 ```
 
 ## Architecture

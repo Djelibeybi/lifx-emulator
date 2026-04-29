@@ -127,8 +127,8 @@ uv run pytest
 # Run linter
 uv run ruff check .
 
-# Build docs
-uv run mkdocs serve
+# Preview docs
+uv run zensical serve
 ```
 
 ## License

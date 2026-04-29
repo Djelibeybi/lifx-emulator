@@ -47,7 +47,7 @@ lifx-emulator/
 │       │       └── mappers/         # Data transformation
 │       └── tests/                   # 5 test files
 │
-├── docs/                            # MkDocs documentation (45 files)
+├── docs/                            # Zensical documentation (45 files)
 │   ├── development/                 # Developer guides (NEW)
 │   ├── getting-started/             # Installation & quickstart
 │   ├── library/                     # Python API reference
@@ -58,7 +58,7 @@ lifx-emulator/
 │   └── reference/                   # FAQ, glossary, troubleshooting
 │
 ├── pyproject.toml                   # Workspace config (uv)
-├── mkdocs.yml                       # Documentation config
+├── mkdocs.yml                       # Zensical-compatible documentation config
 ├── uv.lock                          # Dependency lockfile
 └── README.md                        # Project overview
 ```
@@ -262,7 +262,7 @@ class DeviceState:
 ### Workspace Configuration
 - **`pyproject.toml`** (root)
   - uv workspace setup
-  - Dev dependencies (pytest, ruff, pyright, mkdocs)
+  - Dev dependencies (pytest, ruff, pyright, zensical)
   - Code quality rules (Ruff lint, Pyright config)
   - Test configuration (pytest, coverage)
 
@@ -279,12 +279,12 @@ class DeviceState:
 
 ### Documentation Configuration
 - **`mkdocs.yml`**
-  - Material theme with dark mode
+  - Zensical-compatible site configuration
   - Navigation structure (8 main sections)
-  - Plugins: search, llmstxt, mkdocstrings, git-revision-date
+  - Plugins: search, llmstxt, mkdocstrings
 
 ### Other Configuration
-- **`uv.lock`** - Dependency lockfile (83 packages)
+- **`uv.lock`** - Dependency lockfile (78 packages)
 - **`.github/workflows/`** - CI/CD (linting, tests, docs)
 
 ---
@@ -381,15 +381,15 @@ class DeviceState:
 - **rich** (14.2.0) - Terminal UI
 
 ### Development Dependencies
-- **pytest** (8.4.2) - Test framework
-- **pytest-asyncio** (1.2.0) - Async test support
-- **pytest-cov** (7.0.0) - Coverage reporting
+- **pytest** (9.0.3) - Test framework
+- **pytest-asyncio** (1.3.0) - Async test support
+- **pytest-cov** (7.1.0) - Coverage reporting
 - **pytest-sugar** (1.1.1) - Better test output
-- **ruff** (0.14.3) - Linter and formatter
-- **pyright** (1.1.407) - Type checker
-- **mkdocs** (1.6.1) - Documentation site
-- **mkdocs-material** (9.6.22) - Material theme
-- **mkdocstrings** (0.30.1) - API docs generation
+- **ruff** (0.15.9) - Linter and formatter
+- **pyright** (1.1.408) - Type checker
+- **zensical** (0.0.37) - Documentation site
+- **llmstxt-standalone** (0.2.0) - llms.txt generation
+- **mkdocstrings-python** (2.0.3) - API docs generation
 - **httpx** (0.28.1) - HTTP client for testing
 
 ---
@@ -430,8 +430,9 @@ lifx-emulator list-products
 
 ### Documentation
 ```bash
-uv run mkdocs serve              # Live preview (localhost:8000)
-uv run mkdocs build              # Build static site
+uv run zensical serve            # Live preview (localhost:8000)
+uv run zensical build            # Build static site
+uv run llmstxt-standalone build  # Build llms.txt outputs
 ```
 
 ### Auto-Generation
@@ -617,7 +618,7 @@ These files are regenerated from upstream sources:
 - **Ruff**: https://docs.astral.sh/ruff/
 - **Pyright**: https://github.com/microsoft/pyright
 - **FastAPI**: https://fastapi.tiangolo.com/
-- **MkDocs Material**: https://squidfunk.github.io/mkdocs-material/
+- **Zensical**: https://zensical.org/docs/
 
 ---
 
