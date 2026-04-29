@@ -14,12 +14,10 @@ dev = [
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "ruff>=0.14.2",
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.7.6",
-    "mkdocstrings[python]>=0.27.0",
-    "mkdocs-git-revision-date-localized-plugin>=1.4.0",
-    "mkdocs-llmstxt>=0.3.0",
     "prek>=0.3.8",
+    "zensical>=0.0.37",
+    "llmstxt-standalone>=0.2.0",
+    "mkdocstrings-python>=2.0.3",
 ]
 
 [tool.ruff]

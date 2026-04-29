@@ -42,6 +42,7 @@ uv workspace monorepo with two Python packages:
 - Published to **PyPI** as two packages (`lifx-emulator-core`, `lifx-emulator`)
 - Users install and run locally: `pip install lifx-emulator` or `uv add lifx-emulator`
 - Frontend is pre-built and bundled into the Python package as static files
+- Documentation is built with **Zensical**, **mkdocstrings-python**, and **llmstxt-standalone**
 
 ## Key Dependencies
 

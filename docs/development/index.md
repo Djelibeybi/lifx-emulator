@@ -115,10 +115,11 @@ lifx-emulator --color 2 --multizone 1 --tile 1 --api
 ### 5. Build Documentation
 ```bash
 # Serve locally (live reload)
-uv run mkdocs serve
+uv run zensical serve
 
 # Build static site
-uv run mkdocs build
+uv run zensical build
+uv run llmstxt-standalone build
 
 # View at http://localhost:8000
 ```
@@ -537,7 +538,7 @@ lifx-emulator/
 │       │   └── api/                 # HTTP API (FastAPI)
 │       └── tests/                   # App/API tests
 │
-├── docs/                            # MkDocs documentation
+├── docs/                            # Zensical documentation
 │   ├── development/                 # This section
 │   ├── architecture/                # System design
 │   ├── guide/                       # User guides
@@ -546,7 +547,7 @@ lifx-emulator/
 │   └── tutorials/                   # Step-by-step tutorials
 │
 ├── pyproject.toml                   # Workspace config (uv)
-├── mkdocs.yml                       # Documentation config
+├── mkdocs.yml                       # Zensical-compatible documentation config
 └── README.md                        # Project overview
 ```
 
@@ -574,7 +575,7 @@ lifx-emulator/
 - [Ruff Linter](https://docs.astral.sh/ruff/)
 - [Pyright Type Checker](https://github.com/microsoft/pyright)
 - [PyApp Binary Builder](https://ofek.dev/pyapp/latest/)
-- [MkDocs](https://www.mkdocs.org/)
+- [Zensical](https://zensical.org/docs/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 
 ---

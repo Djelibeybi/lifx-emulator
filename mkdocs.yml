@@ -51,6 +51,7 @@ theme:
 plugins:
 - search:
     lang: en
+# Used by llmstxt-standalone after Zensical builds the HTML site.
 - llmstxt:
     markdown_description: |
       A comprehensive LIFX device emulator for testing LIFX LAN protocol libraries.
@@ -67,47 +68,47 @@ plugins:
     full_output: llms-full.txt
     sections:
       Getting Started:
-      - getting-started/index.md: Overview of getting started with the emulator
-      - getting-started/installation.md: Installation instructions for both packages
-      - getting-started/quickstart.md: Quick start guide for CLI and Python library
+      - getting-started/index.md
+      - getting-started/installation.md
+      - getting-started/quickstart.md
       lifx-emulator (CLI):
-      - cli/index.md: CLI tool and HTTP management server overview
-      - cli/configuration.md: YAML configuration file support
-      - cli/cli-reference.md: Command-line interface usage
-      - cli/web-interface.md: HTTP management API and web interface
-      - cli/device-management-api.md: Device management REST API
-      - cli/scenario-api.md: Scenario management REST API
-      - cli/websocket-api.md: WebSocket API for real-time updates
-      - cli/storage.md: Persistent storage
-      - cli/scenarios.md: Custom scenarios
+      - cli/index.md
+      - cli/configuration.md
+      - cli/cli-reference.md
+      - cli/web-interface.md
+      - cli/device-management-api.md
+      - cli/scenario-api.md
+      - cli/websocket-api.md
+      - cli/storage.md
+      - cli/scenarios.md
       lifx-emulator-core (Python Library):
-      - library/index.md: Python library reference overview
-      - library/factories.md: Device factory functions
-      - library/server.md: Server library
-      - library/device.md: Device library
-      - library/protocol.md: Protocol types
-      - library/storage.md: Storage and persistence
-      - library/products.md: Product registry
-      - architecture/index.md: Architecture overview
-      - architecture/overview.md: System architecture
-      - architecture/packet-flow.md: Packet flow and processing
-      - architecture/protocol.md: Protocol layer details
-      - architecture/device-state.md: Device state management
+      - library/index.md
+      - library/factories.md
+      - library/server.md
+      - library/device.md
+      - library/protocol.md
+      - library/storage.md
+      - library/products.md
+      - architecture/index.md
+      - architecture/overview.md
+      - architecture/packet-flow.md
+      - architecture/protocol.md
+      - architecture/device-state.md
       Guides:
-      - guide/index.md: User guide overview
-      - guide/device-types.md: Available device types
-      - guide/products-and-specs.md: Product registry and specifications
-      - guide/testing-scenarios.md: Testing scenario capabilities
-      - guide/framebuffers.md: Matrix device framebuffer support
-      - guide/integration-testing.md: Advanced testing patterns
-      - guide/best-practices.md: Best practices
+      - guide/index.md
+      - guide/device-types.md
+      - guide/products-and-specs.md
+      - guide/testing-scenarios.md
+      - guide/framebuffers.md
+      - guide/integration-testing.md
+      - guide/best-practices.md
       Tutorials:
-      - tutorials/index.md: Tutorial overview
-      - tutorials/01-first-device.md: Creating your first emulated device
-      - tutorials/02-basic.md: Basic usage patterns
-      - tutorials/03-integration.md: Integration testing
-      - tutorials/04-advanced-scenarios.md: Advanced testing scenarios
-      - tutorials/05-cicd.md: CI/CD integration
+      - tutorials/index.md
+      - tutorials/01-first-device.md
+      - tutorials/02-basic.md
+      - tutorials/03-integration.md
+      - tutorials/04-advanced-scenarios.md
+      - tutorials/05-cicd.md
 - mkdocstrings:
     handlers:
       python:
@@ -165,9 +166,6 @@ plugins:
           show_symbol_type_heading: true
           show_symbol_type_toc: true
           summary: true
-
-- git-revision-date-localized:
-    enable_creation_date: true
 
 markdown_extensions:
 - admonition
