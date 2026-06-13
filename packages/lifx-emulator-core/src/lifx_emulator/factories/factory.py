@@ -18,6 +18,7 @@ def create_color_light(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a regular color light (LIFX Color)"""
     return create_device(
@@ -26,6 +27,7 @@ def create_color_light(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )  # LIFX Color
 
 
@@ -34,6 +36,7 @@ def create_infrared_light(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create an infrared-enabled light (LIFX A19 Night Vision)"""
     return create_device(
@@ -42,6 +45,7 @@ def create_infrared_light(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )  # LIFX A19 Night Vision
 
 
@@ -50,6 +54,7 @@ def create_hev_light(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create an HEV-enabled light (LIFX Clean)"""
     return create_device(
@@ -58,6 +63,7 @@ def create_hev_light(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )  # LIFX Clean
 
 
@@ -68,6 +74,7 @@ def create_multizone_light(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a multizone light (LIFX Beam)
 
@@ -87,6 +94,7 @@ def create_multizone_light(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )
 
 
@@ -98,6 +106,7 @@ def create_tile_device(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a tile device (LIFX Tile)
 
@@ -119,6 +128,7 @@ def create_tile_device(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )  # LIFX Tile
 
 
@@ -127,6 +137,7 @@ def create_color_temperature_light(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a color temperature light (LIFX Mini White to Warm).
 
@@ -138,6 +149,7 @@ def create_color_temperature_light(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )  # LIFX Mini White to Warm
 
 
@@ -147,6 +159,7 @@ def create_switch(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a LIFX Switch device.
 
@@ -169,6 +182,7 @@ def create_switch(
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
+        advertised_services=advertised_services,
     )
 
 
@@ -183,6 +197,7 @@ def create_device(
     firmware_version: tuple[int, int] | None = None,
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
+    advertised_services: list[tuple[int, int]] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -202,6 +217,11 @@ def create_device(
                          or 2.60 otherwise
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager for testing
+        advertised_services: Optional list of (service_id, port) tuples emitted
+                         as one StateService reply each, in order, in response
+                         to GetService. service_id is a raw uint8 (0-255) and
+                         may be outside the DeviceService enum. Defaults to a
+                         single UDP reply on the device's port.
 
     Returns:
         EmulatedLifxDevice configured for the specified product
@@ -248,5 +268,8 @@ def create_device(
 
     if scenario_manager is not None:
         builder.with_scenario_manager(scenario_manager)
+
+    if advertised_services is not None:
+        builder.with_advertised_services(advertised_services)
 
     return builder.build()

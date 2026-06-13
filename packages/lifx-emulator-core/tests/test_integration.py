@@ -85,6 +85,56 @@ class TestDeviceDiscovery:
             assert state_service.service == DeviceService.UDP
             assert state_service.port == integration_port
 
+    @pytest.mark.asyncio
+    async def test_discover_multi_service_device(self):
+        """A device with advertised_services emits one StateService per entry.
+
+        Mirrors real hardware that advertises a reserved/embedded service
+        (service 5, not a DeviceService enum member) before its UDP service.
+        Clients must tolerate the unknown service byte and select the UDP
+        entry's port to talk to the device.
+        """
+        from lifx_emulator.devices import DeviceManager
+        from lifx_emulator.factories import create_color_light
+        from lifx_emulator.repositories import DeviceRepository
+        from lifx_emulator.server import EmulatedLifxServer
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+
+        device = create_color_light(
+            "d073d50000aa", advertised_services=[(5, 0), (1, 56700)]
+        )
+        server = EmulatedLifxServer(
+            [device], DeviceManager(DeviceRepository()), "127.0.0.1", port
+        )
+
+        async with server:
+            header = create_header(
+                pkt_type=2,  # GetService
+                target=device.state.get_target_bytes(),
+                res_required=True,
+            )
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(2.0)
+            sock.sendto(header.pack(), ("127.0.0.1", port))
+
+            await asyncio.sleep(0.05)
+
+            # Each StateService is sent as its own UDP datagram, in order.
+            replies = []
+            for _ in range(2):
+                data, _addr = sock.recvfrom(4096)
+                assert LifxHeader.unpack(data).pkt_type == 3  # StateService
+                replies.append(Device.StateService.unpack(data[HEADER_SIZE:]))
+            sock.close()
+
+        # First reply is the reserved service (raw byte 5), second is UDP:56700.
+        assert (replies[0].service, replies[0].port) == (5, 0)
+        assert (replies[1].service, replies[1].port) == (DeviceService.UDP, 56700)
+
 
 class TestColorControl:
     """Test light color control flow."""

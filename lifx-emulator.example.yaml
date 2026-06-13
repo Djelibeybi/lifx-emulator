@@ -173,6 +173,14 @@ serial_start: 1
 #   tile_count:           Optional - Number of tiles (matrix devices only)
 #   tile_width:           Optional - Tile width in zones (matrix devices only)
 #   tile_height:          Optional - Tile height in zones (matrix devices only)
+#   advertised_services:  Optional - List of [service_id, port] pairs emitted as
+#                         StateService replies to GetService, in order. Defaults
+#                         to a single UDP (service 1) reply on the device port.
+#                         service_id is a raw uint8 (0-255) and may be a value
+#                         outside the known DeviceService enum -- real hardware
+#                         advertises reserved/embedded services. Use this to test
+#                         that clients tolerate unknown services and select the
+#                         UDP entry for the address to talk to.
 
 # devices:
 #   # Color bulb with full initial state
@@ -231,6 +239,15 @@ serial_start: 1
 #   # LIFX Switch (relay device)
 #   - product_id: 70
 #     label: "Garage Switch"
+#
+#   # Multi-service discovery: advertises a reserved service (5) BEFORE its UDP
+#   # service (1). Clients must ignore service 5 (and not crash on it) and use
+#   # the UDP entry's port (56700) to talk to the device.
+#   - product_id: 27
+#     label: "Multi-Service Bulb"
+#     advertised_services:
+#       - [5, 0]
+#       - [1, 56700]
 
 # ==============================================================================
 # Scenarios

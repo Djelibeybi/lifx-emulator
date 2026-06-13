@@ -968,6 +968,7 @@ async def run(
                         tile_width=dev_def.tile_width,
                         tile_height=dev_def.tile_height,
                         storage=storage,
+                        advertised_services=dev_def.advertised_services,
                     )
                     if dev_def.label:
                         device.state.label = dev_def.label

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import Device
@@ -24,15 +24,24 @@ class GetServiceHandler(PacketHandler):
     def handle(
         self, device_state: DeviceState, packet: Any | None, res_required: bool
     ) -> list[Any]:
+        # Default (unconfigured) behaviour: a single UDP reply on the device's
+        # current port. Resolved lazily here so the server's per-device port
+        # override is honoured.
+        services = device_state.advertised_services
+        if services is None:
+            services = [(int(ProtocolDeviceService.UDP), device_state.port)]
+
         logger.debug(
-            "Sending StateService: %s [%s]",
-            ProtocolDeviceService.UDP,
-            device_state.port,
+            "Sending %d StateService reply/replies: %s", len(services), services
         )
+        # service ids are passed through verbatim (raw uint8); values outside
+        # the DeviceService enum are emitted unchanged, never remapped.
         return [
-            Device.StateService(
-                service=ProtocolDeviceService.UDP, port=device_state.port
-            )
+            # The packet field is enum-typed but the wire encoding is a raw
+            # uint8; cast keeps the type checker happy while emitting the byte
+            # verbatim (StateService.pack() does int(value)).
+            Device.StateService(service=cast(ProtocolDeviceService, service), port=port)
+            for service, port in services
         ]
 
 
