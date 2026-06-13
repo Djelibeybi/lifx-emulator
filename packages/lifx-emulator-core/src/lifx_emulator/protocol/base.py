@@ -265,7 +265,7 @@ class Packet:
                 item_raw, current_offset = serializer.unpack_value(
                     data, "uint8", current_offset
                 )
-                result.append(enum_class(item_raw))
+                result.append(cls._decode_enum_value(enum_class, item_raw))
             return result, current_offset
         elif is_nested:
             from lifx_emulator.protocol import protocol_types
@@ -307,7 +307,7 @@ class Packet:
         if is_enum:
             enum_class = enum_types[base_type]
             value_raw, new_offset = serializer.unpack_value(data, "uint8", offset)
-            return enum_class(value_raw), new_offset
+            return cls._decode_enum_value(enum_class, value_raw), new_offset
         elif is_nested:
             from lifx_emulator.protocol import protocol_types
 
@@ -381,6 +381,22 @@ class Packet:
             return cls._unpack_single_field(
                 data, base_type, offset, is_nested, enum_types
             )
+
+    @staticmethod
+    def _decode_enum_value(enum_class: Any, raw: int) -> Any:
+        """Decode a raw uint8 into an enum member, tolerating unknown values.
+
+        Real LIFX firmware advertises reserved/embedded enum values that are
+        not defined in the public protocol (e.g. DeviceService identifiers like
+        5 or 8 seen in the wild). A robust decoder must not crash on these, so
+        unknown values are preserved as raw ints rather than raising. This keeps
+        the decoder symmetric with what the emulator can emit and mirrors the
+        forward-compatibility a real client is required to have.
+        """
+        try:
+            return enum_class(raw)
+        except ValueError:
+            return raw
 
     @staticmethod
     def _parse_field_type(field_type: str) -> tuple[str, int | None, bool]:
