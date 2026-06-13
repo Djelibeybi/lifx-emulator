@@ -78,6 +78,7 @@ class DeviceBuilder:
         self._storage: DevicePersistenceAsyncFile | None = None
         self._scenario_manager: HierarchicalScenarioManager | None = None
         self._color: LightHsbk | None = None
+        self._advertised_services: list[tuple[int, int]] | None = None
 
         # Helper services
         self._serial_generator = SerialGenerator()
@@ -183,6 +184,23 @@ class DeviceBuilder:
             Self for method chaining
         """
         self._scenario_manager = scenario_manager
+        return self
+
+    def with_advertised_services(
+        self, advertised_services: list[tuple[int, int]]
+    ) -> DeviceBuilder:
+        """Set the multi-service discovery advertisement.
+
+        Args:
+            advertised_services: List of (service_id, port) tuples. The device
+                emits one StateService reply per entry, in order, in response
+                to GetService. service_id is a raw uint8 (0-255) and may be a
+                value outside the DeviceService enum.
+
+        Returns:
+            Self for method chaining
+        """
+        self._advertised_services = advertised_services
         return self
 
     def with_color(self, color: LightHsbk) -> DeviceBuilder:
@@ -325,6 +343,7 @@ class DeviceBuilder:
             version_minor=version_minor,
             build_timestamp=int(time.time()),
             mac_address=bytes.fromhex(serial[:12]),
+            advertised_services=self._advertised_services,
         )
 
     def _create_infrared_state(self) -> InfraredState | None:

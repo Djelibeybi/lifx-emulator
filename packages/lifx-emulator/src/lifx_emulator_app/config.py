@@ -119,6 +119,7 @@ class DeviceDefinition(BaseModel):
     tile_count: int | None = None
     tile_width: int | None = None
     tile_height: int | None = None
+    advertised_services: list[tuple[int, int]] | None = None
 
     @field_validator("serial")
     @classmethod
@@ -150,6 +151,22 @@ class DeviceDefinition(BaseModel):
         if v is not None and v < 0:
             msg = "hev_cycle_duration must be non-negative"
             raise ValueError(msg)
+        return v
+
+    @field_validator("advertised_services")
+    @classmethod
+    def validate_advertised_services(
+        cls, v: list[tuple[int, int]] | None
+    ) -> list[tuple[int, int]] | None:
+        if v is None:
+            return v
+        for service_id, port in v:
+            if not 0 <= service_id <= 255:
+                msg = "advertised_services service_id must be between 0 and 255"
+                raise ValueError(msg)
+            if not 0 <= port <= 0xFFFFFFFF:
+                msg = "advertised_services port must be between 0 and 4294967295"
+                raise ValueError(msg)
         return v
 
 

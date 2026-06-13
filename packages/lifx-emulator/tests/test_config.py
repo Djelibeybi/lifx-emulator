@@ -95,6 +95,24 @@ class TestDeviceDefinition:
         assert dev.label == "Art Wall"
         assert dev.tile_count == 5
 
+    def test_advertised_services_defaults_to_none(self):
+        """Unconfigured advertised_services preserves single-UDP behaviour."""
+        dev = DeviceDefinition(product_id=27)
+        assert dev.advertised_services is None
+
+    def test_advertised_services_parsed_as_tuples(self):
+        """advertised_services is parsed into (service_id, port) tuples."""
+        dev = DeviceDefinition(
+            product_id=27,
+            advertised_services=[[5, 0], [1, 56700]],
+        )
+        assert dev.advertised_services == [(5, 0), (1, 56700)]
+
+    def test_advertised_services_rejects_out_of_range_service(self):
+        """service_id must be a uint8 (0-255)."""
+        with pytest.raises(ValueError, match="0 and 255"):
+            DeviceDefinition(product_id=27, advertised_services=[[256, 0]])
+
 
 class TestResolveConfigPath:
     """Test config file resolution."""

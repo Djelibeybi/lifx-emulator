@@ -27,6 +27,13 @@ class CoreDeviceState:
     uptime_ns: int = 0
     mac_address: bytes = field(default_factory=lambda: bytes.fromhex("d073d5123456"))
     port: int = LIFX_UDP_PORT
+    # Optional multi-service discovery advertisement: a list of
+    # (service_id, port) tuples emitted as one StateService reply each, in
+    # order, in response to GetService. service_id is a raw uint8 (0-255) and
+    # may be a value outside the DeviceService enum (real hardware advertises
+    # reserved/embedded services). None means "advertise UDP on this device's
+    # port", preserving the historical single-reply behaviour.
+    advertised_services: list[tuple[int, int]] | None = None
 
 
 @dataclass
@@ -203,6 +210,7 @@ class DeviceState:
         "uptime_ns": "core",
         "mac_address": "core",
         "port": "core",
+        "advertised_services": "core",
         # Network properties
         "wifi_signal": "network",
         # Location properties
