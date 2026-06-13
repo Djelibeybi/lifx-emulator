@@ -100,6 +100,11 @@ class TestDeviceDefinition:
         dev = DeviceDefinition(product_id=27)
         assert dev.advertised_services is None
 
+    def test_advertised_services_explicit_none_passes_validation(self):
+        """Explicitly passing None runs the validator and is accepted."""
+        dev = DeviceDefinition(product_id=27, advertised_services=None)
+        assert dev.advertised_services is None
+
     def test_advertised_services_parsed_as_tuples(self):
         """advertised_services is parsed into (service_id, port) tuples."""
         dev = DeviceDefinition(
@@ -112,6 +117,11 @@ class TestDeviceDefinition:
         """service_id must be a uint8 (0-255)."""
         with pytest.raises(ValueError, match="0 and 255"):
             DeviceDefinition(product_id=27, advertised_services=[[256, 0]])
+
+    def test_advertised_services_rejects_out_of_range_port(self):
+        """port must be a uint32 (0-4294967295)."""
+        with pytest.raises(ValueError, match="4294967295"):
+            DeviceDefinition(product_id=27, advertised_services=[[1, 0x1_0000_0000]])
 
 
 class TestResolveConfigPath:
