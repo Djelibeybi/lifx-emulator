@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v3.7.0 (2026-06-13)
+
+### Bug Fixes
+
+- Tolerate unknown enum values when decoding packets
+  ([`2516180`](https://github.com/Djelibeybi/lifx-emulator/commit/25161802ac99ee0c0fa28619c7f637acc442dd3f))
+
+### Features
+
+- Emit multi-service StateService discovery replies
+  ([`91e58a9`](https://github.com/Djelibeybi/lifx-emulator/commit/91e58a9e0fab3f6b4cbb9746bc56d7484d9eb3db))
+
+
 ## v3.6.3 (2026-03-18)
 
 ### Bug Fixes
