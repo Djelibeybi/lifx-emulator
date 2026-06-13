@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.5.0 (2026-06-13)
+
+### Features
+
+- Emit multi-service StateService discovery replies
+  ([`91e58a9`](https://github.com/Djelibeybi/lifx-emulator/commit/91e58a9e0fab3f6b4cbb9746bc56d7484d9eb3db))
+
+
 ## v4.4.0 (2026-03-18)
 
 ### Bug Fixes
