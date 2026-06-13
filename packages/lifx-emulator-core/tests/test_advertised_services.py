@@ -76,6 +76,21 @@ class TestMultiService:
         assert replies[0].service == 8
         assert replies[0].pack() == b"\x08\x00\x00\x00\x00"
 
+    def test_emitted_bytes_decode_without_crashing(self):
+        """The emulator's own decoder tolerates the unknown service it emits.
+
+        Symmetry: if we emit service=8 on the wire, StateService.unpack() must
+        not raise -- it preserves the unknown value as a raw int rather than
+        rejecting it (forward-compatibility, mirroring what clients must do).
+        """
+        device = create_color_light("d073d5000001", advertised_services=[(8, 0)])
+
+        wire = _get_service(device)[0].pack()
+        decoded = Device.StateService.unpack(wire)
+
+        assert decoded.service == 8
+        assert decoded.port == 0
+
 
 class TestFactory:
     """Factory wiring for advertised_services."""
