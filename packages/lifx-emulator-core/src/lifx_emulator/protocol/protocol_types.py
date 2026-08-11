@@ -216,9 +216,9 @@ class ButtonAction:
         result = b""
 
         # gesture: ButtonGesture (enum)
-        result += serializer.pack_value(int(self.gesture), "uint8")
+        result += serializer.pack_value(int(self.gesture), "uint16")
         # target_type: ButtonTargetType (enum)
-        result += serializer.pack_value(int(self.target_type), "uint8")
+        result += serializer.pack_value(int(self.target_type), "uint16")
         # target: ButtonTarget
         result += self.target.pack()
 
@@ -232,12 +232,12 @@ class ButtonAction:
         current_offset = offset
         # gesture: ButtonGesture (enum)
         gesture_raw, current_offset = serializer.unpack_value(
-            data, "uint8", current_offset
+            data, "uint16", current_offset
         )
         gesture = ButtonGesture(gesture_raw)
         # target_type: ButtonTargetType (enum)
         target_type_raw, current_offset = serializer.unpack_value(
-            data, "uint8", current_offset
+            data, "uint16", current_offset
         )
         target_type = ButtonTargetType(target_type_raw)
         # target: ButtonTarget
