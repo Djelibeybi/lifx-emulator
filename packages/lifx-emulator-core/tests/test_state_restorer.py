@@ -364,3 +364,30 @@ class TestButtonStateRestoration:
         assert restored.actions_count == 1
         assert restored.actions[0].gesture == ButtonGesture.HOLD
         assert restored.actions[0].target.data == b"\x05" * 16
+
+
+class TestButtonConfigDeserialization:
+    """deserialize_device_state must treat every buttons_config key as optional."""
+
+    def test_missing_keys_are_left_alone(self):
+        state_dict = {
+            "location_id": "00" * 16,
+            "group_id": "00" * 16,
+            "color": {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500},
+            "buttons_config": {"haptic_duration_ms": 40},
+        }
+
+        result = deserialize_device_state(state_dict)
+
+        assert result["buttons_config"] == {"haptic_duration_ms": 40}
+
+    def test_present_keys_are_converted(self):
+        device = create_device(219, serial="d073d5000001")
+        serialized = serialize_device_state(device.state)
+
+        result = deserialize_device_state(serialized)
+
+        config = result["buttons_config"]
+        assert isinstance(config["backlight_on"], ButtonBacklightHsbk)
+        assert isinstance(config["backlight_off"], ButtonBacklightHsbk)
+        assert len(config["buttons"]) == 4
