@@ -925,8 +925,8 @@ class TestSkyEffectRestrictions:
         assert device.state.tile_effect_speed == 3
 
     def test_sky_effect_on_all_ceiling_products(self):
-        """Test SKY effect on all 4 Ceiling product IDs."""
-        ceiling_product_ids = [176, 177, 201, 202]
+        """Test SKY effect on all Ceiling product IDs (176, 177, 201, 202, 265, 266)."""
+        ceiling_product_ids = [176, 177, 201, 202, 265, 266]
 
         for product_id in ceiling_product_ids:
             # Create Ceiling device with firmware 4.4
