@@ -99,7 +99,9 @@ class SetConfigHandler(PacketHandler):
         bs.haptic_duration_ms = packet.haptic_duration_ms
         bs.backlight_on = packet.backlight_on_color
         bs.backlight_off = packet.backlight_off_color
-        return [_state_config(device_state)]
+        if res_required:
+            return [_state_config(device_state)]
+        return []
 
 
 class GetHandler(PacketHandler):
@@ -125,7 +127,9 @@ class SetHandler(PacketHandler):
     ) -> list[Any]:
         if not device_state.has_buttons:
             return []
-        return [_state(device_state)]
+        if res_required:
+            return [_state(device_state)]
+        return []
 
 
 ALL_BUTTON_HANDLERS: list[PacketHandler] = [
