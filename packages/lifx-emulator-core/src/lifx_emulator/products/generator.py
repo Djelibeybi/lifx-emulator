@@ -58,6 +58,13 @@ def _check_extended_multizone(
     Returns:
         Tuple of (has_extended_multizone, min_firmware_version)
     """
+    # Extended multizone is an extension of multizone: upstream grants it via an
+    # upgrade entry on products that never had the base `multizone` feature
+    # (e.g. pid 72), which would otherwise produce a device advertising extended
+    # multizone while rejecting every MultiZone packet.
+    if not features.get("multizone"):
+        return False, None
+
     # First check if it's a native feature (no firmware requirement)
     if features.get("extended_multizone"):
         return True, None
@@ -717,17 +724,23 @@ def _add_product_templates(
     for product in new_products:
         product_name = product["name"].replace('"', '\\"')
 
+        # Scaffolds are placeholders: they keep a new product usable until its
+        # real geometry is curated by hand. Values match the closest existing
+        # family so an uncurated entry is plausible rather than arbitrary.
         if product["switch"]:
             existing_specs[product["pid"]] = {
                 "relay_count": 2,
-                "notes": product_name,
+                "button_count": 2,
+                "default_firmware_major": 4,
+                "default_firmware_minor": 100,
+                "notes": f"{product_name} (scaffold: verify geometry)",
             }
         elif product["multizone"]:
             existing_specs[product["pid"]] = {
                 "default_zone_count": 16,
-                "min_zone_count": 1,
+                "min_zone_count": 8,
                 "max_zone_count": 16,
-                "notes": product_name,
+                "notes": f"{product_name} (scaffold: verify zone counts)",
             }
         elif product["matrix"]:
             existing_specs[product["pid"]] = {
@@ -736,7 +749,7 @@ def _add_product_templates(
                 "max_tile_count": 1,
                 "tile_width": 8,
                 "tile_height": 8,
-                "notes": product_name,
+                "notes": f"{product_name} (scaffold: verify tile dimensions)",
             }
 
 
@@ -856,6 +869,10 @@ def _generate_switch_section(
         lines.append(f"  {pid}:  # {name}")
         lines.append(f"    relay_count: {specs['relay_count']}")
 
+        # Preserve button count if present
+        if "button_count" in specs:
+            lines.append(f"    button_count: {specs['button_count']}")
+
         # Add firmware version if present
         if "default_firmware_major" in specs and "default_firmware_minor" in specs:
             lines.append(
@@ -904,6 +921,10 @@ def _generate_multizone_section(
         lines.append(f"    default_zone_count: {specs['default_zone_count']}")
         lines.append(f"    min_zone_count: {specs['min_zone_count']}")
         lines.append(f"    max_zone_count: {specs['max_zone_count']}")
+
+        # Preserve button count if present
+        if "button_count" in specs:
+            lines.append(f"    button_count: {specs['button_count']}")
 
         # Add firmware version if present
         if "default_firmware_major" in specs and "default_firmware_minor" in specs:
@@ -968,6 +989,10 @@ def _generate_matrix_section(
         # Preserve uplight/rear zone count if present
         if "uplight_zone_count" in specs:
             lines.append(f"    uplight_zone_count: {specs['uplight_zone_count']}")
+
+        # Preserve button count if present
+        if "button_count" in specs:
+            lines.append(f"    button_count: {specs['button_count']}")
 
         notes = specs.get("notes", "")
         if notes:
