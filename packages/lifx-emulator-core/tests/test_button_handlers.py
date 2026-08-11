@@ -6,8 +6,12 @@ from lifx_emulator.handlers.button_handlers import (
     GetHandler,
     SetConfigHandler,
     SetHandler,
+    _default_button_action,
 )
 from lifx_emulator.protocol.packets import Button
+from lifx_emulator.protocol.protocol_types import (
+    Button as ButtonStruct,
+)
 from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk
 
 
@@ -68,6 +72,38 @@ def test_button_state_round_trips_through_pack_unpack():
     assert unpacked.count == state.count
     assert unpacked.buttons_count == state.buttons_count
     # Round trip must consume exactly the bytes that were packed.
+    assert unpacked.pack() == packed
+
+
+def test_state_normalises_buttons_with_wrong_action_count():
+    """A configured button with != 5 actions still yields a round-trippable State.
+
+    Button.unpack always reads 5 actions per button while Button.pack emits
+    len(self.actions); a button with the wrong action count would misalign the
+    array. The handler must normalise each button to exactly 5 actions.
+    """
+    dev = create_device(219)
+    # Populate with buttons whose action counts are deliberately wrong: one has
+    # too few actions, one has too many.
+    dev.state.buttons_state.buttons = [
+        ButtonStruct(actions_count=1, actions=[_default_button_action()]),
+        ButtonStruct(
+            actions_count=7,
+            actions=[_default_button_action() for _ in range(7)],
+        ),
+    ]
+
+    state = GetHandler().handle(dev.state, Button.Get(), True)[0]
+
+    assert isinstance(state, Button.State)
+    assert len(state.buttons) == 8
+    for button in state.buttons:
+        assert len(button.actions) == 5
+
+    packed = state.pack()
+    unpacked = Button.State.unpack(packed)
+    assert len(unpacked.buttons) == 8
+    # Round trip consumes exactly what was packed.
     assert unpacked.pack() == packed
 
 

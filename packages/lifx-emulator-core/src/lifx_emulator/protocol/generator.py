@@ -50,11 +50,24 @@ def apply_field_overrides(
 
     Returns:
         New dictionary with override entries replacing upstream ones
+
+    Raises:
+        KeyError: If any override key is absent from ``fields`` (e.g. upstream
+            renamed, moved, or dropped the field). Failing loud prevents the
+            generic layout silently shipping in place of a required override
+            such as the typed ``TileEffectParameter`` sky struct.
     """
     merged = dict(fields)
+    applied: set[str] = set()
     for name, override_def in overrides.items():
         if name in merged:
             merged[name] = override_def
+            applied.add(name)
+    missing = set(overrides) - applied
+    if missing:
+        raise KeyError(
+            f"FIELD_OVERRIDES keys not present in upstream fields: {sorted(missing)}"
+        )
     return merged
 
 
@@ -266,6 +279,30 @@ def parse_field_type(field_type: str) -> tuple[str, int | None, bool]:
     return field_type, None, False
 
 
+def enum_wire_type(size_bytes: int) -> str:
+    """Return the serializer integer type for an enum field of a given width.
+
+    Enum *values* always fit in a byte, but the protocol packs some enums at a
+    wider wire width (upstream ``ButtonGesture`` and ``ButtonTargetType`` are
+    ``size_bytes: 2``). The wire width is dictated by the enum FIELD's declared
+    ``size_bytes``, not the enum's value range.
+
+    Args:
+        size_bytes: Declared width of the enum field in bytes. ``0`` (unknown,
+            e.g. old-format fields without size metadata) defaults to ``uint8``.
+
+    Returns:
+        Serializer integer type name (``uint8``/``uint16``/``uint32``)
+
+    Raises:
+        ValueError: If ``size_bytes`` is not a supported enum width
+    """
+    mapping = {0: "uint8", 1: "uint8", 2: "uint16", 4: "uint32"}
+    if size_bytes not in mapping:
+        raise ValueError(f"Unsupported enum field size_bytes={size_bytes}")
+    return mapping[size_bytes]
+
+
 def camel_to_snake_upper(name: str) -> str:
     """Convert CamelCase to UPPER_SNAKE_CASE.
 
@@ -435,11 +472,14 @@ def generate_pack_method(
         # Handle different field types
         if array_count:
             if is_enum:
-                # Array of enums - pack as array of ints
+                # Array of enums - pack as array of ints at the per-element width
+                elem_bytes = size_bytes // array_count if array_count else size_bytes
+                wire_type = enum_wire_type(elem_bytes)
                 code.append(f"        # {python_name}: list[{base_type}] (enum array)")
                 code.append(f"        for item in self.{python_name}:")
                 code.append(
-                    "            result += serializer.pack_value(int(item), 'uint8')"
+                    "            result += serializer.pack_value("
+                    f"int(item), '{wire_type}')"
                 )
             elif is_nested:
                 # Array of nested structures
@@ -463,11 +503,12 @@ def generate_pack_method(
                 )
                 code.append(pack_array)
         elif is_enum:
-            # Enum - pack as int
+            # Enum - pack as int at the declared field width
+            wire_type = enum_wire_type(size_bytes)
             code.append(f"        # {python_name}: {base_type} (enum)")
             pack_enum = (
                 f"        result += serializer.pack_value("
-                f"int(self.{python_name}), 'uint8')"
+                f"int(self.{python_name}), '{wire_type}')"
             )
             code.append(pack_enum)
         elif is_nested:
@@ -545,13 +586,15 @@ def generate_unpack_method(
         # Handle different field types
         if array_count:
             if is_enum:
-                # Array of enums
+                # Array of enums - read each at the per-element width
+                elem_bytes = size_bytes // array_count if array_count else size_bytes
+                wire_type = enum_wire_type(elem_bytes)
                 code.append(f"        # {python_name}: list[{base_type}] (enum array)")
                 code.append(f"        {python_name} = []")
                 code.append(f"        for _ in range({array_count}):")
                 unpack_enum_item = (
                     "            item_raw, current_offset = "
-                    "serializer.unpack_value(data, 'uint8', current_offset)"
+                    f"serializer.unpack_value(data, '{wire_type}', current_offset)"
                 )
                 code.append(unpack_enum_item)
                 code.append(f"            {python_name}.append({base_type}(item_raw))")
@@ -585,11 +628,12 @@ def generate_unpack_method(
                 )
                 code.append("        )")
         elif is_enum:
-            # Enum - unpack as int then convert
+            # Enum - unpack as int at the declared field width then convert
+            wire_type = enum_wire_type(size_bytes)
             code.append(f"        # {python_name}: {base_type} (enum)")
             unpack_enum = (
                 f"        {python_name}_raw, current_offset = "
-                f"serializer.unpack_value(data, 'uint8', current_offset)"
+                f"serializer.unpack_value(data, '{wire_type}', current_offset)"
             )
             code.append(unpack_enum)
             code.append(f"        {python_name} = {base_type}({python_name}_raw)")

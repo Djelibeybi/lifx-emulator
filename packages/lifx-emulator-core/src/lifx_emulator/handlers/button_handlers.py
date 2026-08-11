@@ -44,9 +44,29 @@ def _default_button() -> ButtonStruct:
     )
 
 
+def _normalised_button(button: ButtonStruct) -> ButtonStruct:
+    """Return a button whose action list is exactly 5 entries (wire shape).
+
+    ``Button.pack`` emits ``len(self.actions)`` while ``Button.unpack`` always
+    reads exactly 5, so any button with a different action count would misalign
+    a round trip. Truncate extras / pad with the default action to match.
+    """
+    actions = list(button.actions)[:_ACTIONS_PER_BUTTON]
+    while len(actions) < _ACTIONS_PER_BUTTON:
+        actions.append(_default_button_action())
+    return ButtonStruct(actions_count=button.actions_count, actions=actions)
+
+
 def _padded_buttons(buttons_state: ButtonsState) -> list[ButtonStruct]:
-    """Pad/truncate configured buttons to the fixed 8-entry wire array."""
-    buttons = list(buttons_state.buttons)[:_BUTTONS_ARRAY_LENGTH]
+    """Pad/truncate configured buttons to the fixed 8-entry wire array.
+
+    Each retained button is normalised to exactly 5 actions so the whole array
+    round-trips through pack()/unpack() without misalignment.
+    """
+    buttons = [
+        _normalised_button(b)
+        for b in list(buttons_state.buttons)[:_BUTTONS_ARRAY_LENGTH]
+    ]
     while len(buttons) < _BUTTONS_ARRAY_LENGTH:
         buttons.append(_default_button())
     return buttons

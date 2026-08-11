@@ -4,14 +4,19 @@ This tests the code generation pipeline that creates Python protocol structures
 from the LIFX protocol specification, ensuring generated code is valid and correct.
 """
 
+import pytest
 from lifx_emulator.protocol.generator import (
     TypeRegistry,
+    apply_field_overrides,
     camel_to_snake_upper,
     convert_type_to_python,
+    enum_wire_type,
     filter_button_relay_items,
     format_long_import,
     format_long_list,
     generate_enum_code,
+    generate_pack_method,
+    generate_unpack_method,
     parse_field_type,
     should_skip_button_relay,
     to_snake_case,
@@ -813,3 +818,60 @@ class TestEdgeCases:
         assert "enum" in result
         # Result should be valid Python list syntax
         assert "[" in result and "]" in result
+
+
+class TestEnumWireWidth:
+    """Enum fields must pack at their declared size_bytes, not a hardcoded uint8."""
+
+    def test_enum_wire_type_mapping(self):
+        """Widths map 1->uint8, 2->uint16, 4->uint32 (0 defaults to uint8)."""
+        assert enum_wire_type(0) == "uint8"
+        assert enum_wire_type(1) == "uint8"
+        assert enum_wire_type(2) == "uint16"
+        assert enum_wire_type(4) == "uint32"
+
+    def test_enum_wire_type_rejects_unsupported(self):
+        """An unsupported enum width fails loud rather than silently truncating."""
+        with pytest.raises(ValueError):
+            enum_wire_type(3)
+
+    def test_pack_two_byte_enum_uses_uint16(self):
+        """A size_bytes=2 enum field packs via uint16, not uint8."""
+        fields_data = [{"name": "Gesture", "type": "<ButtonGesture>", "size_bytes": 2}]
+        code = generate_pack_method(fields_data, "field", enum_types={"ButtonGesture"})
+        assert "int(self.gesture), 'uint16'" in code
+        assert "'uint8'" not in code
+
+    def test_unpack_two_byte_enum_uses_uint16(self):
+        """A size_bytes=2 enum field unpacks via uint16, not uint8."""
+        fields_data = [{"name": "Gesture", "type": "<ButtonGesture>", "size_bytes": 2}]
+        code = generate_unpack_method(
+            "TestClass", fields_data, "field", enum_types={"ButtonGesture"}
+        )
+        assert "unpack_value(data, 'uint16'" in code
+        assert "'uint8'" not in code
+
+    def test_one_byte_enum_still_uses_uint8(self):
+        """A size_bytes=1 enum field keeps the uint8 wire width."""
+        fields_data = [{"name": "Service", "type": "<DeviceService>", "size_bytes": 1}]
+        code = generate_pack_method(fields_data, "field", enum_types={"DeviceService"})
+        assert "int(self.service), 'uint8'" in code
+
+
+class TestApplyFieldOverrides:
+    """FIELD_OVERRIDES must apply exactly and fail loud on a missing key."""
+
+    def test_override_applied_when_present(self):
+        """When the target field exists, its definition is replaced."""
+        fields = {"TileEffectParameter": {"size_bytes": 32, "fields": []}}
+        override = {"TileEffectParameter": {"size_bytes": 8, "fields": [{"name": "X"}]}}
+        merged = apply_field_overrides(fields, override)
+        assert merged["TileEffectParameter"]["size_bytes"] == 8
+        assert merged["TileEffectParameter"]["fields"] == [{"name": "X"}]
+
+    def test_missing_override_key_raises(self):
+        """A key absent from upstream fields raises rather than silently no-op."""
+        fields = {"SomethingElse": {"size_bytes": 4, "fields": []}}
+        override = {"TileEffectParameter": {"size_bytes": 8, "fields": []}}
+        with pytest.raises(KeyError, match="TileEffectParameter"):
+            apply_field_overrides(fields, override)
