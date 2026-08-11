@@ -88,8 +88,9 @@ The change is one coherent milestone, delivered in dependency order. Units 1–4
 > Fix the YAML first; the file must load before anything else works.
 
 Existing base dimensions are already correct and stay as-is: **Candle 5×6, Tube 5×11,
-Path (round/square) 3×2, Spot 3×1**. Only the auto-scaffolded **new** entries carry wrong
-`8×8` placeholders and must be corrected:
+Path (round/square) 3×2, Spot 3×1, Luna 7×5** (Luna also has buttons + sensor, no
+uplight/downlight). Only the auto-scaffolded **new** entries carry wrong `8×8`
+placeholders and must be corrected:
 - **Mirror 267/268:** `tile_width: 5`, `tile_height: 10`, `default_tile_count: 1`,
   `uplight_zone_count: 25` (rear), notes describing the front/rear split. *(5×10 is
   provisional per A1.)* Firmware per LIFX (TBD — sane matrix default, flagged).
