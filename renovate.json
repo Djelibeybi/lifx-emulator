@@ -122,6 +122,13 @@
         "github-actions"
       ],
       "pinDigests": true
+    },
+    {
+      "description": "Pin cookie <1.0.0 - @sveltejs/kit needs the parse/serialize named exports, which cookie >=1 removed (CVE-2024-47764 is fixed in 0.7.0)",
+      "matchPackageNames": [
+        "cookie"
+      ],
+      "allowedVersions": "<1.0.0"
     }
   ],
   "pip_requirements": {
