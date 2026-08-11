@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,10 @@ from lifx_emulator.devices.state_serializer import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
+
+# Device serials are 12-char hex strings (6-byte MAC). Validating against this
+# pattern before using a serial in a filesystem path prevents path traversal.
+_SERIAL_RE = re.compile(r"^[0-9a-fA-F]{12}$")
 
 
 class DevicePersistenceAsyncFile:
@@ -71,6 +76,25 @@ class DevicePersistenceAsyncFile:
         self.flushes = 0
 
         logger.debug("Async storage initialized at %s", self.storage_dir)
+
+    def _device_path(self, serial: str) -> Path:
+        """Resolve the on-disk path for a device serial.
+
+        Validates the serial against the 12-char hex format before building the
+        path, preventing path-traversal via crafted serials (e.g. "../../etc").
+
+        Args:
+            serial: Device serial (12 hex chars)
+
+        Returns:
+            Path to the device's state file inside storage_dir
+
+        Raises:
+            ValueError: If the serial is not a valid 12-char hex string
+        """
+        if not _SERIAL_RE.match(serial):
+            raise ValueError(f"Invalid device serial: {serial!r}")
+        return self.storage_dir / f"{serial}.json"
 
     async def save_device_state(self, device_state: Any) -> None:
         """Queue device state for saving (non-blocking).
@@ -146,7 +170,11 @@ class DevicePersistenceAsyncFile:
             writes: List of (serial, state_dict) tuples to write
         """
         for serial, state_dict in writes:
-            path = self.storage_dir / f"{serial}.json"
+            try:
+                path = self._device_path(serial)
+            except ValueError as e:
+                logger.error("Skipping write for invalid serial: %s", e)
+                continue
 
             # Atomic write: write to temp, then rename
             temp_path = path.with_suffix(".json.tmp")
@@ -175,7 +203,11 @@ class DevicePersistenceAsyncFile:
 
     def _sync_load(self, serial: str) -> dict[str, Any] | None:
         """Synchronous load (runs in executor)."""
-        device_path = self.storage_dir / f"{serial}.json"
+        try:
+            device_path = self._device_path(serial)
+        except ValueError as e:
+            logger.error("Cannot load state: %s", e)
+            return None
 
         if not device_path.exists():
             logger.debug("No saved state found for device %s", serial)
@@ -209,7 +241,11 @@ class DevicePersistenceAsyncFile:
         Args:
             serial: Device serial
         """
-        device_path = self.storage_dir / f"{serial}.json"
+        try:
+            device_path = self._device_path(serial)
+        except ValueError as e:
+            logger.error("Cannot delete state: %s", e)
+            return
 
         if device_path.exists():
             try:
