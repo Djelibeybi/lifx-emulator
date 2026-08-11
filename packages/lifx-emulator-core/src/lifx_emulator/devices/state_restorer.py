@@ -148,6 +148,10 @@ class StateRestorer:
         if state.has_matrix and state.matrix:
             self._restore_matrix_state(state, saved_state)
 
+        # Buttons
+        if state.has_buttons and "buttons_config" in saved_state:
+            self._restore_buttons_state(state, saved_state)
+
     def _restore_multizone_state(
         self, state: DeviceState, saved_state: dict[str, Any]
     ) -> None:
@@ -239,6 +243,21 @@ class StateRestorer:
             state.matrix.effect_palette_count = saved_state["tile_effect_palette_count"]
         if "tile_effect_palette" in saved_state:
             state.matrix.effect_palette = saved_state["tile_effect_palette"]
+
+    def _restore_buttons_state(
+        self, state: DeviceState, saved_state: dict[str, Any]
+    ) -> None:
+        """Restore button configuration (haptic + backlight colours).
+
+        Args:
+            state: DeviceState to restore into
+            saved_state: Dictionary with saved state values
+        """
+        config = saved_state["buttons_config"]
+        buttons_state = state.buttons_state
+        buttons_state.haptic_duration_ms = config["haptic_duration_ms"]
+        buttons_state.backlight_on = config["backlight_on"]
+        buttons_state.backlight_off = config["backlight_off"]
 
 
 class NullStateRestorer:

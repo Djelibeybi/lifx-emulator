@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
 
 
 def serialize_hsbk(hsbk: LightHsbk) -> dict[str, int]:
@@ -20,6 +20,26 @@ def serialize_hsbk(hsbk: LightHsbk) -> dict[str, int]:
 def deserialize_hsbk(data: dict[str, int]) -> LightHsbk:
     """Deserialize dict to LightHsbk."""
     return LightHsbk(
+        hue=data["hue"],
+        saturation=data["saturation"],
+        brightness=data["brightness"],
+        kelvin=data["kelvin"],
+    )
+
+
+def serialize_backlight(backlight: ButtonBacklightHsbk) -> dict[str, int]:
+    """Serialize ButtonBacklightHsbk to dict."""
+    return {
+        "hue": backlight.hue,
+        "saturation": backlight.saturation,
+        "brightness": backlight.brightness,
+        "kelvin": backlight.kelvin,
+    }
+
+
+def deserialize_backlight(data: dict[str, int]) -> ButtonBacklightHsbk:
+    """Deserialize dict to ButtonBacklightHsbk."""
+    return ButtonBacklightHsbk(
         hue=data["hue"],
         saturation=data["saturation"],
         brightness=data["brightness"],
@@ -109,6 +129,18 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
             for fb in device_state.tile_framebuffers
         ]
 
+    if device_state.has_buttons:
+        # Only the mutable button config is persisted. The per-button action
+        # list (buttons_state.buttons) is not mutated by handlers and is
+        # regenerated deterministically at device creation, so — like
+        # ambient_light_lux / uplight_zone_count — it needs no persistence.
+        buttons_state = device_state.buttons_state
+        state_dict["buttons_config"] = {
+            "haptic_duration_ms": buttons_state.haptic_duration_ms,
+            "backlight_on": serialize_backlight(buttons_state.backlight_on),
+            "backlight_off": serialize_backlight(buttons_state.backlight_off),
+        }
+
     return state_dict
 
 
@@ -153,5 +185,11 @@ def deserialize_device_state(state_dict: dict[str, Any]) -> dict[str, Any]:
                 ]
             deserialized_fbs.append(tile_fb)
         state_dict["tile_framebuffers"] = deserialized_fbs
+
+    # Deserialize button config if present
+    if "buttons_config" in state_dict:
+        config = state_dict["buttons_config"]
+        config["backlight_on"] = deserialize_backlight(config["backlight_on"])
+        config["backlight_off"] = deserialize_backlight(config["backlight_off"])
 
     return state_dict
