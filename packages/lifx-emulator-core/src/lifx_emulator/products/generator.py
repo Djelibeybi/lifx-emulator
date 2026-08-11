@@ -812,7 +812,7 @@ def _generate_yaml_header() -> list[str]:
         "#",
         "# Firmware Version Notes:",
         "# ----------------------",
-        "# If default_firmware_major and default_firmware_minor are both specified ",
+        "# If default_firmware_major and default_firmware_minor are both specified",
         "# they will be used as the default firmware version when creating devices",
         "# of that type. This overrides the automatic firmware version selection",
         "# based on extended_multizone capability (which defaults to 3.70 for extended",
@@ -964,6 +964,10 @@ def _generate_matrix_section(
             lines.append(
                 f"    default_firmware_minor: {specs['default_firmware_minor']}"
             )
+
+        # Preserve uplight/rear zone count if present
+        if "uplight_zone_count" in specs:
+            lines.append(f"    uplight_zone_count: {specs['uplight_zone_count']}")
 
         notes = specs.get("notes", "")
         if notes:
