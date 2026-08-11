@@ -67,6 +67,12 @@ products:
     max_zone_count: 82
     notes: LIFX Beam, 8 individual beams, each with 10 zones and up to 2 corners
 
+  56:  # LIFX Beam
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Beam
+
   117:  # LIFX Z US variant
     default_zone_count: 16
     min_zone_count: 8
@@ -115,6 +121,18 @@ products:
     max_zone_count: 72
     notes: LIFX String International variant
 
+  151:  # LIFX Neon Outdoor
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Neon Outdoor
+
+  152:  # LIFX Neon Outdoor
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Neon Outdoor
+
   161:  # LIFX Outdoor Neon
     default_zone_count: 60
     min_zone_count: 60
@@ -151,6 +169,24 @@ products:
     max_zone_count: 48
     notes: LIFX Indoor Neon Intl
 
+  207:  # LIFX Everyday Lightstrip
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Everyday Lightstrip
+
+  208:  # LIFX Everyday Lightstrip Intl
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Everyday Lightstrip Intl
+
+  211:  # LIFX Everyday Permanent Outdoor US
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Everyday Permanent Outdoor US
+
   213:  # LIFX Permanent Outdoor US
     default_zone_count: 30
     min_zone_count: 30
@@ -162,6 +198,12 @@ products:
     min_zone_count: 30
     max_zone_count: 120
     notes: LIFX Permanent Outdoor Intl
+
+  300:  # LIFX Everyday Permanent Outdoor US
+    default_zone_count: 16
+    min_zone_count: 1
+    max_zone_count: 16
+    notes: LIFX Everyday Permanent Outdoor US
 
   # ========================================
   # Matrix Products (Tiles, Candles, etc.)
@@ -214,6 +256,14 @@ products:
     tile_width: 3
     tile_height: 1
     notes: LIFX Round Spot, 3x1 matrix
+
+  172:  # LIFX Spot
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 1
+    notes: LIFX Spot
 
   173:  # LIFX Round Path, 3x2 matrix
     default_tile_count: 1
@@ -351,6 +401,46 @@ products:
     tile_height: 2
     notes: LIFX Round Path Intl
 
+  229:  # LIFX Path Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Path Intl
+
+  265:  # LIFX Ceiling 13"
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 8
+    tile_height: 8
+    notes: LIFX Ceiling 13"
+
+  266:  # LIFX Ceiling 13" Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 8
+    tile_height: 8
+    notes: LIFX Ceiling 13" Intl
+
+  267:  # LIFX Mirror
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 10
+    notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+
+  268:  # LIFX Mirror Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 5
+    tile_height: 10
+    notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+
   # ========================================
   # Switch Products (Relays)
   # ========================================
@@ -365,6 +455,10 @@ products:
     relay_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
+    notes: LIFX Switch
+
+  84:  # LIFX Switch
+    relay_count: 2
     notes: LIFX Switch
 
   89:  # LIFX Switch
@@ -384,3 +478,7 @@ products:
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
+
+  226:  # LIFX Dimmer Switch
+    relay_count: 2
+    notes: LIFX Dimmer Switch
