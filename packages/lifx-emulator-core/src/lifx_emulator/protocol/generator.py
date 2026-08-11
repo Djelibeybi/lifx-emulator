@@ -597,7 +597,10 @@ def generate_unpack_method(
                     f"serializer.unpack_value(data, '{wire_type}', current_offset)"
                 )
                 code.append(unpack_enum_item)
-                code.append(f"            {python_name}.append({base_type}(item_raw))")
+                code.append(
+                    f"            {python_name}.append("
+                    f"serializer.decode_enum({base_type}, item_raw))"
+                )
             elif is_nested:
                 # Array of nested structures
                 code.append(f"        # {python_name}: list[{base_type}]")
@@ -636,7 +639,10 @@ def generate_unpack_method(
                 f"serializer.unpack_value(data, '{wire_type}', current_offset)"
             )
             code.append(unpack_enum)
-            code.append(f"        {python_name} = {base_type}({python_name}_raw)")
+            code.append(
+                f"        {python_name} = serializer.decode_enum("
+                f"{base_type}, {python_name}_raw)"
+            )
         elif is_nested:
             # Nested structure
             code.append(f"        # {python_name}: {base_type}")

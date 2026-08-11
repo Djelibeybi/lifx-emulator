@@ -52,6 +52,27 @@ _STRUCT_CACHE: dict[str, struct.Struct] = {
 }
 
 
+def decode_enum(enum_class: Any, raw: int) -> Any:
+    """Decode a raw integer into an enum member, tolerating unknown values.
+
+    Real LIFX firmware advertises reserved/embedded enum values that are not
+    defined in the public protocol, and fixed-size wire arrays are zero-padded
+    even when 0 is not a declared member (e.g. ButtonGesture). A robust decoder
+    must not crash on these, so unknown values are preserved as raw ints.
+
+    Args:
+        enum_class: IntEnum subclass to decode into
+        raw: Raw integer read off the wire
+
+    Returns:
+        Enum member when the value is known, otherwise the raw int
+    """
+    try:
+        return enum_class(raw)
+    except ValueError:
+        return raw
+
+
 def get_type_size(type_name: str) -> int:
     """Get the size in bytes of a type.
 

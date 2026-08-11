@@ -393,10 +393,9 @@ class Packet:
         the decoder symmetric with what the emulator can emit and mirrors the
         forward-compatibility a real client is required to have.
         """
-        try:
-            return enum_class(raw)
-        except ValueError:
-            return raw
+        from lifx_emulator.protocol import serializer
+
+        return serializer.decode_enum(enum_class, raw)
 
     @staticmethod
     def _parse_field_type(field_type: str) -> tuple[str, int | None, bool]:

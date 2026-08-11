@@ -234,12 +234,12 @@ class ButtonAction:
         gesture_raw, current_offset = serializer.unpack_value(
             data, "uint16", current_offset
         )
-        gesture = ButtonGesture(gesture_raw)
+        gesture = serializer.decode_enum(ButtonGesture, gesture_raw)
         # target_type: ButtonTargetType (enum)
         target_type_raw, current_offset = serializer.unpack_value(
             data, "uint16", current_offset
         )
-        target_type = ButtonTargetType(target_type_raw)
+        target_type = serializer.decode_enum(ButtonTargetType, target_type_raw)
         # target: ButtonTarget
         target, current_offset = ButtonTarget.unpack(data, current_offset)
 
@@ -800,7 +800,7 @@ class MultiZoneEffectSettings:
         type_raw, current_offset = serializer.unpack_value(
             data, "uint8", current_offset
         )
-        type = MultiZoneEffectType(type_raw)
+        type = serializer.decode_enum(MultiZoneEffectType, type_raw)
         # Skip reserved 2 bytes
         current_offset += 2
         # speed: uint32
@@ -1000,7 +1000,7 @@ class TileEffectParameter:
         sky_type_raw, current_offset = serializer.unpack_value(
             data, "uint8", current_offset
         )
-        sky_type = TileEffectSkyType(sky_type_raw)
+        sky_type = serializer.decode_enum(TileEffectSkyType, sky_type_raw)
         # Skip reserved 3 bytes
         current_offset += 3
         # cloud_saturation_min: uint8
@@ -1080,7 +1080,7 @@ class TileEffectSettings:
         type_raw, current_offset = serializer.unpack_value(
             data, "uint8", current_offset
         )
-        type = TileEffectType(type_raw)
+        type = serializer.decode_enum(TileEffectType, type_raw)
         # speed: uint32
         speed, current_offset = serializer.unpack_value(data, "uint32", current_offset)
         # duration: uint64
