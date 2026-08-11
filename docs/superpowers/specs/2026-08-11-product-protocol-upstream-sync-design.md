@@ -175,9 +175,13 @@ placeholders and must be corrected:
 
 ## Risks
 
-- **R1 — Button generator support** (see unit 3): the largest unknown. If the generator
-  needs non-trivial compound/union work, that becomes its own sub-task; the plan should
-  sequence it early so the button handlers aren't blocked late.
+- **R1 — Button generator support** (see unit 3): **DE-RISKED (spiked 2026-08-11).**
+  Un-filtering Button (keeping Relay filtered) regenerates cleanly — `Button.Get/Set/
+  State/GetConfig/SetConfig/StateConfig` all emit, import, and round-trip (incl. the
+  `[8]<Button>` array and the `<ButtonBacklightHsbk>` compounds; the action union is
+  handled). No generator surgery required; enabling Button is a one-task filter edit +
+  regen. Note: `ButtonBacklightHsbk` is a distinct compound from `LightHsbk`, and
+  `Button.State` must pack a full 8-entry `buttons` array.
 - **R2 — Registry rename churn:** large diff. Mitigated by no name-based test
   assertions; still worth a scan of app/CLI/docs for hardcoded product-name strings.
 - **R3 — Provisional Mirror geometry** (A1): accepted; low blast radius (specs-only).
