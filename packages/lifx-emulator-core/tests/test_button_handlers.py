@@ -284,3 +284,40 @@ def test_button_set_unpacks_zero_padded_wire_array():
     assert unpacked.buttons[0].actions[0].gesture == ButtonGesture.HOLD
     # A fully zero-filled payload must decode rather than raise.
     assert Button.Set.unpack(bytes(len(packed))).buttons_count == 0
+
+
+def test_set_pads_missing_slots_when_writing_past_the_configured_buttons():
+    """Writing button 5 on a 4-button device must pad the gap, not shift it."""
+    dev = create_device(219)
+    assert len(dev.state.buttons_state.buttons) == 4
+    action = ButtonAction(
+        gesture=ButtonGesture.HOLD,
+        target_type=ButtonTargetType.RESERVED_0,
+        target=ButtonTarget(data=b"\x09" * 16),
+    )
+
+    state = SetHandler().handle(
+        dev.state,
+        Button.Set(
+            index=5,
+            buttons_count=1,
+            buttons=[ButtonStruct(actions_count=1, actions=[action])],
+        ),
+        True,
+    )[0]
+
+    assert len(dev.state.buttons_state.buttons) == 6
+    assert state.buttons[5].actions[0].target.data == b"\x09" * 16
+    # The padded gap carries neutral buttons, not a copy of the written one.
+    assert state.buttons[4].actions_count == 0
+
+
+def test_set_without_payload_leaves_state_untouched():
+    """A malformed request that yields no payload must not clear the buttons."""
+    dev = create_device(219)
+    before = list(dev.state.buttons_state.buttons)
+
+    out = SetHandler().handle(dev.state, None, True)
+
+    assert len(out) == 1 and isinstance(out[0], Button.State)
+    assert dev.state.buttons_state.buttons == before
