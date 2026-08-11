@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.5.2 (2026-08-11)
+
+### Bug Fixes
+
+- **frontend**: Pin cookie override to ^0.7.0 to restore build
+  ([`e0ff918`](https://github.com/Djelibeybi/lifx-emulator/commit/e0ff91877050c2a3a983acfbfafc5d5169b470db))
+
+
 ## v4.5.1 (2026-08-11)
 
 ### Bug Fixes
