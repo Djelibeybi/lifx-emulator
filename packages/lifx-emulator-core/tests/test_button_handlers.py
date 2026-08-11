@@ -1,18 +1,25 @@
 """Tests for button packet handlers."""
 
+from lifx_emulator.devices.states import default_button, default_button_action
 from lifx_emulator.factories import create_device
 from lifx_emulator.handlers.button_handlers import (
     GetConfigHandler,
     GetHandler,
     SetConfigHandler,
     SetHandler,
-    _default_button_action,
 )
+from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Button
 from lifx_emulator.protocol.protocol_types import (
     Button as ButtonStruct,
 )
-from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk
+from lifx_emulator.protocol.protocol_types import (
+    ButtonAction,
+    ButtonBacklightHsbk,
+    ButtonGesture,
+    ButtonTarget,
+    ButtonTargetType,
+)
 
 
 def test_get_config_returns_state_config_for_button_device():
@@ -86,10 +93,10 @@ def test_state_normalises_buttons_with_wrong_action_count():
     # Populate with buttons whose action counts are deliberately wrong: one has
     # too few actions, one has too many.
     dev.state.buttons_state.buttons = [
-        ButtonStruct(actions_count=1, actions=[_default_button_action()]),
+        ButtonStruct(actions_count=1, actions=[default_button_action()]),
         ButtonStruct(
             actions_count=7,
-            actions=[_default_button_action() for _ in range(7)],
+            actions=[default_button_action() for _ in range(7)],
         ),
     ]
 
@@ -137,3 +144,143 @@ def test_set_config_suppresses_response_but_still_persists_when_res_required_fal
     # Mutation happens regardless of whether a response was requested.
     assert dev.state.buttons_state.haptic_duration_ms == 80
     assert dev.state.buttons_state.backlight_on.brightness == 65535
+
+
+def test_non_button_device_returns_state_unhandled_for_button_packets():
+    """Button packets are capability-gated in device.py, not swallowed.
+
+    Returning [] from the handler alone would leave a client waiting forever;
+    real devices answer StateUnhandled for packet types they do not implement.
+    """
+    dev = create_device(22)  # plain bulb
+    for pkt_type in (905, 906, 909, 910, 911):
+        header = LifxHeader(
+            source=1,
+            target=dev.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=pkt_type,
+            res_required=True,
+        )
+        responses = dev.process_packet(header, None)
+        assert [h.pkt_type for h, _ in responses] == [223]
+        assert responses[0][1].unhandled_type == pkt_type
+
+
+def test_button_device_seeds_its_physical_buttons():
+    for product_id, expected in ((219, 4), (267, 4), (89, 2)):
+        dev = create_device(product_id)
+        assert len(dev.state.buttons_state.buttons) == expected
+        state = GetHandler().handle(dev.state, Button.Get(), True)[0]
+        assert state.count == expected
+        assert state.buttons_count == expected
+
+
+def test_set_applies_supplied_buttons_to_state():
+    dev = create_device(219)
+    action = ButtonAction(
+        gesture=ButtonGesture.HOLD,
+        target_type=ButtonTargetType.RESERVED_0,
+        target=ButtonTarget(data=b"\x01" * 16),
+    )
+    pkt = Button.Set(
+        index=1,
+        buttons_count=1,
+        buttons=[ButtonStruct(actions_count=1, actions=[action])],
+    )
+
+    out = SetHandler().handle(dev.state, pkt, True)[0]
+
+    # The written button lands at the requested index and survives a re-read.
+    assert out.buttons[1].actions_count == 1
+    assert out.buttons[1].actions[0].gesture == ButtonGesture.HOLD
+    assert out.buttons[0].actions_count == 0  # untouched
+    reread = GetHandler().handle(dev.state, Button.Get(), True)[0]
+    assert reread.buttons[1].actions[0].target.data == b"\x01" * 16
+
+
+def test_set_ignores_padding_beyond_buttons_count():
+    dev = create_device(219)
+    configured = ButtonAction(
+        gesture=ButtonGesture.HOLD,
+        target_type=ButtonTargetType.RESERVED_0,
+        target=ButtonTarget(data=b"\x07" * 16),
+    )
+    SetHandler().handle(
+        dev.state,
+        Button.Set(
+            index=0,
+            buttons_count=1,
+            buttons=[ButtonStruct(actions_count=1, actions=[configured])],
+        ),
+        False,
+    )
+
+    # A later request that only writes button 1 must leave button 0 alone,
+    # even though the wire array always carries 8 entries of padding.
+    SetHandler().handle(
+        dev.state,
+        Button.Set(
+            index=1,
+            buttons_count=1,
+            buttons=[ButtonStruct(actions_count=0, actions=[])],
+        ),
+        False,
+    )
+
+    state = GetHandler().handle(dev.state, Button.Get(), True)[0]
+    assert state.buttons[0].actions[0].target.data == b"\x07" * 16
+
+
+def test_state_counts_never_exceed_the_eight_entry_wire_array():
+    dev = create_device(219)
+    dev.state.buttons_state.buttons = [default_button() for _ in range(10)]
+
+    state = GetHandler().handle(dev.state, Button.Get(), True)[0]
+
+    # count/buttons_count must describe what is packed, or a client iterating
+    # range(buttons_count) reads past the end of the decoded array.
+    assert state.count == 8
+    assert state.buttons_count == 8
+    assert len(state.buttons) == 8
+
+
+def test_normalisation_clamps_actions_count_to_the_actions_packed():
+    dev = create_device(219)
+    dev.state.buttons_state.buttons = [
+        ButtonStruct(
+            actions_count=7, actions=[default_button_action() for _ in range(7)]
+        )
+    ]
+
+    state = GetHandler().handle(dev.state, Button.Get(), True)[0]
+
+    assert state.buttons[0].actions_count == 5
+    assert len(state.buttons[0].actions) == 5
+    unpacked = Button.State.unpack(state.pack())
+    assert unpacked.buttons[0].actions_count == 5
+
+
+def test_button_set_unpacks_zero_padded_wire_array():
+    """Unused button/action slots are zero-filled, and 0 is not a declared
+    ButtonGesture -- decoding must tolerate it rather than raise.
+    """
+    configured = default_button()
+    configured.actions_count = 1
+    configured.actions[0] = ButtonAction(
+        gesture=ButtonGesture.HOLD,
+        target_type=ButtonTargetType.RESERVED_0,
+        target=ButtonTarget(data=b"\x00" * 16),
+    )
+    packet = Button.Set(
+        index=0,
+        buttons_count=1,
+        buttons=[configured, *[default_button() for _ in range(7)]],
+    )
+    packed = packet.pack()
+
+    # The padding buttons carry gesture/target_type 0 in every unused slot.
+    unpacked = Button.Set.unpack(packed)
+    assert unpacked.buttons_count == 1
+    assert unpacked.buttons[0].actions[0].gesture == ButtonGesture.HOLD
+    # A fully zero-filled payload must decode rather than raise.
+    assert Button.Set.unpack(bytes(len(packed))).buttons_count == 0

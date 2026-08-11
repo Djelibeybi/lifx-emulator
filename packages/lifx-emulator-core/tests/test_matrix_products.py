@@ -18,8 +18,25 @@ def test_mirror_split_and_total_zones():
     assert st.tile_width * st.tile_height == 50  # via nested MatrixState
 
 
+def _seed_zone_hues(device) -> list[int]:
+    """Give every zone of tile 0 a distinct hue so reads can be traced back.
+
+    Without distinguishable zone data a Get64 assertion cannot tell which
+    zones a response actually carries -- the handler pads every reply to 64
+    entries regardless.
+    """
+    colors = device.state.tile_devices[0]["colors"]
+    hues = [i * 500 for i in range(len(colors))]
+    device.state.tile_devices[0]["colors"] = [
+        LightHsbk(hue=hue, saturation=65535, brightness=65535, kelvin=3500)
+        for hue in hues
+    ]
+    return hues
+
+
 def test_mirror_single_get64_covers_all_50_zones():
     device = create_device(267)
+    hues = _seed_zone_hues(device)
 
     # Request the full tile width starting at the top row, exactly as
     # single_tile_device tests in test_tile_handlers_extended.py do.
@@ -51,10 +68,12 @@ def test_mirror_single_get64_covers_all_50_zones():
     assert isinstance(resp_packet, Tile.State64)
     assert resp_packet.tile_index == 0
     # State64.colors is always padded to exactly 64 entries by the handler,
-    # but all 50 real Mirror zones (uplight + downlight) are present within
-    # that single response -- verified by rows_to_return covering the full
-    # tile_height (10) in one request.
+    # so the padding alone proves nothing: assert the 50 real Mirror zones
+    # (uplight + downlight) are the seeded ones, in order, and that the
+    # remaining 14 entries are padding rather than device data.
     assert len(resp_packet.colors) == 64
+    assert [c.hue for c in resp_packet.colors[: len(hues)]] == hues
+    assert all(c.hue == 0 for c in resp_packet.colors[len(hues) :])
 
 
 def _get64(device, *, y: int) -> Tile.State64:
@@ -141,20 +160,20 @@ def test_ceiling_16x8_requires_two_get64_requests_for_full_coverage():
     assert rows_per_request == 4
     assert rows_per_request < tile_height  # confirms a single request can't cover it
 
+    # Distinct per-zone hues: the handler echoes rect.x/y/width from the
+    # request and always pads colors to 64, so only the zone data can show
+    # which rows each response really carries.
+    hues = _seed_zone_hues(device)
+
     first = _get64(device, y=0)
     second = _get64(device, y=rows_per_request)
 
-    # The two requested rects are disjoint and together span the full tile.
-    assert first.rect.y == 0
-    assert second.rect.y == rows_per_request
-    assert second.rect.y >= first.rect.y + rows_per_request  # no row overlap
-    assert second.rect.y + rows_per_request == tile_height  # full coverage, no gap
+    zones_per_request = rows_per_request * tile_width
+    assert [c.hue for c in first.colors] == hues[:zones_per_request]
+    assert [c.hue for c in second.colors] == hues[zones_per_request:]
 
-    # Each request returns a State64 with exactly 64 zones -- combined the
-    # two responses account for all 128 real tile zones (rows_per_request *
-    # tile_width * 2 == tile_width * tile_height).
-    assert len(first.colors) == 64
-    assert len(second.colors) == 64
+    # Disjoint (no zone appears in both) and complete (every zone appears).
+    assert set(hues[:zones_per_request]).isdisjoint(hues[zones_per_request:])
     assert len(first.colors) + len(second.colors) == tile_width * tile_height
 
 

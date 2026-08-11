@@ -8,7 +8,15 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from lifx_emulator.constants import LIFX_UDP_PORT
-from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
+from lifx_emulator.protocol.protocol_types import Button as ButtonStruct
+from lifx_emulator.protocol.protocol_types import (
+    ButtonAction,
+    ButtonBacklightHsbk,
+    ButtonGesture,
+    ButtonTarget,
+    ButtonTargetType,
+    LightHsbk,
+)
 
 
 @dataclass
@@ -157,6 +165,32 @@ class WaveformState:
     waveform_skew_ratio: int = 0
 
 
+# Button.State/Set pack a fixed [8]<Button> array on the wire, and each Button
+# struct always unpacks exactly 5 ButtonAction entries (see
+# protocol_types.Button.unpack). Any button we synthesise must match that shape
+# exactly, or a round trip through pack()/unpack() misaligns every subsequent
+# button in the array.
+BUTTONS_ARRAY_LENGTH = 8
+ACTIONS_PER_BUTTON = 5
+
+
+def default_button_action() -> ButtonAction:
+    """A neutral, valid ButtonAction used to fill unused action slots."""
+    return ButtonAction(
+        gesture=ButtonGesture.PRESS,
+        target_type=ButtonTargetType.RESERVED_0,
+        target=ButtonTarget(data=b"\x00" * 16),
+    )
+
+
+def default_button() -> ButtonStruct:
+    """A neutral Button struct with exactly 5 action slots (wire-format shape)."""
+    return ButtonStruct(
+        actions_count=0,
+        actions=[default_button_action() for _ in range(ACTIONS_PER_BUTTON)],
+    )
+
+
 @dataclass
 class ButtonsState:
     """Button config + per-button state for button-capable devices."""
@@ -225,7 +259,10 @@ class DeviceState:
     @property
     def downlight_zone_count(self) -> int | None:
         """Matrix zones excluding the uplight range, if applicable."""
-        if self.uplight_zone_count is None or not self.has_matrix:
+        # `matrix` must be present as well as the flag: tile_width/tile_height
+        # otherwise resolve through the 8x8 fallback defaults and yield a zone
+        # count that belongs to no real device.
+        if self.uplight_zone_count is None or not self.has_matrix or not self.matrix:
             return None
         return self.tile_width * self.tile_height - self.uplight_zone_count
 

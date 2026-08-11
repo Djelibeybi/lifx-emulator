@@ -255,9 +255,14 @@ class StateRestorer:
         """
         config = saved_state["buttons_config"]
         buttons_state = state.buttons_state
-        buttons_state.haptic_duration_ms = config["haptic_duration_ms"]
-        buttons_state.backlight_on = config["backlight_on"]
-        buttons_state.backlight_off = config["backlight_off"]
+        if "haptic_duration_ms" in config:
+            buttons_state.haptic_duration_ms = config["haptic_duration_ms"]
+        if "backlight_on" in config:
+            buttons_state.backlight_on = config["backlight_on"]
+        if "backlight_off" in config:
+            buttons_state.backlight_off = config["backlight_off"]
+        if "buttons" in config:
+            buttons_state.buttons = list(config["buttons"])
 
 
 class NullStateRestorer:

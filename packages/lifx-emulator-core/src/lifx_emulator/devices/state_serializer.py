@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
+from lifx_emulator.protocol.protocol_types import Button as ButtonStruct
+from lifx_emulator.protocol.protocol_types import (
+    ButtonAction,
+    ButtonBacklightHsbk,
+    ButtonGesture,
+    ButtonTarget,
+    ButtonTargetType,
+    LightHsbk,
+)
+from lifx_emulator.protocol.serializer import decode_enum
 
 
 def serialize_hsbk(hsbk: LightHsbk) -> dict[str, int]:
@@ -44,6 +53,36 @@ def deserialize_backlight(data: dict[str, int]) -> ButtonBacklightHsbk:
         saturation=data["saturation"],
         brightness=data["brightness"],
         kelvin=data["kelvin"],
+    )
+
+
+def serialize_button(button: ButtonStruct) -> dict[str, Any]:
+    """Serialize a Button struct (gesture/target actions) to dict."""
+    return {
+        "actions_count": button.actions_count,
+        "actions": [
+            {
+                "gesture": int(action.gesture),
+                "target_type": int(action.target_type),
+                "target": action.target.data.hex(),
+            }
+            for action in button.actions
+        ],
+    }
+
+
+def deserialize_button(data: dict[str, Any]) -> ButtonStruct:
+    """Deserialize dict to a Button struct."""
+    return ButtonStruct(
+        actions_count=data["actions_count"],
+        actions=[
+            ButtonAction(
+                gesture=decode_enum(ButtonGesture, action["gesture"]),
+                target_type=decode_enum(ButtonTargetType, action["target_type"]),
+                target=ButtonTarget(data=bytes.fromhex(action["target"])),
+            )
+            for action in data["actions"]
+        ],
     )
 
 
@@ -130,15 +169,15 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
         ]
 
     if device_state.has_buttons:
-        # Only the mutable button config is persisted. The per-button action
-        # list (buttons_state.buttons) is not mutated by handlers and is
-        # regenerated deterministically at device creation, so — like
-        # ambient_light_lux / uplight_zone_count — it needs no persistence.
+        # Button.Set (906) rewrites the per-button action list and
+        # Button.SetConfig (910) the haptic/backlight config, so both are
+        # mutable client-visible state and both must survive a restart.
         buttons_state = device_state.buttons_state
         state_dict["buttons_config"] = {
             "haptic_duration_ms": buttons_state.haptic_duration_ms,
             "backlight_on": serialize_backlight(buttons_state.backlight_on),
             "backlight_off": serialize_backlight(buttons_state.backlight_off),
+            "buttons": [serialize_button(b) for b in buttons_state.buttons],
         }
 
     return state_dict
@@ -186,10 +225,15 @@ def deserialize_device_state(state_dict: dict[str, Any]) -> dict[str, Any]:
             deserialized_fbs.append(tile_fb)
         state_dict["tile_framebuffers"] = deserialized_fbs
 
-    # Deserialize button config if present
+    # Deserialize button config if present. Each key is optional: a hand-edited
+    # or older state file must fall back to defaults rather than crash.
     if "buttons_config" in state_dict:
         config = state_dict["buttons_config"]
-        config["backlight_on"] = deserialize_backlight(config["backlight_on"])
-        config["backlight_off"] = deserialize_backlight(config["backlight_off"])
+        if "backlight_on" in config:
+            config["backlight_on"] = deserialize_backlight(config["backlight_on"])
+        if "backlight_off" in config:
+            config["backlight_off"] = deserialize_backlight(config["backlight_off"])
+        if "buttons" in config:
+            config["buttons"] = [deserialize_button(b) for b in config["buttons"]]
 
     return state_dict
