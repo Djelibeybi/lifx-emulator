@@ -95,8 +95,7 @@ Path (round/square) 3×2, Spot 3×1**. Only the auto-scaffolded **new** entries 
   provisional per A1.)* Firmware per LIFX (TBD — sane matrix default, flagged).
 - **Path 229:** `3×2` (currently `8×8`).
 - **Spot 172:** `3×1` (currently `8×8`).
-- **Ceiling 265/266 (13"):** dimensions per LIFX (currently `8×8` placeholder — confirm);
-  `uplight_zone_count: 1`; firmware 4.x.
+- **Ceiling 265/266 (13"):** `8×8` (confirmed); `uplight_zone_count: 1`; firmware 4.x.
 - **Existing Ceiling (176/177 8×8, 201/202 16×8):** add `uplight_zone_count: 1` so the
   split is modelled uniformly.
 - Fill any remaining in-scope new matrix/multizone products; leave non-matrix new bulbs
