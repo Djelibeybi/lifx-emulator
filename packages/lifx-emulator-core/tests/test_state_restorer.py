@@ -1,14 +1,21 @@
 """Tests for state restoration."""
 
 from lifx_emulator.devices.state_restorer import NullStateRestorer, StateRestorer
+from lifx_emulator.devices.state_serializer import (
+    deserialize_device_state,
+    serialize_device_state,
+)
 from lifx_emulator.factories import (
     create_color_light,
+    create_device,
     create_hev_light,
     create_infrared_light,
     create_multizone_light,
     create_tile_device,
 )
-from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.handlers.button_handlers import SetConfigHandler
+from lifx_emulator.protocol.packets import Button
+from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
 
 
 class MockStorage:
@@ -240,6 +247,41 @@ class TestStateRestorer:
         restorer = StateRestorer(storage)
         # Should not restore mismatched dimensions
         restorer.restore_if_available(device.state)
+
+    def test_restore_buttons_config_round_trip(self):
+        """Button config set via SetConfig survives serialise + restore."""
+        source = create_device(219)  # Luna — has buttons
+        SetConfigHandler().handle(
+            source.state,
+            Button.SetConfig(
+                haptic_duration_ms=80,
+                backlight_on_color=ButtonBacklightHsbk(
+                    hue=100, saturation=200, brightness=65535, kelvin=3500
+                ),
+                backlight_off_color=ButtonBacklightHsbk(
+                    hue=300, saturation=400, brightness=0, kelvin=2700
+                ),
+            ),
+            True,
+        )
+
+        # Simulate a save + load through the persistence serialisation layer.
+        saved_state = deserialize_device_state(serialize_device_state(source.state))
+
+        # Restore into a fresh device with default (unset) button config.
+        target = create_device(219, serial="d073d5000002")
+        assert target.state.buttons_state.haptic_duration_ms == 0
+        storage = MockStorage({target.state.serial: saved_state})
+        StateRestorer(storage).restore_if_available(target.state)
+
+        restored = target.state.buttons_state
+        assert restored.haptic_duration_ms == 80
+        assert restored.backlight_on == ButtonBacklightHsbk(
+            hue=100, saturation=200, brightness=65535, kelvin=3500
+        )
+        assert restored.backlight_off == ButtonBacklightHsbk(
+            hue=300, saturation=400, brightness=0, kelvin=2700
+        )
 
     def test_restore_partial_state(self):
         """Test restoration with only some fields present."""
