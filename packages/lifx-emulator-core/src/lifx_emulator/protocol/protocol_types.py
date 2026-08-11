@@ -14,6 +14,64 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 
+class ButtonGesture(IntEnum):
+    """Auto-generated enum."""
+
+    PRESS = 1
+    HOLD = 2
+    PRESS_PRESS = 3
+    PRESS_HOLD = 4
+    HOLD_HOLD = 5
+    PRESS_RELEASE = 6
+    HOLD_RELEASE = 7
+    PRESS_TOUCH = 8
+    HOLD_TOUCH = 9
+    PRESS_TOUCH_REPEAT = 10
+    HOLD_TOUCH_REPEAT = 11
+    PRESS_FAST_REPEAT = 12
+
+
+class ButtonTargetType(IntEnum):
+    """Auto-generated enum."""
+
+    RESERVED_0 = 0
+    RESERVED_1 = 1
+    POWER_TOGGLE_RELAYS = 2
+    POWER_TOGGLE_DEVICE = 3
+    POWER_TOGGLE_LOCATION = 4
+    POWER_TOGGLE_GROUP = 5
+    SCENE = 6
+    POWER_TOGGLE_DEVICE_RELAYS = 7
+    BRIGHTNESS_DOWN_DEVICE = 8
+    BRIGHTNESS_DOWN_GROUP = 9
+    BRIGHTNESS_DOWN_LOCATION = 10
+    BRIGHTNESS_UP_DEVICE = 11
+    BRIGHTNESS_UP_GROUP = 12
+    BRIGHTNESS_UP_LOCATION = 13
+    DEMO_EFFECT_CYCLE = 14
+    DEMO_EFFECT_CYCLE_STOP = 15
+    DEMO_SUNRISE_SUNSET = 16
+    POWER_ON_DEVICE = 17
+    POWER_ON_LOCATION = 18
+    POWER_ON_GROUP = 19
+    POWER_ON_RELAYS = 20
+    POWER_OFF_DEVICE = 21
+    POWER_OFF_LOCATION = 22
+    POWER_OFF_GROUP = 23
+    POWER_OFF_RELAYS = 24
+    RESERVED_2 = 25
+    RESERVED_3 = 26
+    RESERVED_4 = 27
+    POWER_TOGGLE_LOCAL_DEVICE = 28
+    BRIGHTNESS_DOWN_LOCAL_DEVICE = 29
+    BRIGHTNESS_UP_LOCAL_DEVICE = 30
+    KELVIN_STEP_LOCAL_DEVICE = 31
+    RESERVED_5 = 32
+    RESERVED_6 = 33
+    RESERVED_7 = 34
+    RESERVED_8 = 35
+
+
 class DeviceService(IntEnum):
     """Auto-generated enum."""
 
@@ -100,6 +158,360 @@ class TileEffectType(IntEnum):
     FLAME = 3
     RESERVED_1 = 4
     SKY = 5
+    COLOR_SWEEP = 6
+
+
+@dataclass
+class Button:
+    """Auto-generated field structure."""
+
+    actions_count: int
+    actions: list[ButtonAction]
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # actions_count: uint8
+        result += serializer.pack_value(self.actions_count, "uint8")
+        # actions: list[ButtonAction]
+        for item in self.actions:
+            result += item.pack()
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[Button, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # actions_count: uint8
+        actions_count, current_offset = serializer.unpack_value(
+            data, "uint8", current_offset
+        )
+        # actions: list[ButtonAction]
+        actions = []
+        for _ in range(5):
+            item, current_offset = ButtonAction.unpack(data, current_offset)
+            actions.append(item)
+
+        return cls(actions_count=actions_count, actions=actions), current_offset
+
+
+@dataclass
+class ButtonAction:
+    """Auto-generated field structure."""
+
+    gesture: ButtonGesture
+    target_type: ButtonTargetType
+    target: ButtonTarget
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # gesture: ButtonGesture (enum)
+        result += serializer.pack_value(int(self.gesture), "uint8")
+        # target_type: ButtonTargetType (enum)
+        result += serializer.pack_value(int(self.target_type), "uint8")
+        # target: ButtonTarget
+        result += self.target.pack()
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonAction, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # gesture: ButtonGesture (enum)
+        gesture_raw, current_offset = serializer.unpack_value(
+            data, "uint8", current_offset
+        )
+        gesture = ButtonGesture(gesture_raw)
+        # target_type: ButtonTargetType (enum)
+        target_type_raw, current_offset = serializer.unpack_value(
+            data, "uint8", current_offset
+        )
+        target_type = ButtonTargetType(target_type_raw)
+        # target: ButtonTarget
+        target, current_offset = ButtonTarget.unpack(data, current_offset)
+
+        return cls(
+            gesture=gesture, target_type=target_type, target=target
+        ), current_offset
+
+
+@dataclass
+class ButtonBacklightHsbk:
+    """Auto-generated field structure."""
+
+    hue: int
+    saturation: int
+    brightness: int
+    kelvin: int
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # hue: uint16
+        result += serializer.pack_value(self.hue, "uint16")
+        # saturation: uint16
+        result += serializer.pack_value(self.saturation, "uint16")
+        # brightness: uint16
+        result += serializer.pack_value(self.brightness, "uint16")
+        # kelvin: uint16
+        result += serializer.pack_value(self.kelvin, "uint16")
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonBacklightHsbk, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # hue: uint16
+        hue, current_offset = serializer.unpack_value(data, "uint16", current_offset)
+        # saturation: uint16
+        saturation, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # brightness: uint16
+        brightness, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # kelvin: uint16
+        kelvin, current_offset = serializer.unpack_value(data, "uint16", current_offset)
+
+        return cls(
+            hue=hue, saturation=saturation, brightness=brightness, kelvin=kelvin
+        ), current_offset
+
+
+@dataclass
+class ButtonTarget:
+    """Auto-generated union structure. Value for a target depends on the specified target type."""
+
+    data: bytes  # Union of 16 bytes
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # data: bytes (16 bytes)
+        result += serializer.pack_bytes(self.data, 16)
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonTarget, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # data: bytes (16 bytes)
+        data, current_offset = serializer.unpack_bytes(data, 16, current_offset)
+
+        return cls(data=data), current_offset
+
+
+@dataclass
+class ButtonTargetDevice:
+    """Auto-generated field structure."""
+
+    serial: bytes
+    reserved: bytes
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # serial: bytes (6 bytes)
+        result += serializer.pack_bytes(self.serial, 6)
+        # reserved: bytes (10 bytes)
+        result += serializer.pack_bytes(self.reserved, 10)
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonTargetDevice, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # serial: bytes (6 bytes)
+        serial, current_offset = serializer.unpack_bytes(data, 6, current_offset)
+        # reserved: bytes (10 bytes)
+        reserved, current_offset = serializer.unpack_bytes(data, 10, current_offset)
+
+        return cls(serial=serial, reserved=reserved), current_offset
+
+
+@dataclass
+class ButtonTargetDeviceRelays:
+    """Auto-generated field structure."""
+
+    serial: bytes
+    relays_count: int
+    relays: bytes
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # serial: bytes (6 bytes)
+        result += serializer.pack_bytes(self.serial, 6)
+        # relays_count: uint8
+        result += serializer.pack_value(self.relays_count, "uint8")
+        # relays: bytes (9 bytes)
+        result += serializer.pack_bytes(self.relays, 9)
+
+        return result
+
+    @classmethod
+    def unpack(
+        cls, data: bytes, offset: int = 0
+    ) -> tuple[ButtonTargetDeviceRelays, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # serial: bytes (6 bytes)
+        serial, current_offset = serializer.unpack_bytes(data, 6, current_offset)
+        # relays_count: uint8
+        relays_count, current_offset = serializer.unpack_value(
+            data, "uint8", current_offset
+        )
+        # relays: bytes (9 bytes)
+        relays, current_offset = serializer.unpack_bytes(data, 9, current_offset)
+
+        return cls(
+            serial=serial, relays_count=relays_count, relays=relays
+        ), current_offset
+
+
+@dataclass
+class ButtonTargetKelvinStep:
+    """Auto-generated field structure."""
+
+    reserved1: bytes
+    min_kelvin: int
+    max_kelvin: int
+    kelvin_step: int
+    duration: int
+    reserved2: bytes
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # reserved1: bytes (6 bytes)
+        result += serializer.pack_bytes(self.reserved1, 6)
+        # min_kelvin: uint16
+        result += serializer.pack_value(self.min_kelvin, "uint16")
+        # max_kelvin: uint16
+        result += serializer.pack_value(self.max_kelvin, "uint16")
+        # kelvin_step: uint16
+        result += serializer.pack_value(self.kelvin_step, "uint16")
+        # duration: uint16
+        result += serializer.pack_value(self.duration, "uint16")
+        # reserved2: bytes (2 bytes)
+        result += serializer.pack_bytes(self.reserved2, 2)
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonTargetKelvinStep, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # reserved1: bytes (6 bytes)
+        reserved1, current_offset = serializer.unpack_bytes(data, 6, current_offset)
+        # min_kelvin: uint16
+        min_kelvin, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # max_kelvin: uint16
+        max_kelvin, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # kelvin_step: uint16
+        kelvin_step, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # duration: uint16
+        duration, current_offset = serializer.unpack_value(
+            data, "uint16", current_offset
+        )
+        # reserved2: bytes (2 bytes)
+        reserved2, current_offset = serializer.unpack_bytes(data, 2, current_offset)
+
+        return (
+            cls(
+                reserved1=reserved1,
+                min_kelvin=min_kelvin,
+                max_kelvin=max_kelvin,
+                kelvin_step=kelvin_step,
+                duration=duration,
+                reserved2=reserved2,
+            ),
+            current_offset,
+        )
+
+
+@dataclass
+class ButtonTargetRelays:
+    """Auto-generated field structure."""
+
+    relays_count: int
+    relays: bytes
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # relays_count: uint8
+        result += serializer.pack_value(self.relays_count, "uint8")
+        # relays: bytes (15 bytes)
+        result += serializer.pack_bytes(self.relays, 15)
+
+        return result
+
+    @classmethod
+    def unpack(cls, data: bytes, offset: int = 0) -> tuple[ButtonTargetRelays, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # relays_count: uint8
+        relays_count, current_offset = serializer.unpack_value(
+            data, "uint8", current_offset
+        )
+        # relays: bytes (15 bytes)
+        relays, current_offset = serializer.unpack_bytes(data, 15, current_offset)
+
+        return cls(relays_count=relays_count, relays=relays), current_offset
 
 
 @dataclass
@@ -504,8 +916,54 @@ class TileBufferRect:
 
 
 @dataclass
+class TileEffectFillRectangle:
+    """Auto-generated field structure."""
+
+    x: int
+    y: int
+    width: int
+    height: int
+
+    def pack(self) -> bytes:
+        """Pack to bytes."""
+        from lifx_emulator.protocol import serializer
+
+        result = b""
+
+        # x: uint8
+        result += serializer.pack_value(self.x, "uint8")
+        # y: uint8
+        result += serializer.pack_value(self.y, "uint8")
+        # width: uint8
+        result += serializer.pack_value(self.width, "uint8")
+        # height: uint8
+        result += serializer.pack_value(self.height, "uint8")
+
+        return result
+
+    @classmethod
+    def unpack(
+        cls, data: bytes, offset: int = 0
+    ) -> tuple[TileEffectFillRectangle, int]:
+        """Unpack from bytes."""
+        from lifx_emulator.protocol import serializer
+
+        current_offset = offset
+        # x: uint8
+        x, current_offset = serializer.unpack_value(data, "uint8", current_offset)
+        # y: uint8
+        y, current_offset = serializer.unpack_value(data, "uint8", current_offset)
+        # width: uint8
+        width, current_offset = serializer.unpack_value(data, "uint8", current_offset)
+        # height: uint8
+        height, current_offset = serializer.unpack_value(data, "uint8", current_offset)
+
+        return cls(x=x, y=y, width=width, height=height), current_offset
+
+
+@dataclass
 class TileEffectParameter:
-    """Auto-generated field structure for Sky effects."""
+    """Auto-generated field structure."""
 
     sky_type: TileEffectSkyType
     cloud_saturation_min: int
@@ -755,6 +1213,34 @@ TileDevice = TileStateDevice  # Pythonic alias
 # Field name mappings: Python name -> Protocol name
 # Used by serializer to translate between conventions
 FIELD_MAPPINGS: dict[str, dict[str, str]] = {
+    "Button": {"actions_count": "ActionsCount", "actions": "Actions"},
+    "ButtonAction": {
+        "gesture": "Gesture",
+        "target_type": "TargetType",
+        "target": "Target",
+    },
+    "ButtonBacklightHsbk": {
+        "hue": "Hue",
+        "saturation": "Saturation",
+        "brightness": "Brightness",
+        "kelvin": "Kelvin",
+    },
+    "ButtonTarget": {"data": "data"},
+    "ButtonTargetDevice": {"serial": "Serial", "reserved": "Reserved"},
+    "ButtonTargetDeviceRelays": {
+        "serial": "Serial",
+        "relays_count": "RelaysCount",
+        "relays": "Relays",
+    },
+    "ButtonTargetKelvinStep": {
+        "duration": "Duration",
+        "kelvin_step": "KelvinStep",
+        "max_kelvin": "MaxKelvin",
+        "min_kelvin": "MinKelvin",
+        "reserved1": "Reserved1",
+        "reserved2": "Reserved2",
+    },
+    "ButtonTargetRelays": {"relays_count": "RelaysCount", "relays": "Relays"},
     "DeviceStateHostFirmware": {
         "build": "Build",
         "version_minor": "VersionMinor",
@@ -786,15 +1272,16 @@ FIELD_MAPPINGS: dict[str, dict[str, str]] = {
     },
     "TileAccelMeas": {"x": "X", "y": "Y", "z": "Z"},
     "TileBufferRect": {"fb_index": "FbIndex", "x": "X", "y": "Y", "width": "Width"},
+    "TileEffectFillRectangle": {
+        "x": "X",
+        "y": "Y",
+        "width": "Width",
+        "height": "Height",
+    },
     "TileEffectParameter": {
-        "parameter0": "Parameter0",
-        "parameter1": "Parameter1",
-        "parameter2": "Parameter2",
-        "parameter3": "Parameter3",
-        "parameter4": "Parameter4",
-        "parameter5": "Parameter5",
-        "parameter6": "Parameter6",
-        "parameter7": "Parameter7",
+        "cloud_saturation_max": "CloudSaturationMax",
+        "cloud_saturation_min": "CloudSaturationMin",
+        "sky_type": "SkyType",
     },
     "TileEffectSettings": {
         "duration": "Duration",

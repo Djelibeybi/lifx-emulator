@@ -229,6 +229,22 @@ git commit -s -m "feat(products): regenerate registry from upstream (adds Mirror
 
 Spiked 2026-08-11: un-filtering Button regenerates cleanly. Relay stays filtered (out of scope).
 
+**Divergence discovered (Task 4, 2026-08-11) — resolved via generator override (Option A, user-approved):** the repo's `protocol_types.py` `TileEffectParameter` is a hand-typed sky layout (`sky_type`, `cloud_saturation_min`, `cloud_saturation_max` + reserved = 32 bytes) that the Ceiling Sky effect depends on. Current upstream `protocol.yml` genericised it to 8×uint32 (`Parameter0..7`, also 32 bytes — wire-identical). A naïve regen wipes the typed layout and breaks 12 sky tests. Fix: add a `FIELD_OVERRIDES` map in `generator.py` that replaces upstream's `TileEffectParameter` field definition with the typed sky layout **before** code generation, so regen yields full upstream sync (Sensor, Button, and the new `TileEffectType.COLOR_SWEEP=6`) **and** preserves the typed sky struct. Only `TileEffectParameter` diverges — `MultiZoneEffectParameter` is generic in both. The override field list (protocol.yml shape):
+
+```yaml
+TileEffectParameter:
+  size_bytes: 32
+  fields:
+    - {name: SkyType, type: <TileEffectSkyType>, size_bytes: 1}
+    - {type: reserved, size_bytes: 3}
+    - {name: CloudSaturationMin, type: uint8, size_bytes: 1}
+    - {type: reserved, size_bytes: 3}
+    - {name: CloudSaturationMax, type: uint8, size_bytes: 1}
+    - {type: reserved, size_bytes: 23}
+```
+
+This must regenerate byte-identical `sky_type`/`cloud_saturation_min`/`cloud_saturation_max` fields to the current `protocol_types.py`, so all 12 existing sky tests keep passing.
+
 - [ ] **Step 1: Write the failing test**
 
 ```python

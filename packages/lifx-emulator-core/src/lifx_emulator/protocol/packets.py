@@ -15,6 +15,10 @@ from typing import Any, ClassVar
 
 from lifx_emulator.protocol.base import Packet
 from lifx_emulator.protocol.protocol_types import (
+    Button as ButtonField,
+)
+from lifx_emulator.protocol.protocol_types import (
+    ButtonBacklightHsbk,
     DeviceService,
     LightHsbk,
     LightLastHevCycleResult,
@@ -26,6 +30,136 @@ from lifx_emulator.protocol.protocol_types import (
     TileEffectSettings,
     TileStateDevice,
 )
+
+
+class Button(Packet):
+    """Button category packets."""
+
+    @dataclass
+    class Get(Packet):
+        """Packet type 905."""
+
+        PKT_TYPE: ClassVar[int] = 905
+        _fields: ClassVar[list[dict[str, Any]]] = []
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "GET"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        pass
+
+    @dataclass
+    class GetConfig(Packet):
+        """Packet type 909."""
+
+        PKT_TYPE: ClassVar[int] = 909
+        _fields: ClassVar[list[dict[str, Any]]] = []
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "GET"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        pass
+
+    @dataclass
+    class Set(Packet):
+        """Packet type 906."""
+
+        PKT_TYPE: ClassVar[int] = 906
+        _fields: ClassVar[list[dict[str, Any]]] = [
+            {"name": "Index", "type": "uint8", "size_bytes": 1},
+            {"name": "ButtonsCount", "type": "uint8", "size_bytes": 1},
+            {"name": "Buttons", "type": "[8]<Button>", "size_bytes": 808},
+        ]
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "SET"
+        _requires_ack: ClassVar[bool] = True
+        _requires_response: ClassVar[bool] = False
+
+        index: int
+        buttons_count: int
+        buttons: list[ButtonField]
+
+    @dataclass
+    class SetConfig(Packet):
+        """Packet type 910."""
+
+        PKT_TYPE: ClassVar[int] = 910
+        _fields: ClassVar[list[dict[str, Any]]] = [
+            {"name": "HapticDurationMs", "type": "uint16", "size_bytes": 2},
+            {
+                "name": "BacklightOnColor",
+                "type": "<ButtonBacklightHsbk>",
+                "size_bytes": 8,
+            },
+            {
+                "name": "BacklightOffColor",
+                "type": "<ButtonBacklightHsbk>",
+                "size_bytes": 8,
+            },
+        ]
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "SET"
+        _requires_ack: ClassVar[bool] = True
+        _requires_response: ClassVar[bool] = False
+
+        haptic_duration_ms: int
+        backlight_on_color: ButtonBacklightHsbk
+        backlight_off_color: ButtonBacklightHsbk
+
+    @dataclass
+    class State(Packet):
+        """Packet type 907."""
+
+        PKT_TYPE: ClassVar[int] = 907
+        _fields: ClassVar[list[dict[str, Any]]] = [
+            {"name": "Count", "type": "uint8", "size_bytes": 1},
+            {"name": "Index", "type": "uint8", "size_bytes": 1},
+            {"name": "ButtonsCount", "type": "uint8", "size_bytes": 1},
+            {"name": "Buttons", "type": "[8]<Button>", "size_bytes": 808},
+        ]
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "STATE"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        count: int
+        index: int
+        buttons_count: int
+        buttons: list[ButtonField]
+
+    @dataclass
+    class StateConfig(Packet):
+        """Packet type 911."""
+
+        PKT_TYPE: ClassVar[int] = 911
+        _fields: ClassVar[list[dict[str, Any]]] = [
+            {"name": "HapticDurationMs", "type": "uint16", "size_bytes": 2},
+            {
+                "name": "BacklightOnColor",
+                "type": "<ButtonBacklightHsbk>",
+                "size_bytes": 8,
+            },
+            {
+                "name": "BacklightOffColor",
+                "type": "<ButtonBacklightHsbk>",
+                "size_bytes": 8,
+            },
+        ]
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "STATE"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        haptic_duration_ms: int
+        backlight_on_color: ButtonBacklightHsbk
+        backlight_off_color: ButtonBacklightHsbk
 
 
 class Device(Packet):
@@ -1053,6 +1187,40 @@ class MultiZone(Packet):
         color: LightHsbk
 
 
+class Sensor(Packet):
+    """Sensor category packets."""
+
+    @dataclass
+    class GetAmbientLight(Packet):
+        """Packet type 401."""
+
+        PKT_TYPE: ClassVar[int] = 401
+        _fields: ClassVar[list[dict[str, Any]]] = []
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "GET"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        pass
+
+    @dataclass
+    class StateAmbientLight(Packet):
+        """Packet type 402."""
+
+        PKT_TYPE: ClassVar[int] = 402
+        _fields: ClassVar[list[dict[str, Any]]] = [
+            {"name": "Lux", "type": "float32", "size_bytes": 4}
+        ]
+
+        # Packet metadata for automatic handling
+        _packet_kind: ClassVar[str] = "STATE"
+        _requires_ack: ClassVar[bool] = False
+        _requires_response: ClassVar[bool] = False
+
+        lux: float
+
+
 class Tile(Packet):
     """Tile category packets."""
 
@@ -1316,6 +1484,8 @@ PACKET_REGISTRY: dict[int, type[Packet]] = {
     148: Light.GetLastHevCycleResult,
     149: Light.StateLastHevCycleResult,
     223: Device.StateUnhandled,
+    401: Sensor.GetAmbientLight,
+    402: Sensor.StateAmbientLight,
     501: MultiZone.SetColorZones,
     502: MultiZone.GetColorZones,
     503: MultiZone.StateZone,
@@ -1336,6 +1506,12 @@ PACKET_REGISTRY: dict[int, type[Packet]] = {
     718: Tile.GetEffect,
     719: Tile.SetEffect,
     720: Tile.StateEffect,
+    905: Button.Get,
+    906: Button.Set,
+    907: Button.State,
+    909: Button.GetConfig,
+    910: Button.SetConfig,
+    911: Button.StateConfig,
 }
 
 
