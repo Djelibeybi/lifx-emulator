@@ -17,6 +17,46 @@ import yaml
 
 from lifx_emulator.protocol.const import PROTOCOL_URL
 
+# Fields where the repo intentionally diverges from upstream protocol.yml.
+# TileEffectParameter: upstream genericised this to 8x uint32; the emulator keeps
+# a typed 32-byte sky layout the Ceiling Sky effect depends on (wire-identical).
+FIELD_OVERRIDES: dict[str, dict[str, Any]] = {
+    "TileEffectParameter": {
+        "size_bytes": 32,
+        "fields": [
+            {"name": "SkyType", "type": "<TileEffectSkyType>", "size_bytes": 1},
+            {"type": "reserved", "size_bytes": 3},
+            {"name": "CloudSaturationMin", "type": "uint8", "size_bytes": 1},
+            {"type": "reserved", "size_bytes": 3},
+            {"name": "CloudSaturationMax", "type": "uint8", "size_bytes": 1},
+            {"type": "reserved", "size_bytes": 23},
+        ],
+    },
+}
+
+
+def apply_field_overrides(
+    fields: dict[str, Any], overrides: dict[str, dict[str, Any]] = FIELD_OVERRIDES
+) -> dict[str, Any]:
+    """Merge local field overrides over upstream-parsed fields.
+
+    Used to preserve repo-local, wire-compatible field layouts (e.g. the typed
+    ``TileEffectParameter`` sky-effect struct) when upstream has genericised or
+    otherwise changed a field's shape in a way we don't want to adopt.
+
+    Args:
+        fields: Parsed ``fields`` dictionary from protocol.yml
+        overrides: Mapping of field name to replacement field definition
+
+    Returns:
+        New dictionary with override entries replacing upstream ones
+    """
+    merged = dict(fields)
+    for name, override_def in overrides.items():
+        if name in merged:
+            merged[name] = override_def
+    return merged
+
 
 class TypeRegistry:
     """Registry of all protocol types for validation.
@@ -1223,15 +1263,15 @@ def validate_protocol_spec(protocol: dict[str, Any]) -> list[str]:
 
 
 def should_skip_button_relay(name: str) -> bool:
-    """Check if a name should be skipped (Button or Relay related).
+    """Check if a name should be skipped (Relay related).
 
     Args:
         name: Type name to check (enum, field, union, packet, or category)
 
     Returns:
-        True if the name starts with Button or Relay, False otherwise
+        True if the name starts with Relay, False otherwise
     """
-    return name.startswith("Button") or name.startswith("Relay")
+    return name.startswith("Relay")
 
 
 def filter_button_relay_items(items: dict[str, Any]) -> dict[str, Any]:
@@ -1251,18 +1291,18 @@ def filter_button_relay_items(items: dict[str, Any]) -> dict[str, Any]:
 
 
 def filter_button_relay_packets(packets: dict[str, Any]) -> dict[str, Any]:
-    """Filter out button and relay category packets.
+    """Filter out relay category packets.
 
     Args:
         packets: Dictionary of packet definitions (grouped by category)
 
     Returns:
-        Filtered dictionary without button/relay categories
+        Filtered dictionary without the relay category
     """
     return {
         category: category_packets
         for category, category_packets in packets.items()
-        if category not in ("button", "relay")
+        if category not in ("relay",)
     }
 
 
@@ -1321,8 +1361,14 @@ def main() -> None:
     unions = protocol.get("unions", {})
     packets = protocol.get("packets", {})
 
+    # Apply repo-local field overrides (e.g. typed TileEffectParameter) before
+    # filtering/validation/codegen so generated code preserves our wire-compatible
+    # layout instead of upstream's current shape.
+    print("Applying field overrides...")
+    fields = apply_field_overrides(fields)
+
     # Filter out Button and Relay items (not relevant for light control)
-    print("Filtering out Button and Relay items...")
+    print("Filtering out Relay items...")
     enums = filter_button_relay_items(enums)
     fields = filter_button_relay_items(fields)
     compound_fields = filter_button_relay_items(compound_fields)

@@ -47,6 +47,7 @@ max-statements = 50
 [tool.ruff.lint.per-file-ignores]
 "packages/lifx-emulator-core/src/lifx_emulator/protocol/generator.py" = ["E501"]
 "packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py" = ["E501"]
+"packages/lifx-emulator-core/src/lifx_emulator/protocol/protocol_types.py" = ["E501"]
 
 [tool.pyright]
 typeCheckingMode = "standard"

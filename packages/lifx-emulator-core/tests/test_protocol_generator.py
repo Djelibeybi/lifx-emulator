@@ -704,10 +704,10 @@ class TestValidationAndFiltering:
         assert should_skip_button_relay("RelayGetStatus")
 
     def test_should_skip_button_relay_button_items(self):
-        """Test identifying button-related items for skipping."""
-        # Items starting with "Button" should be skipped
-        assert should_skip_button_relay("ButtonPress")
-        assert should_skip_button_relay("ButtonGetCount")
+        """Test that button-related items are no longer skipped (Button is enabled)."""
+        # Items starting with "Button" should not be skipped -- only Relay is filtered
+        assert not should_skip_button_relay("ButtonPress")
+        assert not should_skip_button_relay("ButtonGetCount")
 
     def test_should_skip_button_relay_non_button_relay_items(self):
         """Test not skipping items that aren't Button/Relay related."""
