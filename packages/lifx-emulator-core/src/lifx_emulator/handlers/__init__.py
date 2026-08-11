@@ -5,6 +5,7 @@ Each packet type has a dedicated handler class that implements the business logi
 """
 
 from lifx_emulator.handlers.base import PacketHandler
+from lifx_emulator.handlers.button_handlers import ALL_BUTTON_HANDLERS
 from lifx_emulator.handlers.device_handlers import ALL_DEVICE_HANDLERS
 from lifx_emulator.handlers.light_handlers import ALL_LIGHT_HANDLERS
 from lifx_emulator.handlers.multizone_handlers import ALL_MULTIZONE_HANDLERS
@@ -15,6 +16,7 @@ from lifx_emulator.handlers.tile_handlers import ALL_TILE_HANDLERS
 __all__ = [
     "PacketHandler",
     "HandlerRegistry",
+    "ALL_BUTTON_HANDLERS",
     "ALL_DEVICE_HANDLERS",
     "ALL_LIGHT_HANDLERS",
     "ALL_MULTIZONE_HANDLERS",
@@ -33,6 +35,7 @@ def create_default_registry() -> HandlerRegistry:
     registry = HandlerRegistry()
 
     # Register all handler categories
+    registry.register_all(ALL_BUTTON_HANDLERS)
     registry.register_all(ALL_DEVICE_HANDLERS)
     registry.register_all(ALL_LIGHT_HANDLERS)
     registry.register_all(ALL_MULTIZONE_HANDLERS)
