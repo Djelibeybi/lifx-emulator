@@ -76,3 +76,28 @@ def test_set_returns_state_without_error():
     pkt = Button.Set(index=0, buttons_count=0, buttons=[])
     out = SetHandler().handle(dev.state, pkt, True)
     assert len(out) == 1 and isinstance(out[0], Button.State)
+
+
+def test_set_suppresses_response_when_res_required_false():
+    dev = create_device(219)
+    pkt = Button.Set(index=0, buttons_count=0, buttons=[])
+    out = SetHandler().handle(dev.state, pkt, False)
+    assert out == []
+
+
+def test_set_config_suppresses_response_but_still_persists_when_res_required_false():
+    dev = create_device(219)
+    pkt = Button.SetConfig(
+        haptic_duration_ms=80,
+        backlight_on_color=ButtonBacklightHsbk(
+            hue=0, saturation=0, brightness=65535, kelvin=3500
+        ),
+        backlight_off_color=ButtonBacklightHsbk(
+            hue=0, saturation=0, brightness=0, kelvin=3500
+        ),
+    )
+    out = SetConfigHandler().handle(dev.state, pkt, False)
+    assert out == []
+    # Mutation happens regardless of whether a response was requested.
+    assert dev.state.buttons_state.haptic_duration_ms == 80
+    assert dev.state.buttons_state.backlight_on.brightness == 65535
