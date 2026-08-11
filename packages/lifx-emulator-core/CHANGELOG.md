@@ -2,6 +2,58 @@
 
 <!-- version list -->
 
+## v3.8.0 (2026-08-11)
+
+### Bug Fixes
+
+- **devices**: Gate Button packets and apply ButtonSet payloads
+  ([`f28404c`](https://github.com/Djelibeybi/lifx-emulator/commit/f28404c6fc328e1b526ccb84c578712e19bda32e))
+
+- **handlers**: Gate Button.Set/SetConfig responses on res_required
+  ([`aba1443`](https://github.com/Djelibeybi/lifx-emulator/commit/aba144365e99060576a420a92553e5e42e9f13db))
+
+- **persistence**: Persist button config across save/restore
+  ([`2562173`](https://github.com/Djelibeybi/lifx-emulator/commit/25621739a83cb1ee7e84093254b4bbd37597d318))
+
+- **products**: Gate extended multizone and curate new product specs
+  ([`87126a7`](https://github.com/Djelibeybi/lifx-emulator/commit/87126a7be990023046fc68bc20a4fe47e89e2ce6))
+
+- **protocol**: Pack enum fields at their declared wire width
+  ([`52fdd4f`](https://github.com/Djelibeybi/lifx-emulator/commit/52fdd4ff619ce8d570d9145f9667ad14a93645d2))
+
+- **protocol**: Tolerate undeclared enum values when unpacking
+  ([`75d3b6b`](https://github.com/Djelibeybi/lifx-emulator/commit/75d3b6bc9519cc92251e9ddff01e7c0d311ba999))
+
+- **specs**: Default Ceiling 265/266 firmware to 4.10 for Sky
+  ([`591ffb1`](https://github.com/Djelibeybi/lifx-emulator/commit/591ffb1aed5eeb1556a202e9ad905ac64732ee6a))
+
+- **specs**: Repair specs.yml YAML + correct Mirror/Path/Spot matrix dims
+  ([`b051adb`](https://github.com/Djelibeybi/lifx-emulator/commit/b051adbc962f69d2214ee2f0740df419280c1f48))
+
+### Features
+
+- **devices**: Add ambient-light, button and uplight state + builder seeding
+  ([`d36967c`](https://github.com/Djelibeybi/lifx-emulator/commit/d36967c9fba6e01127f434fe4ea0eb25a12dffe3))
+
+- **handlers**: Ambient-light sensor handler (always answers, lux 0 when sensorless)
+  ([`66a7d41`](https://github.com/Djelibeybi/lifx-emulator/commit/66a7d41e3b3f3afbcd3f2dc0923d675539889a61))
+
+- **handlers**: Button get/set + config handlers gated on has_buttons
+  ([`813a81b`](https://github.com/Djelibeybi/lifx-emulator/commit/813a81b15caf6ff77e2c5e49362c980e070c8dbc))
+
+- **products**: Regenerate registry from upstream
+  ([`717c9b2`](https://github.com/Djelibeybi/lifx-emulator/commit/717c9b238c484230911fd15155d038c9b77bc5b9))
+
+- **protocol**: Regenerate + enable Button/Sensor packets (Relay still filtered)
+  ([`ad6c3cd`](https://github.com/Djelibeybi/lifx-emulator/commit/ad6c3cd82149d3335add431a2a6628e6572c7bc2))
+
+- **specs**: Add uplight_zone_count for Ceiling + Mirror
+  ([`b5ed8d9`](https://github.com/Djelibeybi/lifx-emulator/commit/b5ed8d9b5742511965fab0b6a2a08fa4ba8277bf))
+
+- **tile**: Allow Sky effect on new Ceiling pids 265/266
+  ([`b3d95c3`](https://github.com/Djelibeybi/lifx-emulator/commit/b3d95c38c512fd7954608912c0957cc0b1220237))
+
+
 ## v3.7.1 (2026-08-11)
 
 ### Bug Fixes
