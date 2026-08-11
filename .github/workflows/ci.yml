@@ -10,6 +10,10 @@ env:
   PYTHON_VERSION: '3.14'
   UV_VERSION: 0.9.9
 
+# Default to least privilege; jobs that need more declare their own block.
+permissions:
+  contents: read
+
 jobs:
   changes:
     name: Detect Changes

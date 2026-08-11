@@ -14,6 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: startsWith(github.event.release.tag_name, 'app-v')
 
+    # Needs write access to attach the built binary to the release.
+    permissions:
+      contents: write
+
     strategy:
       fail-fast: false
       matrix:
