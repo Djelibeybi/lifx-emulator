@@ -9,6 +9,7 @@ from lifx_emulator.handlers.device_handlers import ALL_DEVICE_HANDLERS
 from lifx_emulator.handlers.light_handlers import ALL_LIGHT_HANDLERS
 from lifx_emulator.handlers.multizone_handlers import ALL_MULTIZONE_HANDLERS
 from lifx_emulator.handlers.registry import HandlerRegistry
+from lifx_emulator.handlers.sensor_handlers import ALL_SENSOR_HANDLERS
 from lifx_emulator.handlers.tile_handlers import ALL_TILE_HANDLERS
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "ALL_DEVICE_HANDLERS",
     "ALL_LIGHT_HANDLERS",
     "ALL_MULTIZONE_HANDLERS",
+    "ALL_SENSOR_HANDLERS",
     "ALL_TILE_HANDLERS",
     "create_default_registry",
 ]
@@ -34,6 +36,7 @@ def create_default_registry() -> HandlerRegistry:
     registry.register_all(ALL_DEVICE_HANDLERS)
     registry.register_all(ALL_LIGHT_HANDLERS)
     registry.register_all(ALL_MULTIZONE_HANDLERS)
+    registry.register_all(ALL_SENSOR_HANDLERS)
     registry.register_all(ALL_TILE_HANDLERS)
 
     return registry
