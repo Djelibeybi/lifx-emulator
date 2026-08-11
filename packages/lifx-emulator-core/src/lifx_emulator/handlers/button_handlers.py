@@ -4,44 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from lifx_emulator.devices.states import (
+    ACTIONS_PER_BUTTON,
+    BUTTONS_ARRAY_LENGTH,
+    default_button,
+    default_button_action,
+)
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import Button
 from lifx_emulator.protocol.protocol_types import Button as ButtonStruct
-from lifx_emulator.protocol.protocol_types import (
-    ButtonAction,
-    ButtonGesture,
-    ButtonTarget,
-    ButtonTargetType,
-)
 
 if TYPE_CHECKING:
     from lifx_emulator.devices import DeviceState
     from lifx_emulator.devices.states import ButtonsState
-
-# Button.State/Set pack a fixed [8]<Button> array on the wire, and each Button
-# struct always unpacks exactly 5 ButtonAction entries (see
-# protocol_types.Button.unpack). Any padding struct we synthesise must match
-# that shape exactly, or a round trip through pack()/unpack() misaligns every
-# subsequent button in the array.
-_BUTTONS_ARRAY_LENGTH = 8
-_ACTIONS_PER_BUTTON = 5
-
-
-def _default_button_action() -> ButtonAction:
-    """A neutral, valid ButtonAction used to fill unused action slots."""
-    return ButtonAction(
-        gesture=ButtonGesture.PRESS,
-        target_type=ButtonTargetType.RESERVED_0,
-        target=ButtonTarget(data=b"\x00" * 16),
-    )
-
-
-def _default_button() -> ButtonStruct:
-    """A neutral Button struct with exactly 5 action slots (wire-format shape)."""
-    return ButtonStruct(
-        actions_count=0,
-        actions=[_default_button_action() for _ in range(_ACTIONS_PER_BUTTON)],
-    )
 
 
 def _normalised_button(button: ButtonStruct) -> ButtonStruct:
@@ -51,10 +26,11 @@ def _normalised_button(button: ButtonStruct) -> ButtonStruct:
     reads exactly 5, so any button with a different action count would misalign
     a round trip. Truncate extras / pad with the default action to match.
     """
-    actions = list(button.actions)[:_ACTIONS_PER_BUTTON]
-    while len(actions) < _ACTIONS_PER_BUTTON:
-        actions.append(_default_button_action())
-    return ButtonStruct(actions_count=button.actions_count, actions=actions)
+    actions = list(button.actions)[:ACTIONS_PER_BUTTON]
+    actions_count = min(button.actions_count, len(actions), ACTIONS_PER_BUTTON)
+    while len(actions) < ACTIONS_PER_BUTTON:
+        actions.append(default_button_action())
+    return ButtonStruct(actions_count=actions_count, actions=actions)
 
 
 def _padded_buttons(buttons_state: ButtonsState) -> list[ButtonStruct]:
@@ -65,10 +41,10 @@ def _padded_buttons(buttons_state: ButtonsState) -> list[ButtonStruct]:
     """
     buttons = [
         _normalised_button(b)
-        for b in list(buttons_state.buttons)[:_BUTTONS_ARRAY_LENGTH]
+        for b in list(buttons_state.buttons)[:BUTTONS_ARRAY_LENGTH]
     ]
-    while len(buttons) < _BUTTONS_ARRAY_LENGTH:
-        buttons.append(_default_button())
+    while len(buttons) < BUTTONS_ARRAY_LENGTH:
+        buttons.append(default_button())
     return buttons
 
 
@@ -83,11 +59,14 @@ def _state_config(state: DeviceState) -> Button.StateConfig:
 
 def _state(state: DeviceState) -> Button.State:
     bs = state.buttons_state
-    configured_count = len(bs.buttons)
+    # Only the first 8 configured buttons fit the fixed wire array, so the
+    # advertised counts must describe what is actually packed -- a client that
+    # iterates range(buttons_count) over the decoded array must not run off it.
+    wire_count = min(len(bs.buttons), BUTTONS_ARRAY_LENGTH)
     return Button.State(
-        count=configured_count,
+        count=wire_count,
         index=0,
-        buttons_count=configured_count,
+        buttons_count=wire_count,
         buttons=_padded_buttons(bs),
     )
 
@@ -137,6 +116,26 @@ class GetHandler(PacketHandler):
         return [_state(device_state)]
 
 
+def _apply_set(buttons_state: ButtonsState, packet: Button.Set) -> None:
+    """Write the buttons carried by a ButtonSet into device state.
+
+    ``index`` is the first button the request writes and ``buttons_count`` is
+    how many of the fixed 8-entry wire array are meaningful; entries beyond
+    that are zero padding and must not overwrite existing configuration.
+    """
+    index = max(0, min(packet.index, BUTTONS_ARRAY_LENGTH))
+    supplied = list(packet.buttons)[: max(0, packet.buttons_count)]
+    end = min(index + len(supplied), BUTTONS_ARRAY_LENGTH)
+    supplied = supplied[: end - index]
+
+    buttons = list(buttons_state.buttons)[:BUTTONS_ARRAY_LENGTH]
+    while len(buttons) < end:
+        buttons.append(default_button())
+    for offset, button in enumerate(supplied):
+        buttons[index + offset] = _normalised_button(button)
+    buttons_state.buttons = buttons
+
+
 class SetHandler(PacketHandler):
     """ButtonSet (906) -> ButtonState (907)."""
 
@@ -147,6 +146,8 @@ class SetHandler(PacketHandler):
     ) -> list[Any]:
         if not device_state.has_buttons:
             return []
+        if packet is not None:
+            _apply_set(device_state.buttons_state, packet)
         if res_required:
             return [_state(device_state)]
         return []

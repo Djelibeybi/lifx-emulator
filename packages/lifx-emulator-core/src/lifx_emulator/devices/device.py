@@ -50,6 +50,8 @@ STATE_CHANGING_PACKETS: frozenset[int] = frozenset(
         510,  # MultiZone.ExtendedSetColorZones
         715,  # Tile.Set64
         716,  # Tile.CopyFrameBuffer
+        906,  # Button.Set
+        910,  # Button.SetConfig
     }
 )
 
@@ -266,6 +268,12 @@ class EmulatedLifxDevice:
         # Tile.* packets (701-720) require matrix capability
         if 701 <= pkt_type <= 720:
             return self.state.has_matrix
+
+        # Button.* packets (905-911) require button capability.
+        # Sensor.* (401/402) is deliberately excluded: every device answers
+        # SensorGetAmbientLight, reporting lux 0 when it has no sensor.
+        if 905 <= pkt_type <= 911:
+            return self.state.has_buttons
 
         # Unknown packets - let handler decide
         return True

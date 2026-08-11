@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.devices.states import (
+    BUTTONS_ARRAY_LENGTH,
     CoreDeviceState,
     GroupState,
     HevState,
@@ -17,11 +18,13 @@ from lifx_emulator.devices.states import (
     MultiZoneState,
     NetworkState,
     WaveformState,
+    default_button,
 )
 from lifx_emulator.factories.default_config import DefaultColorConfig
 from lifx_emulator.factories.firmware_config import FirmwareConfig
 from lifx_emulator.factories.serial_generator import SerialGenerator
 from lifx_emulator.products.specs import (
+    get_button_count,
     get_default_tile_count,
     get_default_zone_count,
     get_tile_dimensions,
@@ -33,6 +36,32 @@ if TYPE_CHECKING:
     from lifx_emulator.devices import DevicePersistenceAsyncFile
     from lifx_emulator.products.registry import ProductInfo
     from lifx_emulator.scenarios import HierarchicalScenarioManager
+
+# Device.StateLabel packs a 32-byte label; longer product names would otherwise
+# be truncated on the wire, dropping the serial suffix that keeps labels unique.
+_LABEL_MAX_BYTES = 32
+
+
+def _default_label(product_name: str, serial: str) -> str:
+    """Build the default device label, keeping it within the 32-byte wire field.
+
+    The serial suffix is what distinguishes two devices of the same product, so
+    the product name is shortened rather than the suffix when they do not both
+    fit.
+
+    Args:
+        product_name: Product name from the registry
+        serial: Device serial number
+
+    Returns:
+        Label of at most 32 UTF-8 bytes
+    """
+    suffix = f" {serial[-6:]}"
+    budget = _LABEL_MAX_BYTES - len(suffix.encode())
+    name = product_name
+    while len(name.encode()) > budget:
+        name = name[:-1]
+    return f"{name.rstrip()}{suffix}"
 
 
 class DeviceBuilder:
@@ -292,6 +321,14 @@ class DeviceBuilder:
             uplight_zone_count=uplight_zone_count,
         )
 
+        # Seed the physical buttons so a button device reports its real count
+        # instead of an empty array (Button.Get -> count=0).
+        if self._product_info.has_buttons:
+            button_count = get_button_count(self._product_info.pid) or 1
+            state.buttons_state.buttons = [
+                default_button() for _ in range(min(button_count, BUTTONS_ARRAY_LENGTH))
+            ]
+
         # 11. Restore saved state if persistence enabled
         if self._storage:
             restorer = StateRestorer(self._storage)
@@ -342,7 +379,7 @@ class DeviceBuilder:
         Returns:
             CoreDeviceState instance
         """
-        label = f"{self._product_info.name} {serial[-6:]}"
+        label = _default_label(self._product_info.name, serial)
 
         return CoreDeviceState(
             serial=serial,

@@ -310,3 +310,57 @@ class TestNullStateRestorer:
         result = restorer.restore_if_available(device.state)
         assert result is device.state
         assert result.label == original_label
+
+
+class TestButtonStateRestoration:
+    """Button config restoration must tolerate partial saved state."""
+
+    def test_partial_button_config_falls_back_to_defaults(self):
+        """A hand-edited or older state file must not abort device creation."""
+        device = create_device(219, serial="d073d5000001")
+        default_haptic = device.state.buttons_state.haptic_duration_ms
+        saved_state = {
+            "product": device.state.product,
+            "buttons_config": {},  # every key missing
+        }
+        storage = MockStorage({"d073d5000001": saved_state})
+
+        result = StateRestorer(storage).restore_if_available(device.state)
+
+        assert result.buttons_state.haptic_duration_ms == default_haptic
+        assert len(result.buttons_state.buttons) == 4
+
+    def test_buttons_survive_a_serialize_restore_round_trip(self):
+        """Button.Set mutates the per-button actions, so they must persist."""
+        from lifx_emulator.protocol.protocol_types import (
+            Button as ButtonStruct,
+        )
+        from lifx_emulator.protocol.protocol_types import (
+            ButtonAction,
+            ButtonGesture,
+            ButtonTarget,
+            ButtonTargetType,
+        )
+
+        device = create_device(219, serial="d073d5000001")
+        device.state.buttons_state.buttons[0] = ButtonStruct(
+            actions_count=1,
+            actions=[
+                ButtonAction(
+                    gesture=ButtonGesture.HOLD,
+                    target_type=ButtonTargetType.RESERVED_0,
+                    target=ButtonTarget(data=b"\x05" * 16),
+                )
+            ],
+        )
+
+        saved = deserialize_device_state(serialize_device_state(device.state))
+        fresh = create_device(219, serial="d073d5000001")
+        result = StateRestorer(
+            MockStorage({"d073d5000001": saved})
+        ).restore_if_available(fresh.state)
+
+        restored = result.buttons_state.buttons[0]
+        assert restored.actions_count == 1
+        assert restored.actions[0].gesture == ButtonGesture.HOLD
+        assert restored.actions[0].target.data == b"\x05" * 16
