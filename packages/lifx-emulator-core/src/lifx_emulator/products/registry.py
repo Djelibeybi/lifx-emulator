@@ -179,7 +179,15 @@ class ProductInfo:
 PRODUCTS: dict[int, ProductInfo] = {
     1: ProductInfo(
         pid=1,
-        name="LIFX Original 1000",
+        name="Original",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    2: ProductInfo(
+        pid=2,
+        name="Original 1000",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -187,7 +195,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     3: ProductInfo(
         pid=3,
-        name="LIFX Color 650",
+        name="Color 650",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -195,7 +203,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     10: ProductInfo(
         pid=10,
-        name="LIFX White 800 (Low Voltage)",
+        name="LIFX White 800 (LV)",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=6500),
@@ -203,39 +211,71 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     11: ProductInfo(
         pid=11,
-        name="LIFX White 800 (High Voltage)",
+        name="LIFX White 800 (HV)",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=6500),
         min_ext_mz_firmware=None,
     ),
-    15: ProductInfo(
-        pid=15,
-        name="LIFX Color 1000",
+    12: ProductInfo(
+        pid=12,
+        name="LIFX LCMv4 White OEM (A19 LV)",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2700, max=2700),
+        min_ext_mz_firmware=None,
+    ),
+    13: ProductInfo(
+        pid=13,
+        name="LIFX LCMv4 White OEM (A19 HV)",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2700, max=2700),
+        min_ext_mz_firmware=None,
+    ),
+    14: ProductInfo(
+        pid=14,
+        name="LIFX Carbon Prototype",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    15: ProductInfo(
+        pid=15,
+        name="LIFX LCMv4 Color (A21)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
     18: ProductInfo(
         pid=18,
-        name="LIFX White 900 BR30 (Low Voltage)",
+        name="LIFX White 900 (BR30)",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=2500, max=9000),
+        temperature_range=TemperatureRange(min=2700, max=6500),
         min_ext_mz_firmware=None,
     ),
     19: ProductInfo(
         pid=19,
-        name="LIFX White 900 BR30 (High Voltage)",
+        name="LIFX White 900 (BR30)",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=2500, max=9000),
+        temperature_range=TemperatureRange(min=2700, max=6500),
         min_ext_mz_firmware=None,
     ),
     20: ProductInfo(
         pid=20,
-        name="LIFX Color 1000 BR30",
+        name="LIFX Color 1000 (BR30)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    21: ProductInfo(
+        pid=21,
+        name="LIFX LCMv4 Color (GU10)",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -249,9 +289,41 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    23: ProductInfo(
+        pid=23,
+        name="LIFX (A19)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    24: ProductInfo(
+        pid=24,
+        name="LIFX (BR30)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    25: ProductInfo(
+        pid=25,
+        name="LIFX+ (A19)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    26: ProductInfo(
+        pid=26,
+        name="LIFX+ (BR30)",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
     27: ProductInfo(
         pid=27,
-        name="LIFX A19",
+        name="LIFX (A19)",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -259,7 +331,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     28: ProductInfo(
         pid=28,
-        name="LIFX BR30",
+        name="LIFX (BR30)",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -267,7 +339,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     29: ProductInfo(
         pid=29,
-        name="LIFX A19 Night Vision",
+        name="LIFX+ (A19)",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -275,7 +347,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     30: ProductInfo(
         pid=30,
-        name="LIFX BR30 Night Vision",
+        name="LIFX+ (BR30)",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -299,9 +371,17 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=131149,
     ),
+    33: ProductInfo(
+        pid=33,
+        name="LIFX Downlight",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
     36: ProductInfo(
         pid=36,
-        name="LIFX Downlight",
+        name="LIFX DL",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -309,7 +389,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     37: ProductInfo(
         pid=37,
-        name="LIFX Downlight",
+        name="LIFX DL",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -327,7 +407,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     39: ProductInfo(
         pid=39,
-        name="LIFX Downlight White to Warm",
+        name="LIFX DL WW 700lm",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -335,7 +415,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     40: ProductInfo(
         pid=40,
-        name="LIFX Downlight",
+        name="LIFX DL Colour 700lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -343,7 +423,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     43: ProductInfo(
         pid=43,
-        name="LIFX A19",
+        name="LIFX (A19)",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -351,7 +431,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     44: ProductInfo(
         pid=44,
-        name="LIFX BR30",
+        name="LIFX (BR30)",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -359,7 +439,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     45: ProductInfo(
         pid=45,
-        name="LIFX A19 Night Vision",
+        name="LIFX+ (A19)",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -367,7 +447,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     46: ProductInfo(
         pid=46,
-        name="LIFX BR30 Night Vision",
+        name="LIFX+ (BR30)",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=2500, max=9000),
@@ -375,7 +455,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     49: ProductInfo(
         pid=49,
-        name="LIFX Mini Color",
+        name="LIFX Mini C",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -383,15 +463,15 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     50: ProductInfo(
         pid=50,
-        name="LIFX Mini White to Warm",
+        name="LIFX Mini DD",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=1500, max=6500),
+        temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=None,
     ),
     51: ProductInfo(
         pid=51,
-        name="LIFX Mini White",
+        name="LIFX Mini W",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -413,6 +493,14 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    54: ProductInfo(
+        pid=54,
+        name="LIFX GU10 White",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2700, max=2700),
+        min_ext_mz_firmware=None,
+    ),
     55: ProductInfo(
         pid=55,
         name="LIFX Tile",
@@ -423,9 +511,19 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    56: ProductInfo(
+        pid=56,
+        name="LIFX Beam",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=2500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
     57: ProductInfo(
         pid=57,
-        name="LIFX Candle",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -433,7 +531,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     59: ProductInfo(
         pid=59,
-        name="LIFX Mini Color",
+        name="LIFX Mini C",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -441,15 +539,15 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     60: ProductInfo(
         pid=60,
-        name="LIFX Mini White to Warm",
+        name="LIFX Mini DD",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=1500, max=6500),
+        temperature_range=TemperatureRange(min=2500, max=9000),
         min_ext_mz_firmware=None,
     ),
     61: ProductInfo(
         pid=61,
-        name="LIFX Mini White",
+        name="LIFX Mini W",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -457,7 +555,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     62: ProductInfo(
         pid=62,
-        name="LIFX A19",
+        name="LIFX (A19) LCM3",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -465,7 +563,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     63: ProductInfo(
         pid=63,
-        name="LIFX BR30",
+        name="LIFX (BR30) LCM3",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -473,7 +571,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     64: ProductInfo(
         pid=64,
-        name="LIFX A19 Night Vision",
+        name="LIFX+ (A19) LCM3",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -481,7 +579,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     65: ProductInfo(
         pid=65,
-        name="LIFX BR30 Night Vision",
+        name="LIFX+ (BR30) LCM3",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -489,15 +587,23 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     66: ProductInfo(
         pid=66,
-        name="LIFX Mini White",
+        name="LIFX Mini W",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
         min_ext_mz_firmware=None,
     ),
+    67: ProductInfo(
+        pid=67,
+        name="LIFX Candle WW",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2200, max=6500),
+        min_ext_mz_firmware=None,
+    ),
     68: ProductInfo(
         pid=68,
-        name="LIFX Candle",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -519,9 +625,17 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=None,
         min_ext_mz_firmware=None,
     ),
+    72: ProductInfo(
+        pid=72,
+        name="LIFX A19",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
     81: ProductInfo(
         pid=81,
-        name="LIFX Candle White to Warm",
+        name="LIFX Candle WW",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2200, max=6500),
@@ -532,7 +646,15 @@ PRODUCTS: dict[int, ProductInfo] = {
         name="LIFX Filament Clear",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=2100, max=2100),
+        temperature_range=TemperatureRange(min=2200, max=2200),
+        min_ext_mz_firmware=None,
+    ),
+    84: ProductInfo(
+        pid=84,
+        name="LIFX Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
         min_ext_mz_firmware=None,
     ),
     85: ProductInfo(
@@ -543,9 +665,17 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=2000, max=2000),
         min_ext_mz_firmware=None,
     ),
+    86: ProductInfo(
+        pid=86,
+        name="LIFX Filament Smokey",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2200, max=2200),
+        min_ext_mz_firmware=None,
+    ),
     87: ProductInfo(
         pid=87,
-        name="LIFX Mini White",
+        name="LIFX White",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -553,7 +683,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     88: ProductInfo(
         pid=88,
-        name="LIFX Mini White",
+        name="LIFX White",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -569,7 +699,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     90: ProductInfo(
         pid=90,
-        name="LIFX Clean",
+        name="LIFX Clean A19 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.HEV,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -577,7 +707,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     91: ProductInfo(
         pid=91,
-        name="LIFX Color",
+        name="LIFX Color 800lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -585,7 +715,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     92: ProductInfo(
         pid=92,
-        name="LIFX Color",
+        name="LIFX Colour 1000lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -593,7 +723,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     93: ProductInfo(
         pid=93,
-        name="LIFX A19 US",
+        name="LIFX Color A19 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -601,7 +731,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     94: ProductInfo(
         pid=94,
-        name="LIFX BR30",
+        name="LIFX Color BR30 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -609,7 +739,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     96: ProductInfo(
         pid=96,
-        name="LIFX Candle White to Warm",
+        name="LIFX Candle WW",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2200, max=6500),
@@ -617,7 +747,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     97: ProductInfo(
         pid=97,
-        name="LIFX A19",
+        name="LIFX Colour A19 1200lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -625,7 +755,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     98: ProductInfo(
         pid=98,
-        name="LIFX BR30",
+        name="LIFX Colour BR30 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -633,7 +763,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     99: ProductInfo(
         pid=99,
-        name="LIFX Clean",
+        name="LIFX Clean A19 1200lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.HEV,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -644,7 +774,7 @@ PRODUCTS: dict[int, ProductInfo] = {
         name="LIFX Filament Clear",
         vendor=1,
         capabilities=0,
-        temperature_range=TemperatureRange(min=2100, max=2100),
+        temperature_range=TemperatureRange(min=2200, max=2200),
         min_ext_mz_firmware=None,
     ),
     101: ProductInfo(
@@ -655,9 +785,17 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=2000, max=2000),
         min_ext_mz_firmware=None,
     ),
+    102: ProductInfo(
+        pid=102,
+        name="LIFX Filament Smokey",
+        vendor=1,
+        capabilities=0,
+        temperature_range=TemperatureRange(min=2200, max=2200),
+        min_ext_mz_firmware=None,
+    ),
     109: ProductInfo(
         pid=109,
-        name="LIFX A19 Night Vision",
+        name="LIFX NV A19 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -665,7 +803,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     110: ProductInfo(
         pid=110,
-        name="LIFX BR30 Night Vision",
+        name="LIFX NV BR30 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -673,7 +811,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     111: ProductInfo(
         pid=111,
-        name="LIFX A19 Night Vision",
+        name="LIFX NV A19 1200lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -681,7 +819,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     112: ProductInfo(
         pid=112,
-        name="LIFX BR30 Night Vision Intl",
+        name="LIFX NV BR30 1100lm",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.INFRARED,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -689,7 +827,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     113: ProductInfo(
         pid=113,
-        name="LIFX Mini WW US",
+        name="LIFX WW 800lm",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -697,7 +835,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     114: ProductInfo(
         pid=114,
-        name="LIFX Mini WW Intl",
+        name="LIFX WW 1000lm",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -713,7 +851,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     116: ProductInfo(
         pid=116,
-        name="LIFX Switch",
+        name="LIFX Switch US",
         vendor=1,
         capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
         temperature_range=None,
@@ -721,7 +859,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     117: ProductInfo(
         pid=117,
-        name="LIFX Z US",
+        name="LIFX Z",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -731,7 +869,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     118: ProductInfo(
         pid=118,
-        name="LIFX Z Intl",
+        name="LIFX Z",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -741,7 +879,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     119: ProductInfo(
         pid=119,
-        name="LIFX Beam US",
+        name="LIFX Beam",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -751,7 +889,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     120: ProductInfo(
         pid=120,
-        name="LIFX Beam Intl",
+        name="LIFX Beam",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -761,7 +899,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     121: ProductInfo(
         pid=121,
-        name="LIFX Downlight Intl",
+        name="LIFX DL",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -769,7 +907,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     122: ProductInfo(
         pid=122,
-        name="LIFX Downlight US",
+        name="LIFX DL",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -777,7 +915,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     123: ProductInfo(
         pid=123,
-        name="LIFX Color US",
+        name="LIFX Mini 3.1 Color US",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -785,7 +923,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     124: ProductInfo(
         pid=124,
-        name="LIFX Colour Intl",
+        name="LIFX Mini 3.1 Color Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -793,7 +931,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     125: ProductInfo(
         pid=125,
-        name="LIFX White to Warm US",
+        name="LIFX Mini 3.1 WW US",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -801,7 +939,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     126: ProductInfo(
         pid=126,
-        name="LIFX White to Warm Intl",
+        name="LIFX Mini 3.1 WW Intl",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -809,7 +947,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     127: ProductInfo(
         pid=127,
-        name="LIFX White US",
+        name="LIFX Mini 3.1 W US",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -817,7 +955,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     128: ProductInfo(
         pid=128,
-        name="LIFX White Intl",
+        name="LIFX Mini 3.1 W Intl",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -825,7 +963,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     129: ProductInfo(
         pid=129,
-        name="LIFX Color US",
+        name="LIFX Color 800",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -833,7 +971,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     130: ProductInfo(
         pid=130,
-        name="LIFX Colour Intl",
+        name="LIFX Colour 1000",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -841,7 +979,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     131: ProductInfo(
         pid=131,
-        name="LIFX White To Warm US",
+        name="LIFX White to Warm 800",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -849,7 +987,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     132: ProductInfo(
         pid=132,
-        name="LIFX White To Warm Intl",
+        name="LIFX White to Warm 1000",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -857,7 +995,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     133: ProductInfo(
         pid=133,
-        name="LIFX White US",
+        name="LIFX White 650",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -865,7 +1003,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     134: ProductInfo(
         pid=134,
-        name="LIFX White Intl",
+        name="LIFX White 800",
         vendor=1,
         capabilities=0,
         temperature_range=TemperatureRange(min=2700, max=2700),
@@ -881,7 +1019,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     136: ProductInfo(
         pid=136,
-        name="LIFX GU10 Colour Intl",
+        name="LIFX GU10 Color Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -889,7 +1027,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     137: ProductInfo(
         pid=137,
-        name="LIFX Candle Color US",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -897,7 +1035,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     138: ProductInfo(
         pid=138,
-        name="LIFX Candle Colour Intl",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -905,7 +1043,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     141: ProductInfo(
         pid=141,
-        name="LIFX Neon US",
+        name="LIFX Neon",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -915,7 +1053,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     142: ProductInfo(
         pid=142,
-        name="LIFX Neon Intl",
+        name="LIFX Neon",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -925,7 +1063,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     143: ProductInfo(
         pid=143,
-        name="LIFX String US",
+        name="LIFX String",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -935,7 +1073,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     144: ProductInfo(
         pid=144,
-        name="LIFX String Intl",
+        name="LIFX String",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -943,9 +1081,61 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    151: ProductInfo(
+        pid=151,
+        name="LIFX Neon Outdoor",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    152: ProductInfo(
+        pid=152,
+        name="LIFX Neon Outdoor",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    153: ProductInfo(
+        pid=153,
+        name="LIFX PAR38 US",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    154: ProductInfo(
+        pid=154,
+        name="LIFX PAR38 Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    155: ProductInfo(
+        pid=155,
+        name="LIFX Sunshine",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    156: ProductInfo(
+        pid=156,
+        name="LIFX A21 1000lm Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
     161: ProductInfo(
         pid=161,
-        name="LIFX Outdoor Neon US",
+        name="LIFX Neon Outdoor",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -955,7 +1145,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     162: ProductInfo(
         pid=162,
-        name="LIFX Outdoor Neon Intl",
+        name="LIFX Neon Outdoor",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -965,7 +1155,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     163: ProductInfo(
         pid=163,
-        name="LIFX A19 US",
+        name="LIFX A19",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -973,7 +1163,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     164: ProductInfo(
         pid=164,
-        name="LIFX BR30 US",
+        name="LIFX BR30",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -997,7 +1187,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     167: ProductInfo(
         pid=167,
-        name="LIFX Downlight",
+        name="LIFX DL AU",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1005,7 +1195,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     168: ProductInfo(
         pid=168,
-        name="LIFX Downlight",
+        name="LIFX DL US",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1013,7 +1203,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     169: ProductInfo(
         pid=169,
-        name="LIFX A21 1600lm US",
+        name="LIFX A21",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1021,7 +1211,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     170: ProductInfo(
         pid=170,
-        name="LIFX A21 1600lm Intl",
+        name="LIFX A21",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1029,7 +1219,15 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     171: ProductInfo(
         pid=171,
-        name="LIFX Round Spot US",
+        name="LIFX Spot",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    172: ProductInfo(
+        pid=172,
+        name="LIFX Spot",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1037,7 +1235,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     173: ProductInfo(
         pid=173,
-        name="LIFX Round Path US",
+        name="LIFX Path",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1045,7 +1243,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     174: ProductInfo(
         pid=174,
-        name="LIFX Square Path US",
+        name="LIFX Path",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1053,7 +1251,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     175: ProductInfo(
         pid=175,
-        name="LIFX PAR38 US",
+        name="LIFX PAR38",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1061,7 +1259,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     176: ProductInfo(
         pid=176,
-        name="LIFX Ceiling US",
+        name="LIFX Ceiling",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1069,7 +1267,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     177: ProductInfo(
         pid=177,
-        name="LIFX Ceiling Intl",
+        name="LIFX Ceiling",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1101,7 +1299,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     181: ProductInfo(
         pid=181,
-        name="LIFX Color US",
+        name="LIFX Mini",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1109,7 +1307,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     182: ProductInfo(
         pid=182,
-        name="LIFX Colour Intl",
+        name="LIFX Mini",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1117,7 +1315,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     185: ProductInfo(
         pid=185,
-        name="LIFX Candle Color US",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1125,7 +1323,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     186: ProductInfo(
         pid=186,
-        name="LIFX Candle Colour Intl",
+        name="LIFX Candle C Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1133,7 +1331,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     187: ProductInfo(
         pid=187,
-        name="LIFX Candle Color US",
+        name="LIFX Candle",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1141,15 +1339,31 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     188: ProductInfo(
         pid=188,
-        name="LIFX Candle Colour Intl",
+        name="LIFX Candle Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    191: ProductInfo(
+        pid=191,
+        name="LIFX Everyday A19",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
+    192: ProductInfo(
+        pid=192,
+        name="LIFX Everyday A19 Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
     201: ProductInfo(
         pid=201,
-        name='LIFX Ceiling 13x26" US',
+        name="LIFX Ceiling 13x26",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1157,7 +1371,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     202: ProductInfo(
         pid=202,
-        name='LIFX Ceiling 13x26" Intl',
+        name="LIFX Ceiling 13x26 Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1165,7 +1379,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     203: ProductInfo(
         pid=203,
-        name="LIFX String US",
+        name="LIFX String",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -1175,7 +1389,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     204: ProductInfo(
         pid=204,
-        name="LIFX String Intl",
+        name="LIFX String",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -1185,7 +1399,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     205: ProductInfo(
         pid=205,
-        name="LIFX Indoor Neon US",
+        name="LIFX Neon",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -1195,7 +1409,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     206: ProductInfo(
         pid=206,
-        name="LIFX Indoor Neon Intl",
+        name="LIFX Neon",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -1203,9 +1417,41 @@ PRODUCTS: dict[int, ProductInfo] = {
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),
+    207: ProductInfo(
+        pid=207,
+        name="LIFX Everyday Lightstrip",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.BUTTONS
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
+    208: ProductInfo(
+        pid=208,
+        name="LIFX Everyday Lightstrip Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.BUTTONS
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
+    211: ProductInfo(
+        pid=211,
+        name="LIFX Everyday Permanent Outdoor US",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MULTIZONE
+        | ProductCapability.EXTENDED_MULTIZONE,
+        temperature_range=TemperatureRange(min=2700, max=6500),
+        min_ext_mz_firmware=None,
+    ),
     213: ProductInfo(
         pid=213,
-        name="LIFX Permanent Outdoor US",
+        name="LIFX Permanent Outdoor",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MULTIZONE
@@ -1225,7 +1471,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     215: ProductInfo(
         pid=215,
-        name="LIFX Candle Color US",
+        name="LIFX Candle C",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1233,7 +1479,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     216: ProductInfo(
         pid=216,
-        name="LIFX Candle Colour Intl",
+        name="LIFX Candle C Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1241,7 +1487,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     217: ProductInfo(
         pid=217,
-        name="LIFX Tube US",
+        name="LIFX Tube",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1257,7 +1503,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     219: ProductInfo(
         pid=219,
-        name="LIFX Luna US",
+        name="LIFX Luna",
         vendor=1,
         capabilities=ProductCapability.COLOR
         | ProductCapability.MATRIX
@@ -1277,7 +1523,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     221: ProductInfo(
         pid=221,
-        name="LIFX Round Spot Intl",
+        name="LIFX Spot Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1285,7 +1531,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     222: ProductInfo(
         pid=222,
-        name="LIFX Round Path Intl",
+        name="LIFX Path Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1293,7 +1539,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     223: ProductInfo(
         pid=223,
-        name="LIFX Downlight US",
+        name="LIFX DL",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1301,7 +1547,7 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     224: ProductInfo(
         pid=224,
-        name="LIFX Downlight Intl",
+        name="LIFX DL Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
@@ -1309,10 +1555,70 @@ PRODUCTS: dict[int, ProductInfo] = {
     ),
     225: ProductInfo(
         pid=225,
-        name="LIFX PAR38 INTL",
+        name="LIFX PAR38 Intl",
         vendor=1,
         capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    226: ProductInfo(
+        pid=226,
+        name="LIFX Dimmer Switch",
+        vendor=1,
+        capabilities=ProductCapability.RELAYS | ProductCapability.BUTTONS,
+        temperature_range=None,
+        min_ext_mz_firmware=None,
+    ),
+    229: ProductInfo(
+        pid=229,
+        name="LIFX Path Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    265: ProductInfo(
+        pid=265,
+        name='LIFX Ceiling 13"',
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    266: ProductInfo(
+        pid=266,
+        name='LIFX Ceiling 13" Intl',
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.MATRIX,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    267: ProductInfo(
+        pid=267,
+        name="LIFX Mirror",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MATRIX
+        | ProductCapability.BUTTONS,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    268: ProductInfo(
+        pid=268,
+        name="LIFX Mirror Intl",
+        vendor=1,
+        capabilities=ProductCapability.COLOR
+        | ProductCapability.MATRIX
+        | ProductCapability.BUTTONS,
+        temperature_range=TemperatureRange(min=1500, max=9000),
+        min_ext_mz_firmware=None,
+    ),
+    300: ProductInfo(
+        pid=300,
+        name="LIFX Everyday Permanent Outdoor US",
+        vendor=1,
+        capabilities=ProductCapability.COLOR | ProductCapability.MULTIZONE,
+        temperature_range=TemperatureRange(min=2700, max=6500),
         min_ext_mz_firmware=None,
     ),
 }

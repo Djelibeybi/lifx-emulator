@@ -431,7 +431,7 @@ products:
     uplight_zone_count: 1
     notes: LIFX Ceiling 13" Intl
 
-  267:  # LIFX Mirror
+  267:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
@@ -440,7 +440,7 @@ products:
     uplight_zone_count: 25
     notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
 
-  268:  # LIFX Mirror Intl
+  268:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1

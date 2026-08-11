@@ -166,7 +166,7 @@ class TestLabelHandlers:
         assert resp_header.pkt_type == 25  # StateLabel
         assert isinstance(resp_packet, Device.StateLabel)
         # Default label is auto-generated from product name and serial suffix
-        assert resp_packet.label == "LIFX Color 000001"
+        assert resp_packet.label == "LIFX Color 800lm 000001"
 
     def test_set_label_ascii(self, color_device):
         """Test SetLabel with ASCII string."""
