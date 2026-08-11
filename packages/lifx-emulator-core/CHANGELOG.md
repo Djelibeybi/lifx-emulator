@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.7.1 (2026-08-11)
+
+### Bug Fixes
+
+- **security**: Resolve code scanning alerts
+  ([`4096a23`](https://github.com/Djelibeybi/lifx-emulator/commit/4096a23d42d74e34e5bc11b07575cb9517c5920e))
+
+
 ## v3.7.0 (2026-06-13)
 
 ### Bug Fixes
