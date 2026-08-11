@@ -429,10 +429,10 @@ class SetEffectHandler(PacketHandler):
             return []
 
         if packet:
-            # Sky effect is only supported on LIFX Ceiling devices (176, 177, 201, 202)
-            # running firmware 4.4 or higher
+            # Sky effect is only supported on LIFX Ceiling devices
+            # (176, 177, 201, 202, 265, 266) running firmware 4.4 or higher
             if packet.settings.type == TileEffectType.SKY:
-                ceiling_product_ids = {176, 177, 201, 202}
+                ceiling_product_ids = {176, 177, 201, 202, 265, 266}
                 is_ceiling = device_state.product in ceiling_product_ids
 
                 # Check firmware version >= 4.4
