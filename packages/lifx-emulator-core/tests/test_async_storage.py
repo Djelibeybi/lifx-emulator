@@ -243,3 +243,45 @@ class TestDevicePersistenceAsyncFile:
         loaded = temp_storage.load_device_state(state.serial)
         assert loaded is not None
         assert loaded["label"] == "Test Device"
+
+
+class TestSerialValidation:
+    """Serials are validated before use in filesystem paths (path-traversal guard)."""
+
+    @pytest.mark.parametrize(
+        "bad_serial",
+        [
+            "../../etc/passwd",
+            "d073d5/000001",
+            "not-hex-value",
+            "d073d500000",  # 11 chars (too short)
+            "d073d50000012",  # 13 chars (too long)
+            "",
+        ],
+    )
+    async def test_device_path_rejects_invalid_serial(self, temp_storage, bad_serial):
+        """_device_path raises ValueError for anything but a 12-char hex serial."""
+        with pytest.raises(ValueError, match="Invalid device serial"):
+            temp_storage._device_path(bad_serial)
+
+    async def test_device_path_accepts_valid_serial(self, temp_storage):
+        """A valid 12-char hex serial resolves to a path inside storage_dir."""
+        path = temp_storage._device_path("d073d5AbCdEf")
+        assert path.parent == temp_storage.storage_dir
+        assert path.name == "d073d5AbCdEf.json"
+
+    async def test_batch_write_skips_invalid_serial(self, temp_storage):
+        """_batch_write logs and skips invalid serials without writing files."""
+        temp_storage._batch_write([("../evil", {"serial": "../evil"})])
+
+        # No file escaped the storage directory and none was created inside it.
+        assert list(temp_storage.storage_dir.glob("*.json")) == []
+
+    async def test_load_rejects_invalid_serial(self, temp_storage):
+        """load_device_state returns None for an invalid serial."""
+        assert temp_storage.load_device_state("../../etc/passwd") is None
+
+    async def test_delete_ignores_invalid_serial(self, temp_storage):
+        """delete_device_state is a no-op (no raise) for an invalid serial."""
+        # Should neither raise nor touch the filesystem.
+        temp_storage.delete_device_state("../../etc/passwd")
