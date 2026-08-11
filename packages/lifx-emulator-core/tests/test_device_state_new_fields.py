@@ -9,10 +9,14 @@ def test_mirror_state_has_buttons_sensor_uplight():
     assert st.has_buttons
     assert st.ambient_light_lux == 100.0  # seeded (buttons + matrix)
     assert st.uplight_zone_count == 25
+    assert st.has_uplight is True
     assert st.downlight_zone_count == 25  # 50 total - 25
 
 
 def test_plain_bulb_reports_zero_lux():
     dev = create_device(22)  # LIFX Color 1000 A19-class bulb, no sensor
-    assert dev.state.ambient_light_lux == 0.0
-    assert dev.state.uplight_zone_count is None
+    st = dev.state
+    assert st.ambient_light_lux == 0.0
+    assert st.uplight_zone_count is None
+    assert st.has_uplight is False
+    assert st.downlight_zone_count is None  # no uplight -> no downlight split
