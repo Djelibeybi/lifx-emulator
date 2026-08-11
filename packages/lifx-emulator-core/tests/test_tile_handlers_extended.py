@@ -879,6 +879,52 @@ class TestSkyEffectRestrictions:
         assert device.state.tile_effect_speed == 2
         assert device.state.tile_effect_sky_type == int(TileEffectSkyType.CLOUDS)
 
+    def test_sky_effect_on_ceiling_265_default_firmware(self):
+        """Ceiling 265 accepts Sky with its DEFAULT firmware (no override).
+
+        Product 265's specs.yml default firmware is 4.10 (>= 4.4), so a device
+        created without forcing firmware_version must both report (4, 10) and
+        accept the Sky effect. Regression guard for 265/266 omitting the
+        firmware default and silently falling back to 3.70.
+        """
+        # No firmware_version override: exercise the specs.yml default path.
+        device = create_device(265, tile_count=1)
+
+        assert device.state.version_major == 4
+        assert device.state.version_minor == 10
+
+        palette = [
+            LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500) for _ in range(16)
+        ]
+        parameter = TileEffectParameter(
+            sky_type=TileEffectSkyType.SUNRISE,
+            cloud_saturation_min=1500,
+            cloud_saturation_max=6000,
+        )
+        settings = TileEffectSettings(
+            instanceid=1,
+            type=TileEffectType.SKY,
+            speed=4000,
+            duration=0,
+            parameter=parameter,
+            palette_count=1,
+            palette=palette,
+        )
+
+        packet = Tile.SetEffect(settings=settings)
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=719,
+            res_required=False,
+        )
+
+        device.process_packet(header, packet)
+
+        assert device.state.tile_effect_type == int(TileEffectType.SKY)
+        assert device.state.tile_effect_sky_type == int(TileEffectSkyType.SUNRISE)
+
     def test_other_effects_on_non_ceiling_still_work(self):
         """Test non-SKY effects still work on non-Ceiling devices."""
         # Create a LIFX Tile (product 55) with firmware 4.4

@@ -420,6 +420,8 @@ products:
     tile_width: 8
     tile_height: 8
     uplight_zone_count: 1
+    default_firmware_major: 4
+    default_firmware_minor: 10
     notes: LIFX Ceiling 13"
 
   266:  # LIFX Ceiling 13" Intl
@@ -429,6 +431,8 @@ products:
     tile_width: 8
     tile_height: 8
     uplight_zone_count: 1
+    default_firmware_major: 4
+    default_firmware_minor: 10
     notes: LIFX Ceiling 13" Intl
 
   267:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
