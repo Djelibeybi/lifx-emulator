@@ -25,6 +25,7 @@ from lifx_emulator.products.specs import (
     get_default_tile_count,
     get_default_zone_count,
     get_tile_dimensions,
+    get_uplight_zone_count,
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
@@ -258,7 +259,16 @@ class DeviceBuilder:
             firmware_version_int
         )
 
-        # 9. Compose device state
+        # 9. Determine ambient light sensor default and uplight zone count
+        uplight_zone_count = get_uplight_zone_count(self._product_info.pid)
+        has_sensor = (
+            self._product_info.has_buttons
+            or self._product_info.has_matrix
+            or version_major >= 4
+        )
+        ambient_light_lux = 100.0 if has_sensor else 0.0
+
+        # 10. Compose device state
         state = DeviceState(
             core=core,
             network=network,
@@ -278,14 +288,16 @@ class DeviceBuilder:
             has_hev=self._product_info.has_hev,
             has_relays=self._product_info.has_relays,
             has_buttons=self._product_info.has_buttons,
+            ambient_light_lux=ambient_light_lux,
+            uplight_zone_count=uplight_zone_count,
         )
 
-        # 10. Restore saved state if persistence enabled
+        # 11. Restore saved state if persistence enabled
         if self._storage:
             restorer = StateRestorer(self._storage)
             restorer.restore_if_available(state)
 
-        # 11. Create device
+        # 12. Create device
         return EmulatedLifxDevice(
             state, storage=self._storage, scenario_manager=self._scenario_manager
         )

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from lifx_emulator.constants import LIFX_UDP_PORT
-from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
 
 
 @dataclass
@@ -158,6 +158,24 @@ class WaveformState:
 
 
 @dataclass
+class ButtonsState:
+    """Button config + per-button state for button-capable devices."""
+
+    haptic_duration_ms: int = 0
+    backlight_on: ButtonBacklightHsbk = field(
+        default_factory=lambda: ButtonBacklightHsbk(
+            hue=0, saturation=0, brightness=0, kelvin=3500
+        )
+    )
+    backlight_off: ButtonBacklightHsbk = field(
+        default_factory=lambda: ButtonBacklightHsbk(
+            hue=0, saturation=0, brightness=0, kelvin=3500
+        )
+    )
+    buttons: list = field(default_factory=list)
+
+
+@dataclass
 class DeviceState:
     """Composed device state following Single Responsibility Principle.
 
@@ -193,6 +211,23 @@ class DeviceState:
     has_hev: bool = False
     has_relays: bool = False
     has_buttons: bool = False
+
+    # Ambient light sensor, button and uplight state (Ceiling/Mirror devices)
+    ambient_light_lux: float = 0.0
+    uplight_zone_count: int | None = None
+    buttons_state: ButtonsState = field(default_factory=ButtonsState)
+
+    @property
+    def has_uplight(self) -> bool:
+        """Whether this device reports a separate uplight zone range."""
+        return self.uplight_zone_count is not None
+
+    @property
+    def downlight_zone_count(self) -> int | None:
+        """Matrix zones excluding the uplight range, if applicable."""
+        if self.uplight_zone_count is None or not self.has_matrix:
+            return None
+        return self.tile_width * self.tile_height - self.uplight_zone_count
 
     # Attribute routing map: maps attribute prefixes to state objects
     # This eliminates ~360 lines of property boilerplate
@@ -361,6 +396,9 @@ class DeviceState:
             "has_hev",
             "has_relays",
             "has_buttons",
+            "ambient_light_lux",
+            "uplight_zone_count",
+            "buttons_state",
         } or name.startswith("_"):
             object.__setattr__(self, name, value)
             return
