@@ -364,3 +364,48 @@ products:
         # Product 999 won't have specs, should fall back
         version = config.get_firmware_version(product_id=999, extended_multizone=True)
         assert version == (3, 70)
+
+
+class TestCuratedProductSpecs:
+    """Specs added by an upstream sync must not keep the generator scaffold."""
+
+    def test_new_multizone_products_match_their_product_family(self):
+        from lifx_emulator.products.specs import get_default_zone_count
+
+        # Scaffolded as 16 zones; each shares geometry with an existing product.
+        assert get_default_zone_count(56) == get_default_zone_count(38)  # Beam
+        assert get_default_zone_count(151) == get_default_zone_count(161)  # Neon
+        assert get_default_zone_count(152) == get_default_zone_count(162)
+        assert get_default_zone_count(211) == get_default_zone_count(213)
+        assert get_default_zone_count(300) == get_default_zone_count(213)
+
+    def test_no_product_allows_fewer_than_eight_zones(self):
+        from lifx_emulator.products.specs import get_specs_registry
+
+        registry = get_specs_registry()
+        registry.load_from_file()
+        for pid in range(1, 400):
+            specs = registry.get_specs(pid)
+            if specs and specs.min_zone_count is not None:
+                assert specs.min_zone_count >= 8, f"product {pid}"
+
+    def test_every_switch_pins_its_firmware(self):
+        from lifx_emulator.factories import create_device
+        from lifx_emulator.products.registry import PRODUCTS
+
+        for pid, info in PRODUCTS.items():
+            if info.has_relays:
+                state = create_device(pid).state
+                assert (state.version_major, state.version_minor) == (4, 100), (
+                    f"product {pid}"
+                )
+
+    def test_extended_multizone_is_never_granted_without_multizone(self):
+        from lifx_emulator.products.registry import PRODUCTS
+
+        offenders = [
+            pid
+            for pid, info in PRODUCTS.items()
+            if info.has_extended_multizone and not info.has_multizone
+        ]
+        assert offenders == []

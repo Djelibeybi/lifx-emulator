@@ -68,10 +68,10 @@ products:
     notes: LIFX Beam, 8 individual beams, each with 10 zones and up to 2 corners
 
   56:  # LIFX Beam
-    default_zone_count: 16
-    min_zone_count: 1
-    max_zone_count: 16
-    notes: LIFX Beam
+    default_zone_count: 80
+    min_zone_count: 10
+    max_zone_count: 82
+    notes: LIFX Beam, same geometry as pid 38
 
   117:  # LIFX Z US variant
     default_zone_count: 16
@@ -122,16 +122,16 @@ products:
     notes: LIFX String International variant
 
   151:  # LIFX Neon Outdoor
-    default_zone_count: 16
-    min_zone_count: 1
-    max_zone_count: 16
-    notes: LIFX Neon Outdoor
+    default_zone_count: 60
+    min_zone_count: 60
+    max_zone_count: 120
+    notes: LIFX Neon Outdoor, same geometry as pid 161
 
   152:  # LIFX Neon Outdoor
-    default_zone_count: 16
-    min_zone_count: 1
-    max_zone_count: 16
-    notes: LIFX Neon Outdoor
+    default_zone_count: 60
+    min_zone_count: 60
+    max_zone_count: 120
+    notes: LIFX Neon Outdoor, same geometry as pid 162
 
   161:  # LIFX Outdoor Neon
     default_zone_count: 60
@@ -171,21 +171,23 @@ products:
 
   207:  # LIFX Everyday Lightstrip
     default_zone_count: 16
-    min_zone_count: 1
+    min_zone_count: 8
     max_zone_count: 16
-    notes: LIFX Everyday Lightstrip
+    button_count: 1
+    notes: LIFX Everyday Lightstrip, same geometry as LIFX Z
 
   208:  # LIFX Everyday Lightstrip Intl
     default_zone_count: 16
-    min_zone_count: 1
+    min_zone_count: 8
     max_zone_count: 16
-    notes: LIFX Everyday Lightstrip Intl
+    button_count: 1
+    notes: LIFX Everyday Lightstrip Intl, same geometry as LIFX Z
 
   211:  # LIFX Everyday Permanent Outdoor US
-    default_zone_count: 16
-    min_zone_count: 1
-    max_zone_count: 16
-    notes: LIFX Everyday Permanent Outdoor US
+    default_zone_count: 30
+    min_zone_count: 30
+    max_zone_count: 120
+    notes: LIFX Everyday Permanent Outdoor US, same geometry as pid 213
 
   213:  # LIFX Permanent Outdoor US
     default_zone_count: 30
@@ -200,10 +202,10 @@ products:
     notes: LIFX Permanent Outdoor Intl
 
   300:  # LIFX Everyday Permanent Outdoor US
-    default_zone_count: 16
-    min_zone_count: 1
-    max_zone_count: 16
-    notes: LIFX Everyday Permanent Outdoor US
+    default_zone_count: 30
+    min_zone_count: 30
+    max_zone_count: 120
+    notes: LIFX Everyday Permanent Outdoor US, same geometry as pid 213
 
   # ========================================
   # Matrix Products (Tiles, Candles, etc.)
@@ -379,6 +381,7 @@ products:
     max_tile_count: 1
     tile_width: 7
     tile_height: 5
+    button_count: 4
     notes: LIFX Luna US
 
   220:  # LIFX Luna Intl
@@ -387,6 +390,7 @@ products:
     max_tile_count: 1
     tile_width: 7
     tile_height: 5
+    button_count: 4
     notes: LIFX Luna Intl
 
   221:  # LIFX Round Spot Intl
@@ -442,6 +446,7 @@ products:
     tile_width: 5
     tile_height: 10
     uplight_zone_count: 25
+    button_count: 4
     notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
 
   268:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
@@ -451,6 +456,7 @@ products:
     tile_width: 5
     tile_height: 10
     uplight_zone_count: 25
+    button_count: 4
     notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
 
   # ========================================
@@ -459,38 +465,49 @@ products:
 
   70:  # LIFX Switch
     relay_count: 2
+    button_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
 
   71:  # LIFX Switch
     relay_count: 2
+    button_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
 
   84:  # LIFX Switch
     relay_count: 2
+    button_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
     notes: LIFX Switch
 
   89:  # LIFX Switch
     relay_count: 2
+    button_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
 
   115:  # LIFX Switch
     relay_count: 2
+    button_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
 
   116:  # LIFX Switch
     relay_count: 2
+    button_count: 2
     default_firmware_major: 4
     default_firmware_minor: 100
     notes: LIFX Switch
 
   226:  # LIFX Dimmer Switch
     relay_count: 2
+    button_count: 2
+    default_firmware_major: 4
+    default_firmware_minor: 100
     notes: LIFX Dimmer Switch

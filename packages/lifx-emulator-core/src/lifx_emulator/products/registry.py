@@ -629,7 +629,7 @@ PRODUCTS: dict[int, ProductInfo] = {
         pid=72,
         name="LIFX A19",
         vendor=1,
-        capabilities=ProductCapability.COLOR | ProductCapability.EXTENDED_MULTIZONE,
+        capabilities=ProductCapability.COLOR,
         temperature_range=TemperatureRange(min=1500, max=9000),
         min_ext_mz_firmware=None,
     ),

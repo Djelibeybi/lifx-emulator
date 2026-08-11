@@ -30,6 +30,7 @@ class ProductSpecs:
         default_firmware_major: Default firmware major version
         default_firmware_minor: Default firmware minor version
         uplight_zone_count: Number of trailing matrix zones forming the uplight or rear
+        button_count: Number of physical buttons on button-capable devices
         notes: Human-readable notes about this product
     """
 
@@ -45,6 +46,7 @@ class ProductSpecs:
     default_firmware_major: int | None = None
     default_firmware_minor: int | None = None
     uplight_zone_count: int | None = None
+    button_count: int | None = None
     notes: str | None = None
 
     @property
@@ -110,6 +112,7 @@ class SpecsRegistry:
                 default_firmware_major=specs_data.get("default_firmware_major"),
                 default_firmware_minor=specs_data.get("default_firmware_minor"),
                 uplight_zone_count=specs_data.get("uplight_zone_count"),
+                button_count=specs_data.get("button_count"),
                 notes=specs_data.get("notes"),
             )
 
@@ -215,6 +218,18 @@ class SpecsRegistry:
         specs = self.get_specs(product_id)
         return specs.uplight_zone_count if specs else None
 
+    def get_button_count(self, product_id: int) -> int | None:
+        """Get number of physical buttons for a button-capable product.
+
+        Args:
+            product_id: Product ID
+
+        Returns:
+            Number of buttons if defined, None otherwise
+        """
+        specs = self.get_specs(product_id)
+        return specs.button_count if specs else None
+
     def __len__(self) -> int:
         """Get number of products with specs."""
         if not self._loaded:
@@ -309,3 +324,15 @@ def get_uplight_zone_count(product_id: int) -> int | None:
         Number of uplight zones if defined, None otherwise
     """
     return _specs_registry.get_uplight_zone_count(product_id)
+
+
+def get_button_count(product_id: int) -> int | None:
+    """Get number of physical buttons for a button-capable product.
+
+    Args:
+        product_id: Product ID
+
+    Returns:
+        Number of buttons if defined, None otherwise
+    """
+    return _specs_registry.get_button_count(product_id)
