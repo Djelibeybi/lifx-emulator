@@ -29,6 +29,10 @@ class ProductSpecs:
         tile_height: Height of each tile in zones
         default_firmware_major: Default firmware major version
         default_firmware_minor: Default firmware minor version
+        max_firmware_major: Terminal (maximum) firmware major version for a
+            discontinued product
+        max_firmware_minor: Terminal (maximum) firmware minor version for a
+            discontinued product
         uplight_zone_count: Number of trailing matrix zones forming the uplight or rear
         button_count: Number of physical buttons on button-capable devices
         notes: Human-readable notes about this product
@@ -45,6 +49,8 @@ class ProductSpecs:
     tile_height: int | None = None
     default_firmware_major: int | None = None
     default_firmware_minor: int | None = None
+    max_firmware_major: int | None = None
+    max_firmware_minor: int | None = None
     uplight_zone_count: int | None = None
     button_count: int | None = None
     notes: str | None = None
@@ -65,6 +71,24 @@ class ProductSpecs:
         return (
             self.default_firmware_major is not None
             and self.default_firmware_minor is not None
+        )
+
+    @property
+    def has_max_firmware_specs(self) -> bool:
+        """Check if this product has a terminal (maximum) firmware version.
+
+        Both fields must be actual ``int`` instances, not merely non-``None``.
+        ``specs.yml`` is a hand-maintained data file loaded with
+        ``yaml.safe_load``, so a mistyped entry (e.g. a quoted number) would
+        otherwise reach the tuple comparison in
+        ``FirmwareConfig.get_firmware_version()`` and raise ``TypeError`` on
+        a real product. Requiring ``isinstance(..., int)`` on both values
+        makes a malformed entry degrade to "no ceiling" instead, and is what
+        lets Pyright narrow both fields to ``int`` in
+        ``get_max_firmware_version`` without a suppression.
+        """
+        return isinstance(self.max_firmware_major, int) and isinstance(
+            self.max_firmware_minor, int
         )
 
 
@@ -111,6 +135,8 @@ class SpecsRegistry:
                 tile_height=specs_data.get("tile_height"),
                 default_firmware_major=specs_data.get("default_firmware_major"),
                 default_firmware_minor=specs_data.get("default_firmware_minor"),
+                max_firmware_major=specs_data.get("max_firmware_major"),
+                max_firmware_minor=specs_data.get("max_firmware_minor"),
                 uplight_zone_count=specs_data.get("uplight_zone_count"),
                 button_count=specs_data.get("button_count"),
                 notes=specs_data.get("notes"),
@@ -204,6 +230,23 @@ class SpecsRegistry:
             assert specs.default_firmware_major is not None  # nosec
             assert specs.default_firmware_minor is not None  # nosec
             return (specs.default_firmware_major, specs.default_firmware_minor)
+        return None
+
+    def get_max_firmware_version(self, product_id: int) -> tuple[int, int] | None:
+        """Get terminal (maximum) firmware version for a product.
+
+        Args:
+            product_id: Product ID
+
+        Returns:
+            Tuple of (major, minor) if a ceiling is defined, None otherwise
+        """
+        specs = self.get_specs(product_id)
+        if specs and specs.has_max_firmware_specs:
+            # has_max_firmware_specs ensures both values are int
+            assert specs.max_firmware_major is not None  # nosec
+            assert specs.max_firmware_minor is not None  # nosec
+            return (specs.max_firmware_major, specs.max_firmware_minor)
         return None
 
     def get_uplight_zone_count(self, product_id: int) -> int | None:
@@ -312,6 +355,18 @@ def get_default_firmware_version(product_id: int) -> tuple[int, int] | None:
         Tuple of (major, minor) if defined, None otherwise
     """
     return _specs_registry.get_default_firmware_version(product_id)
+
+
+def get_max_firmware_version(product_id: int) -> tuple[int, int] | None:
+    """Get terminal (maximum) firmware version for a product.
+
+    Args:
+        product_id: Product ID
+
+    Returns:
+        Tuple of (major, minor) if a ceiling is defined, None otherwise
+    """
+    return _specs_registry.get_max_firmware_version(product_id)
 
 
 def get_uplight_zone_count(product_id: int) -> int | None:

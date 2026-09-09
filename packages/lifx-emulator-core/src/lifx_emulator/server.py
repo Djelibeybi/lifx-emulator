@@ -52,6 +52,12 @@ def _format_packet_fields(packet: Any) -> str:
     if packet is None:
         return "no payload"
 
+    # Same root cause as _pack_payload: _apply_error_scenarios() returns an
+    # already-packed bytes payload for malformed/invalid-field replies, so
+    # this logging helper must not assume a packet object either.
+    if isinstance(packet, bytes):
+        return f"<{len(packet)} raw bytes>"
+
     fields = []
     for field_item in packet._fields:
         # Skip reserved fields (no name)
@@ -84,6 +90,29 @@ def _format_packet_fields(packet: Any) -> str:
         fields.append(f"{field_name}={value_str}")
 
     return ", ".join(fields) if fields else "no fields"
+
+
+def _pack_payload(resp_packet: Any) -> bytes:
+    """Pack a response payload, tolerating an already-packed bytes value.
+
+    ``EmulatedLifxDevice._apply_error_scenarios()`` returns the payload
+    already packed as ``bytes`` for ``malformed_packets`` and
+    ``invalid_field_values`` replies (it truncates or corrupts the packed
+    bytes directly rather than the packet object), so calling ``.pack()``
+    again would raise ``AttributeError`` before anything reaches the wire.
+
+    Args:
+        resp_packet: A packet object, raw bytes from an error scenario, or
+            a falsy value (None or empty bytes) for an empty payload.
+
+    Returns:
+        The payload bytes ready to concatenate after the packed header.
+    """
+    if not resp_packet:
+        return b""
+    if isinstance(resp_packet, bytes):
+        return resp_packet
+    return resp_packet.pack()
 
 
 class EmulatedLifxServer:
@@ -271,8 +300,8 @@ class EmulatedLifxServer:
             if delay > 0:
                 await asyncio.sleep(delay)
 
-            # Pack the response packet
-            resp_payload = resp_packet.pack() if resp_packet else b""
+            # Pack the response packet (bytes-aware: see _pack_payload)
+            resp_payload = _pack_payload(resp_packet)
             response_data = resp_header.pack() + resp_payload
             if self.transport:
                 self.transport.sendto(response_data, addr)

@@ -1,16 +1,22 @@
 """Tests for persistent storage."""
 
 import asyncio
+import json
+import logging
 import tempfile
 
 import pytest
+from lifx_emulator import Connectivity
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
+from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.factories import (
     create_color_light,
     create_device,
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Device
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
 
@@ -285,3 +291,253 @@ class TestSerialValidation:
         """delete_device_state is a no-op (no raise) for an invalid serial."""
         # Should neither raise nor touch the filesystem.
         temp_storage.delete_device_state("../../etc/passwd")
+
+
+class TestConnectivityPersistence:
+    """connectivity survives a save-and-reload cycle, read exactly once.
+
+    Never reload through a DevicePersistenceAsyncFile on which shutdown()
+    has already been awaited: shutdown() permanently closes the backend's
+    executor, while creating a device with storage= set schedules a
+    background save. Every reload here constructs a fresh
+    DevicePersistenceAsyncFile pointed at the same storage_dir instead.
+    """
+
+    def test_peek_connectivity_without_storage(self):
+        """An optional restorer without a backend contributes no saved value."""
+        restorer = StateRestorer(None)
+
+        assert restorer.peek_connectivity("d073d5000032", 91) is None
+
+    async def test_thread_connectivity_round_trips(self, temp_storage):
+        """A Thread device saved and reloaded is still Thread; bit 3 survives
+        on both the first reply and StateUnhandled (belt and braces, since
+        the reloaded device rebuilds its header template in __init__)."""
+        device = create_color_light(
+            "d073d5000032", connectivity="thread", storage=temp_storage
+        )
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        saved = temp_storage.load_device_state(state.serial)
+        assert saved["connectivity"] == "thread"
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            new_device = create_device(
+                saved["product"], serial=saved["serial"], storage=reload_storage
+            )
+            assert new_device.state.connectivity == Connectivity.THREAD
+
+            first_request = LifxHeader(
+                source=1,
+                target=new_device.state.get_target_bytes(),
+                sequence=1,
+                pkt_type=Device.GetService.PKT_TYPE,
+                res_required=True,
+            )
+            first_header, _ = new_device.process_packet(first_request, None)[0]
+            assert first_header.thread_connection is True
+            assert first_header.pack()[22] & 0x08 == 0x08
+
+            unhandled_request = LifxHeader(
+                source=2,
+                target=new_device.state.get_target_bytes(),
+                sequence=2,
+                pkt_type=701,  # Tile.Get64 -- unhandled by a color light
+                res_required=True,
+            )
+            unhandled_header, _ = new_device.process_packet(unhandled_request, None)[0]
+            assert unhandled_header.thread_connection is True
+            assert unhandled_header.pack()[22] & 0x08 == 0x08
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_missing_connectivity_key_restores_as_wifi(self, temp_storage):
+        """A pre-milestone file with no connectivity key restores silently
+        as wifi -- no warning is emitted for the missing-key case."""
+        device = create_color_light("d073d5000033", storage=temp_storage)
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        path = temp_storage.storage_dir / f"{state.serial}.json"
+        data = json.loads(path.read_text())
+        del data["connectivity"]
+        path.write_text(json.dumps(data))
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            new_device = create_device(
+                data["product"], serial=data["serial"], storage=reload_storage
+            )
+            assert new_device.state.connectivity == Connectivity.WIFI
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_corrupted_connectivity_value_restores_as_wifi_with_warning(
+        self, temp_storage, caplog
+    ):
+        """A corrupted connectivity value degrades to wifi, preserves every
+        other field, and emits exactly one WARNING naming the serial and
+        the substring 'connectivity' -- filtered by message content, not
+        counted across all WARNING records (the restorer's own
+        product-mismatch path also warns elsewhere)."""
+        device = create_color_light("d073d5000034", storage=temp_storage)
+        state = device.state
+        state.label = "Corrupted Fixture"
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        path = temp_storage.storage_dir / f"{state.serial}.json"
+        data = json.loads(path.read_text())
+        data["connectivity"] = "bluetooth"
+        path.write_text(json.dumps(data))
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            caplog.set_level(logging.WARNING)
+            new_device = create_device(
+                data["product"], serial=data["serial"], storage=reload_storage
+            )
+            assert new_device.state.connectivity == Connectivity.WIFI
+            assert new_device.state.label == "Corrupted Fixture"
+
+            matching = [
+                r
+                for r in caplog.records
+                if state.serial in r.getMessage() and "connectivity" in r.getMessage()
+            ]
+            assert len(matching) == 1
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_explicit_wifi_argument_wins_over_saved_thread(
+        self, temp_storage, caplog
+    ):
+        """An explicit connectivity="wifi" argument wins over a saved
+        "thread" value, with one WARNING naming the serial and the
+        substring 'connectivity'."""
+        device = create_color_light(
+            "d073d5000035", connectivity="thread", storage=temp_storage
+        )
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            caplog.set_level(logging.WARNING)
+            new_device = create_device(
+                state.product,
+                serial=state.serial,
+                storage=reload_storage,
+                connectivity="wifi",
+            )
+            assert new_device.state.connectivity == Connectivity.WIFI
+
+            matching = [
+                r
+                for r in caplog.records
+                if state.serial in r.getMessage() and "connectivity" in r.getMessage()
+            ]
+            assert len(matching) == 1
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_explicit_thread_argument_wins_over_saved_wifi(
+        self, temp_storage, caplog
+    ):
+        """The reverse direction: connectivity="thread" wins over a saved
+        "wifi" value, with one matching WARNING."""
+        device = create_color_light("d073d5000036", storage=temp_storage)
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            caplog.set_level(logging.WARNING)
+            new_device = create_device(
+                state.product,
+                serial=state.serial,
+                storage=reload_storage,
+                connectivity="thread",
+            )
+            assert new_device.state.connectivity == Connectivity.THREAD
+
+            matching = [
+                r
+                for r in caplog.records
+                if state.serial in r.getMessage() and "connectivity" in r.getMessage()
+            ]
+            assert len(matching) == 1
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_product_mismatch_contributes_no_connectivity(self, temp_storage):
+        """A saved state whose product differs from the product being built
+        contributes no connectivity -- matching the existing "skipping
+        restore" semantics applied to every other field."""
+        device = create_color_light(
+            "d073d5000037", connectivity="thread", storage=temp_storage
+        )
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            # Rebuild the same serial as a different product (91 Color -> 90
+            # Clean/HEV); the saved file's connectivity must not leak across
+            # the product mismatch.
+            new_device = create_device(90, serial=state.serial, storage=reload_storage)
+            assert new_device.state.connectivity == Connectivity.WIFI
+        finally:
+            await reload_storage.shutdown()
+
+    async def test_load_device_state_called_once_per_build(
+        self, temp_storage, monkeypatch
+    ):
+        """load_device_state is invoked exactly once per DeviceBuilder.build()
+        call when storage is set -- the peek and the restore share one read."""
+        device = create_color_light(
+            "d073d5000038", connectivity="thread", storage=temp_storage
+        )
+        state = device.state
+        await temp_storage.save_device_state(state)
+        await temp_storage.shutdown()
+
+        reload_storage = DevicePersistenceAsyncFile(
+            storage_dir=temp_storage.storage_dir
+        )
+        try:
+            call_count = 0
+            original = DevicePersistenceAsyncFile.load_device_state
+
+            def counting_load(self, serial):
+                nonlocal call_count
+                call_count += 1
+                return original(self, serial)
+
+            monkeypatch.setattr(
+                DevicePersistenceAsyncFile, "load_device_state", counting_load
+            )
+
+            create_device(state.product, serial=state.serial, storage=reload_storage)
+            assert call_count == 1
+        finally:
+            await reload_storage.shutdown()

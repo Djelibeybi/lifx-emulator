@@ -96,6 +96,11 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
         "label": device_state.label,
         "product": device_state.product,
         "power_level": device_state.power_level,
+        # str(), not .value: a caller who bypasses the factories and builds a
+        # NetworkState with a raw "thread" string still serialises correctly,
+        # whereas .value would raise AttributeError on that path. Renders as
+        # the bare enum value because Connectivity defines __str__ = str.__str__.
+        "connectivity": str(device_state.connectivity),
         "color": serialize_hsbk(device_state.color),
         "location_id": device_state.location_id.hex(),
         "location_label": device_state.location_label,

@@ -28,6 +28,55 @@ class StateRestorer:
             storage: Storage instance (DeviceStorage or DevicePersistenceAsyncFile)
         """
         self.storage = storage
+        self._cached_serial: str | None = None
+        self._cached_saved_state: dict[str, Any] | None = None
+
+    def _load_saved_state(self, serial: str) -> dict[str, Any] | None:
+        """Load and cache the saved state dict for a serial, reading disk once.
+
+        Deliberately validation-free: product validation happens at each
+        consumer (``peek_connectivity`` and ``restore_if_available`` each
+        compare ``saved_state.get("product")`` themselves), so the two checks
+        must stay in agreement and this cache must never pre-filter.
+
+        Args:
+            serial: Device serial number
+
+        Returns:
+            The saved state dict, or None if there is no storage or no saved
+            state for this serial.
+        """
+        if not self.storage:
+            return None
+        if serial == self._cached_serial:
+            return self._cached_saved_state
+
+        saved_state = self.storage.load_device_state(serial)
+        self._cached_serial = serial
+        self._cached_saved_state = saved_state
+        return saved_state
+
+    def peek_connectivity(self, serial: str, product: int) -> str | None:
+        """Peek at the saved connectivity value without restoring anything.
+
+        Args:
+            serial: Device serial number
+            product: Product ID the device is being built as
+
+        Returns:
+            The raw saved connectivity string (unvalidated), or None if
+            there is no saved state or the saved product does not match --
+            the same "skipping restore" rule ``restore_if_available()``
+            already applies to every other field. Validation and any
+            warning belong to the caller (the builder), which is the single
+            place the effective value is decided.
+        """
+        saved_state = self._load_saved_state(serial)
+        if not saved_state:
+            return None
+        if saved_state.get("product") != product:
+            return None
+        return saved_state.get("connectivity")
 
     def restore_if_available(self, state: DeviceState) -> DeviceState:
         """Restore saved state if available and compatible.
@@ -41,7 +90,7 @@ class StateRestorer:
         if not self.storage:
             return state
 
-        saved_state = self.storage.load_device_state(state.serial)
+        saved_state = self._load_saved_state(state.serial)
         if not saved_state:
             logger.debug("No saved state found for device %s", state.serial)
             return state

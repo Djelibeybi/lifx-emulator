@@ -3,12 +3,16 @@
 import tempfile
 from pathlib import Path
 
+from lifx_emulator.factories import create_device
 from lifx_emulator.factories.firmware_config import FirmwareConfig
+from lifx_emulator.products.registry import PRODUCTS
 from lifx_emulator.products.specs import (
     ProductSpecs,
     SpecsRegistry,
+    get_default_firmware_version,
     get_default_tile_count,
     get_default_zone_count,
+    get_max_firmware_version,
     get_specs,
     get_specs_registry,
     get_tile_dimensions,
@@ -64,6 +68,25 @@ class TestProductSpecs:
         """Test has_firmware_specs returns False when both are None."""
         specs = ProductSpecs(product_id=27)
         assert specs.has_firmware_specs is False
+
+    def test_has_max_firmware_specs_true(self):
+        """Test has_max_firmware_specs returns True when both fields are ints."""
+        specs = ProductSpecs(product_id=55, max_firmware_major=3, max_firmware_minor=50)
+        assert specs.has_max_firmware_specs is True
+
+    def test_has_max_firmware_specs_false_both_none(self):
+        """Test has_max_firmware_specs returns False when both are None."""
+        specs = ProductSpecs(product_id=27)
+        assert specs.has_max_firmware_specs is False
+
+    def test_has_max_firmware_specs_false_non_integer(self):
+        """A hand-corrupted specs.yml entry (e.g. a quoted number) must
+        degrade to "no ceiling" rather than reaching a tuple comparison and
+        raising TypeError on a real product."""
+        specs = ProductSpecs(
+            product_id=55, max_firmware_major=3, max_firmware_minor="50"
+        )
+        assert specs.has_max_firmware_specs is False
 
 
 class TestSpecsRegistry:
@@ -301,10 +324,36 @@ class TestModuleLevelFunctions:
 
     def test_get_default_firmware_version(self):
         """Test get_default_firmware_version module function."""
-        from lifx_emulator.products.specs import get_default_firmware_version
 
         result = get_default_firmware_version(27)
         assert result is None or isinstance(result, tuple)
+
+
+class TestTileTerminalFirmware:
+    """The original LIFX Tile (product 55) declares a terminal-firmware
+    ceiling in specs.yml; no other product does."""
+
+    def test_get_max_firmware_version_returns_tile_ceiling(self):
+        assert get_max_firmware_version(55) == (3, 50)
+
+    def test_get_max_firmware_version_none_for_product_without_ceiling(self):
+        assert get_max_firmware_version(91) is None
+
+    def test_get_max_firmware_version_none_for_ceiling_product_default(self):
+        """Ceiling products (176/177) carry a default_firmware_*, not a
+        max_firmware_* ceiling -- the two concepts are independent."""
+
+        assert get_max_firmware_version(176) is None
+
+    def test_tile_default_firmware_is_now_terminal_version(self):
+        """Product 55 previously fell through to VERSION_EXTENDED (3, 70);
+        it now has an explicit default matching its terminal firmware."""
+
+        assert get_default_firmware_version(55) == (3, 50)
+
+    def test_create_device_55_reports_terminal_firmware(self):
+        state = create_device(55, serial="d073d5000098").state
+        assert (state.version_major, state.version_minor) == (3, 50)
 
 
 class TestFirmwareConfigWithProductSpecs:
@@ -312,7 +361,6 @@ class TestFirmwareConfigWithProductSpecs:
 
     def test_firmware_version_with_product_specs(self):
         """Test firmware version uses specs when product_id provided."""
-        from lifx_emulator.products.specs import get_specs_registry
 
         # Create temp specs file with firmware version
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -370,8 +418,6 @@ class TestCuratedProductSpecs:
     """Specs added by an upstream sync must not keep the generator scaffold."""
 
     def test_new_multizone_products_match_their_product_family(self):
-        from lifx_emulator.products.specs import get_default_zone_count
-
         # Scaffolded as 16 zones; each shares geometry with an existing product.
         assert get_default_zone_count(56) == get_default_zone_count(38)  # Beam
         assert get_default_zone_count(151) == get_default_zone_count(161)  # Neon
@@ -380,8 +426,6 @@ class TestCuratedProductSpecs:
         assert get_default_zone_count(300) == get_default_zone_count(213)
 
     def test_no_product_allows_fewer_than_eight_zones(self):
-        from lifx_emulator.products.specs import get_specs_registry
-
         registry = get_specs_registry()
         registry.load_from_file()
         for pid in range(1, 400):
@@ -390,9 +434,6 @@ class TestCuratedProductSpecs:
                 assert specs.min_zone_count >= 8, f"product {pid}"
 
     def test_every_switch_pins_its_firmware(self):
-        from lifx_emulator.factories import create_device
-        from lifx_emulator.products.registry import PRODUCTS
-
         for pid, info in PRODUCTS.items():
             if info.has_relays:
                 state = create_device(pid).state
@@ -401,11 +442,21 @@ class TestCuratedProductSpecs:
                 )
 
     def test_extended_multizone_is_never_granted_without_multizone(self):
-        from lifx_emulator.products.registry import PRODUCTS
-
         offenders = [
             pid
             for pid, info in PRODUCTS.items()
             if info.has_extended_multizone and not info.has_multizone
         ]
         assert offenders == []
+
+    def test_every_ceiling_product_has_a_compatible_default(self):
+        """A product declaring max_firmware_* must resolve a default
+        firmware (no connectivity, no override) that does not exceed its
+        own ceiling -- otherwise create_device(pid) would unconditionally
+        raise ValueError on the plain default path (WR-01)."""
+
+        config = FirmwareConfig()
+        for pid in PRODUCTS:
+            specs = get_specs(pid)
+            if specs and specs.has_max_firmware_specs:
+                config.get_firmware_version(product_id=pid)  # must not raise

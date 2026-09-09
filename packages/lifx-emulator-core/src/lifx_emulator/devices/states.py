@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import dataclasses
 import time
 import uuid
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 from lifx_emulator.constants import LIFX_UDP_PORT
@@ -44,11 +46,70 @@ class CoreDeviceState:
     advertised_services: list[tuple[int, int]] | None = None
 
 
-@dataclass
+class Connectivity(str, Enum):
+    """How a device's radio reaches the network.
+
+    A real LIFX device's radio is either WiFi or Thread and cannot change
+    without a firmware crossgrade, so this value is invariant for a given
+    device rather than a per-request transport choice.
+    """
+
+    WIFI = "wifi"
+    THREAD = "thread"
+
+    # Render as the bare value on every supported Python version (3.10-3.14).
+    # CPython 3.11 changed Enum.__format__ to use str(self) unless the enum
+    # also inherits ReprEnum (only IntEnum/StrEnum/IntFlag do), so a
+    # hand-written (str, Enum) member regresses to "Connectivity.THREAD" in
+    # f-strings/%s on 3.11+ without this -- and this project's own default
+    # `uv sync` environment resolves to Python 3.14.
+    __str__ = str.__str__
+
+
+def coerce_connectivity(value: Connectivity | str) -> Connectivity:
+    """Coerce a caller-supplied value to a Connectivity member.
+
+    Args:
+        value: A Connectivity member, or one of its string values
+            ("wifi", "thread").
+
+    Returns:
+        The corresponding Connectivity member.
+
+    Raises:
+        ValueError: If value is not a recognised connectivity.
+    """
+    try:
+        return Connectivity(value)
+    except ValueError as e:
+        raise ValueError(
+            f"Unrecognised connectivity {value!r}; expected 'wifi' or 'thread'"
+        ) from e
+
+
+@dataclass(frozen=True)
 class NetworkState:
-    """Network and connectivity state."""
+    """Network and connectivity state.
+
+    Immutable: a real LIFX device's radio (WiFi or Thread) cannot change
+    without a firmware crossgrade, so both ``wifi_signal`` and
+    ``connectivity`` are fixed at construction. Assigning
+    ``state.connectivity`` or ``state.wifi_signal`` after construction
+    raises ValueError (translated from FrozenInstanceError by
+    DeviceState.__setattr__); assigning ``state.network.connectivity`` or
+    ``state.network.wifi_signal`` directly raises FrozenInstanceError. The
+    way to set either value is the ``connectivity`` argument on the
+    factories or ``DeviceBuilder.with_connectivity()`` at construction time.
+
+    Wholesale replacement of the whole ``NetworkState`` object via
+    ``dataclasses.replace(state.network, ...)`` followed by reassigning
+    ``state.network`` is a builder-internal construction/restore mechanism
+    used to compose and restore devices, not a supported way to change
+    values after construction.
+    """
 
     wifi_signal: float = -45.0
+    connectivity: Connectivity = Connectivity.WIFI
 
 
 @dataclass
@@ -285,6 +346,7 @@ class DeviceState:
         "advertised_services": "core",
         # Network properties
         "wifi_signal": "network",
+        "connectivity": "network",
         # Location properties
         "location_id": "location",
         "location_label": "location",
@@ -416,6 +478,9 @@ class DeviceState:
         # Dataclass fields and private attributes use normal assignment
         if name in {
             "core",
+            # dataclasses.replace(state.network, ...)-then-assign is a
+            # construction/restore route retained for the builder; it is
+            # builder-internal, not part of the published API.
             "network",
             "location",
             "group",
@@ -459,7 +524,15 @@ class DeviceState:
                 return
 
             # Delegate to the state object
-            setattr(state_obj, attr_name, value)
+            try:
+                setattr(state_obj, attr_name, value)
+            except dataclasses.FrozenInstanceError as e:
+                raise ValueError(
+                    f"{attr_name} is fixed at device creation and cannot be "
+                    "reassigned; pass it as an argument to the device "
+                    "factory or DeviceBuilder when constructing the device "
+                    "instead"
+                ) from e
             return
 
         # For unknown attributes, use normal assignment (allows adding new attributes)

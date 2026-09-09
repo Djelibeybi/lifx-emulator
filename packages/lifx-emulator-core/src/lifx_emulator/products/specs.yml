@@ -28,6 +28,12 @@
 #     default_firmware_major: <number>  # Firmware major version (e.g., 3)
 #     default_firmware_minor: <number>  # Firmware minor version (e.g., 70)
 #
+#     # Terminal firmware ceiling for a discontinued product (optional)
+#     max_firmware_major: <number>      # Highest firmware major a device of
+#                                        # this product may ever report (e.g., 3)
+#     max_firmware_minor: <number>      # Highest firmware minor a device of
+#                                        # this product may ever report (e.g., 50)
+#
 #     # Other device-specific defaults
 #     notes: "<string>"                 # Notes about product
 #
@@ -41,8 +47,16 @@
 #
 # Precedence order for firmware version:
 # 1. Explicit firmware_version parameter to create_device()
-# 2. Product-specific default from this specs.yml file
-# 3. Automatic selection based on extended_multizone flag
+# 2. Thread connectivity default/floor (4.200) -- takes precedence over the
+#    product-specific default below
+# 3. Product-specific default from this specs.yml file
+# 4. Automatic selection based on extended_multizone flag
+#
+# A product's max_firmware_major/minor, if declared, caps the resolved value
+# from any of the above: a resolution that would exceed it raises instead of
+# being silently clamped. This is how a Thread-incapable, discontinued
+# product (e.g. the original LIFX Tile) is rejected -- the ceiling sits below
+# the Thread floor, so no explicit or automatic resolution can satisfy both.
 
 products:
   # ========================================
@@ -211,13 +225,17 @@ products:
   # Matrix Products (Tiles, Candles, etc.)
   # ========================================
 
-  55:  # LIFX Tile, 8x8 zone matrix, chainable up to 5
+  55:  # LIFX Tile, 8x8 zone matrix, chainable up to 5 -- discontinued, terminal firmware 3.50
     default_tile_count: 5
     min_tile_count: 1
     max_tile_count: 5
     tile_width: 8
     tile_height: 8
-    notes: LIFX Tile, 8x8 zone matrix, chainable up to 5
+    default_firmware_major: 3
+    default_firmware_minor: 50
+    max_firmware_major: 3
+    max_firmware_minor: 50
+    notes: LIFX Tile, 8x8 zone matrix, chainable up to 5. Discontinued at terminal firmware 3.50; cannot run Thread (requires 4.200+).
 
   57:  # LIFX Candle, 5x6 zone matrix, single unit
     default_tile_count: 1

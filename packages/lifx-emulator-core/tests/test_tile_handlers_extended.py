@@ -719,8 +719,11 @@ class TestSkyEffectRestrictions:
 
     def test_sky_effect_on_non_ceiling_tile_device(self):
         """Test SKY effect on non-Ceiling tile device (should be ignored)."""
-        # Create a LIFX Tile (product 55, not a Ceiling) with firmware 4.4
-        device = create_device(55, tile_count=1, firmware_version=(4, 4))
+        # Create a LIFX Candle Color US (product 185, not a Ceiling) with
+        # firmware 4.4. Product 55 (the original Tile) is no longer usable
+        # here: its terminal-firmware ceiling (3.50) rejects any firmware
+        # above that, including 4.4.
+        device = create_device(185, tile_count=1, firmware_version=(4, 4))
 
         # Create SKY effect packet
         palette = [
@@ -927,8 +930,10 @@ class TestSkyEffectRestrictions:
 
     def test_other_effects_on_non_ceiling_still_work(self):
         """Test non-SKY effects still work on non-Ceiling devices."""
-        # Create a LIFX Tile (product 55) with firmware 4.4
-        device = create_device(55, tile_count=1, firmware_version=(4, 4))
+        # Create a LIFX Candle Color US (product 185) with firmware 4.4.
+        # See test_sky_effect_on_non_ceiling_tile_device for why product 55
+        # can no longer be used.
+        device = create_device(185, tile_count=1, firmware_version=(4, 4))
 
         # Create MORPH effect packet (not SKY)
         palette = [
@@ -1309,3 +1314,73 @@ class TestFramebufferHandling:
         assert fb_storage.get_framebuffer(1, 8, 8)[0].hue == 21845  # FB1: Green
         assert fb_storage.get_framebuffer(2, 8, 8)[0].hue == 43690  # FB2: Blue
         assert fb_storage.get_framebuffer(3, 8, 8)[0].hue == 10922  # FB3: Yellow
+
+
+class TestTileFirmwareMirrorsHost:
+    """Every freshly constructed matrix device's tiles report the device's
+    own resolved host firmware in StateDeviceChain, instead of a hard-coded
+    literal (SPEC edge boundary/R5, amended AC 16). Restored devices are
+    explicitly out of scope -- StateRestorer._restore_matrix_state() replaces
+    tile_devices wholesale and host firmware is not persisted, so this test
+    module covers only freshly constructed devices."""
+
+    def _get_device_chain(self, device):
+        header = LifxHeader(
+            source=12345,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=701,
+            res_required=True,
+        )
+        responses = device.process_packet(header, None)
+        resp_header, resp_packet = responses[-1]
+        assert resp_header.pkt_type == 702
+        return resp_packet
+
+    def _assert_all_tiles_mirror_host(self, device, chain):
+        for i in range(device.state.tile_count):
+            tile = device.state.tile_devices[i]
+            assert tile["firmware_version_major"] == device.state.version_major
+            assert tile["firmware_version_minor"] == device.state.version_minor
+            assert isinstance(tile["firmware_build"], int)
+            assert tile["firmware_build"] != 0
+
+            wire_tile = chain.tile_devices[i]
+            assert wire_tile.firmware.version_major == device.state.version_major
+            assert wire_tile.firmware.version_minor == device.state.version_minor
+
+    def test_thread_ceiling_tiles_report_4_200(self):
+        """A Thread Ceiling (product 176) reports (4, 200) on every tile --
+        the Thread firmware floor, not the WiFi specs.yml default."""
+        device = create_device(176, serial="d073d5000040", connectivity="thread")
+        assert device.state.version_major == 4
+        assert device.state.version_minor == 200
+
+        chain = self._get_device_chain(device)
+        self._assert_all_tiles_mirror_host(device, chain)
+
+    def test_wifi_ceiling_tiles_report_4_10(self):
+        """A WiFi Ceiling (product 176) now reports (4, 10) per tile -- up
+        from the pre-phase hard-coded (3, 70) -- because specs.yml's
+        firmware default for this product is (4, 10) and each tile now
+        mirrors the device's own host firmware. This is an intentional
+        default-output change, accepted in SPEC AC 16."""
+        device = create_device(176, serial="d073d5000041")
+        assert device.state.version_major == 4
+        assert device.state.version_minor == 10
+
+        chain = self._get_device_chain(device)
+        self._assert_all_tiles_mirror_host(device, chain)
+
+    def test_candle_with_no_specs_firmware_default_falls_through(self):
+        """Product 185 (LIFX Candle C) has no specs.yml firmware default, so
+        it falls through to the VERSION_EXTENDED default of (3, 70) -- a
+        fall-through artefact of that default, not a product fact about 185.
+        If specs.yml ever gains a firmware default for 185, this expectation
+        moves with it (OpenCode L259@c667eb9)."""
+        device = create_device(185, serial="d073d5000042")
+        assert device.state.version_major == 3
+        assert device.state.version_minor == 70
+
+        chain = self._get_device_chain(device)
+        self._assert_all_tiles_mirror_host(device, chain)

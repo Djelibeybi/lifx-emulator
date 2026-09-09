@@ -95,3 +95,10 @@ Thumbs.db
 
 # Design artifacts
 .ui-design/
+
+# GSD cross-AI review lane diagnostics (raw CLI transcripts; REVIEWS.md is the committed artefact)
+.planning/phases/*/.review-diagnostics/
+
+# GSD runtime session locks (contain PID/session id; never commit)
+.gsd/
+.planning/milestone.lock

@@ -32,6 +32,10 @@ class LifxHeader:
         res_required: Request response from device
         sequence: Sequence number for matching requests/responses
         pkt_type: Packet type identifier
+        thread_connection: Frame-address flags bit 3. Device-side report
+            only: a client never sets this, so it is not exposed as a
+            request option; it reflects whether the replying device's
+            radio is Thread rather than WiFi.
     """
 
     HEADER_SIZE: ClassVar[int] = 36
@@ -48,6 +52,7 @@ class LifxHeader:
     res_required: bool = False
     sequence: int = 0
     pkt_type: int = 0
+    thread_connection: bool = False
 
     def __post_init__(self) -> None:
         """Validate header fields and auto-pad serial if needed."""
@@ -78,8 +83,10 @@ class LifxHeader:
             | ((self.ORIGIN & 0x3) << 14)
         )
         target_int = int.from_bytes(self.target[:8], byteorder="little")
-        addr_flags = (1 if self.res_required else 0) | (
-            (1 if self.ack_required else 0) << 1
+        addr_flags = (
+            (1 if self.res_required else 0)
+            | ((1 if self.ack_required else 0) << 1)
+            | ((1 if self.thread_connection else 0) << 3)
         )
 
         # Pack entire header in single struct call (15-20% faster than 3 separate calls)
@@ -133,6 +140,7 @@ class LifxHeader:
 
         res_required = bool(flags & 0b1)
         ack_required = bool((flags >> 1) & 0b1)
+        thread_connection = bool((flags >> 3) & 0b1)
 
         # Unpack Protocol Header (12 bytes)
         _reserved1, pkt_type, _reserved2 = struct.unpack("<QHH", data[24:36])
@@ -147,6 +155,7 @@ class LifxHeader:
             res_required=res_required,
             sequence=sequence,
             pkt_type=pkt_type,
+            thread_connection=thread_connection,
         )
 
     def __repr__(self) -> str:
@@ -155,5 +164,6 @@ class LifxHeader:
             f"LifxHeader(size={self.size}, protocol={self.protocol}, "
             f"source={self.source}, target={self.target.hex()}, "
             f"tagged={self.tagged}, ack={self.ack_required}, "
-            f"res={self.res_required}, seq={self.sequence}, pkt_type={self.pkt_type})"
+            f"res={self.res_required}, seq={self.sequence}, pkt_type={self.pkt_type}, "
+            f"thread={self.thread_connection})"
         )
