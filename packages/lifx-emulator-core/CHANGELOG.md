@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.9.0 (2026-09-09)
+
+### Features
+
+- **protocol**: Add Thread device identity
+  ([`6d4e61c`](https://github.com/Djelibeybi/lifx-emulator/commit/6d4e61cfa97bb7110646277f1fe37ee3dac315b3))
+
+
 ## v3.8.0 (2026-08-11)
 
 ### Bug Fixes
