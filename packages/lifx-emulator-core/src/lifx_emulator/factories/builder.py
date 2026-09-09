@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,7 @@ from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.devices.states import (
     BUTTONS_ARRAY_LENGTH,
+    Connectivity,
     CoreDeviceState,
     GroupState,
     HevState,
@@ -18,6 +20,7 @@ from lifx_emulator.devices.states import (
     MultiZoneState,
     NetworkState,
     WaveformState,
+    coerce_connectivity,
     default_button,
 )
 from lifx_emulator.factories.default_config import DefaultColorConfig
@@ -36,6 +39,8 @@ if TYPE_CHECKING:
     from lifx_emulator.devices import DevicePersistenceAsyncFile
     from lifx_emulator.products.registry import ProductInfo
     from lifx_emulator.scenarios import HierarchicalScenarioManager
+
+logger = logging.getLogger(__name__)
 
 # Device.StateLabel packs a 32-byte label; longer product names would otherwise
 # be truncated on the wire, dropping the serial suffix that keeps labels unique.
@@ -109,6 +114,7 @@ class DeviceBuilder:
         self._scenario_manager: HierarchicalScenarioManager | None = None
         self._color: LightHsbk | None = None
         self._advertised_services: list[tuple[int, int]] | None = None
+        self._connectivity: Connectivity | str | None = None
 
         # Helper services
         self._serial_generator = SerialGenerator()
@@ -233,6 +239,25 @@ class DeviceBuilder:
         self._advertised_services = advertised_services
         return self
 
+    def with_connectivity(
+        self, connectivity: Connectivity | str | None = None
+    ) -> DeviceBuilder:
+        """Set the device's connectivity (WiFi or Thread).
+
+        Args:
+            connectivity: A Connectivity member, "wifi", "thread", or None.
+                None means "unspecified" -- exactly as in create_device()
+                -- and resolves to WiFi (or, from a later phase onward, to
+                any persisted value) rather than raising.
+
+        Returns:
+            Self for method chaining. Coercion to a Connectivity member (and
+            any ValueError for an unrecognised string) happens later, in
+            build(), not here.
+        """
+        self._connectivity = connectivity
+        return self
+
     def with_color(self, color: LightHsbk) -> DeviceBuilder:
         """Set initial device color.
 
@@ -245,6 +270,69 @@ class DeviceBuilder:
         self._color = color
         return self
 
+    def _resolve_connectivity(
+        self, serial: str, restorer: StateRestorer | None
+    ) -> Connectivity:
+        """Resolve the effective connectivity to build this device with.
+
+        Precedence: an explicit ``with_connectivity()`` argument always wins
+        (with a warning if it disagrees with a saved value); otherwise a
+        saved value is used if present and recognised; otherwise WiFi. The
+        restore path never raises -- an unrecognised persisted value
+        degrades to WiFi with a warning rather than aborting device
+        creation.
+
+        Args:
+            serial: The device's serial number, used to look up any saved
+                connectivity via ``restorer``.
+            restorer: A ``StateRestorer`` to peek saved connectivity from,
+                or None when no storage is configured (the common case for
+                a library consumer creating a device with no ``storage=``
+                argument).
+
+        Returns:
+            The Connectivity to build with.
+
+        Raises:
+            ValueError: If an explicit connectivity argument is not "wifi"
+                or "thread".
+        """
+        saved = (
+            restorer.peek_connectivity(serial, self._product_info.pid)
+            if restorer is not None
+            else None
+        )
+
+        if self._connectivity is not None:
+            resolved = coerce_connectivity(self._connectivity)
+            if saved is not None and saved != resolved.value:
+                # The explicit argument always wins, so "requested" and
+                # "kept" are the same value today; both placeholders are
+                # retained for clarity if a future precedence tier splits
+                # them.
+                logger.warning(
+                    "Device %s: saved connectivity %r disagrees with "
+                    "requested %r; keeping %r",
+                    serial,
+                    saved,
+                    resolved.value,
+                    resolved.value,
+                )
+            return resolved
+
+        if saved is not None:
+            try:
+                return Connectivity(saved)
+            except ValueError:
+                logger.warning(
+                    "Device %s: unrecognised saved connectivity %r; "
+                    "falling back to wifi",
+                    serial,
+                    saved,
+                )
+
+        return Connectivity.WIFI
+
     def build(self) -> EmulatedLifxDevice:
         """Build the emulated device.
 
@@ -254,6 +342,16 @@ class DeviceBuilder:
         # 1. Generate/validate serial
         serial = self._serial or self._serial_generator.generate(self._product_info)
 
+        # Construct the restorer once, up front, so step 1a's peek and
+        # step 11's restore share a single disk read (StateRestorer caches
+        # by serial internally).
+        restorer = StateRestorer(self._storage) if self._storage else None
+
+        # 1a. Resolve effective connectivity (argument > saved value > WiFi;
+        # must run before step 3's firmware resolution and step 6's
+        # NetworkState construction, both of which depend on it)
+        connectivity = self._resolve_connectivity(serial, restorer)
+
         # 2. Apply product-specific defaults
         self._apply_product_defaults()
 
@@ -262,6 +360,7 @@ class DeviceBuilder:
             product_id=self._product_info.pid,
             extended_multizone=self._extended_multizone,
             override=self._firmware_version,
+            connectivity=connectivity,
         )
 
         # 4. Get default color
@@ -271,7 +370,11 @@ class DeviceBuilder:
         core = self._create_core_state(serial, color, version_major, version_minor)
 
         # 6. Create basic states
-        network = NetworkState()
+        # A Thread bulb ships without a WiFi radio at all, so there is no RSSI
+        # to report; 0.0 signals "no WiFi signal" rather than a fabricated
+        # reading. A WiFi device keeps the pre-Thread default.
+        wifi_signal = 0.0 if connectivity == Connectivity.THREAD else -45.0
+        network = NetworkState(connectivity=connectivity, wifi_signal=wifi_signal)
         location = LocationState()
         group = GroupState()
         waveform = WaveformState()
@@ -329,9 +432,11 @@ class DeviceBuilder:
                 default_button() for _ in range(min(button_count, BUTTONS_ARRAY_LENGTH))
             ]
 
-        # 11. Restore saved state if persistence enabled
-        if self._storage:
-            restorer = StateRestorer(self._storage)
+        # 11. Restore saved state if persistence enabled (reuses the same
+        # restorer constructed above, so the file is read exactly once).
+        # restorer is only non-None when self._storage was truthy, so this
+        # single check already covers both conditions.
+        if restorer is not None:
             restorer.restore_if_available(state)
 
         # 12. Create device

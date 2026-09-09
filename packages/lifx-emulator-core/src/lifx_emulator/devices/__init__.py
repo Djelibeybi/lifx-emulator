@@ -30,7 +30,7 @@ from lifx_emulator.devices.persistence import (
     DEFAULT_STORAGE_DIR,
     DevicePersistenceAsyncFile,
 )
-from lifx_emulator.devices.states import DeviceState
+from lifx_emulator.devices.states import Connectivity, DeviceState
 
 __all__ = [
     "EmulatedLifxDevice",
@@ -40,6 +40,7 @@ __all__ = [
     "DeviceAddedCallback",
     "DeviceRemovedCallback",
     "IDeviceManager",
+    "Connectivity",
     "DeviceState",
     "DevicePersistenceAsyncFile",
     "DEFAULT_STORAGE_DIR",

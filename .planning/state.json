@@ -1,0 +1,43 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Thread Device Identity",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "IPv6 Transport and Thread Isolation",
+      "status": "pending"
+    },
+    {
+      "number": "3",
+      "name": "mDNS Responder",
+      "status": "pending"
+    },
+    {
+      "number": "4",
+      "name": "CLI and Configuration",
+      "status": "pending"
+    },
+    {
+      "number": "5",
+      "name": "Management API",
+      "status": "pending"
+    },
+    {
+      "number": "6",
+      "name": "Verification Against lifx-async",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step (plan phase 2)",
+    "reason": "Phase 2 of 6 — needs a plan"
+  },
+  "updated_at": "2026-09-09T08:51:38.452Z"
+}

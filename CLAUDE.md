@@ -38,6 +38,7 @@ lifx-emulator --help                             # Full CLI reference
 - Pyright in standard mode
 - Pre-commit hooks run format, lint, and type-check on every commit
 - Never use the term "wide tile device" -- use "large matrix device" or "chained matrix device" instead
+- The public factory entry points in `packages/lifx-emulator-core/src/lifx_emulator/factories/factory.py` -- `create_device()` and the seven typed factories -- are exempt from the five-argument limit; each argument is a user-facing device option, and replacing them with a keyword-options object would be a breaking change to a published API (precedent: the `advertised_services` parameter added in PR #156)
 
 ## Architecture
 

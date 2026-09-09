@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from lifx_emulator.devices import EmulatedLifxDevice
+from lifx_emulator.devices import Connectivity, EmulatedLifxDevice
 from lifx_emulator.factories.builder import DeviceBuilder
 from lifx_emulator.products.registry import get_product
 
@@ -19,8 +19,27 @@ def create_color_light(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
-    """Create a regular color light (LIFX Color)"""
+    """Create a regular color light (LIFX Color).
+
+    Args:
+        serial: Optional serial (auto-generated if not provided)
+        firmware_version: Optional firmware version tuple (major, minor)
+        storage: Optional storage for persistence
+        scenario_manager: Optional scenario manager for testing
+        advertised_services: Optional list of (service_id, port) tuples
+            emitted as one StateService reply each, in order, in response
+            to GetService. Defaults to a single UDP reply on the device's
+            port.
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
+
+    Returns:
+        EmulatedLifxDevice configured as a LIFX Color light
+    """
     return create_device(
         91,
         serial=serial,
@@ -28,6 +47,7 @@ def create_color_light(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )  # LIFX Color
 
 
@@ -37,8 +57,27 @@ def create_infrared_light(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
-    """Create an infrared-enabled light (LIFX A19 Night Vision)"""
+    """Create an infrared-enabled light (LIFX A19 Night Vision).
+
+    Args:
+        serial: Optional serial (auto-generated if not provided)
+        firmware_version: Optional firmware version tuple (major, minor)
+        storage: Optional storage for persistence
+        scenario_manager: Optional scenario manager for testing
+        advertised_services: Optional list of (service_id, port) tuples
+            emitted as one StateService reply each, in order, in response
+            to GetService. Defaults to a single UDP reply on the device's
+            port.
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
+
+    Returns:
+        EmulatedLifxDevice configured as a LIFX A19 Night Vision light
+    """
     return create_device(
         29,
         serial=serial,
@@ -46,6 +85,7 @@ def create_infrared_light(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )  # LIFX A19 Night Vision
 
 
@@ -55,8 +95,27 @@ def create_hev_light(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
-    """Create an HEV-enabled light (LIFX Clean)"""
+    """Create an HEV-enabled light (LIFX Clean).
+
+    Args:
+        serial: Optional serial (auto-generated if not provided)
+        firmware_version: Optional firmware version tuple (major, minor)
+        storage: Optional storage for persistence
+        scenario_manager: Optional scenario manager for testing
+        advertised_services: Optional list of (service_id, port) tuples
+            emitted as one StateService reply each, in order, in response
+            to GetService. Defaults to a single UDP reply on the device's
+            port.
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
+
+    Returns:
+        EmulatedLifxDevice configured as a LIFX Clean light
+    """
     return create_device(
         90,
         serial=serial,
@@ -64,6 +123,7 @@ def create_hev_light(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )  # LIFX Clean
 
 
@@ -75,6 +135,7 @@ def create_multizone_light(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a multizone light (LIFX Beam)
 
@@ -85,6 +146,10 @@ def create_multizone_light(
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
     """
     return create_device(
         38,
@@ -95,6 +160,7 @@ def create_multizone_light(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )
 
 
@@ -107,6 +173,7 @@ def create_tile_device(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a tile device (LIFX Tile)
 
@@ -118,6 +185,12 @@ def create_tile_device(
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. LIFX Tile (product 55) has a terminal firmware ceiling
+            of 3.50, below the Thread floor of 4.200, so
+            connectivity="thread" always raises ValueError for this
+            factory.
     """
     return create_device(
         55,
@@ -129,6 +202,7 @@ def create_tile_device(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )  # LIFX Tile
 
 
@@ -138,10 +212,28 @@ def create_color_temperature_light(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a color temperature light (LIFX Mini White to Warm).
 
     Variable color temperature, no RGB.
+
+    Args:
+        serial: Optional serial (auto-generated if not provided)
+        firmware_version: Optional firmware version tuple (major, minor)
+        storage: Optional storage for persistence
+        scenario_manager: Optional scenario manager for testing
+        advertised_services: Optional list of (service_id, port) tuples
+            emitted as one StateService reply each, in order, in response
+            to GetService. Defaults to a single UDP reply on the device's
+            port.
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
+
+    Returns:
+        EmulatedLifxDevice configured as a LIFX Mini White to Warm light
     """
     return create_device(
         50,
@@ -150,6 +242,7 @@ def create_color_temperature_light(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )  # LIFX Mini White to Warm
 
 
@@ -160,6 +253,7 @@ def create_switch(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a LIFX Switch device.
 
@@ -172,6 +266,10 @@ def create_switch(
         firmware_version: Optional firmware version (major, minor)
         storage: Optional persistence backend
         scenario_manager: Optional scenario manager for testing
+        connectivity: Optional connectivity ("wifi", "thread", or a
+            Connectivity member). None means unspecified and resolves to
+            WiFi. An explicit string that is not "wifi" or "thread" raises
+            ValueError.
 
     Returns:
         EmulatedLifxDevice configured as a switch
@@ -183,6 +281,7 @@ def create_switch(
         storage=storage,
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
+        connectivity=connectivity,
     )
 
 
@@ -198,6 +297,7 @@ def create_device(
     storage: DevicePersistenceAsyncFile | None = None,
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
+    connectivity: Connectivity | str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -222,6 +322,10 @@ def create_device(
                          to GetService. service_id is a raw uint8 (0-255) and
                          may be outside the DeviceService enum. Defaults to a
                          single UDP reply on the device's port.
+        connectivity: Optional connectivity ("wifi", "thread", or a
+                         Connectivity member). None means unspecified and
+                         resolves to WiFi. An explicit string that is not
+                         "wifi" or "thread" raises ValueError.
 
     Returns:
         EmulatedLifxDevice configured for the specified product
@@ -271,5 +375,8 @@ def create_device(
 
     if advertised_services is not None:
         builder.with_advertised_services(advertised_services)
+
+    if connectivity is not None:
+        builder.with_connectivity(connectivity)
 
     return builder.build()

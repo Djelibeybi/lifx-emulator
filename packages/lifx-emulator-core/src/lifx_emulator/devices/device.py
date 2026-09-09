@@ -11,7 +11,7 @@ from collections.abc import Callable
 from typing import Any
 
 from lifx_emulator.constants import LIFX_HEADER_SIZE
-from lifx_emulator.devices.states import DeviceState, TileFramebuffers
+from lifx_emulator.devices.states import Connectivity, DeviceState, TileFramebuffers
 from lifx_emulator.handlers import HandlerRegistry, create_default_registry
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import (
@@ -95,6 +95,7 @@ class EmulatedLifxDevice:
             tagged=False,
             pkt_type=0,
             size=0,
+            thread_connection=self.state.connectivity == Connectivity.THREAD,
         )
 
         # Initialize multizone colors if needed
@@ -136,8 +137,16 @@ class EmulatedLifxDevice:
                             "device_version_vendor": 1,
                             "device_version_product": self.state.product,
                             "firmware_build": int(time.time()),
-                            "firmware_version_minor": 70,
-                            "firmware_version_major": 3,
+                            # Each tile mirrors the device's own resolved host
+                            # firmware rather than a fixed value: real LIFX
+                            # matrix hardware reports the same firmware on
+                            # every tile as GetHostFirmware, and a Thread
+                            # device's firmware floor must show up here too.
+                            # This is an intentional default-output change for
+                            # WiFi matrix products carrying a specs.yml
+                            # firmware default (see 01-SPEC.md AC 16).
+                            "firmware_version_minor": self.state.version_minor,
+                            "firmware_version_major": self.state.version_major,
                             "colors": tile_colors,
                         }
                     )
