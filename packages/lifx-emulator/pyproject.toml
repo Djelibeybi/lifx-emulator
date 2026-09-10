@@ -1,6 +1,6 @@
 [project]
 name = "lifx-emulator"
-version = "4.5.2"
+version = "4.6.0"
 description = "Standalone LIFX Emulator with CLI and HTTP management API"
 readme = "README.md"
 requires-python = ">=3.10"
