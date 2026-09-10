@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.10.0 (2026-09-10)
+
+### Features
+
+- Add IPv6 transport and Thread isolation
+  ([`86e8499`](https://github.com/Djelibeybi/lifx-emulator/commit/86e84990b93dd22ce11a27165e13a83399e00ea7))
+
+
 ## v3.9.0 (2026-09-09)
 
 ### Features
