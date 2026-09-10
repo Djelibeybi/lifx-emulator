@@ -14,7 +14,7 @@ Thread emulation is built as horizontal layers, bottom-up. First the core librar
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Thread Device Identity** - `connectivity`, firmware 4.200, zero WiFi signal and the header Thread bit, entirely in-memory (completed 2026-09-09)
-- [ ] **Phase 2: IPv6 Transport and Thread Isolation** - Native `AF_INET6` socket, family-aware routing, Thread devices unreachable over IPv4, plus the server hygiene fixes
+- [x] **Phase 2: IPv6 Transport and Thread Isolation** - Native `AF_INET6` socket, family-aware routing, Thread devices unreachable over IPv4, plus the server hygiene fixes (completed 2026-09-10)
 - [ ] **Phase 3: mDNS Responder** - Spike-gated `_lifx._udp.local` responder answering legacy-unicast queries with AAAA-only Thread and A-only WiFi instances
 - [ ] **Phase 4: CLI and Configuration** - `run()` decomposed, then flags, YAML and `export-config` for connectivity, IPv6 bind and mDNS
 - [ ] **Phase 5: Management API** - Create and report Thread devices over HTTP, with 422s for impossible combinations
@@ -66,10 +66,25 @@ Plans:
   1. A stock `EmulatedLifxServer` started with default options binds an `AF_INET6` socket whose `getsockopt(IPPROTO_IPV6, IPV6_V6ONLY)` reads 1 on both the Ubuntu and macOS CI legs, defaulting to `::1`, alongside an unchanged IPv4 socket, and exposes that IPv6 bind address and port to callers.
   2. A `GetColor` addressed to a Thread device's serial over IPv6 unicast gets a reply; the same packet over IPv4, and a tagged/broadcast packet over either socket, yields no response, no acknowledgement, no `packets_sent` increment and no activity event.
   3. A WiFi device answers on both sockets, and a library user who passes no new constructor arguments sees identical IPv4 discovery and control behaviour to today.
-  4. A packet flood interleaved with forced garbage collection loses no responses and no WebSocket broadcasts — every task scheduled in `server.py` and `event_bridge.py` is held by a strong reference and cleared by a done callback.
+  4. A packet flood interleaved with forced garbage collection loses no admitted responses or admitted WebSocket broadcasts: every admitted packet task and queued bridge event is retained until completion, while work beyond the bounded server or bridge capacity is rejected before allocation and recorded in an observable overload-drop metric.
   5. The activity log and the `PacketEvent.target` on `/api/activity` show the full 12-hex serial for a device whose serial ends in `0`.
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 02-01-PLAN.md — Trace retained IPv4 packet work and exact activity targets, then generalise the tracker to device persistence
+
+**Wave 2** *(after Wave 1; plans execute in parallel)*
+
+- [x] 02-02-PLAN.md — Route every event-bridge broadcast through one FastAPI-lifespan-owned tracker
+- [x] 02-03-PLAN.md — Promote immutable per-datagram identity and enforce Thread/WiFi family eligibility before side effects
+
+**Wave 3** *(after both Wave 2 plans)*
+
+- [x] 02-04-PLAN.md — Atomically bind/publish the shared-port V6-only endpoint and prove the complete contract on real loopback sockets
+
 **UI hint**: no
 **Note**: HYG-01 (task tracking) and HYG-02 (`rstrip` serial fix) land before the IPv6 protocol instance is added, so there is one correct pattern in `server.py` to copy rather than two.
 
@@ -146,7 +161,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Thread Device Identity | 4/4 | Complete    | 2026-09-09 |
-| 2. IPv6 Transport and Thread Isolation | 0/TBD | Not started | - |
+| 2. IPv6 Transport and Thread Isolation | 4/4 | Complete    | 2026-09-10 |
 | 3. mDNS Responder | 0/TBD | Not started | - |
 | 4. CLI and Configuration | 0/TBD | Not started | - |
 | 5. Management API | 0/TBD | Not started | - |

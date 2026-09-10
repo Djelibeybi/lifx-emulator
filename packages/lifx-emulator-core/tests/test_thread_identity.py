@@ -1022,11 +1022,7 @@ class TestMatrixThreadBit:
 
 
 class TestMixedFleetThreadAndWifi:
-    """A DeviceManager holding one WiFi and one Thread device: each answers
-    with its own bit -- including through the broadcast (tagged) target-
-    resolution path, a recorded baseline for Phase 2's NET-03 (which
-    changes exactly this path so a Thread device stops answering tagged
-    requests)."""
+    """Mixed fleets retain identity bits while broadcasts select WiFi only."""
 
     def test_mixed_fleet_each_device_answers_with_its_own_bit(self):
         wifi_device = create_color_light("d073d5000055")
@@ -1060,7 +1056,7 @@ class TestMixedFleetThreadAndWifi:
             res_required=True,
         )
         targets = device_manager.resolve_target_devices(broadcast_header)
-        assert len(targets) == 2
+        assert targets == [wifi_device]
 
         answers_by_serial = {}
         for target_device in targets:
@@ -1070,4 +1066,4 @@ class TestMixedFleetThreadAndWifi:
             answers_by_serial[target_device.state.serial] = resp_header.pack()[22]
 
         assert answers_by_serial[wifi_device.state.serial] == 0x00
-        assert answers_by_serial[thread_device.state.serial] == 0x08
+        assert thread_device.state.serial not in answers_by_serial

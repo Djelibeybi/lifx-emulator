@@ -8,8 +8,12 @@ concerns principle by extracting domain logic from the network layer.
 from __future__ import annotations
 
 import logging
+import socket
+import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from lifx_emulator.devices.states import Connectivity
 
 if TYPE_CHECKING:
     from lifx_emulator.devices.device import EmulatedLifxDevice
@@ -44,7 +48,7 @@ class IDeviceManager(Protocol):
         """
         ...
 
-    def remove_device(self, serial: str, storage=None) -> bool:
+    async def remove_device(self, serial: str, storage=None) -> bool:
         """Remove a device from the manager.
 
         Args:
@@ -56,7 +60,9 @@ class IDeviceManager(Protocol):
         """
         ...
 
-    def remove_all_devices(self, delete_storage: bool = False, storage=None) -> int:
+    async def remove_all_devices(
+        self, delete_storage: bool = False, storage=None
+    ) -> int:
         """Remove all devices from the manager.
 
         Args:
@@ -95,11 +101,16 @@ class IDeviceManager(Protocol):
         """
         ...
 
-    def resolve_target_devices(self, header: LifxHeader) -> list[EmulatedLifxDevice]:
+    def resolve_target_devices(
+        self,
+        header: LifxHeader,
+        family: socket.AddressFamily = socket.AF_INET,
+    ) -> list[EmulatedLifxDevice]:
         """Resolve which devices should handle a packet based on the header.
 
         Args:
             header: Parsed LIFX header containing target information
+            family: Address family on which the packet arrived
 
         Returns:
             List of devices that should process this packet
@@ -140,6 +151,7 @@ class DeviceManager:
             on_device_removed: Optional callback invoked when a device is removed
         """
         self._device_repository = device_repository
+        self._serial_lock = threading.Lock()
         self.on_device_added = on_device_added
         self.on_device_removed = on_device_removed
 
@@ -165,9 +177,11 @@ class DeviceManager:
                 device.scenario_manager = scenario_manager
                 device.invalidate_scenario_cache()
 
-        success = self._device_repository.add(device)
+        with self._serial_lock:
+            success = self._device_repository.add(device)
         if success:
             serial = device.state.serial
+            device.activate_persistence()
             logger.info("Added device: %s (product=%s)", serial, device.state.product)
             if self.on_device_added is not None:
                 try:
@@ -176,7 +190,7 @@ class DeviceManager:
                     logger.exception("Error in on_device_added callback for %s", serial)
         return success
 
-    def remove_device(self, serial: str, storage=None) -> bool:
+    async def remove_device(self, serial: str, storage=None) -> bool:
         """Remove a device from the manager.
 
         Args:
@@ -186,25 +200,42 @@ class DeviceManager:
         Returns:
             True if removed, False if device not found
         """
-        success = self._device_repository.remove(serial)
-        if success:
-            logger.info("Removed device: %s", serial)
+        device = self._device_repository.get(serial)
+        if device is None:
+            return False
 
-            # Delete persistent storage if enabled
+        try:
+            await device.close()
             if storage:
-                storage.delete_device_state(serial)
-
-            if self.on_device_removed is not None:
-                try:
-                    self.on_device_removed(serial)
-                except Exception:
-                    logger.exception(
-                        "Error in on_device_removed callback for %s", serial
+                deleted = await storage.delete_device_state(serial)
+                if not isinstance(deleted, bool):
+                    raise TypeError(
+                        "delete_device_state() must return bool, "
+                        f"got {type(deleted).__name__}"
                     )
+        except BaseException:
+            if self._device_repository.get(serial) is device:
+                device.reopen()
+            raise
+
+        success = self._device_repository.remove(serial)
+        if not success:
+            device.reopen()
+            return False
+
+        logger.info("Removed device: %s", serial)
+
+        if self.on_device_removed is not None:
+            try:
+                self.on_device_removed(serial)
+            except Exception:
+                logger.exception("Error in on_device_removed callback for %s", serial)
 
         return success
 
-    def remove_all_devices(self, delete_storage: bool = False, storage=None) -> int:
+    async def remove_all_devices(
+        self, delete_storage: bool = False, storage=None
+    ) -> int:
         """Remove all devices from the manager.
 
         Args:
@@ -214,17 +245,36 @@ class DeviceManager:
         Returns:
             Number of devices removed
         """
-        # Get all device serials before clearing (for callbacks)
-        serials = [d.state.serial for d in self._device_repository.get_all()]
+        devices = self._device_repository.get_all()
+        serials = [device.state.serial for device in devices]
+        closing_devices = []
 
-        # Clear all devices from repository
-        device_count = self._device_repository.clear()
+        try:
+            for device in devices:
+                closing_devices.append(device)
+                await device.close()
+
+            if delete_storage and storage:
+                deleted = await storage.delete_device_states(serials)
+                if type(deleted) is not int:
+                    raise TypeError(
+                        "delete_device_states() must return int, "
+                        f"got {type(deleted).__name__}"
+                    )
+                logger.info(
+                    "Deleted %s device state(s) from persistent storage", deleted
+                )
+        except BaseException:
+            for device in closing_devices:
+                serial = device.state.serial
+                if self._device_repository.get(serial) is device:
+                    device.reopen()
+            raise
+
+        device_count = 0
+        for serial in serials:
+            device_count += int(self._device_repository.remove(serial))
         logger.info("Removed all %s device(s)", device_count)
-
-        # Delete persistent storage if requested
-        if delete_storage and storage:
-            deleted = storage.delete_all_device_states()
-            logger.info("Deleted %s device state(s) from persistent storage", deleted)
 
         # Notify callbacks for each removed device
         if self.on_device_removed is not None:
@@ -265,29 +315,66 @@ class DeviceManager:
         """
         return self._device_repository.count()
 
-    def resolve_target_devices(self, header: LifxHeader) -> list[EmulatedLifxDevice]:
+    def resolve_target_devices(
+        self,
+        header: LifxHeader,
+        family: socket.AddressFamily = socket.AF_INET,
+    ) -> list[EmulatedLifxDevice]:
         """Resolve which devices should handle a packet based on the header.
 
         Args:
             header: Parsed LIFX header containing target information
+            family: Address family on which the packet arrived
 
         Returns:
             List of devices that should process this packet
         """
+        is_broadcast = header.tagged or header.target == b"\x00" * 8
+        target_serial = None if is_broadcast else header.target[:6].hex()
         target_devices = []
 
-        if header.tagged or header.target == b"\x00" * 8:
-            # Broadcast to all devices
-            target_devices = self._device_repository.get_all()
-        else:
-            # Specific device - convert target bytes to serial string
-            # Target is 8 bytes: 6-byte MAC + 2 null bytes
-            target_serial = header.target[:6].hex()
-            device = self._device_repository.get(target_serial)
-            if device:
-                target_devices = [device]
+        for device in self._device_repository.get_all():
+            if device.state.connectivity is Connectivity.THREAD:
+                rejection_reason = self._thread_rejection_reason(
+                    device.state.serial,
+                    header,
+                    family,
+                )
+                if rejection_reason is not None:
+                    logger.debug(
+                        "Filtered Thread device %s: %s",
+                        device.state.serial,
+                        rejection_reason,
+                    )
+                    continue
+
+                target_devices.append(device)
+                continue
+
+            if is_broadcast or device.state.serial == target_serial:
+                target_devices.append(device)
 
         return target_devices
+
+    @staticmethod
+    def _thread_rejection_reason(
+        serial: str,
+        header: LifxHeader,
+        family: socket.AddressFamily,
+    ) -> str | None:
+        """Return why a Thread device is ineligible, or ``None`` if eligible."""
+        if family != socket.AF_INET6:
+            family_name = "IPv4" if family == socket.AF_INET else str(family)
+            return f"received over {family_name}; Thread requires IPv6"
+        if header.tagged:
+            return "tagged request is broadcast; Thread requires untagged unicast"
+        if header.target == b"\x00" * 8:
+            return "all-zero target is broadcast; Thread requires exact unicast"
+
+        target_serial = header.target[:6].hex()
+        if target_serial != serial:
+            return f"target {target_serial} does not match Thread serial {serial}"
+        return None
 
     def invalidate_all_scenario_caches(self) -> None:
         """Invalidate scenario cache for all devices.

@@ -10,12 +10,14 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from lifx_emulator.background_tasks import BackgroundTaskTracker
 from lifx_emulator.constants import LIFX_HEADER_SIZE
 from lifx_emulator.devices.states import Connectivity, DeviceState, TileFramebuffers
 from lifx_emulator.handlers import HandlerRegistry, create_default_registry
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import (
     Device,
+    get_packet_class,
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.scenarios import (
@@ -55,6 +57,10 @@ STATE_CHANGING_PACKETS: frozenset[int] = frozenset(
     }
 )
 
+# Synthetic change type for mutations initiated outside the LAN protocol.
+EXTERNAL_STATE_UPDATE = -1
+StateMutation = Callable[[DeviceState], None]
+
 
 class EmulatedLifxDevice:
     """Emulated LIFX device with configurable scenarios and state management."""
@@ -66,6 +72,7 @@ class EmulatedLifxDevice:
         handler_registry: HandlerRegistry | None = None,
         scenario_manager: HierarchicalScenarioManager | None = None,
         on_state_changed: StateChangeCallback | None = None,
+        persist_initial_state: bool = False,
     ):
         self.state = device_state
         self.on_state_changed = on_state_changed
@@ -74,14 +81,15 @@ class EmulatedLifxDevice:
             self.scenario_manager = scenario_manager
         else:
             self.scenario_manager = HierarchicalScenarioManager()
-        self.start_time = time.time()
+        self._started_monotonic_ns = time.monotonic_ns()
         self.storage = storage
 
         # Scenario caching for performance (HierarchicalScenarioManager only)
         self._cached_scenario: ScenarioConfig | None = None
 
-        # Track background save tasks to prevent garbage collection
-        self.background_save_tasks: set[asyncio.Task] = set()
+        self._background_tasks = BackgroundTaskTracker(f"device:{self.state.serial}")
+        self._state_mutation_lock = asyncio.Lock()
+        self._initial_persistence_started = False
 
         # Use provided registry or create default one
         self.handlers = handler_registry or create_default_registry()
@@ -159,14 +167,28 @@ class EmulatedLifxDevice:
 
         # Save initial state if persistence is enabled
         # This ensures newly created devices are immediately persisted
-        if self.storage:
-            self._save_state()
+        if self.storage and persist_initial_state:
+            self.activate_persistence()
 
     def get_uptime_ns(self) -> int:
         """Calculate current uptime in nanoseconds"""
-        return int((time.time() - self.start_time) * 1e9)
+        return time.monotonic_ns() - self._started_monotonic_ns
 
-    def _save_state(self) -> None:
+    async def _persist_state(self, state: DeviceState, *, durable: bool) -> None:
+        """Queue one immutable state snapshot and optionally flush it to disk."""
+        if self.storage is None:
+            raise RuntimeError("Cannot persist device state without storage")
+        if durable:
+            await self.storage.commit_device_state(state)
+        else:
+            await self.storage.save_device_state(state)
+
+    def _save_state(
+        self,
+        state: DeviceState | None = None,
+        *,
+        durable: bool = False,
+    ) -> asyncio.Task[Any] | None:
         """Save device state asynchronously (non-blocking).
 
         Creates a background task to save state without blocking the event loop.
@@ -178,22 +200,95 @@ class EmulatedLifxDevice:
         if not self.storage:
             return
 
+        state_snapshot = self.state if state is None else state
+        return self._background_tasks.schedule(
+            self._persist_state(state_snapshot, durable=durable),
+            f"save-device:{self.state.serial}",
+        )
+
+    def activate_persistence(self) -> asyncio.Task[Any] | None:
+        """Start the initial save after repository admission succeeds."""
+        if self.storage is None or self._initial_persistence_started:
+            return None
+
+        task = self._save_state()
+        if task is not None:
+            self._initial_persistence_started = True
+        return task
+
+    def _notify_state_changed(self, change_type: int, duration_ms: int) -> None:
+        """Notify the configured observer after a state commit."""
+        if self.on_state_changed is None:
+            return
         try:
-            loop = asyncio.get_running_loop()
-            task = loop.create_task(self.storage.save_device_state(self.state))
-            self._track_save_task(task)
-        except RuntimeError:
-            # No event loop (shouldn't happen in normal operation)
-            logger.error("Cannot save state for %s: no event loop", self.state.serial)
+            self.on_state_changed(self, change_type, duration_ms)
+        except Exception:
+            logger.exception(
+                "State change callback failed for %s (change_type=%s)",
+                self.state.serial,
+                change_type,
+            )
 
-    def _track_save_task(self, task: asyncio.Task) -> None:
-        """Track background save task to prevent garbage collection.
+    def apply_state_mutation(
+        self,
+        mutation: StateMutation,
+        *,
+        change_type: int,
+        duration_ms: int = 0,
+        durable: bool = False,
+    ) -> asyncio.Task[Any] | None:
+        """Validate and commit one isolated mutation, persistence, and event unit.
 
-        Args:
-            task: Save task to track
+        The mutation runs against a deep copy. Protocol callers use the normal
+        debounced persistence path; management callers can request a durable
+        write and await the returned task before replying.
         """
-        self.background_save_tasks.add(task)
-        task.add_done_callback(self.background_save_tasks.discard)
+        if durable and self.storage is not None:
+
+            async def persist_then_commit() -> None:
+                async with self._state_mutation_lock:
+                    while True:
+                        previous = self.state
+                        candidate = copy.deepcopy(previous)
+                        mutation(candidate)
+                        await self._persist_state(candidate, durable=True)
+                        # Synchronous protocol mutations can commit while disk
+                        # I/O yields. Rebase this mutation on their latest state
+                        # before publishing, preserving their acknowledged edits.
+                        if self.state is not previous:
+                            continue
+                        self.state = candidate
+                        self._notify_state_changed(change_type, duration_ms)
+                        break
+
+            task = self._background_tasks.schedule(
+                persist_then_commit(),
+                f"mutate-device:{self.state.serial}",
+            )
+            if task is None:
+                raise RuntimeError(
+                    f"Persistence admission is closed for {self.state.serial}"
+                )
+            return task
+
+        candidate = copy.deepcopy(self.state)
+        mutation(candidate)
+        self.state = candidate
+        persistence_task = self._save_state(candidate)
+        self._notify_state_changed(change_type, duration_ms)
+        return persistence_task
+
+    async def close(self, timeout: float = 5.0) -> None:
+        """Stop persistence admission and drain all previously scheduled saves."""
+        await self._background_tasks.shutdown(timeout=timeout)
+
+    def reopen(self) -> None:
+        """Reopen persistence admission after a retained device remains active."""
+        self._background_tasks.start_accepting()
+
+    def reject_admission(self) -> None:
+        """Close task admission for a device rejected by its repository."""
+        self._background_tasks.stop_accepting()
 
     def _get_resolved_scenario(self) -> ScenarioConfig:
         """Get resolved scenario configuration with caching.
@@ -288,16 +383,28 @@ class EmulatedLifxDevice:
         return True
 
     def process_packet(
-        self, header: LifxHeader, packet: Any | None
+        self,
+        header: LifxHeader,
+        packet: Any | None,
+        *,
+        scenario: ScenarioConfig | None = None,
+        should_respond: bool | None = None,
     ) -> list[tuple[LifxHeader, Any]]:
         """Process incoming packet and return response packets"""
         responses = []
 
         # Get resolved scenario configuration (cached for performance)
-        scenario = self._get_resolved_scenario()
+        if scenario is None:
+            scenario = self._get_resolved_scenario()
 
-        # Check if packet should be dropped (with probabilistic drops)
-        if not self.scenario_manager.should_respond(header.pkt_type, scenario):
+        # Direct callers resolve probabilistic drops here. The UDP server passes
+        # its already-resolved decision so acknowledgements and processing share
+        # one packet-atomic outcome.
+        if should_respond is None:
+            should_respond = self.scenario_manager.should_respond(
+                header.pkt_type, scenario
+            )
+        if not should_respond:
             logger.info("Dropping packet type %s per scenario", header.pkt_type)
             return responses
 
@@ -436,30 +543,30 @@ class EmulatedLifxDevice:
         handler = self.handlers.get_handler(pkt_type)
 
         if handler:
-            # Delegate to handler (always returns list now)
-            response = handler.handle(self.state, packet, header.res_required)
+            if pkt_type in STATE_CHANGING_PACKETS:
+                duration_ms = getattr(packet, "duration", 0) if packet else 0
+                responses: list[Any] = []
 
-            # Save state if storage is enabled (for SET operations)
+                def mutate(candidate: DeviceState) -> None:
+                    responses.extend(
+                        handler.handle(candidate, packet, header.res_required)
+                    )
+
+                self.apply_state_mutation(
+                    mutate,
+                    change_type=pkt_type,
+                    duration_ms=duration_ms,
+                )
+                return responses
+
+            # Delegate non-mutating packets directly to the current state.
+            response = handler.handle(self.state, packet, header.res_required)
             if packet and self.storage:
                 self._save_state()
-
-            # Notify state change callback for state-modifying packets
-            if pkt_type in STATE_CHANGING_PACKETS and self.on_state_changed:
-                duration_ms = getattr(packet, "duration", 0) if packet else 0
-                try:
-                    self.on_state_changed(self, pkt_type, duration_ms)
-                except Exception:
-                    logger.exception(
-                        "State change callback failed for %s (pkt_type=%s)",
-                        self.state.serial,
-                        pkt_type,
-                    )
 
             return response
         else:
             # Unknown/unimplemented packet type
-            from lifx_emulator.protocol.packets import get_packet_class
-
             packet_class = get_packet_class(pkt_type)
             if packet_class:
                 logger.info(

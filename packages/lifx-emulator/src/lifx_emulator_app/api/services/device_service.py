@@ -11,9 +11,10 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lifx_emulator.devices import EmulatedLifxDevice
+    from lifx_emulator.devices import DeviceState
     from lifx_emulator.server import EmulatedLifxServer
 
+from lifx_emulator.devices import EXTERNAL_STATE_UPDATE
 from lifx_emulator.factories import create_device
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
@@ -121,7 +122,7 @@ class DeviceService:
 
         return DeviceMapper.to_device_info(device)
 
-    def create_device(self, request: DeviceCreateRequest) -> DeviceInfo:
+    async def create_device(self, request: DeviceCreateRequest) -> DeviceInfo:
         """Create a new emulated device.
 
         Args:
@@ -137,7 +138,7 @@ class DeviceService:
         Example:
             >>> service = DeviceService(server)
             >>> request = DeviceCreateRequest(product_id=27, serial="d073d5000001")
-            >>> info = service.create_device(request)
+            >>> info = await service.create_device(request)
             >>> info.product
             27
         """
@@ -146,26 +147,35 @@ class DeviceService:
         if request.firmware_major is not None and request.firmware_minor is not None:
             firmware_version = (request.firmware_major, request.firmware_minor)
 
-        # Create the device using the factory
-        try:
-            device = create_device(
-                product_id=request.product_id,
-                serial=request.serial,
-                zone_count=request.zone_count,
-                tile_count=request.tile_count,
-                tile_width=request.tile_width,
-                tile_height=request.tile_height,
-                firmware_version=firmware_version,
-                storage=self.server.storage,
-                scenario_manager=self.server.scenario_manager,
-            )
-        except Exception as e:
-            logger.error("Failed to create device: %s", e, exc_info=True)
-            raise DeviceCreationError(f"Failed to create device: {e}") from e
+        max_attempts = 1 if request.serial is not None else 100
+        for _ in range(max_attempts):
+            try:
+                device = create_device(
+                    product_id=request.product_id,
+                    serial=request.serial,
+                    zone_count=request.zone_count,
+                    tile_count=request.tile_count,
+                    tile_width=request.tile_width,
+                    tile_height=request.tile_height,
+                    firmware_version=firmware_version,
+                    storage=self.server.storage,
+                    scenario_manager=self.server.scenario_manager,
+                    persist_initial_state=False,
+                )
+            except Exception as e:
+                logger.error("Failed to create device: %s", e, exc_info=True)
+                raise DeviceCreationError(f"Failed to create device: {e}") from e
 
-        # Add device to server
-        if not self.server.add_device(device):
-            raise DeviceAlreadyExistsError(device.state.serial)
+            if self.server.add_device(device):
+                break
+
+            await device.close()
+            if request.serial is not None:
+                raise DeviceAlreadyExistsError(device.state.serial)
+        else:
+            raise DeviceCreationError(
+                f"Failed to generate a unique serial after {max_attempts} attempts"
+            )
 
         logger.info(
             "Created device: serial=%s product=%s",
@@ -175,7 +185,7 @@ class DeviceService:
 
         return DeviceMapper.to_device_info(device)
 
-    def delete_device(self, serial: str) -> None:
+    async def delete_device(self, serial: str) -> None:
         """Delete an emulated device.
 
         Args:
@@ -186,14 +196,14 @@ class DeviceService:
 
         Example:
             >>> service = DeviceService(server)
-            >>> service.delete_device("d073d5000001")
+            >>> await service.delete_device("d073d5000001")
         """
-        if not self.server.remove_device(serial):
+        if not await self.server.remove_device(serial):
             raise DeviceNotFoundError(serial)
 
         logger.info("Deleted device: serial=%s", serial)
 
-    def clear_all_devices(self, delete_storage: bool = False) -> int:
+    async def clear_all_devices(self, delete_storage: bool = False) -> int:
         """Remove all emulated devices from the server.
 
         Args:
@@ -204,15 +214,17 @@ class DeviceService:
 
         Example:
             >>> service = DeviceService(server)
-            >>> count = service.clear_all_devices()
+            >>> count = await service.clear_all_devices()
             >>> count
             5
         """
-        count = self.server.remove_all_devices(delete_storage=delete_storage)
+        count = await self.server.remove_all_devices(delete_storage=delete_storage)
         logger.info("Cleared %d devices (delete_storage=%s)", count, delete_storage)
         return count
 
-    def update_device_state(self, serial: str, update: DeviceStateUpdate) -> DeviceInfo:
+    async def update_device_state(
+        self, serial: str, update: DeviceStateUpdate
+    ) -> DeviceInfo:
         """Update the state of an existing device.
 
         Args:
@@ -230,19 +242,55 @@ class DeviceService:
         if not device:
             raise DeviceNotFoundError(serial)
 
-        if update.power_level is not None:
-            device.state.power_level = update.power_level
+        def mutate(candidate: DeviceState) -> None:
+            self._validate_state_update(candidate, serial, update)
 
-        if update.color is not None:
-            self._apply_color(device, update.color)
+            if update.power_level is not None:
+                candidate.power_level = update.power_level
 
-        if update.zone_colors is not None:
-            self._apply_zone_colors(device, serial, update.zone_colors)
+            if update.color is not None:
+                self._apply_color(candidate, update.color)
 
-        if update.tile_colors is not None:
-            self._apply_tile_colors(device, serial, update.tile_colors)
+            if update.zone_colors is not None:
+                self._apply_zone_colors(candidate, update.zone_colors)
+
+            if update.tile_colors is not None:
+                self._apply_tile_colors(candidate, update.tile_colors)
+
+        persistence = device.apply_state_mutation(
+            mutate,
+            change_type=EXTERNAL_STATE_UPDATE,
+            durable=True,
+        )
+        if persistence is not None:
+            await persistence
 
         return DeviceMapper.to_device_info(device)
+
+    @staticmethod
+    def _validate_state_update(
+        state: DeviceState,
+        serial: str,
+        update: DeviceStateUpdate,
+    ) -> None:
+        """Validate every capability and index before applying any field."""
+        if update.zone_colors is not None and (
+            not state.has_multizone or state.multizone is None
+        ):
+            raise DeviceStateUpdateError(f"Device {serial} does not support multizone")
+
+        if update.tile_colors is None:
+            return
+        if not state.has_matrix or state.matrix is None:
+            raise DeviceStateUpdateError(f"Device {serial} does not support matrix")
+
+        tile_count = len(state.matrix.tile_devices)
+        for tile_update in update.tile_colors:
+            if tile_update.tile_index >= tile_count:
+                raise DeviceStateUpdateError(
+                    f"Tile index {tile_update.tile_index} out of range "
+                    f"(device has {tile_count} tiles)"
+                )
 
     @staticmethod
     def _to_hsbk(c: ColorHsbk) -> LightHsbk:
@@ -280,54 +328,47 @@ class DeviceService:
             )
         return colors[:target]
 
-    def _apply_color(self, device: EmulatedLifxDevice, color: ColorHsbk) -> None:
+    def _apply_color(self, state: DeviceState, color: ColorHsbk) -> None:
         hsbk = self._to_hsbk(color)
-        device.state.color = hsbk
+        state.color = hsbk
 
-        if device.state.has_multizone and device.state.multizone is not None:
-            zone_count = device.state.multizone.zone_count
-            device.state.multizone.zone_colors = self._fill_hsbk(hsbk, zone_count)
+        if state.has_multizone and state.multizone is not None:
+            zone_count = state.multizone.zone_count
+            state.multizone.zone_colors = self._fill_hsbk(hsbk, zone_count)
 
-        if device.state.has_matrix and device.state.matrix is not None:
-            for tile in device.state.matrix.tile_devices:
+        if state.has_matrix and state.matrix is not None:
+            for tile in state.matrix.tile_devices:
                 width = tile.get("width", 8)
                 height = tile.get("height", 8)
                 tile["colors"] = self._fill_hsbk(hsbk, width * height)
 
     def _apply_zone_colors(
         self,
-        device: EmulatedLifxDevice,
-        serial: str,
+        state: DeviceState,
         zone_colors: list[ColorHsbk],
     ) -> None:
-        if not device.state.has_multizone or device.state.multizone is None:
-            raise DeviceStateUpdateError(f"Device {serial} does not support multizone")
-        zone_count = device.state.multizone.zone_count
+        if state.multizone is None:
+            raise ValueError("Device does not support multizone colours")
+        zone_count = state.multizone.zone_count
         colors = [self._to_hsbk(c) for c in zone_colors]
-        device.state.multizone.zone_colors = self._pad_and_truncate(colors, zone_count)
+        state.multizone.zone_colors = self._pad_and_truncate(colors, zone_count)
 
     def _apply_tile_colors(
         self,
-        device: EmulatedLifxDevice,
-        serial: str,
+        state: DeviceState,
         tile_colors: list[TileColorUpdate],
     ) -> None:
-        if not device.state.has_matrix or device.state.matrix is None:
-            raise DeviceStateUpdateError(f"Device {serial} does not support matrix")
+        if state.matrix is None:
+            raise ValueError("Device does not support tile colours")
         for tile_update in tile_colors:
             idx = tile_update.tile_index
-            if idx >= len(device.state.matrix.tile_devices):
-                raise DeviceStateUpdateError(
-                    f"Tile index {idx} out of range "
-                    f"(device has {len(device.state.matrix.tile_devices)} tiles)"
-                )
-            tile = device.state.matrix.tile_devices[idx]
+            tile = state.matrix.tile_devices[idx]
             width = tile.get("width", 8)
             height = tile.get("height", 8)
             colors = [self._to_hsbk(c) for c in tile_update.colors]
             tile["colors"] = self._pad_and_truncate(colors, width * height)
 
-    def create_devices_bulk(
+    async def create_devices_bulk(
         self, requests: list[DeviceCreateRequest]
     ) -> list[DeviceInfo]:
         """Create multiple devices at once.
@@ -357,13 +398,13 @@ class DeviceService:
         created_serials: list[str] = []
         try:
             for req in requests:
-                info = self.create_device(req)
+                info = await self.create_device(req)
                 created.append(info)
                 created_serials.append(info.serial)
         except Exception:
             # Roll back: remove already-added devices
             for serial in created_serials:
-                self.server.remove_device(serial)
+                await self.server.remove_device(serial)
             raise
 
         return created

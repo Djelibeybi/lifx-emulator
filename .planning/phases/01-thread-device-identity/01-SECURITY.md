@@ -80,6 +80,7 @@ created: "2026-09-09"
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-09-09 | 19 | 19 | 0 | execute-phase orchestrator (ASVS L1 grep-depth short-circuit; register authored at plan time) |
+| 2026-09-10 | 19 | 19 | 0 | verify-work post-hook (ASVS L1 grep-depth short-circuit; register authored at plan time) |
 
 ---
 

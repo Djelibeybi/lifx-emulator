@@ -29,6 +29,21 @@ class IDeviceStorageBackend(Protocol):
         """
         raise NotImplementedError
 
+    async def commit_device_state(self, device_state: Any) -> None:
+        """Durably write a candidate, leaving queued state intact on failure."""
+        raise NotImplementedError
+
+    async def flush_device_state(self, serial: str) -> bool:
+        """Flush queued state for one device to durable storage.
+
+        Args:
+            serial: Device serial number
+
+        Returns:
+            True if queued state was written, False if it was already flushed
+        """
+        raise NotImplementedError
+
     def load_device_state(self, serial: str) -> dict | None:
         """Load device state from persistent storage (sync).
 
@@ -40,14 +55,25 @@ class IDeviceStorageBackend(Protocol):
         """
         raise NotImplementedError
 
-    def delete_device_state(self, serial: str) -> bool:
-        """Delete device state from persistent storage.
+    async def delete_device_state(self, serial: str) -> bool:
+        """Delete device state from persistent storage asynchronously.
 
         Args:
             serial: Device serial number
 
         Returns:
             True if state was deleted, False if not found
+        """
+        raise NotImplementedError
+
+    async def delete_device_states(self, serials: list[str]) -> int:
+        """Delete several device states as one transaction.
+
+        Args:
+            serials: Canonical device serial numbers
+
+        Returns:
+            Number of existing state files deleted
         """
         raise NotImplementedError
 

@@ -103,6 +103,16 @@ class ServerStats(BaseModel):
     packets_received_by_type: dict[int, int]
     packets_sent_by_type: dict[int, int]
     error_count: int
+    packets_dropped_overload: int = Field(
+        ...,
+        ge=0,
+        description="Packets rejected because the server's pending-work limit was full",
+    )
+    websocket_events_dropped: int = Field(
+        ...,
+        ge=0,
+        description="Newest WebSocket bridge events dropped at queue capacity",
+    )
     activity_enabled: bool
 
 

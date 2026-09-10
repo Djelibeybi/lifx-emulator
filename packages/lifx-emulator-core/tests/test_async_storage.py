@@ -4,10 +4,14 @@ import asyncio
 import json
 import logging
 import tempfile
+from unittest.mock import patch
 
 import pytest
 from lifx_emulator import Connectivity
-from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
+from lifx_emulator.devices.persistence import (
+    DevicePersistenceAsyncFile,
+    DevicePersistenceError,
+)
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.factories import (
     create_color_light,
@@ -146,10 +150,24 @@ class TestDevicePersistenceAsyncFile:
         assert temp_storage.load_device_state(state.serial) is not None
 
         # Delete it
-        temp_storage.delete_device_state(state.serial)
+        await temp_storage.delete_device_state(state.serial)
 
         # Verify it's gone
         assert temp_storage.load_device_state(state.serial) is None
+
+    async def test_device_storage_delete_not_found(self, temp_storage):
+        """Deleting absent state returns the explicit not-found result."""
+        assert not await temp_storage.delete_device_state("d073d50000ee")
+
+    async def test_device_storage_delete_failure_raises(self, temp_storage):
+        """A filesystem deletion failure is surfaced to the caller."""
+        serial = "d073d50000ef"
+        temp_storage._device_path(serial).mkdir()
+
+        with pytest.raises(DevicePersistenceError) as caught:
+            await temp_storage.delete_device_state(serial)
+
+        assert caught.value.failed_serials == (serial,)
 
     async def test_device_storage_delete_all(self, temp_storage):
         """Test deleting all device states."""
@@ -173,6 +191,25 @@ class TestDevicePersistenceAsyncFile:
         # Verify all are gone
         assert len(temp_storage.list_devices()) == 0
 
+    async def test_device_storage_delete_all_surfaces_partial_failure(
+        self, temp_storage
+    ):
+        """Bulk deletion reports every state file that could not be removed."""
+        removable = temp_storage._device_path("d073d50000f1")
+        blocked = temp_storage._device_path("d073d50000f2")
+        removable.write_text("{}")
+        blocked.mkdir()
+
+        try:
+            with pytest.raises(DevicePersistenceError) as caught:
+                temp_storage.delete_all_device_states()
+
+            assert caught.value.failed_serials == ("d073d50000f2",)
+            assert not removable.exists()
+            assert blocked.is_dir()
+        finally:
+            blocked.rmdir()
+
     async def test_storage_with_empty_list(self, temp_storage):
         """Test listing devices when no devices exist."""
         await temp_storage.shutdown()
@@ -190,6 +227,78 @@ class TestDevicePersistenceAsyncFile:
         assert "flushes" in stats
         assert "coalesce_ratio" in stats
         assert stats["writes_queued"] > 0
+
+    async def test_failed_batch_is_retried_with_latest_snapshot(self, tmp_path):
+        """A failed batch stays queued while a newer snapshot wins the retry."""
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=10_000)
+        device = create_color_light("d073d50000f3")
+        original_write = storage._write_state
+        attempts = 0
+
+        def fail_once(serial, state_dict):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise DevicePersistenceError([serial], "forced batch failure")
+            original_write(serial, state_dict)
+
+        try:
+            with patch.object(storage, "_write_state", side_effect=fail_once):
+                device.state.power_level = 0
+                await storage.save_device_state(device.state)
+                with pytest.raises(DevicePersistenceError):
+                    await storage._flush()
+                assert storage.pending[device.state.serial]["power_level"] == 0
+
+                device.state.power_level = 12345
+                await storage.save_device_state(device.state)
+                await storage._flush()
+
+            saved = storage.load_device_state(device.state.serial)
+            assert saved is not None
+            assert saved["power_level"] == 12345
+        finally:
+            await storage.shutdown()
+
+    async def test_shutdown_retries_a_transient_batch_failure(self, tmp_path):
+        """Shutdown retries queued state after one failed batch."""
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=10_000)
+        device = create_color_light("d073d50000f4")
+        original_write = storage._write_state
+        attempts = 0
+
+        def fail_once(serial, state_dict):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise DevicePersistenceError([serial], "forced batch failure")
+            original_write(serial, state_dict)
+
+        await storage.save_device_state(device.state)
+        with patch.object(storage, "_write_state", side_effect=fail_once):
+            await storage.shutdown()
+
+        assert attempts == 2
+        assert storage.load_device_state(device.state.serial) is not None
+
+    async def test_shutdown_surfaces_terminal_batch_failure(self, tmp_path):
+        """Shutdown raises and retains state after its bounded retries fail."""
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=10_000)
+        device = create_color_light("d073d50000f5")
+
+        def always_fail(serial, _state_dict):
+            raise DevicePersistenceError([serial], "forced terminal failure")
+
+        await storage.save_device_state(device.state)
+        with (
+            patch.object(storage, "_write_state", side_effect=always_fail),
+            pytest.raises(DevicePersistenceError) as caught,
+        ):
+            await storage.shutdown()
+
+        assert caught.value.failed_serials == (device.state.serial,)
+        assert device.state.serial in storage.pending
+        assert not storage._device_path(device.state.serial).exists()
 
     async def test_storage_multiple_rapid_saves(self, temp_storage):
         """Test coalescing of rapid saves to same device."""
@@ -262,6 +371,7 @@ class TestSerialValidation:
             "not-hex-value",
             "d073d500000",  # 11 chars (too short)
             "d073d50000012",  # 13 chars (too long)
+            "d073d5000001\n",  # A dollar anchor alone accepts a final newline
             "",
         ],
     )
@@ -273,7 +383,7 @@ class TestSerialValidation:
     async def test_device_path_accepts_valid_serial(self, temp_storage):
         """A valid 12-char hex serial resolves to a path inside storage_dir."""
         path = temp_storage._device_path("d073d5AbCdEf")
-        assert path.parent == temp_storage.storage_dir
+        assert path.parent == temp_storage.storage_dir.resolve()
         assert path.name == "d073d5AbCdEf.json"
 
     async def test_batch_write_skips_invalid_serial(self, temp_storage):
@@ -287,10 +397,13 @@ class TestSerialValidation:
         """load_device_state returns None for an invalid serial."""
         assert temp_storage.load_device_state("../../etc/passwd") is None
 
-    async def test_delete_ignores_invalid_serial(self, temp_storage):
-        """delete_device_state is a no-op (no raise) for an invalid serial."""
-        # Should neither raise nor touch the filesystem.
-        temp_storage.delete_device_state("../../etc/passwd")
+    @pytest.mark.parametrize("serial", ["../../etc/passwd", "d073d5000001\n"])
+    async def test_delete_rejects_invalid_serial(self, temp_storage, serial):
+        """delete_device_state surfaces invalid serials as typed failures."""
+        with pytest.raises(DevicePersistenceError) as caught:
+            await temp_storage.delete_device_state(serial)
+
+        assert caught.value.failed_serials == (serial,)
 
 
 class TestConnectivityPersistence:

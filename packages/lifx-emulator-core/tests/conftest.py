@@ -184,11 +184,19 @@ def device_with_scenarios():
 
 
 def find_free_port():
-    """Find an unused port on localhost."""
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(("127.0.0.1", 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]
+    """Find a UDP port currently available on both loopback families."""
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as ipv4_socket:
+            ipv4_socket.bind(("127.0.0.1", 0))
+            port = ipv4_socket.getsockname()[1]
+
+        try:
+            with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as ipv6_socket:
+                ipv6_socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+                ipv6_socket.bind(("::1", port))
+        except OSError:
+            continue
+        return port
 
 
 @pytest.fixture(scope="module")

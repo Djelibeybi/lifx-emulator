@@ -94,7 +94,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
     async def create_devices_bulk(request: BulkDeviceCreateRequest):
         """Create multiple devices at once."""
         try:
-            return device_service.create_devices_bulk(request.devices)
+            return await device_service.create_devices_bulk(request.devices)
         except DeviceCreationError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except DeviceAlreadyExistsError as e:
@@ -118,7 +118,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
     async def create_device(request: DeviceCreateRequest):
         """Create a new device."""
         try:
-            return device_service.create_device(request)
+            return await device_service.create_device(request)
         except DeviceCreationError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except DeviceAlreadyExistsError as e:
@@ -138,7 +138,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
     async def update_device_state(serial: str, update: DeviceStateUpdate):
         """Update device state."""
         try:
-            return device_service.update_device_state(serial, update)
+            return await device_service.update_device_state(serial, update)
         except DeviceNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
         except DeviceStateUpdateError as e:
@@ -160,7 +160,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
     async def delete_device(serial: str):
         """Delete a device."""
         try:
-            device_service.delete_device(serial)
+            await device_service.delete_device(serial)
         except DeviceNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
@@ -178,7 +178,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
     )
     async def delete_all_devices():
         """Delete all devices from the running server."""
-        count = device_service.clear_all_devices(delete_storage=False)
+        count = await device_service.clear_all_devices(delete_storage=False)
         return {"deleted": count, "message": f"Removed {count} device(s) from server"}
 
     return router

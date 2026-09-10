@@ -9,13 +9,22 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Coroutine
+from typing import TYPE_CHECKING, Any
 
-from lifx_emulator.devices import PacketEvent, StateChangeCallback
+from lifx_emulator.background_tasks import BackgroundTaskTracker
+from lifx_emulator.devices import (
+    EXTERNAL_STATE_UPDATE,
+    ActivityLogger,
+    DeviceManager,
+    PacketEvent,
+    StateChangeCallback,
+)
+
+from lifx_emulator_app.api.mappers.device_mapper import DeviceMapper
 
 if TYPE_CHECKING:
     from lifx_emulator.devices import (
-        ActivityLogger,
         ActivityObserver,
         EmulatedLifxDevice,
         IDeviceManager,
@@ -26,22 +35,172 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_EVENT_QUEUE_CAPACITY = 256
+DEFAULT_EVENT_WORKERS = 4
+BroadcastFactory = Callable[[], Coroutine[Any, Any, None]]
 
-def _schedule_async(coro) -> None:
-    """Schedule an async coroutine from a sync context.
 
-    Args:
-        coro: The coroutine to schedule
-    """
-    try:
+class WebSocketEventQueue:
+    """Bound WebSocket bridge work with a fixed asynchronous worker pool."""
+
+    drop_policy = "drop_newest"
+
+    def __init__(
+        self,
+        *,
+        max_pending: int = DEFAULT_EVENT_QUEUE_CAPACITY,
+        worker_count: int = DEFAULT_EVENT_WORKERS,
+        on_drop: Callable[[], None] | None = None,
+    ) -> None:
+        if max_pending <= 0:
+            raise ValueError("max_pending must be positive")
+        if worker_count <= 0:
+            raise ValueError("worker_count must be positive")
+        self._max_pending = max_pending
+        self._worker_count = worker_count
+        self._on_drop = on_drop
+        self._queue: asyncio.Queue[tuple[BroadcastFactory, str]] | None = None
+        self._workers: set[asyncio.Task[None]] = set()
+        self._pending_count = 0
+        self._accepting = True
+        self.dropped_events = 0
+
+    @property
+    def pending_count(self) -> int:
+        """Return queued plus actively broadcasting events."""
+        return self._pending_count
+
+    @property
+    def has_capacity(self) -> bool:
+        """Return whether another event can be accepted."""
+        return self._pending_count < self._max_pending
+
+    def start(self) -> None:
+        """Start a fresh fixed worker generation."""
+        if self._workers:
+            return
+        if self._pending_count:
+            raise RuntimeError("Cannot restart WebSocket event workers while pending")
         loop = asyncio.get_running_loop()
-        loop.create_task(coro)
-    except RuntimeError:
-        logger.warning("No running event loop to schedule async task")
+        self._queue = asyncio.Queue()
+        self._accepting = True
+        self._workers = {
+            loop.create_task(
+                self._worker(index), name=f"websocket-event-worker:{index}"
+            )
+            for index in range(self._worker_count)
+        }
+
+    def schedule_factory(self, factory: BroadcastFactory, operation: str) -> bool:
+        """Reserve bounded capacity before constructing a broadcast coroutine."""
+        if not self._accepting or not self.has_capacity:
+            self._record_drop(operation)
+            return False
+        if not self._workers:
+            try:
+                self.start()
+            except RuntimeError:
+                self._record_drop(operation)
+                return False
+
+        if self._queue is None:
+            raise RuntimeError("WebSocket event queue has not started")
+        self._pending_count += 1
+        self._queue.put_nowait((factory, operation))
+        return True
+
+    def schedule(self, coroutine: Coroutine[Any, Any, None], operation: str) -> bool:
+        """Compatibility wrapper for direct callers with an existing coroutine."""
+        accepted = self.schedule_factory(lambda: coroutine, operation)
+        if not accepted:
+            coroutine.close()
+        return accepted
+
+    def _record_drop(self, operation: str) -> None:
+        self.dropped_events += 1
+        if self._on_drop is not None:
+            self._on_drop()
+        log = logger.warning if self.dropped_events == 1 else logger.debug
+        log(
+            "Dropped newest WebSocket bridge event (operation=%s, pending=%s)",
+            operation,
+            self._pending_count,
+        )
+
+    async def _worker(self, index: int) -> None:
+        if self._queue is None:
+            raise RuntimeError("WebSocket event queue has not started")
+        queue = self._queue
+        while True:
+            factory, operation = await queue.get()
+            try:
+                await factory()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception(
+                    "WebSocket bridge event failed (worker=%s, operation=%s)",
+                    index,
+                    operation,
+                )
+            finally:
+                self._pending_count -= 1
+                queue.task_done()
+
+    async def shutdown(self, timeout: float = 5.0) -> None:
+        """Drain accepted events, then cancel workers and discard queued overflow."""
+        self._accepting = False
+        queue = self._queue
+        if queue is None:
+            return
+
+        try:
+            await asyncio.wait_for(queue.join(), timeout=timeout)
+        except asyncio.TimeoutError:
+            while True:
+                try:
+                    queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
+                self._pending_count -= 1
+                queue.task_done()
+        finally:
+            for worker in self._workers:
+                worker.cancel()
+            await asyncio.gather(*self._workers, return_exceptions=True)
+            self._workers.clear()
+            self._queue = None
+
+
+def _schedule_bridge(scheduler: Any, factory: BroadcastFactory, operation: str) -> None:
+    """Use lazy production scheduling while retaining tracker compatibility."""
+    schedule_factory = getattr(scheduler, "schedule_factory", None)
+    if schedule_factory is not None:
+        schedule_factory(factory, operation)
+        return
+    scheduler.schedule(factory(), operation)
+
+
+def _task_tracker_or_fallback(
+    task_tracker: BackgroundTaskTracker | WebSocketEventQueue | None, owner: str
+) -> BackgroundTaskTracker | WebSocketEventQueue:
+    """Return an injected tracker or an accepting owner-local fallback."""
+    if task_tracker is not None:
+        return task_tracker
+
+    logger.debug(
+        "Creating owner-local background task tracker for %s without an external "
+        "lifespan owner; normal task completion is its drain boundary",
+        owner,
+    )
+    return BackgroundTaskTracker(owner)
 
 
 def wire_device_events(
-    device_manager: IDeviceManager, ws_manager: WebSocketManager
+    device_manager: IDeviceManager,
+    ws_manager: WebSocketManager,
+    *,
+    task_tracker: BackgroundTaskTracker | WebSocketEventQueue | None = None,
 ) -> None:
     """Wire device lifecycle callbacks to WebSocket broadcasts.
 
@@ -52,11 +211,8 @@ def wire_device_events(
         device_manager: The DeviceManager to wire callbacks to (must be
             a DeviceManager instance that supports callbacks)
         ws_manager: The WebSocketManager to broadcast events through
+        task_tracker: Optional owner-provided tracker for broadcast tasks
     """
-    from lifx_emulator.devices import DeviceManager
-
-    from lifx_emulator_app.api.mappers.device_mapper import DeviceMapper
-
     # Only DeviceManager (not all IDeviceManager implementations) supports callbacks
     if not isinstance(device_manager, DeviceManager):
         logger.warning(
@@ -64,15 +220,25 @@ def wire_device_events(
         )
         return
 
+    tracker = _task_tracker_or_fallback(task_tracker, "websocket-device-events")
+
     def on_device_added(device: EmulatedLifxDevice) -> None:
         """Callback invoked when a device is added."""
         device_info = DeviceMapper.to_device_info(device)
-        _schedule_async(ws_manager.broadcast_device_added(device_info.model_dump()))
+        _schedule_bridge(
+            tracker,
+            lambda: ws_manager.broadcast_device_added(device_info.model_dump()),
+            f"device-added:{device.state.serial}",
+        )
         logger.debug("Scheduled device_added broadcast for %s", device.state.serial)
 
     def on_device_removed(serial: str) -> None:
         """Callback invoked when a device is removed."""
-        _schedule_async(ws_manager.broadcast_device_removed(serial))
+        _schedule_bridge(
+            tracker,
+            lambda: ws_manager.broadcast_device_removed(serial),
+            f"device-removed:{serial}",
+        )
         logger.debug("Scheduled device_removed broadcast for %s", serial)
 
     device_manager.on_device_added = on_device_added
@@ -96,6 +262,8 @@ class WebSocketActivityObserver:
         self,
         ws_manager: WebSocketManager,
         inner_observer: ActivityObserver | None = None,
+        *,
+        task_tracker: BackgroundTaskTracker | WebSocketEventQueue | None = None,
     ) -> None:
         """Initialize the WebSocket activity observer.
 
@@ -103,10 +271,12 @@ class WebSocketActivityObserver:
             ws_manager: The WebSocketManager to broadcast events through
             inner_observer: Optional inner observer to delegate to (for logging).
                 If it has get_recent_activity(), that will be used.
+            task_tracker: Optional owner-provided tracker for broadcast tasks
         """
-        from lifx_emulator.devices import ActivityLogger
-
         self._ws_manager = ws_manager
+        self._task_tracker = _task_tracker_or_fallback(
+            task_tracker, "websocket-activity-observer"
+        )
         # Use provided observer or create a new ActivityLogger
         self._inner: ActivityLogger | ActivityObserver = (
             inner_observer
@@ -124,8 +294,9 @@ class WebSocketActivityObserver:
         self._inner.on_packet_received(event)
 
         # Broadcast to WebSocket clients
-        _schedule_async(
-            self._ws_manager.broadcast_activity(
+        _schedule_bridge(
+            self._task_tracker,
+            lambda: self._ws_manager.broadcast_activity(
                 {
                     "timestamp": event.timestamp,
                     "direction": "rx",
@@ -134,7 +305,8 @@ class WebSocketActivityObserver:
                     "target": event.target,
                     "addr": event.addr,
                 }
-            )
+            ),
+            f"activity:rx:{event.packet_type}",
         )
 
     def on_packet_sent(self, event: PacketEvent) -> None:
@@ -147,8 +319,9 @@ class WebSocketActivityObserver:
         self._inner.on_packet_sent(event)
 
         # Broadcast to WebSocket clients
-        _schedule_async(
-            self._ws_manager.broadcast_activity(
+        _schedule_bridge(
+            self._task_tracker,
+            lambda: self._ws_manager.broadcast_activity(
                 {
                     "timestamp": event.timestamp,
                     "direction": "tx",
@@ -157,7 +330,8 @@ class WebSocketActivityObserver:
                     "device": event.device,
                     "addr": event.addr,
                 }
-            )
+            ),
+            f"activity:tx:{event.packet_type}",
         )
 
     def get_recent_activity(self) -> list[dict]:
@@ -243,13 +417,22 @@ class WebSocketStateChangeObserver:
     including the transition duration from the packet.
     """
 
-    def __init__(self, ws_manager: WebSocketManager) -> None:
+    def __init__(
+        self,
+        ws_manager: WebSocketManager,
+        *,
+        task_tracker: BackgroundTaskTracker | WebSocketEventQueue | None = None,
+    ) -> None:
         """Initialize the WebSocket state change observer.
 
         Args:
             ws_manager: The WebSocketManager to broadcast events through
+            task_tracker: Optional owner-provided tracker for broadcast tasks
         """
         self._ws_manager = ws_manager
+        self._task_tracker = _task_tracker_or_fallback(
+            task_tracker, "websocket-state-change-observer"
+        )
 
     def on_state_changed(
         self, device: EmulatedLifxDevice, pkt_type: int, duration_ms: int
@@ -261,8 +444,6 @@ class WebSocketStateChangeObserver:
             pkt_type: The packet type that caused the change
             duration_ms: The transition duration in milliseconds
         """
-        from lifx_emulator_app.api.mappers.device_mapper import DeviceMapper
-
         logger.debug(
             "State change callback: device=%s, pkt_type=%d, duration_ms=%d",
             device.state.serial,
@@ -283,7 +464,11 @@ class WebSocketStateChangeObserver:
         }
 
         # Include relevant data based on category
-        if category == "zones" and device_info.zone_colors:
+        if pkt_type == EXTERNAL_STATE_UPDATE:
+            changes = device_info.model_dump(mode="json")
+            changes["category"] = category
+            changes["duration_ms"] = duration_ms
+        elif category == "zones" and device_info.zone_colors:
             changes["zone_colors"] = [c.model_dump() for c in device_info.zone_colors]
         elif category == "tiles" and device_info.tile_devices:
             # Convert tile_devices: each tile dict has 'colors' containing
@@ -311,8 +496,12 @@ class WebSocketStateChangeObserver:
         elif category in ("color", "power") and device_info.color:
             changes["color"] = device_info.color.model_dump()
 
-        _schedule_async(
-            self._ws_manager.broadcast_device_updated(device.state.serial, changes)
+        _schedule_bridge(
+            self._task_tracker,
+            lambda: self._ws_manager.broadcast_device_updated(
+                device.state.serial, changes
+            ),
+            f"device-updated:{device.state.serial}:{pkt_type}",
         )
 
     def _get_change_category(self, pkt_type: int) -> str:
@@ -332,6 +521,8 @@ class WebSocketStateChangeObserver:
             return "power"
         elif pkt_type in {24, 49, 52}:  # SetLabel, SetLocation, SetGroup
             return "metadata"
+        elif pkt_type == EXTERNAL_STATE_UPDATE:
+            return "state"
         return "color"
 
     def get_callback(self) -> StateChangeCallback:
@@ -356,8 +547,6 @@ def wire_device_state_events(
         device_manager: The DeviceManager to wire callbacks to
         state_observer: The WebSocketStateChangeObserver to broadcast through
     """
-    from lifx_emulator.devices import DeviceManager
-
     # Only DeviceManager supports callbacks
     if not isinstance(device_manager, DeviceManager):
         logger.warning(
