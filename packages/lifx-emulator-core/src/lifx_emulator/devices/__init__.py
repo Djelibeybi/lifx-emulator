@@ -10,9 +10,11 @@ This module contains all device-related functionality including:
 """
 
 from lifx_emulator.devices.device import (
+    EXTERNAL_STATE_UPDATE,
     STATE_CHANGING_PACKETS,
     EmulatedLifxDevice,
     StateChangeCallback,
+    StateMutation,
 )
 from lifx_emulator.devices.manager import (
     DeviceAddedCallback,
@@ -29,13 +31,16 @@ from lifx_emulator.devices.observers import (
 from lifx_emulator.devices.persistence import (
     DEFAULT_STORAGE_DIR,
     DevicePersistenceAsyncFile,
+    DevicePersistenceError,
 )
 from lifx_emulator.devices.states import Connectivity, DeviceState
 
 __all__ = [
     "EmulatedLifxDevice",
     "StateChangeCallback",
+    "StateMutation",
     "STATE_CHANGING_PACKETS",
+    "EXTERNAL_STATE_UPDATE",
     "DeviceManager",
     "DeviceAddedCallback",
     "DeviceRemovedCallback",
@@ -43,6 +48,7 @@ __all__ = [
     "Connectivity",
     "DeviceState",
     "DevicePersistenceAsyncFile",
+    "DevicePersistenceError",
     "DEFAULT_STORAGE_DIR",
     "ActivityObserver",
     "ActivityLogger",

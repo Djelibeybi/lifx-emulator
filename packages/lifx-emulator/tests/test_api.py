@@ -1,8 +1,15 @@
 """Unit tests for the FastAPI management API."""
 
+import asyncio
+import copy
+import time
+from typing import cast
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.devices.manager import DeviceManager
+from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
     create_color_light,
     create_multizone_light,
@@ -11,6 +18,8 @@ from lifx_emulator.factories import (
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api import create_api_app
+from lifx_emulator_app.api.models import ColorHsbk, DeviceStateUpdate
+from lifx_emulator_app.api.services.device_service import DeviceService
 
 
 @pytest.fixture
@@ -36,6 +45,7 @@ class TestAPIEndpoints:
 
     def test_get_stats(self, api_client, server_with_devices):
         """Test GET /api/stats returns server statistics."""
+        server_with_devices.packets_dropped_overload = 7
         response = api_client.get("/api/stats")
         assert response.status_code == 200
         data = response.json()
@@ -46,6 +56,80 @@ class TestAPIEndpoints:
         assert "packets_received" in data
         assert "packets_sent" in data
         assert "error_count" in data
+        assert data["packets_dropped_overload"] == 7
+
+    async def test_concurrent_durable_updates_discard_failed_candidate(self):
+        """A later REST mutation cannot inherit an earlier failed candidate."""
+
+        class BlockingFailureStorage:
+            def __init__(self):
+                self.pending = None
+                self.persisted = None
+                self.first_flush_started = asyncio.Event()
+                self.release_first_flush = asyncio.Event()
+                self.flushes = 0
+
+            async def save_device_state(self, state):
+                self.pending = copy.deepcopy(state)
+
+            async def commit_device_state(self, state):
+                await self.save_device_state(state)
+                await self.flush_device_state(state.serial)
+
+            async def flush_device_state(self, _serial):
+                self.flushes += 1
+                if self.flushes == 1:
+                    self.first_flush_started.set()
+                    await self.release_first_flush.wait()
+                    self.pending = None
+                    raise OSError("first write failed")
+                self.persisted = copy.deepcopy(self.pending)
+                self.pending = None
+                return True
+
+        storage = BlockingFailureStorage()
+        device = create_color_light("d073d5000009")
+        device.storage = cast(DevicePersistenceAsyncFile, storage)
+        server = EmulatedLifxServer(
+            [device],
+            DeviceManager(DeviceRepository()),
+            storage=storage,
+        )
+        service = DeviceService(server)
+
+        failed = asyncio.create_task(
+            service.update_device_state(
+                device.state.serial,
+                DeviceStateUpdate(power_level=0),
+            )
+        )
+        await storage.first_flush_started.wait()
+        successful = asyncio.create_task(
+            service.update_device_state(
+                device.state.serial,
+                DeviceStateUpdate(
+                    power_level=None,
+                    color=ColorHsbk(
+                        hue=1234,
+                        saturation=2345,
+                        brightness=3456,
+                        kelvin=4000,
+                    ),
+                ),
+            )
+        )
+
+        storage.release_first_flush.set()
+        with pytest.raises(OSError, match="first write failed"):
+            await failed
+        response = await successful
+
+        assert response.power_level == 65535
+        assert response.color is not None
+        assert response.color.hue == 1234
+        assert storage.persisted is not None
+        assert storage.persisted.power_level == 65535
+        assert storage.persisted.color.hue == 1234
 
     def test_list_devices(self, api_client):
         """Test GET /api/devices returns paginated device list."""
@@ -105,6 +189,79 @@ class TestAPIEndpoints:
             json={"product_id": 27, "serial": "d073d5000099"},
         )
         assert response.status_code == 409
+
+    def test_duplicate_creation_does_not_overwrite_persisted_state(self, tmp_path):
+        """A rejected explicit serial must not queue a persistence write."""
+        serial = "d073d5000099"
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=25)
+        existing = create_color_light(serial)
+        existing.state.power_level = 0
+
+        async def seed_state() -> None:
+            await storage.save_device_state(existing.state)
+            await storage.flush_device_state(serial)
+
+        asyncio.run(seed_state())
+        existing.storage = storage
+        state_path = storage._device_path(serial)
+        original = state_path.read_bytes()
+        server = EmulatedLifxServer(
+            [existing],
+            DeviceManager(DeviceRepository()),
+            storage=storage,
+        )
+
+        try:
+            with TestClient(create_api_app(server)) as client:
+                response = client.post(
+                    "/api/devices",
+                    json={"product_id": 27, "serial": serial},
+                )
+                time.sleep(0.05)
+
+            assert response.status_code == 409
+            assert state_path.read_bytes() == original
+            assert existing.state.power_level == 0
+        finally:
+            asyncio.run(storage.shutdown())
+
+    def test_generated_serial_collision_retries_without_overwrite(self, tmp_path):
+        """A generated collision is discarded before trying another serial."""
+        existing_serial = "d073d5000099"
+        unique_serial = "d073d5000096"
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=25)
+        existing = create_color_light(existing_serial)
+        existing.state.power_level = 0
+
+        async def seed_state() -> None:
+            await storage.save_device_state(existing.state)
+            await storage.flush_device_state(existing_serial)
+
+        asyncio.run(seed_state())
+        existing.storage = storage
+        state_path = storage._device_path(existing_serial)
+        original = state_path.read_bytes()
+        server = EmulatedLifxServer(
+            [existing],
+            DeviceManager(DeviceRepository()),
+            storage=storage,
+        )
+
+        try:
+            with patch(
+                "lifx_emulator.factories.builder.SerialGenerator.generate",
+                side_effect=[existing_serial, unique_serial],
+            ):
+                with TestClient(create_api_app(server)) as client:
+                    response = client.post("/api/devices", json={"product_id": 27})
+                    time.sleep(0.05)
+
+            assert response.status_code == 201
+            assert response.json()["serial"] == unique_serial
+            assert state_path.read_bytes() == original
+            assert existing.state.power_level == 0
+        finally:
+            asyncio.run(storage.shutdown())
 
     def test_delete_device(self, api_client, server_with_devices):
         """Test DELETE /api/devices/{serial} removes a device."""
@@ -841,6 +998,37 @@ class TestDeviceStateUpdate:
         )
         assert response.status_code == 400
 
+    def test_invalid_compound_zone_update_is_atomic(
+        self, api_client, server_with_devices
+    ):
+        """A late capability error leaves earlier core fields unchanged."""
+        device = server_with_devices.get_device("d073d5000001")
+        before = copy.deepcopy(device.state)
+
+        response = api_client.patch(
+            "/api/devices/d073d5000001/state",
+            json={
+                "power_level": 0,
+                "color": {
+                    "hue": 12345,
+                    "saturation": 23456,
+                    "brightness": 34567,
+                    "kelvin": 4000,
+                },
+                "zone_colors": [
+                    {
+                        "hue": 1,
+                        "saturation": 2,
+                        "brightness": 3,
+                        "kelvin": 3500,
+                    }
+                ],
+            },
+        )
+
+        assert response.status_code == 400
+        assert device.state == before
+
     def test_update_tile_colors(self, api_client, server_with_devices):
         """Test updating tile colors on a matrix device."""
         tile_device = create_tile_device("d073d5000004")
@@ -915,6 +1103,33 @@ class TestDeviceStateUpdate:
         )
         assert response.status_code == 400
 
+    def test_invalid_late_tile_index_is_atomic(self, api_client, server_with_devices):
+        """No tile or core field changes when a later tile index is invalid."""
+        device = create_tile_device("d073d5000007", tile_count=2)
+        server_with_devices.add_device(device)
+        before = copy.deepcopy(device.state)
+        colour = {
+            "hue": 123,
+            "saturation": 456,
+            "brightness": 789,
+            "kelvin": 3500,
+        }
+
+        response = api_client.patch(
+            "/api/devices/d073d5000007/state",
+            json={
+                "power_level": 0,
+                "color": colour,
+                "tile_colors": [
+                    {"tile_index": 0, "colors": [colour]},
+                    {"tile_index": 4, "colors": [colour]},
+                ],
+            },
+        )
+
+        assert response.status_code == 400
+        assert device.state == before
+
     def test_update_device_not_found(self, api_client):
         """Test PATCH on non-existent device returns 404."""
         response = api_client.patch(
@@ -951,6 +1166,40 @@ class TestDeviceStateUpdate:
         data = response.json()
         assert data["power_level"] == 65535
         assert data["color"]["hue"] == 32768
+
+    def test_update_persists_and_broadcasts_matching_snapshot(self, tmp_path):
+        """A successful REST mutation is durable and visible to subscribers."""
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=10_000)
+        device = create_color_light("d073d5000008")
+        device.storage = storage
+        server = EmulatedLifxServer(
+            [device],
+            DeviceManager(DeviceRepository()),
+            storage=storage,
+        )
+        app = create_api_app(server)
+
+        try:
+            with TestClient(app) as client:
+                with client.websocket_connect("/ws") as websocket:
+                    websocket.send_json({"type": "subscribe", "topics": ["devices"]})
+                    response = client.patch(
+                        f"/api/devices/{device.state.serial}/state",
+                        json={"power_level": 0},
+                    )
+                    event = websocket.receive_json()
+
+            assert response.status_code == 200
+            snapshot = response.json()
+            saved = storage.load_device_state(device.state.serial)
+            assert saved is not None
+            assert saved["power_level"] == snapshot["power_level"] == 0
+            assert event["type"] == "device_updated"
+            assert event["data"]["serial"] == device.state.serial
+            assert event["data"]["changes"]["power_level"] == snapshot["power_level"]
+            assert event["data"]["changes"]["color"] == snapshot["color"]
+        finally:
+            asyncio.run(storage.shutdown())
 
 
 class TestBulkDeviceCreation:
@@ -1162,3 +1411,10 @@ class TestRunAPIServer:
         # Verify Server and serve were called
         assert mock_server_class.called
         assert mock_server_instance.serve.called
+
+
+def test_clear_devices_removes_all_repository_entries(api_client, server_with_devices):
+    assert server_with_devices.get_all_devices()
+    response = api_client.delete("/api/devices")
+    assert response.status_code == 200
+    assert server_with_devices.get_all_devices() == []

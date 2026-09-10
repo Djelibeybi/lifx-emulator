@@ -1,15 +1,40 @@
 """Tests for WebSocket endpoint and manager."""
 
 import asyncio
+import gc
+import inspect
+import logging
+from collections.abc import Coroutine
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import lifx_emulator_app.api.app as api_app_module
 import pytest
 from fastapi.testclient import TestClient
-from lifx_emulator.devices import DeviceManager
+from lifx_emulator.background_tasks import BackgroundTaskTracker
+from lifx_emulator.devices import DeviceManager, PacketEvent
 from lifx_emulator.factories import create_color_light
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api.app import create_api_app
 from lifx_emulator_app.api.services import MessageType, Topic, WebSocketManager
+from lifx_emulator_app.api.services.event_bridge import (
+    WebSocketActivityObserver,
+    WebSocketEventQueue,
+    WebSocketStateChangeObserver,
+    wire_device_events,
+)
+
+
+class RecordingTaskTracker:
+    """Record bridge scheduling while closing captured coroutine objects."""
+
+    def __init__(self) -> None:
+        self.operations: list[str] = []
+
+    def schedule(self, coroutine: Coroutine[Any, Any, Any], operation: str) -> None:
+        self.operations.append(operation)
+        coroutine.close()
 
 
 @pytest.fixture
@@ -167,6 +192,198 @@ class TestWebSocketManagerInApp:
         assert ws_manager._server is server
 
 
+class TestEventBridgeLifespan:
+    """Tests for application ownership of WebSocket bridge tasks."""
+
+    def test_create_api_app_exposes_open_background_task_tracker(self, server):
+        """Test app construction immediately exposes an accepting bridge owner."""
+        app = create_api_app(server)
+
+        assert hasattr(app.state, "background_task_tracker")
+        assert isinstance(app.state.background_task_tracker, WebSocketEventQueue)
+        assert app.state.background_task_tracker.pending_count == 0
+
+    def test_create_api_app_injects_one_tracker_into_all_adapters(self, server):
+        """Test the factory passes one exact tracker to every bridge adapter."""
+        with (
+            patch.object(api_app_module, "wire_device_events") as wire_events,
+            patch.object(
+                api_app_module, "WebSocketStateChangeObserver"
+            ) as state_observer_type,
+            patch.object(
+                api_app_module, "wire_device_state_events"
+            ) as wire_state_events,
+            patch.object(
+                api_app_module, "WebSocketActivityObserver"
+            ) as activity_observer_type,
+        ):
+            app = api_app_module.create_api_app(server)
+
+        tracker = app.state.background_task_tracker
+        assert wire_events.call_args.kwargs["task_tracker"] is tracker
+        assert state_observer_type.call_args.kwargs["task_tracker"] is tracker
+        assert activity_observer_type.call_args.kwargs["task_tracker"] is tracker
+        wire_state_events.assert_called_once_with(
+            server._device_manager, state_observer_type.return_value
+        )
+
+    @pytest.mark.asyncio
+    async def test_non_lifespan_test_client_keeps_bridge_admission_open(self, server):
+        """Test constructing TestClient without entering it still accepts work."""
+        app = create_api_app(server)
+        test_client = TestClient(app)
+        tracker = app.state.background_task_tracker
+        started = asyncio.Event()
+        release = asyncio.Event()
+        completed: list[str] = []
+
+        async def broadcast_device_added(payload: dict[str, Any]) -> None:
+            started.set()
+            await release.wait()
+            completed.append(payload["serial"])
+
+        app.state.ws_manager.broadcast_device_added = broadcast_device_added
+        try:
+            assert server.add_device(create_color_light("d073d5112233"))
+            await started.wait()
+            assert tracker.pending_count == 1
+            release.set()
+            await tracker.shutdown()
+        finally:
+            test_client.close()
+
+        assert completed == ["d073d5112233"]
+        assert tracker.pending_count == 0
+
+    @pytest.mark.asyncio
+    async def test_lifespan_drains_normally_and_reopens_for_second_cycle(self, server):
+        """Test normal and repeated lifespan cycles finish with no bridge work."""
+        app = create_api_app(server)
+        tracker = app.state.background_task_tracker
+
+        for cycle in range(2):
+            completed = asyncio.Event()
+
+            async def finish_broadcast() -> None:
+                completed.set()
+
+            async with app.router.lifespan_context(app):
+                assert (
+                    tracker.schedule(finish_broadcast(), f"lifespan-cycle:{cycle}")
+                    is not None
+                )
+                await completed.wait()
+
+            assert tracker.pending_count == 0
+
+    def test_context_managed_test_client_reenters_drained_lifespan(self, server):
+        """Test the repository's context-managed client runs repeatable lifespan."""
+        app = create_api_app(server)
+        tracker = app.state.background_task_tracker
+
+        for _ in range(2):
+            with TestClient(app) as test_client:
+                assert test_client.get("/api/stats").status_code == 200
+            assert tracker.pending_count == 0
+
+        with pytest.raises(RuntimeError, match="client body failed"):
+            with TestClient(app):
+                raise RuntimeError("client body failed")
+        assert tracker.pending_count == 0
+
+    @pytest.mark.asyncio
+    async def test_exceptional_lifespan_stops_stats_then_cancels_bridge_work(
+        self, server, monkeypatch
+    ):
+        """Test exceptional teardown stops its producer before bounded drain."""
+        order: list[str] = []
+        broadcaster = MagicMock()
+        broadcaster.start.side_effect = lambda: order.append("start")
+
+        async def stop_broadcaster() -> None:
+            order.append("stop")
+
+        broadcaster.stop.side_effect = stop_broadcaster
+        with patch.object(api_app_module, "StatsBroadcaster", return_value=broadcaster):
+            app = api_app_module.create_api_app(server)
+
+        tracker = app.state.background_task_tracker
+        original_shutdown = tracker.shutdown
+        cancelled = asyncio.Event()
+        started = asyncio.Event()
+
+        async def bounded_shutdown(timeout: float = 5.0) -> None:
+            order.append("drain")
+            assert timeout == 5.0
+            await original_shutdown(timeout=0)
+
+        monkeypatch.setattr(tracker, "shutdown", bounded_shutdown)
+
+        async def blocked_broadcast() -> None:
+            started.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        with pytest.raises(RuntimeError, match="lifespan body failed"):
+            async with app.router.lifespan_context(app):
+                assert (
+                    tracker.schedule(blocked_broadcast(), "test:blocked-broadcast")
+                    is not None
+                )
+                await started.wait()
+                raise RuntimeError("lifespan body failed")
+
+        assert order == ["start", "stop", "drain"]
+        assert cancelled.is_set()
+        assert tracker.pending_count == 0
+
+    async def test_activity_flood_is_bounded_and_reports_drops(self, server):
+        """A blocked broadcast cannot create unbounded bridge work."""
+        broadcast_started = asyncio.Event()
+        release_broadcast = asyncio.Event()
+
+        async def blocked_broadcast(_event: dict[str, Any]) -> None:
+            broadcast_started.set()
+            await release_broadcast.wait()
+
+        ws_manager = MagicMock()
+        ws_manager.broadcast_activity = blocked_broadcast
+        queue = WebSocketEventQueue(
+            max_pending=8,
+            worker_count=1,
+            on_drop=lambda: setattr(
+                server,
+                "websocket_events_dropped",
+                server.websocket_events_dropped + 1,
+            ),
+        )
+        observer = WebSocketActivityObserver(ws_manager, task_tracker=queue)
+        event = PacketEvent(
+            timestamp=1704067200.0,
+            direction="rx",
+            packet_type=2,
+            packet_name="GetService",
+            target="d073d5000001",
+            addr="192.168.1.100:56700",
+        )
+
+        for _ in range(5_000):
+            observer.on_packet_received(event)
+        await broadcast_started.wait()
+
+        assert queue.pending_count <= 8
+        assert not queue.has_capacity
+        assert queue.dropped_events == 4_992
+        assert queue.drop_policy == "drop_newest"
+        assert server.get_stats()["websocket_events_dropped"] == 4_992
+
+        await queue.shutdown(timeout=0)
+        assert queue.pending_count == 0
+
+
 class TestWebSocketDeviceEvents:
     """Tests for device event broadcasting via WebSocket."""
 
@@ -188,6 +405,57 @@ class TestWebSocketDeviceEvents:
 
 class TestEventBridge:
     """Tests for the event bridge module."""
+
+    def test_event_bridge_entry_points_have_optional_keyword_only_tracker(self):
+        """Test every importable bridge entry point preserves its old signature."""
+        for entry_point in (
+            wire_device_events,
+            WebSocketActivityObserver,
+            WebSocketStateChangeObserver,
+        ):
+            parameter = inspect.signature(entry_point).parameters.get("task_tracker")
+            assert parameter is not None
+            assert parameter.kind is inspect.Parameter.KEYWORD_ONLY
+            assert parameter.default is None
+
+    def test_omitted_trackers_are_accepting_owner_local_fallbacks(self, caplog):
+        """Test direct adapters retain distinct trackers with a lifecycle diagnostic."""
+        device_manager = DeviceManager(DeviceRepository())
+        mock_ws_manager = MagicMock()
+
+        with caplog.at_level(logging.DEBUG):
+            wire_device_events(device_manager, mock_ws_manager)
+            activity_observer = WebSocketActivityObserver(mock_ws_manager)
+            state_observer = WebSocketStateChangeObserver(mock_ws_manager)
+
+        assert activity_observer._task_tracker is not state_observer._task_tracker
+        diagnostics = [
+            record
+            for record in caplog.records
+            if "normal task completion is its drain boundary" in record.getMessage()
+        ]
+        assert len(diagnostics) == 3
+
+    async def test_wire_device_events_uses_exact_labels_and_payloads(self):
+        """Test device lifecycle callbacks retain labels and broadcast arguments."""
+        device_manager = DeviceManager(DeviceRepository())
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_added = AsyncMock()
+        mock_ws_manager.broadcast_device_removed = AsyncMock()
+        tracker = RecordingTaskTracker()
+        wire_device_events(device_manager, mock_ws_manager, task_tracker=tracker)
+
+        device = create_color_light("d073d5112233")
+        assert device_manager.add_device(device)
+        assert await device_manager.remove_device(device.state.serial)
+
+        assert tracker.operations == [
+            "device-added:d073d5112233",
+            "device-removed:d073d5112233",
+        ]
+        added_payload = mock_ws_manager.broadcast_device_added.call_args.args[0]
+        assert added_payload["serial"] == "d073d5112233"
+        mock_ws_manager.broadcast_device_removed.assert_called_once_with("d073d5112233")
 
     def test_wire_device_events_with_non_device_manager(self):
         """Test wire_device_events handles non-DeviceManager instances."""
@@ -266,8 +534,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_on_packet_received(self):
         """Test on_packet_received broadcasts activity."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator.devices import PacketEvent
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketActivityObserver,
@@ -277,7 +543,10 @@ class TestEventBridge:
         mock_ws_manager.broadcast_activity = AsyncMock()
         mock_inner = MagicMock()
 
-        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketActivityObserver(
+            mock_ws_manager, mock_inner, task_tracker=tracker
+        )
 
         event = PacketEvent(
             timestamp=1704067200.0,
@@ -288,18 +557,23 @@ class TestEventBridge:
             addr="192.168.1.100:56700",
         )
 
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
-            observer.on_packet_received(event)
+        observer.on_packet_received(event)
 
-            mock_inner.on_packet_received.assert_called_once_with(event)
-            mock_schedule.assert_called_once()
+        mock_inner.on_packet_received.assert_called_once_with(event)
+        assert tracker.operations == ["activity:rx:2"]
+        mock_ws_manager.broadcast_activity.assert_called_once_with(
+            {
+                "timestamp": 1704067200.0,
+                "direction": "rx",
+                "packet_type": 2,
+                "packet_name": "GetService",
+                "target": "d073d5000001",
+                "addr": "192.168.1.100:56700",
+            }
+        )
 
     def test_websocket_activity_observer_on_packet_sent(self):
         """Test on_packet_sent broadcasts activity."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator.devices import PacketEvent
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketActivityObserver,
@@ -309,7 +583,10 @@ class TestEventBridge:
         mock_ws_manager.broadcast_activity = AsyncMock()
         mock_inner = MagicMock()
 
-        observer = WebSocketActivityObserver(mock_ws_manager, mock_inner)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketActivityObserver(
+            mock_ws_manager, mock_inner, task_tracker=tracker
+        )
 
         event = PacketEvent(
             timestamp=1704067200.0,
@@ -320,13 +597,20 @@ class TestEventBridge:
             addr="192.168.1.100:56700",
         )
 
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
-            observer.on_packet_sent(event)
+        observer.on_packet_sent(event)
 
-            mock_inner.on_packet_sent.assert_called_once_with(event)
-            mock_schedule.assert_called_once()
+        mock_inner.on_packet_sent.assert_called_once_with(event)
+        assert tracker.operations == ["activity:tx:3"]
+        mock_ws_manager.broadcast_activity.assert_called_once_with(
+            {
+                "timestamp": 1704067200.0,
+                "direction": "tx",
+                "packet_type": 3,
+                "packet_name": "StateService",
+                "device": "d073d5000001",
+                "addr": "192.168.1.100:56700",
+            }
+        )
 
     def test_wire_device_state_events_with_non_device_manager(self):
         """Test wire_device_state_events handles non-DeviceManager instances."""
@@ -403,8 +687,6 @@ class TestEventBridge:
 
     def test_state_change_observer_invokes_broadcast(self, server):
         """Test WebSocketStateChangeObserver broadcasts device updates."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketStateChangeObserver,
         )
@@ -412,21 +694,95 @@ class TestEventBridge:
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
 
-        observer = WebSocketStateChangeObserver(mock_ws_manager)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketStateChangeObserver(mock_ws_manager, task_tracker=tracker)
 
         device = create_color_light("d073d5000001")
 
-        # Mock the async scheduling
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
-            observer.on_state_changed(device, 102, 1000)
+        observer.on_state_changed(device, 102, 1000)
 
-            # Verify _schedule_async was called with the broadcast coroutine
-            mock_schedule.assert_called_once()
-            args = mock_schedule.call_args[0]
-            # The first arg should be a coroutine
-            assert args[0] is not None
+        assert tracker.operations == ["device-updated:d073d5000001:102"]
+        serial, changes = mock_ws_manager.broadcast_device_updated.call_args.args
+        assert serial == "d073d5000001"
+        assert changes["category"] == "color"
+        assert changes["duration_ms"] == 1000
+
+    @pytest.mark.asyncio
+    async def test_device_added_bridge_survives_forced_collection(self):
+        """Test the real tracker strongly retains a blocked device broadcast."""
+        started = asyncio.Event()
+        release = asyncio.Event()
+        completed: list[str] = []
+
+        async def broadcast_device_added(payload: dict[str, Any]) -> None:
+            started.set()
+            await release.wait()
+            completed.append(payload["serial"])
+
+        device_manager = DeviceManager(DeviceRepository())
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_device_added = broadcast_device_added
+        tracker = BackgroundTaskTracker("test-websocket-event-bridge")
+        wire_device_events(device_manager, mock_ws_manager, task_tracker=tracker)
+
+        assert device_manager.add_device(create_color_light("d073d5112233"))
+        await started.wait()
+        gc.collect()
+        assert tracker.pending_count == 1
+
+        release.set()
+        await tracker.shutdown()
+        assert completed == ["d073d5112233"]
+        assert tracker.pending_count == 0
+
+    @pytest.mark.asyncio
+    async def test_activity_delegate_precedes_schedule_and_failure_is_logged_once(
+        self, caplog
+    ):
+        """Test ordering and one observed failure for an activity broadcast."""
+        delegated = False
+        failed = asyncio.Event()
+
+        class InnerObserver:
+            def on_packet_received(self, event: PacketEvent) -> None:
+                nonlocal delegated
+                delegated = True
+
+            def on_packet_sent(self, event: PacketEvent) -> None:
+                pass
+
+        async def failing_broadcast(payload: dict[str, Any]) -> None:
+            assert delegated
+            failed.set()
+            raise RuntimeError("bridge broadcast failed")
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_activity = failing_broadcast
+        tracker = BackgroundTaskTracker("test-websocket-event-bridge")
+        observer = WebSocketActivityObserver(
+            mock_ws_manager, InnerObserver(), task_tracker=tracker
+        )
+        event = PacketEvent(
+            timestamp=1704067200.0,
+            direction="rx",
+            packet_type=2,
+            packet_name="GetService",
+            target="d073d5000001",
+            addr="192.168.1.100:56700",
+        )
+
+        with caplog.at_level(logging.ERROR):
+            observer.on_packet_received(event)
+            await failed.wait()
+            await tracker.shutdown()
+
+        failures = [
+            record
+            for record in caplog.records
+            if "activity:rx:2" in record.getMessage()
+            and "Background task failed" in record.getMessage()
+        ]
+        assert len(failures) == 1
 
     def test_state_change_observer_category_detection(self):
         """Test WebSocketStateChangeObserver correctly categorizes packet types."""
@@ -462,8 +818,6 @@ class TestEventBridge:
 
     def test_state_change_observer_with_zone_device(self):
         """Test WebSocketStateChangeObserver broadcasts zone changes."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator.factories import create_multizone_light
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketStateChangeObserver,
@@ -472,23 +826,18 @@ class TestEventBridge:
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
 
-        observer = WebSocketStateChangeObserver(mock_ws_manager)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketStateChangeObserver(mock_ws_manager, task_tracker=tracker)
 
         # Create a multizone device
         device = create_multizone_light("d073d5000001", zone_count=16)
 
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
-            # Trigger zone change (SetColorZones packet type 501)
-            observer.on_state_changed(device, 501, 500)
-
-            mock_schedule.assert_called_once()
+        # Trigger zone change (SetColorZones packet type 501)
+        observer.on_state_changed(device, 501, 500)
+        assert tracker.operations == ["device-updated:d073d5000001:501"]
 
     def test_state_change_observer_with_tile_device(self):
         """Test WebSocketStateChangeObserver broadcasts tile changes."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator.factories import create_tile_device
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketStateChangeObserver,
@@ -497,23 +846,18 @@ class TestEventBridge:
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
 
-        observer = WebSocketStateChangeObserver(mock_ws_manager)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketStateChangeObserver(mock_ws_manager, task_tracker=tracker)
 
         # Create a tile device
         device = create_tile_device("d073d5000001")
 
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async"
-        ) as mock_schedule:
-            # Trigger tile change (Set64 packet type 715)
-            observer.on_state_changed(device, 715, 500)
-
-            mock_schedule.assert_called_once()
+        # Trigger tile change (Set64 packet type 715)
+        observer.on_state_changed(device, 715, 500)
+        assert tracker.operations == ["device-updated:d073d5000001:715"]
 
     def test_state_change_observer_with_metadata_change(self):
         """Test WebSocketStateChangeObserver broadcasts metadata changes."""
-        from unittest.mock import AsyncMock, MagicMock, patch
-
         from lifx_emulator.factories import create_color_light
         from lifx_emulator_app.api.services.event_bridge import (
             WebSocketStateChangeObserver,
@@ -522,21 +866,14 @@ class TestEventBridge:
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
 
-        observer = WebSocketStateChangeObserver(mock_ws_manager)
+        tracker = RecordingTaskTracker()
+        observer = WebSocketStateChangeObserver(mock_ws_manager, task_tracker=tracker)
 
         device = create_color_light("d073d5000001")
         device.state.label = "New Label"
 
-        def close_coro(coro):
-            """Consume the coroutine to avoid RuntimeWarning."""
-            coro.close()
-
-        with patch(
-            "lifx_emulator_app.api.services.event_bridge._schedule_async",
-            side_effect=close_coro,
-        ):
-            # Trigger metadata change (SetLabel packet type 24)
-            observer.on_state_changed(device, 24, 0)
+        # Trigger metadata change (SetLabel packet type 24)
+        observer.on_state_changed(device, 24, 0)
 
         # AsyncMock records the call when invoked, before the coroutine
         # is awaited, so we can assert on the arguments directly.
@@ -547,6 +884,7 @@ class TestEventBridge:
         assert changes["label"] == "New Label"
         assert "group_label" in changes
         assert "location_label" in changes
+        assert tracker.operations == ["device-updated:d073d5000001:24"]
 
 
 class TestStatsBroadcaster:

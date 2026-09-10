@@ -30,6 +30,7 @@ from lifx_emulator_app.api.routers.websocket import create_websocket_router
 from lifx_emulator_app.api.services.event_bridge import (
     StatsBroadcaster,
     WebSocketActivityObserver,
+    WebSocketEventQueue,
     WebSocketStateChangeObserver,
     wire_device_events,
     wire_device_state_events,
@@ -66,14 +67,23 @@ def create_api_app(server: EmulatedLifxServer) -> FastAPI:
     ws_manager = WebSocketManager(server)
     stats_broadcaster = StatsBroadcaster(server, ws_manager)
 
+    def record_bridge_drop() -> None:
+        server.websocket_events_dropped += 1
+
+    background_task_tracker = WebSocketEventQueue(on_drop=record_bridge_drop)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         """Manage application lifecycle - start/stop background tasks."""
-        # Startup: start the stats broadcaster
-        stats_broadcaster.start()
-        yield
-        # Shutdown: stop the stats broadcaster
-        await stats_broadcaster.stop()
+        background_task_tracker.start()
+        try:
+            stats_broadcaster.start()
+            yield
+        finally:
+            try:
+                await stats_broadcaster.stop()
+            finally:
+                await background_task_tracker.shutdown(timeout=5.0)
 
     app = FastAPI(
         lifespan=lifespan,
@@ -203,18 +213,27 @@ All server messages follow this format:
 
     # Store WebSocket manager in app state for access by event handlers
     app.state.ws_manager = ws_manager
+    app.state.background_task_tracker = background_task_tracker
 
     # Wire device lifecycle events to WebSocket broadcasts
-    wire_device_events(server._device_manager, ws_manager)
+    wire_device_events(
+        server._device_manager,
+        ws_manager,
+        task_tracker=background_task_tracker,
+    )
 
     # Wire device state change events to WebSocket broadcasts
-    state_observer = WebSocketStateChangeObserver(ws_manager)
+    state_observer = WebSocketStateChangeObserver(
+        ws_manager, task_tracker=background_task_tracker
+    )
     wire_device_state_events(server._device_manager, state_observer)
 
     # Wrap the activity observer with WebSocket broadcasting
     # This preserves activity logging while adding real-time WebSocket updates
     server.activity_observer = WebSocketActivityObserver(
-        ws_manager, server.activity_observer
+        ws_manager,
+        server.activity_observer,
+        task_tracker=background_task_tracker,
     )
 
     # Include routers with server dependency injection

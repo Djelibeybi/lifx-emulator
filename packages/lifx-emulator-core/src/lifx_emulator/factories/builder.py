@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from typing import TYPE_CHECKING
 
@@ -45,6 +46,7 @@ logger = logging.getLogger(__name__)
 # Device.StateLabel packs a 32-byte label; longer product names would otherwise
 # be truncated on the wire, dropping the serial suffix that keeps labels unique.
 _LABEL_MAX_BYTES = 32
+_SERIAL_RE = re.compile(r"^[0-9a-fA-F]{12}$")
 
 
 def _default_label(product_name: str, serial: str) -> str:
@@ -115,6 +117,7 @@ class DeviceBuilder:
         self._color: LightHsbk | None = None
         self._advertised_services: list[tuple[int, int]] | None = None
         self._connectivity: Connectivity | str | None = None
+        self._persist_initial_state = False
 
         # Helper services
         self._serial_generator = SerialGenerator()
@@ -130,7 +133,9 @@ class DeviceBuilder:
         Returns:
             Self for method chaining
         """
-        self._serial = serial
+        if _SERIAL_RE.fullmatch(serial) is None:
+            raise ValueError("Serial must be exactly 12 ASCII hexadecimal characters")
+        self._serial = serial.lower()
         return self
 
     def with_zone_count(self, zone_count: int) -> DeviceBuilder:
@@ -206,6 +211,11 @@ class DeviceBuilder:
             Self for method chaining
         """
         self._storage = storage
+        return self
+
+    def with_initial_persistence(self, enabled: bool) -> DeviceBuilder:
+        """Control whether construction immediately schedules an initial save."""
+        self._persist_initial_state = enabled
         return self
 
     def with_scenario_manager(
@@ -441,7 +451,10 @@ class DeviceBuilder:
 
         # 12. Create device
         return EmulatedLifxDevice(
-            state, storage=self._storage, scenario_manager=self._scenario_manager
+            state,
+            storage=self._storage,
+            scenario_manager=self._scenario_manager,
+            persist_initial_state=self._persist_initial_state,
         )
 
     def _apply_product_defaults(self):

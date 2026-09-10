@@ -22,11 +22,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Transport
 
-- [ ] **NET-01**: `EmulatedLifxServer` binds a second `AF_INET6` UDP socket with `IPV6_V6ONLY=1` set before bind, defaulting to `::1` with a configurable address, alongside the unchanged IPv4 socket, on Linux, macOS and Windows
-- [ ] **NET-02**: Every received datagram carries its address family from the protocol callback through `handle_packet()` into `DeviceManager` target resolution, without the server reaching into device private methods
-- [ ] **NET-03**: A Thread device processes a packet only if it arrived on the IPv6 socket and is addressed to its serial with `tagged=0`; any other packet aimed at it is dropped before acknowledgement, response, statistics or activity-log side effects fire (debug logging only)
-- [ ] **NET-04**: A WiFi device answers on both the IPv4 and IPv6 sockets, so existing IPv6 e2e tests keep passing
-- [ ] **NET-05**: The stock server exposes its IPv6 endpoint (bind address and port) so `lifx-async` can delete its `_Ipv6EmulatedLifxServer` conftest subclass
+- [x] **NET-01**: `EmulatedLifxServer` binds a second `AF_INET6` UDP socket with `IPV6_V6ONLY=1` set before bind, defaulting to `::1` with a configurable address, alongside the unchanged IPv4 socket, on Linux, macOS and Windows
+- [x] **NET-02**: Every received datagram carries its address family from the protocol callback through `handle_packet()` into `DeviceManager` target resolution, without the server reaching into device private methods
+- [x] **NET-03**: A Thread device processes a packet only if it arrived on the IPv6 socket and is addressed to its serial with `tagged=0`; any other packet aimed at it is dropped before acknowledgement, response, statistics or activity-log side effects fire (debug logging only)
+- [x] **NET-04**: A WiFi device answers on both the IPv4 and IPv6 sockets, so existing IPv6 e2e tests keep passing
+- [x] **NET-05**: The stock server exposes its IPv6 endpoint (bind address and port) so `lifx-async` can delete its `_Ipv6EmulatedLifxServer` conftest subclass
 
 ### mDNS Responder
 
@@ -59,8 +59,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Hygiene
 
-- [ ] **HYG-01**: Fire-and-forget tasks in `server.py` and `event_bridge.py` are tracked with strong references and done callbacks, following the existing `_track_save_task` pattern
-- [ ] **HYG-02**: The activity-log serial truncation at `server.py:375` (`rstrip("0000")`) is fixed to use the first six target bytes, with a regression test for a serial ending in zero
+- [x] **HYG-01**: Fire-and-forget tasks in `server.py` and `event_bridge.py` are tracked with strong references and done callbacks, following the existing `_track_save_task` pattern
+- [x] **HYG-02**: The activity-log serial truncation at `server.py:375` (`rstrip("0000")`) is fixed to use the first six target bytes, with a regression test for a serial ending in zero
 - [ ] **HYG-03**: The CLI `run()` coroutine is decomposed into device-construction, storage, server-start and shutdown helpers with unchanged behaviour before any new CLI flags are added
 
 ### Verification
@@ -122,11 +122,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HDR-01 | Phase 1 | Complete |
 | HDR-02 | Phase 1 | Complete |
 | HDR-03 | Phase 1 | Complete |
-| NET-01 | Phase 2 | Pending |
-| NET-02 | Phase 2 | Pending |
-| NET-03 | Phase 2 | Pending |
-| NET-04 | Phase 2 | Pending |
-| NET-05 | Phase 2 | Pending |
+| NET-01 | Phase 2 | Complete |
+| NET-02 | Phase 2 | Complete |
+| NET-03 | Phase 2 | Complete |
+| NET-04 | Phase 2 | Complete |
+| NET-05 | Phase 2 | Complete |
 | MDNS-01 | Phase 3 | Pending |
 | MDNS-02 | Phase 3 | Pending |
 | MDNS-03 | Phase 3 | Pending |
@@ -147,8 +147,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-01 | Phase 5 | Pending |
 | API-02 | Phase 5 | Pending |
 | API-03 | Phase 5 | Pending |
-| HYG-01 | Phase 2 | Pending |
-| HYG-02 | Phase 2 | Pending |
+| HYG-01 | Phase 2 | Complete |
+| HYG-02 | Phase 2 | Complete |
 | HYG-03 | Phase 4 | Pending |
 | VER-01 | Phase 6 | Pending |
 | VER-02 | Phase 6 | Pending |

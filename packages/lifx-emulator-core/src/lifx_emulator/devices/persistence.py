@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -18,10 +19,19 @@ from lifx_emulator.devices.state_serializer import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
+_SHUTDOWN_FLUSH_ATTEMPTS = 2
 
 # Device serials are 12-char hex strings (6-byte MAC). Validating against this
 # pattern before using a serial in a filesystem path prevents path traversal.
 _SERIAL_RE = re.compile(r"^[0-9a-fA-F]{12}$")
+
+
+class DevicePersistenceError(RuntimeError):
+    """Raised when persistent device state cannot be committed safely."""
+
+    def __init__(self, failed_serials: list[str], message: str):
+        self.failed_serials = tuple(failed_serials)
+        super().__init__(message)
 
 
 class DevicePersistenceAsyncFile:
@@ -92,9 +102,15 @@ class DevicePersistenceAsyncFile:
         Raises:
             ValueError: If the serial is not a valid 12-char hex string
         """
-        if not _SERIAL_RE.match(serial):
+        if not _SERIAL_RE.fullmatch(serial):
             raise ValueError(f"Invalid device serial: {serial!r}")
-        return self.storage_dir / f"{serial}.json"
+        # Resolve links as well as traversal components before enforcing the
+        # storage boundary. A valid serial alone cannot constrain a symlink.
+        root = os.path.realpath(self.storage_dir)
+        path = os.path.realpath(os.path.join(root, f"{serial}.json"))
+        if not path.startswith(root + os.sep):
+            raise ValueError("Device state path escapes the storage directory")
+        return Path(path)
 
     async def save_device_state(self, device_state: Any) -> None:
         """Queue device state for saving (non-blocking).
@@ -154,38 +170,117 @@ class DevicePersistenceAsyncFile:
             self.pending.clear()
             self.flushes += 1
 
-        # Execute batch write in background thread
-        loop = asyncio.get_running_loop()
-        try:
-            await loop.run_in_executor(self.executor, self._batch_write, writes)
-            self.writes_executed += len(writes)
-            logger.debug("Flushed %s device states to disk", len(writes))
-        except Exception as e:
-            logger.error("Error flushing device states: %s", e, exc_info=True)
+            # Keep the lock until the captured batch has finished. Per-device
+            # deletion uses the same lock, so an older batch can never write a
+            # device back after its deletion has committed.
+            loop = asyncio.get_running_loop()
+            flush_future = loop.run_in_executor(
+                self.executor, self._batch_write, writes
+            )
+            failed = await self._await_indivisible(flush_future, "batch state flush")
+            self.writes_executed += len(writes) - len(failed)
+            for serial, state_dict in failed:
+                self.pending.setdefault(serial, state_dict)
 
-    def _batch_write(self, writes: list[tuple[str, dict]]) -> None:
+            if failed:
+                failed_serials = [serial for serial, _state in failed]
+                raise DevicePersistenceError(
+                    failed_serials,
+                    "Failed to flush device states for: "
+                    + ", ".join(sorted(failed_serials)),
+                )
+            logger.debug("Flushed %s device states to disk", len(writes))
+
+    async def _await_indivisible(
+        self, future: asyncio.Future[Any], operation: str
+    ) -> Any:
+        """Wait for executor work to finish even if its caller is cancelled."""
+        cancellation_requested = False
+        while True:
+            try:
+                result = await asyncio.shield(future)
+                if cancellation_requested:
+                    logger.debug("Completed %s after cancellation", operation)
+                return result
+            except asyncio.CancelledError:
+                cancellation_requested = True
+
+    def _batch_write(self, writes: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
         """Synchronous batch write (runs in executor).
 
         Args:
             writes: List of (serial, state_dict) tuples to write
         """
+        failed_writes = []
         for serial, state_dict in writes:
             try:
-                path = self._device_path(serial)
-            except ValueError as e:
-                logger.error("Skipping write for invalid serial: %s", e)
-                continue
+                self._write_state(serial, state_dict)
+            except DevicePersistenceError as e:
+                failed_writes.append((serial, state_dict))
+                logger.error("%s", e)
+        return failed_writes
 
-            # Atomic write: write to temp, then rename
-            temp_path = path.with_suffix(".json.tmp")
+    def _write_state(self, serial: str, state_dict: dict) -> None:
+        """Atomically write one serialised state or raise a typed error."""
+        try:
+            path = self._device_path(serial)
+        except ValueError as e:
+            raise DevicePersistenceError(
+                [serial], f"Cannot write state for device {serial}: {e}"
+            ) from e
+
+        temp_path = path.with_suffix(".json.tmp")
+        try:
+            with open(temp_path, "w") as file_handle:
+                json.dump(state_dict, file_handle, indent=2)
+            temp_path.replace(path)
+        except Exception as e:
             try:
-                with open(temp_path, "w") as f:
-                    json.dump(state_dict, f, indent=2)
-                temp_path.replace(path)  # Atomic on POSIX
-            except Exception as e:
-                logger.error("Failed to write state for device %s: %s", serial, e)
                 if temp_path.exists():
                     temp_path.unlink()
+            except OSError:
+                logger.exception("Failed to remove temporary state file %s", temp_path)
+            raise DevicePersistenceError(
+                [serial], f"Failed to write state for device {serial}: {e}"
+            ) from e
+
+    async def commit_device_state(self, device_state: Any) -> None:
+        """Write a candidate without queueing failed, uncommitted mutations."""
+        serial = device_state.serial
+        state_dict = serialize_device_state(device_state)
+        async with self.lock:
+            future = asyncio.get_running_loop().run_in_executor(
+                self.executor, self._write_state, serial, state_dict
+            )
+            await self._await_indivisible(future, f"state commit for {serial}")
+            # Only a successful commit supersedes previously queued state.
+            self.pending.pop(serial, None)
+            self.writes_queued += 1
+            self.writes_executed += 1
+            self.flushes += 1
+
+    async def flush_device_state(self, serial: str) -> bool:
+        """Flush one queued state after all earlier captured batches finish."""
+        async with self.lock:
+            state_dict = self.pending.pop(serial, None)
+            if state_dict is None:
+                return False
+
+            loop = asyncio.get_running_loop()
+            write_future = loop.run_in_executor(
+                self.executor, self._write_state, serial, state_dict
+            )
+            try:
+                await self._await_indivisible(
+                    write_future, f"state commit for {serial}"
+                )
+            except BaseException:
+                self.pending.setdefault(serial, state_dict)
+                raise
+
+            self.writes_executed += 1
+            self.flushes += 1
+            return True
 
     def load_device_state(self, serial: str) -> dict[str, Any] | None:
         """Load device state from disk (synchronous).
@@ -225,18 +320,93 @@ class DevicePersistenceAsyncFile:
             logger.error("Failed to load state for device %s: %s", serial, e)
             return None
 
-    def delete_device_state(self, serial: str) -> None:
-        """Delete device state from disk (synchronous).
+    async def delete_device_state(self, serial: str) -> bool:
+        """Delete queued and persisted device state as one ordered operation.
 
         Deletion is rare and blocking is acceptable.
 
         Args:
             serial: Device serial
         """
-        self._sync_delete(serial)
+        async with self.lock:
+            self.pending.pop(serial, None)
+            return self._sync_delete(serial)
 
-    def _sync_delete(self, serial: str) -> None:
-        """Synchronous delete (runs in executor).
+    async def delete_device_states(self, serials: list[str]) -> int:
+        """Delete selected states transactionally while writes are fenced."""
+        async with self.lock:
+            pending = {
+                serial: self.pending.pop(serial)
+                for serial in serials
+                if serial in self.pending
+            }
+            loop = asyncio.get_running_loop()
+            try:
+                future = loop.run_in_executor(
+                    self.executor,
+                    self._sync_delete_transaction,
+                    serials,
+                )
+                return await self._await_indivisible(future, "bulk state deletion")
+            except BaseException:
+                # No newer snapshots can arrive while the lock is held.
+                self.pending.update(pending)
+                raise
+
+    def _sync_delete_transaction(self, serials: list[str]) -> int:
+        """Stage selected files, roll back failed staging, then unlink."""
+        paths: list[tuple[str, Path]] = []
+        for serial in serials:
+            try:
+                path = self._device_path(serial)
+            except ValueError as e:
+                raise DevicePersistenceError(
+                    [serial], f"Cannot delete state for device {serial}: {e}"
+                ) from e
+            if path.exists() and not path.is_file():
+                raise DevicePersistenceError(
+                    [serial], f"State path for device {serial} is not a file"
+                )
+            paths.append((serial, path))
+
+        staged: list[tuple[str, Path, Path]] = []
+        failed_serial = "unknown"
+        try:
+            for serial, path in paths:
+                failed_serial = serial
+                if not path.exists():
+                    continue
+                staging_path = path.with_suffix(".json.deleting")
+                if staging_path.exists():
+                    raise OSError(f"staging path already exists: {staging_path}")
+                path.replace(staging_path)
+                staged.append((serial, path, staging_path))
+        except OSError as e:
+            rollback_failures: list[str] = []
+            for serial, path, staging_path in reversed(staged):
+                try:
+                    staging_path.replace(path)
+                except OSError:
+                    rollback_failures.append(serial)
+                    logger.exception("Failed to roll back staged state for %s", serial)
+            failed = [failed_serial]
+            failed.extend(rollback_failures)
+            raise DevicePersistenceError(
+                failed,
+                f"Failed to stage device-state deletion for {failed_serial}: {e}",
+            ) from e
+
+        for serial, _path, staging_path in staged:
+            try:
+                staging_path.unlink()
+            except OSError:
+                # Staging completed, so the transaction is committed. A leftover
+                # non-JSON staging file cannot resurrect a device on restart.
+                logger.exception("Failed to remove staged state for %s", serial)
+        return len(staged)
+
+    def _sync_delete(self, serial: str) -> bool:
+        """Delete one persisted state file while the caller holds ``lock``.
 
         Args:
             serial: Device serial
@@ -244,15 +414,20 @@ class DevicePersistenceAsyncFile:
         try:
             device_path = self._device_path(serial)
         except ValueError as e:
-            logger.error("Cannot delete state: %s", e)
-            return
+            raise DevicePersistenceError(
+                [serial], f"Cannot delete state for device {serial}: {e}"
+            ) from e
 
-        if device_path.exists():
-            try:
+        try:
+            if device_path.exists():
                 device_path.unlink()
                 logger.info("Deleted saved state for device %s", serial)
-            except Exception as e:
-                logger.error("Failed to delete state for device %s: %s", serial, e)
+                return True
+        except OSError as e:
+            raise DevicePersistenceError(
+                [serial], f"Failed to delete state for device {serial}: {e}"
+            ) from e
+        return False
 
     def list_devices(self) -> list[str]:
         """List all devices with saved state (synchronous, safe to call anytime).
@@ -275,16 +450,22 @@ class DevicePersistenceAsyncFile:
             Number of devices deleted
         """
         deleted_count = 0
+        failed_serials: list[str] = []
         for path in self.storage_dir.glob("*.json"):
             # Skip temp files
             if path.suffix == ".tmp":
                 continue
             try:
-                path.unlink()
-                deleted_count += 1
-                logger.info("Deleted saved state for device %s", path.stem)
-            except Exception as e:
-                logger.error("Failed to delete state for device %s: %s", path.stem, e)
+                deleted_count += int(self._sync_delete(path.stem))
+            except DevicePersistenceError:
+                failed_serials.append(path.stem)
+
+        if failed_serials:
+            serials = ", ".join(sorted(failed_serials))
+            raise DevicePersistenceError(
+                failed_serials,
+                f"Failed to delete device states for: {serials}",
+            )
 
         logger.info("Deleted %s device state(s) from persistent storage", deleted_count)
         return deleted_count
@@ -297,27 +478,42 @@ class DevicePersistenceAsyncFile:
         """
         logger.info("Shutting down async storage...")
 
-        # Cancel pending flush task
-        if self.flush_task and not self.flush_task.done():
-            self.flush_task.cancel()
-            try:
-                await self.flush_task
-            except asyncio.CancelledError:
-                pass
+        try:
+            # Cancel pending debounce delay. An in-flight executor flush treats
+            # cancellation as deferred until its indivisible write completes.
+            if self.flush_task and not self.flush_task.done():
+                self.flush_task.cancel()
+                try:
+                    await self.flush_task
+                except (asyncio.CancelledError, DevicePersistenceError):
+                    pass
 
-        # Flush any remaining pending writes
-        await self._flush()
+            if self.background_tasks:
+                logger.debug(
+                    "Waiting for %s background tasks...", len(self.background_tasks)
+                )
+                await asyncio.gather(*self.background_tasks, return_exceptions=True)
 
-        # Wait for all background tasks to complete
-        if self.background_tasks:
-            logger.debug(
-                f"Waiting for {len(self.background_tasks)} background tasks..."
-            )
-            await asyncio.gather(*self.background_tasks, return_exceptions=True)
+            last_error: DevicePersistenceError | None = None
+            for _attempt in range(_SHUTDOWN_FLUSH_ATTEMPTS):
+                if not self.pending:
+                    break
+                try:
+                    await self._flush()
+                except DevicePersistenceError as error:
+                    last_error = error
 
-        # Shutdown executor (non-blocking to avoid hanging on Windows)
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, self.executor.shutdown, True)
+            if self.pending:
+                failed_serials = sorted(self.pending)
+                raise DevicePersistenceError(
+                    failed_serials,
+                    "Persistent state remained unwritten after shutdown retries: "
+                    + ", ".join(failed_serials),
+                ) from last_error
+        finally:
+            # Shutdown executor (non-blocking to avoid hanging on Windows)
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, self.executor.shutdown, True)
 
         logger.info("Async storage shutdown complete")
 

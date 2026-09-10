@@ -1,7 +1,15 @@
 """Unit tests for EmulatedLifxDevice and device packet handlers."""
 
-import time
+import asyncio
+import gc
+import logging
+import threading
+import warnings
+from unittest.mock import Mock, patch
 
+import pytest
+from lifx_emulator.devices.manager import DeviceManager
+from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import create_color_light, create_infrared_light
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, Light, MultiZone, Tile
@@ -12,6 +20,7 @@ from lifx_emulator.protocol.protocol_types import (
     MultiZoneApplicationRequest,
     TileBufferRect,
 )
+from lifx_emulator.repositories import DeviceRepository
 
 
 class TestDeviceState:
@@ -45,6 +54,22 @@ class TestDeviceState:
         assert len(target) == 8
         assert target == bytes.fromhex("d073d5000001") + b"\x00\x00"
 
+    def test_factory_canonicalises_uppercase_serial(self):
+        """Public factories store one lowercase wire identity."""
+        device = create_color_light("D073D50000AB")
+
+        assert device.state.serial == "d073d50000ab"
+        assert device.state.get_target_bytes() == bytes.fromhex("d073d50000ab0000")
+
+    @pytest.mark.parametrize(
+        "serial",
+        ["d073d50000a", "d073d50000aabb", "d073d50000ag", "d073d50000äb"],
+    )
+    def test_factory_rejects_noncanonical_serial(self, serial):
+        """Public factories reject lengths and characters without a wire identity."""
+        with pytest.raises(ValueError, match="12 ASCII hexadecimal"):
+            create_color_light(serial)
+
     def test_color_default(self):
         """Test default color HSBK values."""
         device = create_color_light("d073d5000001")
@@ -63,14 +88,142 @@ class TestEmulatedLifxDevice:
         assert color_device.state.has_color is True
         assert color_device.scenario_manager is not None
 
-    def test_device_uptime_increases(self, color_device):
-        """Test device uptime calculation."""
-        uptime1 = color_device.get_uptime_ns()
-        time.sleep(0.01)  # 10ms
-        uptime2 = color_device.get_uptime_ns()
-        assert uptime2 > uptime1
-        # Should be at least 10 million nanoseconds (10ms)
-        assert (uptime2 - uptime1) >= 10_000_000
+    def test_device_uptime_uses_monotonic_nanoseconds(self):
+        """Device uptime is elapsed monotonic time without sleeping."""
+        with patch(
+            "lifx_emulator.devices.device.time.monotonic_ns",
+            side_effect=[1_000_000, 11_000_000],
+        ):
+            device = create_color_light("d073d5000001")
+            assert device.get_uptime_ns() == 10_000_000
+
+
+class TestDeviceBackgroundPersistence:
+    """Test device-owned scheduling of persistence work."""
+
+    async def test_save_state_is_retained_and_executes_once(self):
+        """A pending save survives collection and executes exactly once."""
+        started = asyncio.Event()
+        release = asyncio.Event()
+        completed = asyncio.Event()
+        saved_states = []
+        storage = Mock()
+        storage.load_device_state.return_value = None
+
+        async def save_device_state(state):
+            saved_states.append(state)
+            started.set()
+            await release.wait()
+            completed.set()
+
+        storage.save_device_state = save_device_state
+        device = create_color_light("d073d5000010", storage=storage)
+        DeviceManager(DeviceRepository()).add_device(device)
+
+        await started.wait()
+        gc.collect()
+
+        assert not hasattr(device, "background_save_tasks")
+        assert device._background_tasks.pending_count == 1
+
+        release.set()
+        await completed.wait()
+        while device._background_tasks.pending_count:
+            await asyncio.sleep(0)
+
+        assert saved_states == [device.state]
+        assert device._background_tasks.pending_count == 0
+
+    async def test_failed_save_is_consumed_and_logged_once(self, caplog):
+        """A persistence failure is observed once with its serial-bearing label."""
+        attempted = asyncio.Event()
+        storage = Mock()
+        storage.load_device_state.return_value = None
+
+        async def save_device_state(_state):
+            attempted.set()
+            raise OSError("persistence failed")
+
+        storage.save_device_state = save_device_state
+        with caplog.at_level(logging.ERROR):
+            device = create_color_light("d073d5000011", storage=storage)
+            DeviceManager(DeviceRepository()).add_device(device)
+            await attempted.wait()
+            while device._background_tasks.pending_count:
+                await asyncio.sleep(0)
+
+        failures = [
+            record
+            for record in caplog.records
+            if "Background task failed" in record.getMessage()
+        ]
+        assert len(failures) == 1
+        assert "save-device:d073d5000011" in failures[0].getMessage()
+        assert device._background_tasks.pending_count == 0
+
+    def test_save_without_running_loop_closes_coroutine(self, caplog):
+        """A synchronous device construction refuses persistence without a warning."""
+        storage = Mock()
+        storage.load_device_state.return_value = None
+
+        async def save_device_state(_state):
+            return None
+
+        storage.save_device_state = save_device_state
+        with (
+            caplog.at_level(logging.ERROR),
+            warnings.catch_warnings(record=True) as caught,
+        ):
+            warnings.simplefilter("always", RuntimeWarning)
+            device = create_color_light("d073d5000012", storage=storage)
+            DeviceManager(DeviceRepository()).add_device(device)
+            gc.collect()
+
+        runtime_warnings = [
+            warning
+            for warning in caught
+            if issubclass(warning.category, RuntimeWarning)
+        ]
+        assert runtime_warnings == []
+        assert device._background_tasks.pending_count == 0
+        assert "save-device:d073d5000012" in caplog.text
+
+    async def test_cancelled_durable_write_keeps_memory_and_disk_consistent(
+        self, tmp_path
+    ):
+        """Cancellation waits for an in-flight disk commit before publishing state."""
+        storage = DevicePersistenceAsyncFile(tmp_path, debounce_ms=10_000)
+        device = create_color_light("d073d5000013")
+        device.storage = storage
+        write_started = threading.Event()
+        release_write = threading.Event()
+        original_write = storage._write_state
+
+        def blocking_write(serial, state_dict):
+            write_started.set()
+            release_write.wait(timeout=2)
+            original_write(serial, state_dict)
+
+        try:
+            with patch.object(storage, "_write_state", side_effect=blocking_write):
+                task = device.apply_state_mutation(
+                    lambda state: setattr(state, "power_level", 0),
+                    change_type=-1,
+                    durable=True,
+                )
+                assert task is not None
+                assert await asyncio.to_thread(write_started.wait, 1)
+
+                task.cancel()
+                release_write.set()
+                await task
+
+            saved = storage.load_device_state(device.state.serial)
+            assert saved is not None
+            assert device.state.power_level == saved["power_level"] == 0
+        finally:
+            release_write.set()
+            await storage.shutdown()
 
 
 class TestStateChangeCallback:
@@ -129,6 +282,27 @@ class TestStateChangeCallback:
         pkt_type, duration_ms = callback_calls[0]
         assert pkt_type == 21
         assert duration_ms == 0  # SetPower doesn't have duration
+
+    def test_protocol_state_change_uses_public_mutation_transaction(self, color_device):
+        """Protocol handlers commit through the shared mutation boundary."""
+        packet = Device.SetPower(level=0)
+        header = LifxHeader(
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=21,
+            res_required=True,
+        )
+
+        with patch.object(
+            color_device,
+            "apply_state_mutation",
+            wraps=color_device.apply_state_mutation,
+        ) as mutation:
+            color_device.process_packet(header, packet)
+
+        mutation.assert_called_once()
+        assert color_device.state.power_level == 0
 
     def test_callback_invoked_on_set_label(self, color_device):
         """Test state change callback is invoked for SetLabel."""

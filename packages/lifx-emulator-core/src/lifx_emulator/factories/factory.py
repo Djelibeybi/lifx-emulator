@@ -298,6 +298,7 @@ def create_device(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    persist_initial_state: bool = False,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -326,6 +327,9 @@ def create_device(
                          Connectivity member). None means unspecified and
                          resolves to WiFi. An explicit string that is not
                          "wifi" or "thread" raises ValueError.
+        persist_initial_state: Whether construction should schedule the initial
+                         persistence save. Admission workflows disable this and
+                         activate persistence only after a successful add.
 
     Returns:
         EmulatedLifxDevice configured for the specified product
@@ -378,5 +382,7 @@ def create_device(
 
     if connectivity is not None:
         builder.with_connectivity(connectivity)
+
+    builder.with_initial_persistence(persist_initial_state)
 
     return builder.build()

@@ -29,12 +29,12 @@ A LAN client library can discover and control an emulated Thread device exactly 
 - ✓ A Thread device sets frame-address flags bit 3 (`thread_connection`) on every reply header it emits — data replies, both ack paths, StateUnhandled, multi-packet and scenario-mutated replies — while a WiFi device's wire output stays byte-identical to the pre-phase fixtures — Phase 1
 - ✓ A Thread device defaults to host firmware 4.200 with a floor (explicit value wins; below-floor raises `ValueError`); a product-level terminal-firmware ceiling in `specs.yml` rejects Thread on the original Tile with no product-ID literal in Python — Phase 1
 - ✓ A Thread device answers GetWifiInfo with StateWifiInfo signal 0.0 and answers GetWifiFirmware and GetHostFirmware normally; matrix tiles report the host firmware — Phase 1
+- ✓ A Thread device processes a packet only when it arrives on the emulator's IPv6 socket as exact untagged unicast to its serial; IPv4, tagged, broadcast and mismatched traffic is dropped before side effects — Phase 2
+- ✓ The emulator natively binds separate same-port IPv4 and `AF_INET6`/`IPV6_V6ONLY=1` UDP sockets, defaults IPv6 to `::1`, exposes committed endpoints and preserves existing IPv4 behaviour — Phase 2
 
 ### Active
 
 - [ ] `connectivity` is settable per device via the CLI flag, YAML config `DeviceDefinition` and the device-create API (core factories and persistence done in Phase 1)
-- [ ] A Thread device processes a packet only if it arrived on the emulator's IPv6 socket and is addressed to its serial (`tagged=0`); IPv4 packets and tagged/broadcast packets addressed to it are silently dropped
-- [ ] The emulator natively binds an IPv6 UDP socket (separate `AF_INET6` socket with `IPV6_V6ONLY=1`, default `::1`, configurable) alongside the existing IPv4 socket, on Linux, macOS and Windows, so `lifx-async` can retire its `_Ipv6EmulatedLifxServer` conftest subclass
 - [ ] The emulator runs an mDNS/DNS-SD responder for `_lifx._udp.local` that answers PTR queries received on the IPv4 multicast group 224.0.0.251:5353 (the group `lifx-async` queries) with PTR, SRV, TXT and address records
 - [ ] mDNS TXT records carry `id=<serial>`, `p=<product id>`, `fw=<major.minor>` and `tm=1` (WiFi) or `tm=2` (Thread); the SRV record points at the emulator's UDP port
 - [ ] Thread devices are advertised with an AAAA record only (the IPv6 bind or a configured advertise address); WiFi devices with an A record
@@ -92,9 +92,10 @@ A LAN client library can discover and control an emulated Thread device exactly 
 | Terminal-firmware ceiling lives in `specs.yml` as data, not as product-ID checks in Python | Keeps the no-product-gating decision intact; only the original Tile (55, terminal 3.50) declares one, so Thread-on-Tile is rejected by arithmetic alone | ✓ Phase 1 |
 | Matrix tiles report the host firmware rather than a hard-coded 3.70 | SPEC requires per-tile firmware to mirror the device; the literal was a pre-existing shortcut | ✓ Phase 1 |
 | Public factory functions exempt from the five-argument limit (documented in CLAUDE.md) | Each argument is a user-facing device option; a keyword-options object would break the published API (precedent: `advertised_services`, PR #156) | ✓ Phase 1 |
-| Thread devices are IPv6-unicast-only (drop IPv4 and tagged packets) | Real Thread bulbs have no IPv4 address and do not answer broadcast; forces clients onto the mDNS path | — Pending |
+| Thread devices are IPv6-unicast-only (drop IPv4 and tagged packets) | Real Thread bulbs have no IPv4 address and do not answer broadcast; forces clients onto the mDNS path | ✓ Phase 2 — rejected before counters, activity, acknowledgements or processing |
 | GetWifiInfo on Thread returns signal 0.0, not StateUnhandled | Real behaviour undocumented; zero signal is inert for consumers that skip RSSI on Thread (hass integration) | ✓ Phase 1 — `wifi_signal` derived at build time from effective connectivity |
-| Separate `AF_INET6` `V6ONLY` socket, default `::1`, rather than `::` dual-stack | Cross-platform: Windows defaults V6ONLY on, macOS/Linux off; a second socket behaves identically everywhere and keeps IPv4 defaults untouched | — Pending |
+| Separate `AF_INET6` `V6ONLY` socket, default `::1`, rather than `::` dual-stack | Cross-platform: Windows defaults V6ONLY on, macOS/Linux off; a second socket behaves identically everywhere and keeps IPv4 defaults untouched | ✓ Phase 2 — atomic same-port pair with committed endpoint publication |
+| Bound packet and WebSocket bridge admission under overload | Retain every admitted unit through completion without allowing a remote flood or slow subscriber to grow work without limit | ✓ Phase 2 — excess work is rejected before allocation and counted in public overload metrics |
 | mDNS responder answers IPv4 multicast 224.0.0.251 only | That is the only group lifx-async queries; `ff02::fb` deferred | — Pending |
 | All devices advertised via mDNS, WiFi opt-out | Real WiFi bulbs advertise `tm=1`; Thread bulbs have no other discovery path | — Pending |
 | Backend surfaces only (core, CLI, config, API); dashboard read-only | User scoped UI work out of this milestone | — Pending |
@@ -118,4 +119,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-09 after Phase 1*
+*Last updated: 2026-09-10 after Phase 2*

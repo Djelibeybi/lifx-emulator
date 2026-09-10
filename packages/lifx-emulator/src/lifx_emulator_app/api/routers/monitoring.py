@@ -29,7 +29,8 @@ def create_monitoring_router(server: EmulatedLifxServer) -> APIRouter:
         response_model=ServerStats,
         summary="Get server statistics",
         description=(
-            "Returns server uptime, packet counts, error counts, and device count."
+            "Returns server uptime, packet counts (including packets dropped when "
+            "the pending-work limit is full), error counts, and device count."
         ),
     )
     async def get_stats():
