@@ -37,7 +37,7 @@
   "next": {
     "command": "/gsd:execute-phase 3",
     "label": "Resolve MDNS-10 decision checkpoint",
-    "reason": "Task 3 requires a blocking human decision; hosted macOS scoped UDP 5353 coexistence and dynamic recovery remain unproved"
+    "reason": "Authorised no-harness follow-up stopped early; macOS scoped UDP 5353 coexistence and dynamic recovery remain unproved; see 03-01-EXTENSION.md"
   },
-  "updated_at": "2026-09-22T18:37:44Z"
+  "updated_at": "2026-09-22T19:28:24Z"
 }
