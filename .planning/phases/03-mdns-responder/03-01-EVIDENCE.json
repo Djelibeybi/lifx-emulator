@@ -1,6 +1,6 @@
 {
   "active_budget_seconds": 14400,
-  "active_elapsed_seconds": 1348.09,
+  "active_elapsed_seconds": 3703.753,
   "candidate_order": [
     "zeroconf",
     "lifx-direct",
@@ -29,14 +29,14 @@
             "a_only": true,
             "all_cache_flush_clear": true,
             "client_endpoint": [
-              "192.168.17.244",
+              "selected-ipv4",
               50249
             ],
             "datagram_size": 174,
-            "interface": "192.168.17.244",
+            "interface": "selected-ipv4",
             "lifx_async_version": "7.3.0",
             "peer": [
-              "192.168.17.244",
+              "selected-ipv4",
               5353
             ],
             "query_id": 48879,
@@ -76,20 +76,486 @@
             "zeroconf_version": "0.151.3"
           },
           "recorded_at": "2026-09-22T15:20:19.281956Z"
+        },
+        {
+          "benchmarks": {
+            "mixed-10": {
+              "complete_datagrams": 1,
+              "complete_devices": 9,
+              "complete_discovery_seconds": 0.003217,
+              "cpu_seconds": 0.001767,
+              "datagram_count": 2,
+              "datagram_sizes": [
+                1445,
+                118
+              ],
+              "direct_a": {
+                "complete_datagrams": 0,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.003562,
+                "cpu_seconds": 0.000703,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  69
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  2
+                ],
+                "record_types": [
+                  "A",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_aaaa": {
+                "complete_datagrams": 0,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.002276,
+                "cpu_seconds": 0.000501,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  84
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  2
+                ],
+                "record_types": [
+                  "AAAA",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_match": false,
+              "discovered": 10,
+              "expected": 10,
+              "peak_rss": 70729728,
+              "raw_thread_address": "::1",
+              "record_counts": [
+                48,
+                2
+              ],
+              "record_types": [
+                "A",
+                "AAAA",
+                "PTR",
+                "SRV",
+                "TXT",
+                "TYPE47"
+              ],
+              "serials": [
+                "d073d5000000",
+                "d073d5000001",
+                "d073d5000002",
+                "d073d5000003",
+                "d073d5000004",
+                "d073d5000005",
+                "d073d5000006",
+                "d073d5000007",
+                "d073d5000008",
+                "d073d5000009"
+              ],
+              "thread": 5,
+              "threads_before": [
+                "MainThread"
+              ],
+              "wifi": 5
+            },
+            "mixed-100": {
+              "complete_datagrams": 0,
+              "complete_devices": 0,
+              "complete_discovery_seconds": 0.029959,
+              "cpu_seconds": 0.00956,
+              "datagram_count": 12,
+              "datagram_sizes": [
+                1438,
+                1418,
+                1438,
+                1449,
+                1459,
+                1420,
+                1425,
+                1455,
+                1449,
+                1425,
+                1449,
+                736
+              ],
+              "direct_a": {
+                "complete_datagrams": 0,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.001649,
+                "cpu_seconds": 0.000342,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  69
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  2
+                ],
+                "record_types": [
+                  "A",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_aaaa": {
+                "complete_datagrams": 0,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.000675,
+                "cpu_seconds": 0.000235,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  84
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  2
+                ],
+                "record_types": [
+                  "AAAA",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_match": false,
+              "discovered": 100,
+              "expected": 100,
+              "peak_rss": 70729728,
+              "raw_thread_address": "::1",
+              "record_counts": [
+                52,
+                51,
+                41,
+                42,
+                43,
+                40,
+                41,
+                43,
+                42,
+                42,
+                42,
+                21
+              ],
+              "record_types": [
+                "A",
+                "AAAA",
+                "PTR",
+                "SRV",
+                "TXT",
+                "TYPE47"
+              ],
+              "serials": [
+                "d073d5000000",
+                "d073d5000001",
+                "d073d5000002",
+                "d073d5000003",
+                "d073d5000004",
+                "d073d5000005",
+                "d073d5000006",
+                "d073d5000007",
+                "d073d5000008",
+                "d073d5000009",
+                "d073d500000a",
+                "d073d500000b",
+                "d073d500000c",
+                "d073d500000d",
+                "d073d500000e",
+                "d073d500000f",
+                "d073d5000010",
+                "d073d5000011",
+                "d073d5000012",
+                "d073d5000013",
+                "d073d5000014",
+                "d073d5000015",
+                "d073d5000016",
+                "d073d5000017",
+                "d073d5000018",
+                "d073d5000019",
+                "d073d500001a",
+                "d073d500001b",
+                "d073d500001c",
+                "d073d500001d",
+                "d073d500001e",
+                "d073d500001f",
+                "d073d5000020",
+                "d073d5000021",
+                "d073d5000022",
+                "d073d5000023",
+                "d073d5000024",
+                "d073d5000025",
+                "d073d5000026",
+                "d073d5000027",
+                "d073d5000028",
+                "d073d5000029",
+                "d073d500002a",
+                "d073d500002b",
+                "d073d500002c",
+                "d073d500002d",
+                "d073d500002e",
+                "d073d500002f",
+                "d073d5000030",
+                "d073d5000031",
+                "d073d5000032",
+                "d073d5000033",
+                "d073d5000034",
+                "d073d5000035",
+                "d073d5000036",
+                "d073d5000037",
+                "d073d5000038",
+                "d073d5000039",
+                "d073d500003a",
+                "d073d500003b",
+                "d073d500003c",
+                "d073d500003d",
+                "d073d500003e",
+                "d073d500003f",
+                "d073d5000040",
+                "d073d5000041",
+                "d073d5000042",
+                "d073d5000043",
+                "d073d5000044",
+                "d073d5000045",
+                "d073d5000046",
+                "d073d5000047",
+                "d073d5000048",
+                "d073d5000049",
+                "d073d500004a",
+                "d073d500004b",
+                "d073d500004c",
+                "d073d500004d",
+                "d073d500004e",
+                "d073d500004f",
+                "d073d5000050",
+                "d073d5000051",
+                "d073d5000052",
+                "d073d5000053",
+                "d073d5000054",
+                "d073d5000055",
+                "d073d5000056",
+                "d073d5000057",
+                "d073d5000058",
+                "d073d5000059",
+                "d073d500005a",
+                "d073d500005b",
+                "d073d500005c",
+                "d073d500005d",
+                "d073d500005e",
+                "d073d500005f",
+                "d073d5000060",
+                "d073d5000061",
+                "d073d5000062",
+                "d073d5000063"
+              ],
+              "thread": 50,
+              "threads_before": [
+                "MainThread"
+              ],
+              "wifi": 50
+            },
+            "thread-1": {
+              "complete_datagrams": 2,
+              "complete_devices": 1,
+              "complete_discovery_seconds": 0.005193,
+              "cpu_seconds": 0.001363,
+              "datagram_count": 2,
+              "datagram_sizes": [
+                1438,
+                189
+              ],
+              "direct_a": null,
+              "direct_aaaa": {
+                "complete_datagrams": 1,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.002576,
+                "cpu_seconds": 0.000535,
+                "datagram_count": 2,
+                "datagram_sizes": [
+                  778,
+                  84
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  16,
+                  2
+                ],
+                "record_types": [
+                  "AAAA",
+                  "PTR",
+                  "SRV",
+                  "TXT",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_match": false,
+              "discovered": 1,
+              "expected": 1,
+              "peak_rss": 70729728,
+              "raw_thread_address": "::1",
+              "record_counts": [
+                29,
+                5
+              ],
+              "record_types": [
+                "AAAA",
+                "PTR",
+                "SRV",
+                "TXT",
+                "TYPE47"
+              ],
+              "serials": [
+                "d073d5000000"
+              ],
+              "thread": 1,
+              "threads_before": [
+                "MainThread"
+              ],
+              "wifi": 0
+            },
+            "wifi-1": {
+              "complete_datagrams": 2,
+              "complete_devices": 1,
+              "complete_discovery_seconds": 0.003965,
+              "cpu_seconds": 0.001754,
+              "datagram_count": 2,
+              "datagram_sizes": [
+                1438,
+                174
+              ],
+              "direct_a": {
+                "complete_datagrams": 2,
+                "complete_devices": 0,
+                "complete_discovery_seconds": 0.00297,
+                "cpu_seconds": 0.001135,
+                "datagram_count": 3,
+                "datagram_sizes": [
+                  778,
+                  778,
+                  69
+                ],
+                "direct_match": true,
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 70729728,
+                "record_counts": [
+                  16,
+                  16,
+                  2
+                ],
+                "record_types": [
+                  "A",
+                  "AAAA",
+                  "PTR",
+                  "SRV",
+                  "TXT",
+                  "TYPE47"
+                ],
+                "serials": []
+              },
+              "direct_aaaa": null,
+              "direct_match": false,
+              "discovered": 1,
+              "expected": 1,
+              "peak_rss": 70729728,
+              "raw_thread_address": null,
+              "record_counts": [
+                29,
+                5
+              ],
+              "record_types": [
+                "A",
+                "AAAA",
+                "PTR",
+                "SRV",
+                "TXT",
+                "TYPE47"
+              ],
+              "serials": [
+                "d073d5000000"
+              ],
+              "thread": 0,
+              "threads_before": [
+                "MainThread"
+              ],
+              "wifi": 1
+            }
+          },
+          "daemon_processes": [
+            "mDNSResponder",
+            "mDNSResponderHelper"
+          ],
+          "elapsed_seconds": 12.723033332964405,
+          "environment": {
+            "architecture": "arm64",
+            "implementation": "CPython",
+            "os": "darwin",
+            "os_release": "27.0.0",
+            "python": "3.14.7",
+            "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+          },
+          "execution_status": "completed",
+          "gate": "expanded-local",
+          "oracle": {
+            "thread": {
+              "address_class": "reachable-ula-gua",
+              "expected_serial": "d073d5000002",
+              "family": "thread",
+              "matched": true,
+              "matched_serials": [
+                "d073d5000002"
+              ]
+            },
+            "wifi": {
+              "address_class": "selected-ipv4",
+              "expected_serial": "d073d5000001",
+              "family": "wifi",
+              "matched": true,
+              "matched_serials": [
+                "d073d5000001"
+              ]
+            }
+          },
+          "pending_owned_tasks": [],
+          "reachable_ula_gua_count": 18,
+          "recorded_at": "2026-09-22T15:41:33.626350Z",
+          "threads_after": [
+            "MainThread"
+          ],
+          "threads_before": [
+            "MainThread"
+          ]
         }
       ],
       "candidate": "zeroconf",
-      "candidate_status": "provisional",
+      "candidate_status": "rejected",
       "criteria": {
         "daemon_coexistence": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Identified host daemons: ['mDNSResponder', 'mDNSResponderHelper'].",
+          "status": "demonstrated"
         },
         "direct_address_queries": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "WiFi A={'complete_datagrams': 2, 'complete_devices': 0, 'complete_discovery_seconds': 0.00297, 'cpu_seconds': 0.001135, 'datagram_count': 3, 'datagram_sizes': [778, 778, 69], 'direct_match': True, 'discovered': 1, 'expected': 1, 'peak_rss': 70729728, 'record_counts': [16, 16, 2], 'record_types': ['A', 'AAAA', 'PTR', 'SRV', 'TXT', 'TYPE47'], 'serials': []}; Thread AAAA={'complete_datagrams': 1, 'complete_devices': 0, 'complete_discovery_seconds': 0.002576, 'cpu_seconds': 0.000535, 'datagram_count': 2, 'datagram_sizes': [778, 84], 'direct_match': True, 'discovered': 1, 'expected': 1, 'peak_rss': 70729728, 'record_counts': [16, 2], 'record_types': ['AAAA', 'PTR', 'SRV', 'TXT', 'TYPE47'], 'serials': []}",
+          "status": "demonstrated"
         },
         "exact_txt_and_family": {
           "acquisition_step": null,
@@ -97,34 +563,34 @@
           "status": "demonstrated"
         },
         "intel_pyapp_first_run": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "acquisition_step": "Collect and merge the exact-head CI artefact for this gate.",
+          "evidence": "Exact-head CI evidence has not yet been merged.",
           "status": "untested"
         },
         "legacy_wire": {
           "acquisition_step": null,
-          "evidence": "{\"a_only\": true, \"all_cache_flush_clear\": true, \"client_endpoint\": [\"192.168.17.244\", 50249], \"datagram_size\": 174, \"interface\": \"192.168.17.244\", \"lifx_async_version\": \"7.3.0\", \"peer\": [\"192.168.17.244\", 5353], \"query_id\": 48879, \"question_count\": 1, \"record_count\": 5, \"record_types\": [\"PTR\", \"SRV\", \"A\", \"TYPE47\", \"TXT\"], \"required_records_present\": true, \"response_id\": 48879, \"response_received_on_ephemeral_socket\": true, \"service_port\": 53574, \"threads_before_close\": [\"MainThread\"], \"ttl_valid\": true, \"ttl_values\": [10, 10, 10, 10, 10], \"txt_exact\": true, \"txt_records\": [{\"fw\": \"4.200\", \"id\": \"d073d5000001\", \"p\": \"27\", \"tm\": \"1\"}], \"zeroconf_version\": \"0.151.3\"}",
+          "evidence": "{\"a_only\": true, \"all_cache_flush_clear\": true, \"client_endpoint\": [\"selected-ipv4\", 50249], \"datagram_size\": 174, \"interface\": \"selected-ipv4\", \"lifx_async_version\": \"7.3.0\", \"peer\": [\"selected-ipv4\", 5353], \"query_id\": 48879, \"question_count\": 1, \"record_count\": 5, \"record_types\": [\"PTR\", \"SRV\", \"A\", \"TYPE47\", \"TXT\"], \"required_records_present\": true, \"response_id\": 48879, \"response_received_on_ephemeral_socket\": true, \"service_port\": 53574, \"threads_before_close\": [\"MainThread\"], \"ttl_valid\": true, \"ttl_values\": [10, 10, 10, 10, 10], \"txt_exact\": true, \"txt_records\": [{\"fw\": \"4.200\", \"id\": \"d073d5000001\", \"p\": \"27\", \"tm\": \"1\"}], \"zeroconf_version\": \"0.151.3\"}",
           "status": "demonstrated"
         },
         "lifecycle_cleanup": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "threads before=['MainThread']; after=['MainThread']; pending=[]",
+          "status": "demonstrated"
         },
         "macos_multicast": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "acquisition_step": "Collect and merge the exact-head CI artefact for this gate.",
+          "evidence": "Exact-head CI evidence has not yet been merged.",
           "status": "untested"
         },
         "mixed_100_benchmark": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Diagnostic only, not decision-supporting: executed before the mixed-10 rejection was isolated. {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.029959, \"cpu_seconds\": 0.00956, \"datagram_count\": 12, \"datagram_sizes\": [1438, 1418, 1438, 1449, 1459, 1420, 1425, 1455, 1449, 1425, 1449, 736], \"direct_a\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.001649, \"cpu_seconds\": 0.000342, \"datagram_count\": 1, \"datagram_sizes\": [69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [2], \"record_types\": [\"A\", \"TYPE47\"], \"serials\": []}, \"direct_aaaa\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000675, \"cpu_seconds\": 0.000235, \"datagram_count\": 1, \"datagram_sizes\": [84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [2], \"record_types\": [\"AAAA\", \"TYPE47\"], \"serials\": []}, \"direct_match\": false, \"discovered\": 100, \"expected\": 100, \"peak_rss\": 70729728, \"raw_thread_address\": \"::1\", \"record_counts\": [52, 51, 41, 42, 43, 40, 41, 43, 42, 42, 42, 21], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\", \"d073d500000a\", \"d073d500000b\", \"d073d500000c\", \"d073d500000d\", \"d073d500000e\", \"d073d500000f\", \"d073d5000010\", \"d073d5000011\", \"d073d5000012\", \"d073d5000013\", \"d073d5000014\", \"d073d5000015\", \"d073d5000016\", \"d073d5000017\", \"d073d5000018\", \"d073d5000019\", \"d073d500001a\", \"d073d500001b\", \"d073d500001c\", \"d073d500001d\", \"d073d500001e\", \"d073d500001f\", \"d073d5000020\", \"d073d5000021\", \"d073d5000022\", \"d073d5000023\", \"d073d5000024\", \"d073d5000025\", \"d073d5000026\", \"d073d5000027\", \"d073d5000028\", \"d073d5000029\", \"d073d500002a\", \"d073d500002b\", \"d073d500002c\", \"d073d500002d\", \"d073d500002e\", \"d073d500002f\", \"d073d5000030\", \"d073d5000031\", \"d073d5000032\", \"d073d5000033\", \"d073d5000034\", \"d073d5000035\", \"d073d5000036\", \"d073d5000037\", \"d073d5000038\", \"d073d5000039\", \"d073d500003a\", \"d073d500003b\", \"d073d500003c\", \"d073d500003d\", \"d073d500003e\", \"d073d500003f\", \"d073d5000040\", \"d073d5000041\", \"d073d5000042\", \"d073d5000043\", \"d073d5000044\", \"d073d5000045\", \"d073d5000046\", \"d073d5000047\", \"d073d5000048\", \"d073d5000049\", \"d073d500004a\", \"d073d500004b\", \"d073d500004c\", \"d073d500004d\", \"d073d500004e\", \"d073d500004f\", \"d073d5000050\", \"d073d5000051\", \"d073d5000052\", \"d073d5000053\", \"d073d5000054\", \"d073d5000055\", \"d073d5000056\", \"d073d5000057\", \"d073d5000058\", \"d073d5000059\", \"d073d500005a\", \"d073d500005b\", \"d073d500005c\", \"d073d500005d\", \"d073d500005e\", \"d073d500005f\", \"d073d5000060\", \"d073d5000061\", \"d073d5000062\", \"d073d5000063\"], \"thread\": 50, \"threads_before\": [\"MainThread\"], \"wifi\": 50}",
+          "status": "failed"
         },
         "mixed_10_benchmark": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "{\"complete_datagrams\": 1, \"complete_devices\": 9, \"complete_discovery_seconds\": 0.003217, \"cpu_seconds\": 0.001767, \"datagram_count\": 2, \"datagram_sizes\": [1445, 118], \"direct_a\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.003562, \"cpu_seconds\": 0.000703, \"datagram_count\": 1, \"datagram_sizes\": [69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [2], \"record_types\": [\"A\", \"TYPE47\"], \"serials\": []}, \"direct_aaaa\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.002276, \"cpu_seconds\": 0.000501, \"datagram_count\": 1, \"datagram_sizes\": [84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [2], \"record_types\": [\"AAAA\", \"TYPE47\"], \"serials\": []}, \"direct_match\": false, \"discovered\": 10, \"expected\": 10, \"peak_rss\": 70729728, \"raw_thread_address\": \"::1\", \"record_counts\": [48, 2], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\"], \"thread\": 5, \"threads_before\": [\"MainThread\"], \"wifi\": 5}",
+          "status": "failed"
         },
         "official_provenance": {
           "acquisition_step": null,
@@ -132,9 +598,9 @@
           "status": "demonstrated"
         },
         "oracle_discovery": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Pinned lifx-async public discover_mdns() WiFi result=['d073d5000001'] on selected IPv4; Thread result=['d073d5000002'].",
+          "status": "demonstrated"
         },
         "packet_boundary": {
           "acquisition_step": null,
@@ -142,27 +608,369 @@
           "status": "demonstrated"
         },
         "thread_benchmark": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "{\"complete_datagrams\": 2, \"complete_devices\": 1, \"complete_discovery_seconds\": 0.005193, \"cpu_seconds\": 0.001363, \"datagram_count\": 2, \"datagram_sizes\": [1438, 189], \"direct_a\": null, \"direct_aaaa\": {\"complete_datagrams\": 1, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.002576, \"cpu_seconds\": 0.000535, \"datagram_count\": 2, \"datagram_sizes\": [778, 84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [16, 2], \"record_types\": [\"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": []}, \"direct_match\": false, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"raw_thread_address\": \"::1\", \"record_counts\": [29, 5], \"record_types\": [\"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\"], \"thread\": 1, \"threads_before\": [\"MainThread\"], \"wifi\": 0}",
+          "status": "demonstrated"
         },
         "ubuntu_multicast": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "acquisition_step": "Collect and merge the exact-head CI artefact for this gate.",
+          "evidence": "Exact-head CI evidence has not yet been merged.",
           "status": "untested"
         },
         "wifi_benchmark": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "{\"complete_datagrams\": 2, \"complete_devices\": 1, \"complete_discovery_seconds\": 0.003965, \"cpu_seconds\": 0.001754, \"datagram_count\": 2, \"datagram_sizes\": [1438, 174], \"direct_a\": {\"complete_datagrams\": 2, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.00297, \"cpu_seconds\": 0.001135, \"datagram_count\": 3, \"datagram_sizes\": [778, 778, 69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"record_counts\": [16, 16, 2], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": []}, \"direct_aaaa\": null, \"direct_match\": false, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 70729728, \"raw_thread_address\": null, \"record_counts\": [29, 5], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\"], \"thread\": 0, \"threads_before\": [\"MainThread\"], \"wifi\": 1}",
+          "status": "demonstrated"
         },
         "windows_socket_simulation": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "Not yet reached by the progressive candidate sequence.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Windows remains identified simulation-only in the initial spike.",
+          "status": "simulated"
         }
       },
-      "elapsed_active_seconds": 1348.09,
+      "elapsed_active_seconds": 3619.072,
+      "execution_status": "completed"
+    },
+    {
+      "attempts": [
+        {
+          "benchmarks": {
+            "mixed-10": {
+              "complete_devices": 10,
+              "complete_discovery_seconds": 0.004108,
+              "cpu_seconds": 0.002486,
+              "datagram_count": 10,
+              "datagram_sizes": [
+                270,
+                270,
+                270,
+                270,
+                270,
+                282,
+                282,
+                282,
+                282,
+                282
+              ],
+              "direct_queries": {
+                "thread": true,
+                "wifi": true
+              },
+              "discovered": 10,
+              "expected": 10,
+              "peak_rss": 71499776,
+              "raw_thread_address_class": "loopback-::1",
+              "server_port": 60440,
+              "thread": 5,
+              "wifi": 5,
+              "wire_checks_passed": true
+            },
+            "mixed-100": {
+              "complete_devices": 100,
+              "complete_discovery_seconds": 0.006162,
+              "cpu_seconds": 0.005543,
+              "datagram_count": 100,
+              "datagram_sizes": [
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                270,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282,
+                282
+              ],
+              "direct_queries": {
+                "thread": true,
+                "wifi": true
+              },
+              "discovered": 100,
+              "expected": 100,
+              "peak_rss": 71499776,
+              "raw_thread_address_class": "loopback-::1",
+              "server_port": 59837,
+              "thread": 50,
+              "wifi": 50,
+              "wire_checks_passed": true
+            },
+            "thread-1": {
+              "complete_devices": 1,
+              "complete_discovery_seconds": 0.000805,
+              "cpu_seconds": 0.000713,
+              "datagram_count": 1,
+              "datagram_sizes": [
+                282
+              ],
+              "direct_queries": {
+                "thread": true
+              },
+              "discovered": 1,
+              "expected": 1,
+              "peak_rss": 71499776,
+              "raw_thread_address_class": "loopback-::1",
+              "server_port": 62374,
+              "thread": 1,
+              "wifi": 0,
+              "wire_checks_passed": true
+            },
+            "wifi-1": {
+              "complete_devices": 1,
+              "complete_discovery_seconds": 0.000743,
+              "cpu_seconds": 0.000664,
+              "datagram_count": 1,
+              "datagram_sizes": [
+                270
+              ],
+              "direct_queries": {
+                "wifi": true
+              },
+              "discovered": 1,
+              "expected": 1,
+              "peak_rss": 71499776,
+              "raw_thread_address_class": null,
+              "server_port": 61090,
+              "thread": 0,
+              "wifi": 1,
+              "wire_checks_passed": true
+            }
+          },
+          "daemon_processes": [
+            "mDNSResponder",
+            "mDNSResponderHelper"
+          ],
+          "elapsed_seconds": 1.2757065840996802,
+          "environment": {
+            "architecture": "arm64",
+            "implementation": "CPython",
+            "os": "darwin",
+            "os_release": "27.0.0",
+            "python": "3.14.7",
+            "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+          },
+          "execution_status": "completed",
+          "gate": "expanded-local",
+          "malformed_bounded": true,
+          "oracle": {
+            "thread": {
+              "address_class": "reachable-ula-gua",
+              "expected_serial": "d073d6000002",
+              "matched": true,
+              "matched_serials": [
+                "d073d6000002"
+              ]
+            },
+            "wifi": {
+              "address_class": "selected-ipv4",
+              "expected_serial": "d073d6000001",
+              "matched": true,
+              "matched_serials": [
+                "d073d6000001"
+              ]
+            }
+          },
+          "pending_owned_tasks": [],
+          "reachable_ula_gua_count": 18,
+          "recorded_at": "2026-09-22T16:02:12.071548Z",
+          "threads_after": [
+            "MainThread"
+          ],
+          "threads_before": [
+            "MainThread"
+          ]
+        }
+      ],
+      "candidate": "lifx-direct",
+      "candidate_status": "provisional",
+      "criteria": {
+        "configuration_interface_fit": {
+          "acquisition_step": null,
+          "evidence": "The materialiser accepts an explicit eligible advertisement set and explicit matching-family addresses without production APIs.",
+          "status": "demonstrated"
+        },
+        "daemon_coexistence": {
+          "acquisition_step": null,
+          "evidence": "Identified host daemons: ['mDNSResponder', 'mDNSResponderHelper'].",
+          "status": "demonstrated"
+        },
+        "direct_address_queries": {
+          "acquisition_step": null,
+          "evidence": "Direct A and AAAA queries echoed their IDs/questions with one address.",
+          "status": "demonstrated"
+        },
+        "dynamic_lifecycle_recovery_fit": {
+          "acquisition_step": null,
+          "evidence": "Four independent responder/server lifecycles closed with no owned tasks or threads remaining.",
+          "status": "demonstrated"
+        },
+        "exact_txt_and_family": {
+          "acquisition_step": null,
+          "evidence": "WiFi replies contained A only; Thread replies contained AAAA only; TXT was exactly id/p/fw/tm.",
+          "status": "demonstrated"
+        },
+        "intel_pyapp_first_run": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "The direct extension gate has not run.",
+          "status": "untested"
+        },
+        "legacy_wire": {
+          "acquisition_step": null,
+          "evidence": "Every response echoed the non-zero ID and question, cleared cache-flush, used TTL 10, and carried exact TXT.",
+          "status": "demonstrated"
+        },
+        "lifecycle_cleanup": {
+          "acquisition_step": null,
+          "evidence": "threads before=['MainThread']; after=['MainThread']; pending=[]",
+          "status": "demonstrated"
+        },
+        "macos_multicast": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "The direct extension gate has not run.",
+          "status": "untested"
+        },
+        "malformed_truncated_flood_bounds": {
+          "acquisition_step": null,
+          "evidence": "Truncated queries raise a bounded ValueError; the 100-device query returned exactly 100 bounded responses.",
+          "status": "demonstrated"
+        },
+        "mixed_100_benchmark": {
+          "acquisition_step": null,
+          "evidence": "{\"complete_devices\": 100, \"complete_discovery_seconds\": 0.006162, \"cpu_seconds\": 0.005543, \"datagram_count\": 100, \"datagram_sizes\": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 100, \"expected\": 100, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 59837, \"thread\": 50, \"wifi\": 50, \"wire_checks_passed\": true}",
+          "status": "demonstrated"
+        },
+        "mixed_10_benchmark": {
+          "acquisition_step": null,
+          "evidence": "{\"complete_devices\": 10, \"complete_discovery_seconds\": 0.004108, \"cpu_seconds\": 0.002486, \"datagram_count\": 10, \"datagram_sizes\": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 10, \"expected\": 10, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 60440, \"thread\": 5, \"wifi\": 5, \"wire_checks_passed\": true}",
+          "status": "demonstrated"
+        },
+        "official_provenance": {
+          "acquisition_step": null,
+          "evidence": "Pinned lifx-async 48b7efbff59656499373b13ef17e3008d125feb5 tree b26ce32ae60a65c13709ed4ecd30675f1bce1533; mDNS subtree archive a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b; overlay 7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9.",
+          "status": "demonstrated"
+        },
+        "oracle_discovery": {
+          "acquisition_step": null,
+          "evidence": "Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'expected_serial': 'd073d6000002', 'matched': True, 'matched_serials': ['d073d6000002']}, 'wifi': {'address_class': 'selected-ipv4', 'expected_serial': 'd073d6000001', 'matched': True, 'matched_serials': ['d073d6000001']}}.",
+          "status": "demonstrated"
+        },
+        "packet_boundary": {
+          "acquisition_step": null,
+          "evidence": "Each synthetic device produced one isolated complete datagram.",
+          "status": "demonstrated"
+        },
+        "thread_benchmark": {
+          "acquisition_step": null,
+          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000805, \"cpu_seconds\": 0.000713, \"datagram_count\": 1, \"datagram_sizes\": [282], \"direct_queries\": {\"thread\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 62374, \"thread\": 1, \"wifi\": 0, \"wire_checks_passed\": true}",
+          "status": "demonstrated"
+        },
+        "ubuntu_multicast": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "The direct extension gate has not run.",
+          "status": "untested"
+        },
+        "wifi_benchmark": {
+          "acquisition_step": null,
+          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000743, \"cpu_seconds\": 0.000664, \"datagram_count\": 1, \"datagram_sizes\": [270], \"direct_queries\": {\"wifi\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71499776, \"raw_thread_address_class\": null, \"server_port\": 61090, \"thread\": 0, \"wifi\": 1, \"wire_checks_passed\": true}",
+          "status": "demonstrated"
+        },
+        "windows_socket_simulation": {
+          "acquisition_step": null,
+          "evidence": "Windows remains identified simulation-only in the initial spike.",
+          "status": "simulated"
+        }
+      },
+      "elapsed_active_seconds": 3703.753,
       "execution_status": "completed"
     }
   ],
@@ -186,6 +994,106 @@
       ],
       "exit_code": 0,
       "recorded_at": "2026-09-22T15:20:19.281815Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--expanded"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T15:38:07.533232Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--expanded"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T15:40:04.923865Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--expanded"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T15:41:33.625856Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T15:59:08.057236Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T16:02:12.070491Z"
     }
   ],
   "decision": {
@@ -193,6 +1101,353 @@
     "reason": "One or more required platform, packaging, oracle, benchmark or lifecycle gates remain untested.",
     "status": "provisional"
   },
+  "diagnostic_history": [
+    {
+      "candidate": {
+        "attempts": [
+          {
+            "benchmarks": {
+              "mixed-10": {
+                "complete_devices": 10,
+                "complete_discovery_seconds": 0.001038,
+                "cpu_seconds": 0.00101,
+                "datagram_count": 10,
+                "datagram_sizes": [
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282
+                ],
+                "direct_queries": {
+                  "thread": true,
+                  "wifi": true
+                },
+                "discovered": 10,
+                "expected": 10,
+                "peak_rss": 71745536,
+                "raw_thread_address_class": "loopback-::1",
+                "server_port": 58405,
+                "thread": 5,
+                "wifi": 5,
+                "wire_checks_passed": true
+              },
+              "mixed-100": {
+                "complete_devices": 100,
+                "complete_discovery_seconds": 0.005018,
+                "cpu_seconds": 0.00496,
+                "datagram_count": 100,
+                "datagram_sizes": [
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  270,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282,
+                  282
+                ],
+                "direct_queries": {
+                  "thread": true,
+                  "wifi": true
+                },
+                "discovered": 100,
+                "expected": 100,
+                "peak_rss": 72040448,
+                "raw_thread_address_class": "loopback-::1",
+                "server_port": 65015,
+                "thread": 50,
+                "wifi": 50,
+                "wire_checks_passed": true
+              },
+              "thread-1": {
+                "complete_devices": 1,
+                "complete_discovery_seconds": 0.000676,
+                "cpu_seconds": 0.00068,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  282
+                ],
+                "direct_queries": {
+                  "thread": true
+                },
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 71696384,
+                "raw_thread_address_class": "loopback-::1",
+                "server_port": 57071,
+                "thread": 1,
+                "wifi": 0,
+                "wire_checks_passed": true
+              },
+              "wifi-1": {
+                "complete_devices": 1,
+                "complete_discovery_seconds": 0.000891,
+                "cpu_seconds": 0.000881,
+                "datagram_count": 1,
+                "datagram_sizes": [
+                  270
+                ],
+                "direct_queries": {
+                  "wifi": true
+                },
+                "discovered": 1,
+                "expected": 1,
+                "peak_rss": 71680000,
+                "raw_thread_address_class": null,
+                "server_port": 64127,
+                "thread": 0,
+                "wifi": 1,
+                "wire_checks_passed": true
+              }
+            },
+            "daemon_processes": [
+              "mDNSResponder",
+              "mDNSResponderHelper"
+            ],
+            "elapsed_seconds": 1.3204533340176567,
+            "environment": {
+              "architecture": "arm64",
+              "implementation": "CPython",
+              "os": "darwin",
+              "os_release": "27.0.0",
+              "python": "3.14.7",
+              "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+            },
+            "execution_status": "completed",
+            "gate": "expanded-local",
+            "malformed_bounded": true,
+            "oracle": {
+              "thread": {
+                "address_class": "reachable-ula-gua",
+                "expected_serial": "d073d6000002",
+                "matched": true,
+                "matched_serials": [
+                  "d073d6000002"
+                ]
+              },
+              "wifi": {
+                "address_class": "selected-ipv4",
+                "expected_serial": "d073d6000001",
+                "matched": true,
+                "matched_serials": [
+                  "d073d6000001"
+                ]
+              }
+            },
+            "pending_owned_tasks": [],
+            "reachable_ula_gua_count": 18,
+            "recorded_at": "2026-09-22T15:59:08.057588Z",
+            "threads_after": [
+              "MainThread"
+            ],
+            "threads_before": [
+              "MainThread"
+            ]
+          }
+        ],
+        "candidate": "lifx-direct",
+        "candidate_status": "provisional",
+        "criteria": {
+          "configuration_interface_fit": {
+            "acquisition_step": null,
+            "evidence": "The materialiser accepts an explicit eligible advertisement set and explicit matching-family addresses without production APIs.",
+            "status": "demonstrated"
+          },
+          "daemon_coexistence": {
+            "acquisition_step": null,
+            "evidence": "Identified host daemons: ['mDNSResponder', 'mDNSResponderHelper'].",
+            "status": "demonstrated"
+          },
+          "direct_address_queries": {
+            "acquisition_step": null,
+            "evidence": "Direct A and AAAA queries echoed their IDs/questions with one address.",
+            "status": "demonstrated"
+          },
+          "dynamic_lifecycle_recovery_fit": {
+            "acquisition_step": null,
+            "evidence": "Four independent responder/server lifecycles closed with no owned tasks or threads remaining.",
+            "status": "demonstrated"
+          },
+          "exact_txt_and_family": {
+            "acquisition_step": null,
+            "evidence": "WiFi replies contained A only; Thread replies contained AAAA only; TXT was exactly id/p/fw/tm.",
+            "status": "demonstrated"
+          },
+          "intel_pyapp_first_run": {
+            "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+            "evidence": "The direct extension gate has not run.",
+            "status": "untested"
+          },
+          "legacy_wire": {
+            "acquisition_step": null,
+            "evidence": "Every response echoed the non-zero ID and question, cleared cache-flush, used TTL 10, and carried exact TXT.",
+            "status": "demonstrated"
+          },
+          "lifecycle_cleanup": {
+            "acquisition_step": null,
+            "evidence": "threads before=['MainThread']; after=['MainThread']; pending=[]",
+            "status": "demonstrated"
+          },
+          "macos_multicast": {
+            "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+            "evidence": "The direct extension gate has not run.",
+            "status": "untested"
+          },
+          "malformed_truncated_flood_bounds": {
+            "acquisition_step": null,
+            "evidence": "Truncated queries raise a bounded ValueError; the 100-device query returned exactly 100 bounded responses.",
+            "status": "demonstrated"
+          },
+          "mixed_100_benchmark": {
+            "acquisition_step": null,
+            "evidence": "{\"complete_devices\": 100, \"complete_discovery_seconds\": 0.005018, \"cpu_seconds\": 0.00496, \"datagram_count\": 100, \"datagram_sizes\": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 100, \"expected\": 100, \"peak_rss\": 72040448, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 65015, \"thread\": 50, \"wifi\": 50, \"wire_checks_passed\": true}",
+            "status": "demonstrated"
+          },
+          "mixed_10_benchmark": {
+            "acquisition_step": null,
+            "evidence": "{\"complete_devices\": 10, \"complete_discovery_seconds\": 0.001038, \"cpu_seconds\": 0.00101, \"datagram_count\": 10, \"datagram_sizes\": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 10, \"expected\": 10, \"peak_rss\": 71745536, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 58405, \"thread\": 5, \"wifi\": 5, \"wire_checks_passed\": true}",
+            "status": "demonstrated"
+          },
+          "official_provenance": {
+            "acquisition_step": null,
+            "evidence": "Pinned lifx-async 48b7efbff59656499373b13ef17e3008d125feb5 tree b26ce32ae60a65c13709ed4ecd30675f1bce1533; mDNS subtree archive a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b; overlay 7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9.",
+            "status": "demonstrated"
+          },
+          "oracle_discovery": {
+            "acquisition_step": null,
+            "evidence": "Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'expected_serial': 'd073d6000002', 'matched': True, 'matched_serials': ['d073d6000002']}, 'wifi': {'address_class': 'selected-ipv4', 'expected_serial': 'd073d6000001', 'matched': True, 'matched_serials': ['d073d6000001']}}.",
+            "status": "demonstrated"
+          },
+          "packet_boundary": {
+            "acquisition_step": null,
+            "evidence": "Each synthetic device produced one isolated complete datagram.",
+            "status": "demonstrated"
+          },
+          "thread_benchmark": {
+            "acquisition_step": null,
+            "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000676, \"cpu_seconds\": 0.00068, \"datagram_count\": 1, \"datagram_sizes\": [282], \"direct_queries\": {\"thread\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71696384, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 57071, \"thread\": 1, \"wifi\": 0, \"wire_checks_passed\": true}",
+            "status": "demonstrated"
+          },
+          "ubuntu_multicast": {
+            "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+            "evidence": "The direct extension gate has not run.",
+            "status": "untested"
+          },
+          "wifi_benchmark": {
+            "acquisition_step": null,
+            "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000891, \"cpu_seconds\": 0.000881, \"datagram_count\": 1, \"datagram_sizes\": [270], \"direct_queries\": {\"wifi\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71680000, \"raw_thread_address_class\": null, \"server_port\": 64127, \"thread\": 0, \"wifi\": 1, \"wire_checks_passed\": true}",
+            "status": "demonstrated"
+          },
+          "windows_socket_simulation": {
+            "acquisition_step": null,
+            "evidence": "Windows remains identified simulation-only in the initial spike.",
+            "status": "simulated"
+          }
+        },
+        "elapsed_active_seconds": 3435.058,
+        "execution_status": "completed"
+      },
+      "reason": "superseded by complete malformed/future-fit gate capture"
+    }
+  ],
   "edge_coverage": [
     {
       "acquisition_step": "Acquire the mapped criterion evidence.",
@@ -481,7 +1736,13 @@
       "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
     }
   },
-  "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+  "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+  "input_spec_history": [
+    {
+      "digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+      "superseded_at": "2026-09-22T15:59:06.333488Z"
+    }
+  ],
   "inputs": {
     "candidate": {
       "commit": "b7aea22b51d82f2139c9143292e86a361ea6796f",
@@ -504,11 +1765,21 @@
       "repository_revision": "8f31243d7760d61063989b24a146509304208317",
       "tree": "88a6de500bca4a69fc1560ac85fe707564004766"
     },
+    "fallbacks": {
+      "lifx-direct": {
+        "base_revision": "48b7efbff59656499373b13ef17e3008d125feb5",
+        "base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+        "mdns_subtree_archive_sha256": "a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b",
+        "overlay_path": "scripts/mdns_spike_inputs/lifx_direct.py",
+        "overlay_sha256": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
+        "source_delta": "Add a bounded DNS response materialiser and responder loop; the pinned subtree contains query transport and parsing only."
+      }
+    },
     "generator": {
       "path": "scripts/spike_mdns_candidates.py",
-      "revision": "03-01-zeroconf-v1"
+      "revision": "03-01-lifx-direct-v1"
     },
-    "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+    "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
     "oracle": {
       "commit_api_verified": true,
       "detached_fetch_verified": true,
@@ -520,11 +1791,21 @@
   "plan": "03-01",
   "pull_request": {
     "candidate_head_sha": null,
-    "runs": [],
-    "url": null
+    "runs": [
+      {
+        "head_sha": "3016313c7a3ce99d6f1a5559128c91ffd0200048",
+        "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+        "macos": "tool_error; failure diagnostics unavailable because the initial workflow skipped failure upload",
+        "status": "partial",
+        "ubuntu_evidence_sha256": "7bcae41b0420e9be792604d5850cee2f433b3c8a4c84a054b660542d0dbf9e98",
+        "ubuntu_receipt_sha256": "ae9652501151f1d5209daf588c1c779b9c29e65ef662f6e79b2f02b20c997f08",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35747307214"
+      }
+    ],
+    "url": "https://github.com/Djelibeybi/lifx-emulator/pull/224"
   },
   "requirement": "MDNS-10",
   "schema_version": 1,
   "started_at": "2026-09-22T15:01:53Z",
-  "updated_at": "2026-09-22T15:24:21.089650Z"
+  "updated_at": "2026-09-22T16:03:36.752816Z"
 }

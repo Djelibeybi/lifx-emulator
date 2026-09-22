@@ -9,7 +9,7 @@ import pytest
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 HARNESS = REPOSITORY_ROOT / "scripts" / "spike_mdns_candidates.py"
-ADAPTED_OVERLAY = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "lifx_adapted.py"
+ELIGIBLE_OVERLAY = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "lifx_direct.py"
 EVIDENCE = (
     REPOSITORY_ROOT
     / ".planning"
@@ -51,10 +51,10 @@ def test_default_collection_excludes_spike_directory() -> None:
 
 
 def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
-    """Require the now-eligible adapted fallback to be a reviewable source file."""
+    """Require the now-eligible direct fallback to be a reviewable source file."""
     evidence = json.loads(EVIDENCE.read_text())
     assert evidence["candidates"][0]["candidate_status"] == "rejected"
-    assert ADAPTED_OVERLAY.is_file(), "eligible adapted fallback overlay is absent"
+    assert ELIGIBLE_OVERLAY.is_file(), "eligible direct fallback overlay is absent"
 
 
 @pytest.mark.parametrize(
