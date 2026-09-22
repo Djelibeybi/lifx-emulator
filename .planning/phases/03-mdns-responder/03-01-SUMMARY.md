@@ -13,9 +13,9 @@ provides:
   - Non-publishing Ubuntu, macOS and Intel PyApp CI evidence
 affects: [03-mdns-responder, MDNS-01, MDNS-02, MDNS-03, MDNS-04, MDNS-05, MDNS-06, MDNS-07, MDNS-08, MDNS-09, MDNS-11]
 actuals:
-  tokens: 90611
+  tokens: 100433
   tasks: 2
-  commits: 19
+  commits: 24
 plan_head_before: 8f31243d7760d61063989b24a146509304208317
 tech-stack:
   added: []
@@ -59,7 +59,7 @@ coverage:
         status: unknown
     human_judgment: true
     rationale: "The plan explicitly requires a human to select the evidence-valid route; current evidence permits only a provisional hold."
-duration: 3h 08m
+duration: 3h 33m
 completed: 2026-09-23
 status: halted
 ---
@@ -70,9 +70,9 @@ status: halted
 
 ## Performance
 
-- **Duration:** 3h 08m active work; no CI queue time excluded
+- **Duration:** 3h 33m active work; no CI queue time excluded
 - **Started:** 2026-09-22T15:01:53Z
-- **Ledger closed:** 2026-09-22T18:09:54Z
+- **Ledger closed:** 2026-09-22T18:34:56Z
 - **Tasks:** 2 of 3 complete
 - **Files modified:** 9 task artefacts, plus planning state and this summary
 
@@ -82,8 +82,9 @@ status: halted
 - Built a frozen direct lifx-async overlay at oracle revision `48b7efbff59656499373b13ef17e3008d125feb5`; local macOS and exact-head Ubuntu evidence demonstrate raw packet, public-oracle discovery, family, fleet, malformed-input, flood, socket-choice and cleanup gates.
 - Public `discover_mdns()` benchmarks found the exact stock WiFi/Thread populations at 1, 1, 5+5 and 50+50, with separate representative `get_power()` control checks and aggregate CPU/RSS measurements. Raw parser timings remain labelled raw-wire rather than discovery timings.
 - The v2 candidate input digest is `dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e`; the prior v1 candidate and receipts remain in revision history as superseded diagnostic evidence.
-- Bound Ubuntu, hosted macOS and Intel PyApp receipts to exact candidate input head `914e51b`; Ubuntu and Intel meet their gates while hosted macOS retains its first-send failure.
-- Recorded exact-head hosted macOS failure at `raw-population-wifi-1` with `OSError` errno 65 after a destination-specific route attempt, leaving the decision provisional with a concrete acquisition step.
+- Bound Ubuntu, hosted macOS and Intel PyApp receipts to exact security-fixed candidate input head `0669c07`; Ubuntu and Intel meet their gates while hosted macOS retains its scoped reply-source bind failure.
+- Replaced all wildcard UDP 5353 listeners with a group-address receiver, explicit selected-interface membership and an RFC-compliant selected-interface UDP 5353 reply sender. Linux additionally disables `IP_MULTICAST_ALL`; Darwin uses `IP_BOUND_IF`.
+- Retained hosted macOS `EADDRINUSE` at RFC-compliant reply-source creation as a precise provisional environment result while local Darwin and exact-head Ubuntu pass the scoped listener and full candidate probes.
 
 ## Task Commits
 
@@ -94,7 +95,9 @@ status: halted
 5. **Task 2 evidence:** `a917f91` — reconciled exact-head platform and packaging ledger.
 6. **Corrective RED:** `bb2be73` — validator failures for unsupported public benchmark, Windows, adversarial and recovery claims.
 7. **Corrective implementation:** `d0ac100`, `ab5f0d2`, `914e51b` — v2 measurements, revision preservation and portable focused fixtures.
-8. **Corrective evidence:** `d9055d2` — reconciled exact v2 platform and packaging receipts.
+8. **Corrective evidence:** `d9055d2`, `6b4aa09` — reconciled exact v2 platform, packaging and security-fixed receipts.
+9. **Security RED:** `48551f8` — live regression rejecting wildcard responder listeners.
+10. **Security fix:** `12b4e33`, `0669c07` — interface-scoped receive/reply sockets, UDP 5353 source assertion and hosted coexistence classification.
 
 Task 3 is intentionally uncommitted and awaits the blocking human decision.
 
@@ -123,7 +126,7 @@ Task 3 is intentionally uncommitted and awaits the blocking human decision.
 - **Issue:** Early receipts could appear green without proving candidate, head, input, base, overlay and final identities.
 - **Fix:** Added strict receipt validation and regression coverage for every identity mismatch.
 - **Files modified:** `scripts/spike_mdns_candidates.py`, `scripts/mdns_spike_tests/test_candidates.py`, `.github/workflows/ci.yml`
-- **Verification:** The final Ubuntu, macOS and Intel receipts validate against exact head `914e51b`.
+- **Verification:** The final Ubuntu, macOS and Intel receipts validate against exact head `0669c07`.
 
 **2. [Rule 3 - Blocking] Acquired bounded platform prerequisites and retained failures**
 - **Found during:** Task 2
@@ -152,13 +155,21 @@ Task 3 is intentionally uncommitted and awaits the blocking human decision.
 - **Files modified:** `scripts/spike_mdns_candidates.py`, `scripts/mdns_spike_inputs/lifx_direct.py`, `scripts/mdns_spike_tests/test_candidates.py`, evidence artefacts
 - **Verification:** Corrective RED recorded four unsupported-claim failures; the v2 focused suite passes 30 tests from a clean exported commit tree.
 
-**Total deviations:** 5 handled inline. They improved evidence correctness and did not add production scope.
+**6. [Rule 1 - Security] Removed wildcard UDP 5353 listener exposure**
+- **Found during:** GHAS review after the corrected Task 2 checkpoint
+- **Issue:** Three harness listeners bound UDP 5353 to every local address.
+- **Fix:** Centralised group-address/interface-scoped receive sockets, selected-interface UDP 5353 reply sockets, Linux `IP_MULTICAST_ALL=0` and Darwin `IP_BOUND_IF`; added a live bind-scope regression and raw source-port assertions.
+- **Files modified:** `scripts/spike_mdns_candidates.py`, `scripts/mdns_spike_tests/test_candidates.py`
+- **Verification:** Full local candidate proof and exact-head Ubuntu pass; CodeQL alerts 16/17 are fixed and no open alert remains for `refs/pull/224/head`.
+
+**Total deviations:** 6 handled inline. They improved evidence correctness and did not add production scope.
 
 ## Verification
 
-- Focused suite: 30 passed on local macOS and 30 passed from a fresh `git archive` of exact input head `914e51b`.
-- Final exact-input CI run: [35764215809](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35764215809) at candidate head `914e51b`.
-- Exact receipts: Ubuntu and Intel PyApp meet their gates; hosted macOS is valid provisional evidence at the first IPv4 multicast send.
+- Focused suite: 31 passed on local macOS and 31 passed from a fresh `git archive` of exact input head `0669c07`.
+- Final exact-input CI run: [35767055166](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35767055166) at candidate head `0669c07`.
+- Exact receipts: Ubuntu and Intel PyApp meet their gates; hosted macOS is valid provisional evidence at selected-interface UDP 5353 reply-source creation.
+- Final-head Python CodeQL passes; alerts 16 and 17 report `fixed`, and the PR-head open-alert query is empty.
 - Production source, `pyproject.toml` and `uv.lock` have no diff from the plan base.
 - Sibling `lifx-async` remains at the pinned oracle revision; its pre-existing untracked `morph.py` is untouched.
 - Draft PR: [#224](https://github.com/Djelibeybi/lifx-emulator/pull/224).
@@ -168,11 +179,12 @@ Task 3 is intentionally uncommitted and awaits the blocking human decision.
 - Task 1 RED is recorded in `.planning/phases/03-mdns-responder/03-01-TDD-RED.json` and commit `3df658b`.
 - Task 2 RED is recorded in `.planning/phases/03-mdns-responder/03-01-TDD-TASK2-RED.json` and commit `6c25a8f`.
 - Corrective RED is recorded in `.planning/phases/03-mdns-responder/03-01-TDD-CORRECTION-RED.json` and commit `bb2be73`.
+- Security RED is recorded in `.planning/phases/03-mdns-responder/03-01-TDD-GHAS-RED.json` and commit `48551f8`.
 - GREEN and subsequent fixes preserve separately committed RED evidence.
 
 ## Deferred Evidence
 
-Exact-head hosted macOS multicast remains untested because the hosted arm64 runner returned errno 65 on its first send to `224.0.0.251:5353`, including after the workflow installed a destination-specific route on the selected interface. Repeat the exact candidate head and input digest on a disposable macOS executor whose IPv4 interface permits multicast send. Local macOS proof is retained separately and does not replace that platform receipt.
+Exact-head hosted macOS multicast remains untested because mDNSResponder prevented the RFC-required selected-interface UDP 5353 reply-source bind (`EADDRINUSE`) beside the group/interface-scoped listener. Repeat the exact candidate head and input digest on a disposable macOS executor whose daemon permits that scoped UDP 5353 coexistence. Local macOS proof is retained separately and does not replace that platform receipt.
 
 Dynamic listener failure, retry, partial-fleet recovery and production status integration remain untested. Independent clean shutdown cycles prove resource cleanup only. Acquire this evidence with injected responder failure and recovery after the human selects a production foundation.
 
@@ -189,7 +201,7 @@ Task 3 must record the blocking human choice. The validated ledger supports only
 ## Self-Check: PASSED
 
 - All created task artefacts exist.
-- All 19 task and evidence commits before this checkpoint-summary update exist on `codex/phase-03-mdns-responder`.
+- All 24 task and evidence commits before this checkpoint-summary update exist on `codex/phase-03-mdns-responder`.
 - The evidence validator passes with `decision=provisional`.
 - The working tree contains only the intended execution-state and checkpoint-summary edits before the final checkpoint commit.
 
