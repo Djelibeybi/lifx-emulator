@@ -95,17 +95,17 @@ Plans:
 **Requirements**: MDNS-01, MDNS-02, MDNS-03, MDNS-04, MDNS-05, MDNS-06, MDNS-07, MDNS-08, MDNS-09, MDNS-10, MDNS-11
 **Success Criteria** (what must be TRUE):
 
-  1. A recorded go/no-go decision exists after evaluating current python-zeroconf, then extending/adapting existing `lifx-async` mDNS code, then a new responder, backed by a time-boxed spike run against `lifx-async` `discover_mdns()` that reports on legacy-unicast replies, per-device packet boundaries, multi-instance TXT and AAAA-only records, port 5353 coexistence with the host mDNS daemon, and macOS x86_64 PyApp packaging. Missing required evidence keeps the choice provisional, as specified in `03-CONTEXT.md` D-09–D-18.
+  1. A recorded go/no-go decision exists after evaluating current python-zeroconf, then extending/adapting existing `lifx-async` mDNS code, then a new responder, backed by a time-boxed spike run against `lifx-async` `discover_mdns()` that reports on legacy-unicast replies, complete-fleet discovery independent of packet grouping, multi-instance TXT and AAAA-only records, port 5353 coexistence with the host mDNS daemon, and macOS x86_64 PyApp packaging. Missing required evidence keeps the choice provisional, as specified in `03-CONTEXT.md` D-09–D-18.
   2. A PTR query for `_lifx._udp.local` sent to 224.0.0.251:5353 from an ephemeral port, on a machine whose own mDNS daemon is running, receives a unicast reply at that source address and port with the query ID echoed, the cache-flush bit clear and TTL ≤ 10 s.
-  3. Each advertised device sends its own reply packet containing a PTR record, an SRV record pointing at the emulator's UDP port and a per-device `.local` hostname, a TXT record containing exactly `id`, `p`, `fw` and `tm` (`1` for WiFi, `2` for Thread), and exactly one address record — AAAA for Thread, A for WiFi — with a Thread device's own configured ULA/GUA used when set, the IPv6 bind address when not, loopback allowed for local tests, wildcard binds requiring an explicit advertised address, and all scoped or unscoped link-local advertised addresses rejected with a clear error.
+  3. Each advertised device is discoverable from correctly associated records across one or more replies; aggregation is permitted without dropping devices or imposing a packet-capacity fleet limit. Each device has a PTR record, an SRV record pointing at the emulator's UDP port and a per-device `.local` hostname, a TXT record containing exactly `id`, `p`, `fw` and `tm` (`1` for WiFi, `2` for Thread), and exactly one address record — AAAA for Thread, A for WiFi — with a Thread device's own configured ULA/GUA used when set, the IPv6 bind address when not, loopback allowed for local tests, wildcard binds requiring an explicit advertised address, and all scoped or unscoped link-local advertised addresses rejected with a clear error.
   4. A direct A or AAAA query for any advertised hostname is answered, and adding or removing a device at runtime changes the next reply's record set while the existing WebSocket device events keep firing unchanged.
   5. The core responder is opt-in and starts and stops with the server. If enabled mDNS startup fails, startup is fatal only when Thread devices are configured; WiFi-only operation continues with an observable mDNS failure. The responder leaves no sockets or tasks behind across pytest-asyncio function-scoped loops and is covered by both datagram-injection unit tests and loopback-multicast integration tests that pass on the Ubuntu and macOS CI legs.
 
-**Plans**: 1 spike plan ready; remaining implementation plans gated on go/no-go
+**Plans**: 1 historical spike plan; zeroconf re-evaluation pending under the approved packet-grouping amendment. Remaining implementation plans stay gated on go/no-go
 
 **Wave 1 — implementation-selection spike**
 
-- [ ] 03-01-PLAN.md — Run the bounded MDNS-10 candidate/evidence spike and record go, no-go or provisional before further planning
+- [ ] 03-01-PLAN.md — Historical spike; read 03-PACKET-GROUPING-AMENDMENT.md before any continuation. Zeroconf is reopened, with no new compliance verdict yet
 
 **Pending planning:** MDNS-01–09 and MDNS-11 remain in Phase 3. They are evaluation inputs to the spike, not implementation requirements covered by 03-01.
 

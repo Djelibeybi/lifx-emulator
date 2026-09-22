@@ -1,5 +1,7 @@
 # Phase 3: mDNS Responder — Specification
 
+**Amended 2026-09-23:** Packet grouping is unrestricted subject to complete-fleet discovery; zeroconf re-evaluation is pending. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md).
+
 **Created:** 2026-09-11
 **Ambiguity score:** 0.075 (gate: ≤ 0.20)
 **Requirements:** 11 locked
@@ -19,7 +21,7 @@ Only the MDNS-10 spike is ready for detailed planning. The other requirements re
 
 ## Goal
 
-An explicitly enabled core mDNS responder lets `lifx-async` discover each emulated device from its own DNS-SD reply, advertising Thread devices with AAAA records and WiFi devices with A records.
+An explicitly enabled core mDNS responder lets `lifx-async` discover every emulated device from its DNS-SD records, independently of reply packet grouping, advertising Thread devices with AAAA records and WiFi devices with A records.
 
 ## Background
 
@@ -27,7 +29,7 @@ The core server in `packages/lifx-emulator-core/src/lifx_emulator/server.py` alr
 
 `packages/lifx-emulator-core/src/lifx_emulator/devices/manager.py` has single-slot `on_device_added` and `on_device_removed` callbacks. mDNS lifecycle observation must coexist with the app's existing WebSocket bridge.
 
-The sibling client's `_LifxRecordCache` in `src/lifx/network/discovery/mdns/discovery.py` accumulates records across response packets. A whole-fleet packet is not a client requirement. This interview explicitly replaces that earlier planning assumption with one reply per device; there is no fleet-size limit derived from packing all devices into one datagram.
+The sibling client's `_LifxRecordCache` in `src/lifx/network/discovery/mdns/discovery.py` accumulates records across response packets. Neither one whole-fleet packet nor one packet per device is a client requirement. The original interview selected one reply per device to remove an artificial fleet-size restriction. On 2026-09-23 the user approved replacing that packet-boundary rule with complete, correct discovery of every advertised device, allowing aggregation and multiple packets without a fleet-size limit imposed by packet capacity. See `03-PACKET-GROUPING-AMENDMENT.md`.
 
 This specification clarifies the conflicting default statements in PROJECT.md and CFG-06: core mDNS is opt-in; standalone defaults are Phase 4 work. Phase 2's existing IPv6 default is unchanged.
 
@@ -43,9 +45,9 @@ This specification clarifies the conflicting default statements in PROJECT.md an
    - Target: The client's ephemeral-port discovery path receives every eligible device's response without joining a multicast group.
    - Acceptance: AC-03 checks destination, ID, flags and TTL on each response, including repeated queries with different IDs.
 
-3. **MDNS-03 — One complete reply per device:** Each advertised device produces its own reply packet containing its PTR, SRV, TXT and exactly one address record.
+3. **MDNS-03 — Complete discovery independent of packet grouping:** Every advertised device is discoverable from its correctly associated PTR, SRV, TXT and exactly one matching-family address record. Replies may contain records for multiple devices or span multiple packets; no eligible device may be lost or excluded because the fleet exceeds one packet.
    - Current: No DNS-SD record construction exists; the roadmap formerly required one packet for the fleet.
-   - Target: PTR maps `_lifx._udp.local` to `<serial>._lifx._udp.local`; SRV has priority and weight zero, the actual bound LIFX UDP port and a per-device `.local` hostname. A query produces one complete reply per advertised device.
+   - Target: PTR maps `_lifx._udp.local` to `<serial>._lifx._udp.local`; SRV has priority and weight zero, the actual bound LIFX UDP port and a per-device `.local` hostname. Discovery returns every eligible device with complete, correct records, independently of how replies group them into packets.
    - Acceptance: AC-04 compares the response set with the eligible device set, including zero, one and multiple devices, without requiring an inter-device packet order.
 
 4. **MDNS-04 — Exact metadata:** Each device's TXT record contains exactly `id`, `p`, `fw` and `tm` with stable values across repeated queries of unchanged state.
@@ -80,8 +82,8 @@ This specification clarifies the conflicting default statements in PROJECT.md an
 
 10. **MDNS-10 — Evidence before implementation selection:** A time-boxed spike evaluates current python-zeroconf, then reuse of existing `lifx-async` mDNS code, then a new responder, and records a go/no-go decision before the responder implementation is built.
     - Current: The implementation choice is unresolved; no candidate has the required evidence in this phase.
-    - Target: The recorded comparison covers `lifx-async` discovery, legacy-unicast replies, per-device packet boundaries, mixed TXT/address families, host-daemon coexistence and macOS x86_64 PyApp packaging. Record versions, time box, commands, results and unsupported or untested cases. Detailed implementation planning follows the decision.
-    - Acceptance: AC-12 requires an explicit decision and evidence for every criterion, including whether the candidate can meet one-reply-per-device behaviour.
+    - Target: The recorded comparison covers `lifx-async` discovery, legacy-unicast replies, complete-fleet discovery independent of packet grouping, mixed TXT/address families, host-daemon coexistence and macOS x86_64 PyApp packaging. Record versions, time box, commands, results and unsupported or untested cases. Detailed implementation planning follows the decision.
+    - Acceptance: AC-12 requires an explicit decision and evidence for every criterion, including complete-fleet discovery without packet-capacity truncation or a packet-derived fleet limit.
 
 11. **MDNS-11 — Executable discovery evidence:** Datagram-injection unit tests and loopback-multicast integration tests prove the responder contract on Ubuntu and macOS.
     - Current: Native IPv6 tests exist; there are no mDNS responder tests.
@@ -93,14 +95,14 @@ This specification clarifies the conflicting default statements in PROJECT.md an
 **In scope:**
 
 - Core responder and configuration surface required to enable it and supply advertisement settings.
-- One packet per advertised device, with complete DNS-SD records and legacy-unicast response behaviour.
+- Complete discovery of every advertised device from correctly associated DNS-SD records, with legacy-unicast response behaviour; packet aggregation and multiple reply packets are permitted.
 - Address validation, WiFi opt-out, live device membership and non-displacing event listeners.
 - Conditional startup failure, shutdown ownership, the implementation-selection spike and focused discovery tests.
 - Corrections to MDNS-03 and Phase 3 roadmap criteria accompanying this specification.
 
 **Out of scope:**
 
-- Whole-fleet reply aggregation or rejecting a fleet because its combined records exceed one packet — the user explicitly selected per-device replies.
+- Dropping eligible devices or imposing a fleet-size limit because their combined records exceed one packet. Packet aggregation itself is permitted.
 - CLI flags, YAML, export-config and standalone default enablement — Phase 4.
 - Management API models and validation responses — Phase 5.
 - Dashboard controls — excluded from this milestone.
@@ -126,22 +128,22 @@ This specification clarifies the conflicting default statements in PROJECT.md an
 - [ ] **AC-01:** Default core construction opens no mDNS socket; enabling mDNS includes eligible devices, honours WiFi opt-out and rejects individual Thread opt-out.
 - [ ] **AC-02:** With the host mDNS daemon active, an enabled responder receives an IPv4 multicast PTR query without displacing that daemon.
 - [ ] **AC-03:** Every response to an ephemeral-port query targets its source address/port, echoes its query ID, clears cache-flush bits and uses positive record TTLs no greater than 10 seconds. Repeated queries with different IDs receive independently correct replies.
-- [ ] **AC-04:** A query returns exactly one complete PTR/SRV/TXT/address packet per eligible device, with no records from another device in that packet. Zero eligible devices produce zero device replies. The response set is correct regardless of packet order. SRV priority/weight are zero and its port equals the committed LIFX port, including port-zero startup.
+- [ ] **AC-04:** A discovery operation returns exactly the eligible device set with complete, correctly associated PTR/SRV/TXT/address records. Aggregated replies and records spread across packets are permitted. Zero eligible devices produce no device advertisements. Correctness is independent of packet count, grouping and order; packet capacity must not cause missing devices or a fleet-size restriction. SRV priority/weight are zero and its port equals the committed LIFX port, including port-zero startup.
 - [ ] **AC-05:** TXT has exactly the four specified keys; serials retain all 12 hexadecimal characters, including trailing zeroes, and `fw=4.200` remains exactly that value. Repeated queries of unchanged state yield identical TXT content.
-- [ ] **AC-06:** A mixed fleet produces AAAA-only Thread and A-only WiFi replies. Two distinct serials using one address still produce two distinct service instances and replies.
+- [ ] **AC-06:** A mixed fleet advertises AAAA-only records for Thread devices and A-only records for WiFi devices, even when their records share a packet. Two distinct serials using one address remain two separately discoverable service instances.
 - [ ] **AC-07:** Explicit per-device Thread addresses override concrete bind fallbacks; loopback is accepted; wildcard omission, blank or malformed overrides, wrong families and all link-local forms are rejected clearly. Equivalent IPv6 text representations encode the same address. No wildcard or invalid address reaches an advertised record.
 - [ ] **AC-08:** Direct matching-family hostname queries return the advertised address. Opposite-family queries never produce an opposite-family address for that device, and completed removal/opt-out leaves no advertised address for it.
 - [ ] **AC-09:** Successful add/remove/re-add operations are reflected by the next query, including an empty fleet, while both mDNS and the existing WebSocket listener observe the lifecycle events. Duplicate serial rejection retains the original device and does not create a second advertisement.
 - [ ] **AC-10:** Injected mDNS startup failure causes Thread-only and mixed-fleet startup to fail and clean up. The same failure with WiFi-only devices leaves LIFX discovery/control functioning and exposes the mDNS failure. Explicitly disabled core mDNS is not treated as a failure.
 - [ ] **AC-11:** Repeated start/stop, partial-start failure and function-scoped event-loop teardown leave no mDNS sockets, pending owned tasks or duplicate listener registrations. A query overlapping a device change does not emit a partial record set for a device; the next query after completion reflects that change.
 - [ ] **AC-12:** The spike records its time box and candidate version plus evidence for every MDNS-10 criterion, makes an explicit go/no-go decision before responder construction, and distinguishes untested packaging/platform claims from demonstrated results.
-- [ ] **AC-13:** Focused datagram-injection and actual multicast integration tests pass on Ubuntu/macOS; simulated Windows socket behaviour is identified as simulation. Tests prove multiple per-device replies are discovered by `lifx-async`. Skips and unavailable environments are explicitly reported.
+- [ ] **AC-13:** Focused datagram-injection and actual multicast integration tests pass on Ubuntu/macOS; simulated Windows socket behaviour is identified as simulation. Tests prove `lifx-async` discovers the entire eligible fleet with the candidate's packet grouping, including a fleet whose complete records exceed one datagram. Skips and unavailable environments are explicitly reported.
 
 ## Edge Coverage
 
 **Coverage:** 46/46 applicable review rows resolved; 0 unresolved; all resolutions use explicit acceptance criteria.
 
-Both engine runs are retained in this union: the initial roadmap wording and the final specification wording. Initial provisional MDNS-12 (opt-in) maps into MDNS-01; MDNS-13 (wildcard policy) maps into MDNS-06. Manual-review rows are resolved against the concrete criteria rather than silently discarded, and manually identified numeric, encoding and lifecycle edges are included. Routine implications of one-reply-per-device and existing identity/metadata requirements do not introduce an additional fleet limit or packet ordering guarantee.
+Both engine runs are retained in this union: the initial roadmap wording and the final specification wording. Initial provisional MDNS-12 (opt-in) maps into MDNS-01; MDNS-13 (wildcard policy) maps into MDNS-06. Manual-review rows are resolved against the concrete criteria rather than silently discarded, and manually identified numeric, encoding and lifecycle edges are included. Routine implications of complete-fleet discovery and existing identity/metadata requirements do not introduce an additional fleet limit or packet ordering guarantee.
 
 | Category | Requirement | Status | Verification | Resolution |
 |----------|-------------|--------|--------------|------------|
@@ -156,12 +158,12 @@ Both engine runs are retained in this union: the initial roadmap wording and the
 | ordering | MDNS-02 | resolved | explicit | AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata. |
 | precision | MDNS-02 | resolved | explicit | AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata. |
 | unclassified | MDNS-02 | resolved | explicit | AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata. |
-| adjacency | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
-| boundary | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
-| concurrency | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
-| empty | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
-| ordering | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
-| precision | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| adjacency | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| boundary | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| concurrency | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| empty | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| ordering | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
+| precision | MDNS-03 | resolved | explicit | AC-04/06/11: zero, one and multiple complete device record sets, independent of packet grouping; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set. |
 | adjacency | MDNS-04 | resolved | explicit | AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state. |
 | empty | MDNS-04 | resolved | explicit | AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state. |
 | encoding | MDNS-04 | resolved | explicit | AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state. |
@@ -218,7 +220,7 @@ Initial scores were 0.90 / 0.80 / 0.65 / 0.80 (ambiguity 0.195, displayed as 0.2
 | 1 | Researcher | Wildcard bind advertisement? | Require an explicit address; no interface selection |
 | 1 | Workspace scope | Existing modified files? | Leave `.gitignore` and `.planning/config.json` untouched |
 | Gate | Clarity check | Proceed through the specification gate? | Yes |
-| 2 | Failure analyst | Whole-fleet reply and size restriction? | User challenged the premise; one complete reply per device replaces whole-fleet aggregation and the proposed fleet-size restriction |
+| 2 | Failure analyst | Whole-fleet reply and size restriction? | Historical decision: user challenged the whole-fleet premise and selected one reply per device. Superseded on 2026-09-23 by complete-fleet discovery independent of packet grouping |
 | 3 | Failure analyst | Is enabled mDNS startup failure fatal? | Only when Thread devices are configured; WiFi-only may continue |
 | 3 | Boundary keeper | Loopback allowed; all link-local rejected? | Yes, including rejection of scoped link-local addresses |
 
