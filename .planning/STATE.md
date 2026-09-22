@@ -4,10 +4,10 @@ current_phase: 03
 current_phase_name: mDNS Responder
 status: awaiting decision
 stopped_at: Task 3 blocking-human MDNS-10 foundation decision
-last_updated: "2026-09-22T17:22:42Z"
+last_updated: "2026-09-22T18:09:54Z"
 last_activity: 2026-09-23
-last_activity_desc: MDNS-10 candidate evidence validated as provisional; Task 3 human decision pending
-state_head: a917f917944c70a83e722c174e1f35183adcff87
+last_activity_desc: Corrected MDNS-10 evidence validated as provisional; hosted macOS multicast and dynamic recovery remain unproved before Task 3
+state_head: d9055d22104e20207f952c36b07e1b348762dd8d
 progress:
   total_phases: 6
   completed_phases: 0
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 Phase: 03 (mDNS Responder) — AWAITING DECISION
 Plan: 1 of 1
 Status: Task 3 blocking-human decision pending; MDNS-10 and remaining requirements are not complete
-Last activity: 2026-09-23 — Zeroconf was rejected, lifx-direct remains provisional, and the validated evidence supports only a provisional hold.
+Last activity: 2026-09-23 — Zeroconf was rejected; lifx-direct remains provisional because hosted macOS multicast and dynamic recovery are unproved.
 
 Progress: [░░░░░░░░░░] 0% (2/6 phases; 8/9 existing plans complete)
 
@@ -102,6 +102,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-22T17:22:42Z
+Last session: 2026-09-22T18:09:54Z
 Stopped at: Task 3 blocking-human MDNS-10 foundation decision
 Resume file: .planning/phases/03-mdns-responder/03-01-PLAN.md

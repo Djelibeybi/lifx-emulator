@@ -37,7 +37,7 @@
   "next": {
     "command": "/gsd:execute-phase 3",
     "label": "Resolve MDNS-10 decision checkpoint",
-    "reason": "Task 3 requires a blocking human decision; validated evidence currently supports only a provisional hold"
+    "reason": "Task 3 requires a blocking human decision; hosted macOS multicast and dynamic recovery remain unproved"
   },
-  "updated_at": "2026-09-22T17:22:42Z"
+  "updated_at": "2026-09-22T18:09:54Z"
 }

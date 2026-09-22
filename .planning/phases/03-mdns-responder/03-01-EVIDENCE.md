@@ -2,7 +2,7 @@
 
 - **Decision:** provisional
 - **Reason:** The direct foundation passed local protocol, oracle, benchmark, cleanup, Ubuntu and Intel PyApp gates. Exact-head hosted macOS could not send the first IPv4 multicast query despite a concrete route, and dynamic listener failure/retry/partial-fleet recovery remains untested; go is unavailable until those proofs are acquired.
-- **Active work:** 11118.822s / 14400s
+- **Active work:** 11281.618s / 14400s
 - **Input specification:** `dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e`
 
 ## Environment
