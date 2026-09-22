@@ -1725,28 +1725,124 @@ def validate_evidence(path: Path) -> int:
     return 0
 
 
+def _run_direct_platform(args: argparse.Namespace) -> int:
+    inputs = resolve_inputs()
+    command = _direct_worker_command(inputs)
+    environment = dict(os.environ)
+    environment["MDNS_SPIKE_WORKER"] = "1"
+    completed = subprocess.run(
+        command,
+        cwd=REPOSITORY_ROOT,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    if completed.returncode != 0:
+        print(completed.stderr, file=sys.stderr)
+        return 1
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    valid = (
+        not result.get("error_type")
+        and result["oracle"]["wifi"]["matched"]
+        and (result["oracle"]["thread"] or {}).get("matched", True)
+        and result["malformed_bounded"]
+        and result["threads_before"] == result["threads_after"]
+        and not result["pending_owned_tasks"]
+        and all(
+            metrics["discovered"] == metrics["expected"]
+            and metrics["complete_devices"] == metrics["expected"]
+            and metrics["datagram_count"] == metrics["expected"]
+            and metrics["wire_checks_passed"]
+            and all(metrics["direct_queries"].values())
+            for metrics in result["benchmarks"].values()
+        )
+    )
+    payload = {
+        "schema_version": 1,
+        "platform_candidate": "lifx-direct",
+        "input_spec_digest": inputs["input_spec_digest"],
+        "valid": valid,
+        "command": command,
+        "result": result,
+    }
+    _write_json(Path(args.output), payload)
+    return 0 if valid else 1
+
+
 def _write_ci_receipt(args: argparse.Namespace) -> int:
     evidence_path = Path(args.evidence)
     evidence = _read_json(evidence_path)
     inputs = resolve_inputs()
-    if validate_evidence(evidence_path) != 0:
-        return 1
-    candidate = inputs["candidate"]
+    platform_candidate = evidence.get("platform_candidate")
+    if platform_candidate == "lifx-direct":
+        if not evidence.get("valid"):
+            return 1
+        candidate = inputs["fallbacks"]["lifx-direct"]
+        environments = {
+            "/".join(
+                str(evidence["result"]["environment"][key])
+                for key in ("os", "architecture", "python")
+            ): evidence["result"]["environment"]
+        }
+        base_commit = candidate["base_revision"]
+        base_tree = candidate["base_tree"]
+        overlay_digest = candidate["overlay_sha256"]
+        final_digest = candidate["final_digest"]
+    else:
+        if validate_evidence(evidence_path) != 0:
+            return 1
+        candidate = inputs["candidate"]
+        environments = evidence["environments"]
+        base_commit = candidate["commit"]
+        base_tree = candidate["tree"]
+        overlay_digest = candidate["overlay_digest"]
+        final_digest = candidate["sdist_sha256"]
     receipt = {
         "schema_version": 1,
         "candidate_head_sha": args.head_sha,
         "input_spec_digest": inputs["input_spec_digest"],
-        "candidate_base_commit": candidate["commit"],
-        "candidate_base_tree": candidate["tree"],
-        "candidate_overlay_digest": candidate["overlay_digest"],
-        "candidate_final_digest": candidate["sdist_sha256"],
+        "candidate": platform_candidate or candidate["name"],
+        "candidate_base_commit": base_commit,
+        "candidate_base_tree": base_tree,
+        "candidate_overlay_digest": overlay_digest,
+        "candidate_final_digest": final_digest,
         "platform_leg": args.platform_leg,
         "run_url": args.run_url,
-        "environments": evidence["environments"],
+        "environments": environments,
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         "recorded_at": _utc_now(),
     }
     _write_json(Path(args.output), receipt)
+    return 0
+
+
+def _validate_ci_receipt(args: argparse.Namespace) -> int:
+    try:
+        receipt = _read_json(Path(args.receipt))
+        inputs = resolve_inputs()
+        candidate = inputs["fallbacks"]["lifx-direct"]
+        expected = {
+            "candidate": "lifx-direct",
+            "candidate_head_sha": args.head_sha,
+            "input_spec_digest": inputs["input_spec_digest"],
+            "candidate_base_commit": candidate["base_revision"],
+            "candidate_base_tree": candidate["base_tree"],
+            "candidate_overlay_digest": candidate["overlay_sha256"],
+            "candidate_final_digest": candidate["final_digest"],
+        }
+        for name, value in expected.items():
+            if receipt.get(name) != value:
+                raise ValueError(
+                    f"receipt {name} mismatch: {receipt.get(name)!r} != {value!r}"
+                )
+        if not receipt.get("environments"):
+            raise ValueError("receipt has no realised platform environment")
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        print(f"CI receipt invalid: {error}", file=sys.stderr)
+        return 1
+    print("CI receipt valid: lifx-direct exact head and immutable inputs match")
     return 0
 
 
@@ -1843,6 +1939,9 @@ def _parser() -> argparse.ArgumentParser:
     sequence.add_argument("--source-revision", required=True)
     sequence.add_argument("--evidence", default=str(DEFAULT_EVIDENCE))
     sequence.set_defaults(handler=run_sequence, candidate="zeroconf")
+    platform_probe = subparsers.add_parser("run-direct-platform")
+    platform_probe.add_argument("--output", required=True)
+    platform_probe.set_defaults(handler=_run_direct_platform)
     validate = subparsers.add_parser("validate-evidence")
     validate.add_argument("evidence")
     validate.set_defaults(handler=lambda args: validate_evidence(Path(args.evidence)))
@@ -1860,6 +1959,10 @@ def _parser() -> argparse.ArgumentParser:
         "--platform-leg", choices=("multicast", "intel-pyapp"), required=True
     )
     receipt.set_defaults(handler=_write_ci_receipt)
+    validate_receipt = subparsers.add_parser("validate-ci-receipt")
+    validate_receipt.add_argument("--receipt", required=True)
+    validate_receipt.add_argument("--head-sha", required=True)
+    validate_receipt.set_defaults(handler=_validate_ci_receipt)
     return parser
 
 

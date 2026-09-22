@@ -112,12 +112,8 @@ jobs:
         EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
       run: |
         uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov
-        uv run --frozen python scripts/spike_mdns_candidates.py run-candidate \
-          --candidate zeroconf \
-          --oracle-revision 48b7efbff59656499373b13ef17e3008d125feb5 \
-          --stop-after legacy-wire \
-          --evidence "$EVIDENCE"
-        uv run --frozen python scripts/spike_mdns_candidates.py validate-evidence "$EVIDENCE"
+        uv run --frozen python scripts/spike_mdns_candidates.py \
+          run-direct-platform --output "$EVIDENCE"
 
     - name: Record exact-head receipt
       if: steps.expensive.outputs.run == 'true'
@@ -231,8 +227,12 @@ jobs:
         wheels="$RUNNER_TEMP/wheels"
         mkdir -p "$wheels"
         uv build --wheel packages/lifx-emulator-core --out-dir "$wheels"
-        git clone --no-checkout https://github.com/Djelibeybi/lifx-async.git "$RUNNER_TEMP/lifx-async"
-        git -C "$RUNNER_TEMP/lifx-async" checkout --detach "$SOURCE_REVISION"
+        git init "$RUNNER_TEMP/lifx-async"
+        git -C "$RUNNER_TEMP/lifx-async" remote add origin \
+          https://github.com/Djelibeybi/lifx-async.git
+        git -C "$RUNNER_TEMP/lifx-async" fetch --depth 1 origin "$SOURCE_REVISION"
+        git -C "$RUNNER_TEMP/lifx-async" checkout --detach FETCH_HEAD
+        test "$(git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD)" = "$SOURCE_REVISION"
         cp scripts/mdns_spike_inputs/lifx_direct.py \
           "$RUNNER_TEMP/lifx-async/src/lifx/network/discovery/mdns/responder.py"
         uv build --wheel "$RUNNER_TEMP/lifx-async" --out-dir "$wheels"

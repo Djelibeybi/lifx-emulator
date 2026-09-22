@@ -24,6 +24,7 @@
     "lifx-direct": {
       "base_revision": "48b7efbff59656499373b13ef17e3008d125feb5",
       "base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
       "mdns_subtree_archive_sha256": "a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b",
       "overlay_path": "scripts/mdns_spike_inputs/lifx_direct.py",
       "overlay_sha256": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
@@ -34,7 +35,7 @@
     "path": "scripts/spike_mdns_candidates.py",
     "revision": "03-01-lifx-direct-v1"
   },
-  "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+  "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
   "oracle": {
     "commit_api_verified": true,
     "detached_fetch_verified": true,

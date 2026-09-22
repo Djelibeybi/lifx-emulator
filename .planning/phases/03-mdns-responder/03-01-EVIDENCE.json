@@ -1,6 +1,6 @@
 {
   "active_budget_seconds": 14400,
-  "active_elapsed_seconds": 3703.753,
+  "active_elapsed_seconds": 4089.272,
   "candidate_order": [
     "zeroconf",
     "lifx-direct",
@@ -970,7 +970,7 @@
           "status": "simulated"
         }
       },
-      "elapsed_active_seconds": 3703.753,
+      "elapsed_active_seconds": 4089.272,
       "execution_status": "completed"
     }
   ],
@@ -1736,11 +1736,15 @@
       "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
     }
   },
-  "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+  "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
   "input_spec_history": [
     {
       "digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
       "superseded_at": "2026-09-22T15:59:06.333488Z"
+    },
+    {
+      "digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+      "superseded_at": "2026-09-22T16:10:02.271186Z"
     }
   ],
   "inputs": {
@@ -1769,6 +1773,7 @@
       "lifx-direct": {
         "base_revision": "48b7efbff59656499373b13ef17e3008d125feb5",
         "base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+        "final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
         "mdns_subtree_archive_sha256": "a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b",
         "overlay_path": "scripts/mdns_spike_inputs/lifx_direct.py",
         "overlay_sha256": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
@@ -1779,7 +1784,7 @@
       "path": "scripts/spike_mdns_candidates.py",
       "revision": "03-01-lifx-direct-v1"
     },
-    "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+    "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
     "oracle": {
       "commit_api_verified": true,
       "detached_fetch_verified": true,
@@ -1790,7 +1795,7 @@
   },
   "plan": "03-01",
   "pull_request": {
-    "candidate_head_sha": null,
+    "candidate_head_sha": "57a13c1ef92e957807d3a16facb7f52c930a9c89",
     "runs": [
       {
         "head_sha": "3016313c7a3ce99d6f1a5559128c91ffd0200048",
@@ -1800,6 +1805,12 @@
         "ubuntu_evidence_sha256": "7bcae41b0420e9be792604d5850cee2f433b3c8a4c84a054b660542d0dbf9e98",
         "ubuntu_receipt_sha256": "ae9652501151f1d5209daf588c1c779b9c29e65ef662f6e79b2f02b20c997f08",
         "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35747307214"
+      },
+      {
+        "head_sha": "57a13c1ef92e957807d3a16facb7f52c930a9c89",
+        "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
+        "status": "in_progress",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35751638759"
       }
     ],
     "url": "https://github.com/Djelibeybi/lifx-emulator/pull/224"
@@ -1807,5 +1818,5 @@
   "requirement": "MDNS-10",
   "schema_version": 1,
   "started_at": "2026-09-22T15:01:53Z",
-  "updated_at": "2026-09-22T16:03:36.752816Z"
+  "updated_at": "2026-09-22T16:10:02.271666Z"
 }
