@@ -1,0 +1,9 @@
+{
+  "command": "uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov -k tracer --tb=short",
+  "exitCode": 1,
+  "targetTest": "test_single_wifi_legacy_unicast_tracer",
+  "targetFile": "scripts/mdns_spike_tests/test_candidates.py",
+  "expected": "The candidate harness exists so the WiFi legacy-unicast tracer can execute.",
+  "actual": "The harness file is absent before implementation.",
+  "output": "not ok 1 - test_single_wifi_legacy_unicast_tracer\n# tests 1\n# pass 0\n# fail 1\n# cancelled 0\n"
+}
