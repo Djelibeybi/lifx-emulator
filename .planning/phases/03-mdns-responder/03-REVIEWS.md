@@ -1,10 +1,10 @@
 ---
 phase: 03
 reviewers: [claude, opencode, antigravity]
-completed_reviewers: [claude, antigravity]
-blocked_reviewers: [opencode]
-status: partial_review_requires_revision
-reviewed_at: "2026-09-22T14:00:28.838Z"
+completed_reviewers: [claude, opencode, antigravity]
+blocked_reviewers: []
+status: review_complete_requires_revision
+reviewed_at: "2026-09-22T14:23:33.845Z"
 plans_reviewed: [03-01-PLAN.md]
 reviewed_commit: "7d69642"
 plan_sha256: "925d986708dd7b70a9bef6a91f8ff122c5830d954304bf00b2d77c601f96778c"
@@ -24,14 +24,16 @@ model_sources:
 ## Plan-Revision Conflicts
 <!-- gsd:plan-revision-conflicts:end -->
 
-Two reviewers returned substantive reviews covering 03-01. OpenCode did not review: its initial process failed opening its local log, and automatic approval review rejected the retry with broader filesystem access. This is a partial configured review, not three completed reviews. No plan or implementation was changed by this review.
+All three configured reviewers returned substantive reviews covering 03-01 against the unchanged plan hash above. OpenCode completed after explicit user approval and a process-scoped permission for the referenced sibling source. No plan or implementation was changed by this review.
 
 ## Review quality and interpretation
 
 - Claude supplied source-grounded findings. The orchestrator independently read the oracle address selector and CI triggers, confirming the mechanisms below.
 - Antigravity supplied some useful source citations, but its plan/context/research line references use impossible offsets (for example plan line 1077 in a 270-line file). Those are not valid repository citations. Weight only independently grounded concerns; retain the raw review unchanged below.
-- Antigravity's claim that uv's isolated flag ignores project configuration is contradicted by the [official uv CLI reference](https://docs.astral.sh/uv/reference/cli/#uv-run--isolated): it uses a fresh project environment and still installs the project. The claimed conflict with frozen is not established. Exact workspace import availability remains an execution-preflight question, not a proven flag defect.
-- Claude's inference that the pinned oracle commit is unavailable remotely is unproven: no local remote-tracking ref contains it, but that is not a fresh remote reachability check. The object exists locally; transporting an exact source snapshot to CI remains worth specifying.
+- Antigravity's and OpenCode's claims that uv's isolated flag ignores project configuration are contradicted by the [official uv CLI reference](https://docs.astral.sh/uv/reference/cli/#uv-run--isolated): it uses a fresh project environment and still installs the project. The claimed conflict with frozen is not established. Exact workspace import availability remains an execution-preflight question, not a proven flag defect.
+- Claude and OpenCode infer that the pinned oracle commit is unavailable remotely from local remote-tracking refs. A fresh GitHub API request to `repos/Djelibeybi/lifx-async/commits/48b7efbff59656499373b13ef17e3008d125feb5` returned that exact SHA during this review. Their claimed unpushed/unresolvable-pin blocker is not accepted; no push or re-pin is warranted on this evidence. Exact Git/uv acquisition remains a preflight check rather than a proven failure.
+- OpenCode completed the required 03-01 section and supplied useful source citations. Its Ruff complexity claim is not supported: pyproject.toml:35 selects E/F/I/N/W/UP, not C90 or PLR. The configured mccabe/pylint thresholds at lines 39–45 do not themselves enable those rules.
+- The installed `uv run --help` describes isolated as a fresh virtual environment and separately describes no-project as disabling project/workspace discovery; it does not support OpenCode's attributed wording that isolated omits the project.
 
 ## Consensus Summary
 
@@ -39,13 +41,13 @@ Two reviewers returned substantive reviews covering 03-01. OpenCode did not revi
 
 ### Agreed Strengths
 
-- Both reviewers recognise the MDNS-10-only scope, pending production requirements, candidate ordering, pristine oracle intent, and separation of candidate rejection from harness errors.
-- Both recognise the four-hour stop and evidence-gated decision; no platform result should be fabricated.
+- All three reviewers recognise the MDNS-10-only scope, pending production requirements, candidate ordering, pristine oracle intent, and separation of candidate rejection from harness errors.
+- All three recognise the four-hour stop and evidence-gated decision; no platform result should be fabricated.
 
 ### Agreed Concerns
 
-1. **HIGH — Reduce scaffolding and redundant fallback work within the existing budget.** Both reviewers flag the provenance runner, validator, snapshot tooling, multiple fallback prototypes, benchmarks and CI/PyApp setup as likely to consume the four active hours. This is a feasibility risk, not a measured duration. Plan source: .planning/phases/03-mdns-responder/03-01-PLAN.md:166. Preserve D-14/D-15; prioritise the cheapest decisive packet checks and bound reuse investigation before authoring substantial prototypes.
-2. **HIGH — Specify default-suite isolation for spike tests.** Both reviewers flag new candidate-dependent tests under the default collection roots. Source: pyproject.toml:59 and .github/workflows/ci.yml:101. The future tests do not exist yet, so universal import failure is conditional; the actionable gap is the absence of an explicit collection/import boundary. Keep candidate imports and network experiments out of ordinary CI collection unless their environment is deliberately enabled.
+1. **HIGH — Reduce scaffolding and redundant fallback work within the existing budget.** All three reviewers flag the provenance runner, validator, snapshot tooling, multiple fallback prototypes, benchmarks and CI/PyApp setup as likely to consume the four active hours. This is a feasibility risk, not a measured duration. Plan source: .planning/phases/03-mdns-responder/03-01-PLAN.md:166. Preserve D-14/D-15; prioritise the cheapest decisive packet checks and bound reuse investigation before authoring substantial prototypes.
+2. **HIGH — Specify default-suite isolation for spike tests.** All three reviewers flag new candidate-dependent tests under the default collection roots. Source: pyproject.toml:59 and .github/workflows/ci.yml:101. The future tests do not exist yet, so universal import failure is conditional; the actionable gap is the absence of an explicit collection/import boundary. Keep candidate imports and network experiments out of ordinary CI collection unless their environment is deliberately enabled.
 
 ### Additional source-grounded concerns
 
@@ -58,13 +60,18 @@ Two reviewers returned substantive reviews covering 03-01. OpenCode did not revi
 - Do not adopt Claude's suggestion to replace required PyApp build/first-run evidence with a plain package import; D-12/MDNS-10 require packaging proof. An import may be a preliminary discriminator only.
 - Do not move harness construction or environment preparation outside the four-active-hour budget without changing the user's decision. Simplify inside the cap instead.
 - Do not treat absence of a responder in lifx-async as automatic decisive rejection. D-11 deliberately asks whether extending or adapting it is worthwhile; compare the delta against the requirements.
-- Antigravity's uv flag-conflict claim is not accepted, as explained above.
+- Antigravity's and OpenCode's uv flag claims are not accepted, as explained above. Specifying which environment contains each candidate, the emulator and the pristine oracle remains useful.
+- OpenCode's proposed push/re-pin and Ruff per-file exemptions are not adopted: the commit resolves on GitHub and the cited lint rule families are not enabled.
+- OpenCode correctly locates public `discover_mdns()` in ../lifx-async/src/lifx/api.py:1266. Adding that explicit reference would improve clarity; the plan currently names it without asserting a defining module (03-01-PLAN.md:95).
+- OpenCode suggests excluding the evidence ledger from published documentation and labelling the candidate-wheel proof precisely. These are optional presentation/provenance clarifications, not demonstrated blockers; preserve the required PyApp build and first-run evidence.
 - The plan already says run-sequence consumes Task 1's result (.planning/phases/03-mdns-responder/03-01-PLAN.md:159). Claude's duplicate-probe concern is a request for clearer resume behaviour, not evidence that repetition is mandatory.
-- Antigravity rates the plan more favourably overall than Claude; its unsupported plan offsets reduce confidence in plan-specific assertions. Neither review supersedes the locked requirements.
+- Antigravity rates the plan more favourably overall than Claude; its unsupported plan offsets reduce confidence in plan-specific assertions. No review supersedes the locked requirements.
 
 ## OpenCode retry status
 
-Configured destination/model: OpenRouter via OpenCode, openrouter/z-ai/glm-5.3. The review prompt contains project context, Phase 3 roadmap/requirements/context/research/specification and 03-01 plan; source-grounded review allows reading referenced repository files. The retry requires access to OpenCode's local runtime/log/configuration files. Automatic approval review rejected this operation because it considered that destination and payload insufficiently authorised. No retry or workaround was performed after rejection. Explicit user approval is required to resume this lane.
+Configured destination/model: OpenRouter via OpenCode, openrouter/z-ai/glm-5.3. The prompt included project context, Phase 3 roadmap/requirements/context/research/specification and 03-01 plan, with referenced source access. The first attempt failed opening the local log; automatic approval review initially rejected broader runtime access. The user then explicitly approved that destination, payload and local runtime access.
+
+The first approved retry returned only an opening sentence because OpenCode auto-rejected its external-directory request for the sibling lifx-async source. It was not counted as a review despite the launcher's ok:true result. A subsequent retry used a process-only external_directory permission restricted to /Volumes/External/Developer/Djelibeybi/lifx-async/** and edit:deny. It returned a full review, an exact 03-01 heading, source citations and no stderr. No persistent OpenCode configuration was changed. The combined prompt was passed through stdin; it was not opened as an external file.
 
 ## Raw reviewer responses
 
@@ -215,20 +222,54 @@ Security posture is adequate for the work: no privileged operation, no secrets i
 
 ## OpenCode Review
 
-opencode review failed or returned empty output. stderr:
-[91m[1mError: [0mUnexpected error
+## 03-01
 
-Unknown: FileSystem.open (/Users/amiller/.local/share/opencode/log/opencode.log)
+### Summary
 
-[spawn error: EPIPE]
+The plan is a single-purpose MDNS-10 evidence spike: a stdlib-first harness (`scripts/spike_mdns_candidates.py`), two spike test files inside the core package's test suite, a non-publishing CI evidence job, a provenance JSON plus a markdown decision ledger, and a blocking human checkpoint. I traced its claims against the emulator source, the sibling `lifx-async` checkout, both workflow files, `pyproject.toml` and the PyApp documentation. The plan is faithful to the locked decisions (D-09–D-18), handles negative and provisional outcomes explicitly, and does not plan MDNS-01–09/11. Its main defects are one hard blocker (the pinned oracle commit is not pushed to GitHub, so the mandated `git+https` install path cannot resolve), and several under-specified integration mechanics (test-suite placement, `uv --isolated` environment boundaries, CI job triggers and cost).
 
-Raw response body:
-OpenCode review returned no assistant text (#1936: agent ended its turn with no final message).
-Diagnostic: stop reason=?, output tokens=?
-Diagnosis: opencode ran at effort=high and exited with status 1.
+### Strengths
 
+- **Verified interface claims.** `EmulatedLifxServer.ipv4_endpoint`/`ipv6_endpoint` exist and publish the committed same-port pair (`packages/lifx-emulator-core/src/lifx_emulator/server.py:734-741`, with the IPv6 socket bound to the IPv4 port at `server.py:910`), so the spike can run the stock server without production changes — exactly as the `<interfaces>` section promises.
+- **Atomic startup/rollback pattern is real and reusable as evidence context.** `server.py:874-985` implements the lock-guarded dual bind with full rollback on failure (`server.py:939-949`), matching the research's characterisation and giving the spike a truthful baseline for lifecycle comparisons.
+- **Oracle behaviour claims are accurate to source.** `_LifxRecordCache.add_packet(self, records: list, source_ip: str)` exists at `../lifx-async/src/lifx/network/discovery/mdns/discovery.py:707`; TXT `tm` mapping (`"thread" if value == "2"`) at `discovery.py:172-174`; 12-hex unicast-MAC validation at `discovery.py:177-194`; exact-instance matching at `discovery.py:163-169`. The plan's TXT assertions (`id`, `p`, `fw`, `tm`) test what the oracle actually enforces.
+- **The sibling transport pattern is correctly characterised, including its flaw.** `MdnsTransport` at `../lifx-async/src/lifx/network/discovery/mdns/transport.py:64-101` provides the explicit-socket, async-context, cleanup-on-error pattern (`transport.py:131-217`), and the plan correctly notes that its automatic interface selection (`_select_mdns_ipv4_address`, `transport.py:38-61`, called at `transport.py:136`) must be rejected in favour of a caller-supplied interface — an accurate reading, not a copy.
+- **Negative and provisional outcomes are first-class, without weakening locked decisions.** The `meets_gate`/`rejected`/`provisional`/`tool_error` state machine makes a validated rejection a *successful* harness result, forces provisional on missing platform/packaging/provenance evidence (D-12), makes no-go require decisive rejection, and gates the new-responder candidate on both D-11 forms being `rejected` (D-09 ordering). Permitted not-run reasons (decisive rejection, unavailable environment, unverifiable provenance, cap exhaustion) implement D-14's hard stop without converting missing proof into a pass.
+- **Scope discipline holds.** `files_modified` touches only spike tooling, tests, CI wiring and evidence docs; the deferred coverage ledger keeps MDNS-01–09/11 pending; VM work is explicitly excluded (D-16–D-18); the verification section requires an empty diff over `pyproject.toml`, `uv.lock` and both `src` trees.
+- **Packaging claims verified.** The Intel runner `macos-15-intel` exists (`.github/workflows/release-binaries.yml:30-33`), PyApp is pinned at 0.26.0 (`.github/workflows/release-binaries.yml:8`), and PyApp's `PYAPP_PROJECT_PATH` does accept a local wheel for embedding (PyApp project configuration docs, "Embedding" section), so the CI leg's mechanism is sound.
+- **The pinned revision exists locally.** `48b7efbff59656499373b13ef17e3008d125feb5` is the sibling checkout's current HEAD, so local `git clone --no-local ../lifx-async` snapshots can work (see HIGH concern for the remote side).
 
----
+### Concerns
+
+**HIGH**
+
+- **The pinned oracle revision is unpushed, so the mandated install path cannot resolve.** The sibling's `origin/main` is `d09c842c...`, and no remote branch contains `48b7efb` (`git branch -r --contains` is empty; `merge-base --is-ancestor` exits 1). The plan hard-pins `--oracle-revision 48b7efb...` in Task 1/2 commands and the key_links pattern mandates `git+https://github.com/.+@[0-9a-f]{40}`. A `git+https` install from GitHub of an unpushed commit fails, both locally and in CI where `../lifx-async` does not exist at all. The repo itself is public (`gh repo view` reports `isPrivate: false`), so the fix is simply to push the commit or re-pin to `d09c842c`; as written, the spike's first run risks burning active hours diagnosing an unresolvable pin, which under the plan's own rules is a `tool_error`, not candidate evidence.
+
+**MEDIUM**
+
+- **Spike tests placed in the standard suite will be collected on every CI matrix leg with no stated skip strategy.** `pyproject.toml:59` makes `packages/lifx-emulator-core/tests/` a pytest root, and the CI test job runs `uv run --frozen pytest --cov-fail-under=80` across 10 legs (`.github/workflows/ci.yml:77-101`). But zeroconf and lifx-async are not project dependencies (`pyproject.toml:7-21`), `scripts/` is not on `pythonpath` (`pyproject.toml:60`), and the discovery-oracle tests need the pinned oracle installed. Either these tests spawn their own uv environments (network-dependent, slow, run 10× per push) or they skip — and the plan's own `fails_when` treats "zero collected tests" as invalid unless the ledger records a cause. The plan never says how `test_mdns_spike_datagrams.py` and `test_mdns_spike_socket_failures.py` degrade in the stock environment; this needs an explicit marking/skip contract so spike-evidence tests don't destabilise the ordinary suite or silently vanish.
+- **The `uv run --frozen --isolated` environment boundary is implied but never stated.** `--isolated` runs the command in an isolated virtual environment without the project installed (uv 0.12.7 `uv run --help`). Task 1's probe needs the stock emulator, zeroconf and the oracle in one isolated environment, yet the top-level verify command can only work if `spike_mdns_candidates.py` is stdlib-only at the top level (Task 3 says the validator is stdlib-only, but Task 1's probe requirements do not) and all candidate work is delegated to spawned `uv run --with ...` child environments — including installing `lifx_emulator` itself (e.g. `--with ./packages/lifx-emulator-core`). Without that boundary being explicit, the verify commands as written fail on the first `import lifx_emulator`.
+- **CI job triggers and cost are unspecified.** The plan adds `mdns-spike-evidence` to `.github/workflows/ci.yml`, which runs on every push to main and PR (`ci.yml:3-6`), and the `changes` filter only fires on `packages/**`, `pyproject.toml`, `uv.lock` (`ci.yml:28-32`) — not `scripts/**` or workflow edits. A job that resolves live PyPI/GitHub provenance, runs 1/10/100-device benchmarks and builds PyApp on the Intel runner is expensive to run implicitly on qualifying pushes, and won't run at all on harness-only changes. The plan should pin the job to an explicit trigger (for example `workflow_dispatch` plus the spike's own paths) rather than leaving cadence to implementation.
+- **Ruff constraints apply to the harness and are unacknowledged.** `ruff check .` and `ruff format --check .` cover the whole repo (`ci.yml:57-61`), and the config imposes max-complexity 10, max-args 5, max-statements 50 with no per-file ignores outside the generated protocol files (`pyproject.toml:34-50`). A single script containing provenance resolution, a wire probe, benchmark runner, evidence validator and CLI subcommands will need deliberate decomposition; the CLAUDE.md exemption precedent covers only factory entry points. (Pyright is not an issue — its include is `packages/*/src` only, `pyproject.toml:55`.)
+
+**LOW**
+
+- **The evidence ledger lives inside the published docs tree.** `docs/` is the mkdocs site root (nav at `mkdocs.yml:207`), so `docs/evidence/phase-03-mdns-spike.md` will be swept into the public documentation site as an unlisted page. Evidence is arguably publishable, but the plan should either exclude `docs/evidence/` in mkdocs config or relocate it (for example under `.planning/` or a top-level `evidence/`).
+- **Interface citation points to the wrong module.** The public oracle `discover_mdns()` is defined at `../lifx-async/src/lifx/api.py:1266-1272`, not in `mdns/discovery.py` as the `<interfaces>` section's phrasing suggests; an implementer following the context references would search the wrong file.
+- **The Intel PyApp proof is a proxy, and its scope should be stated in the ledger.** A job-local wheel embedded via `PYAPP_PROJECT_PATH` proves PyApp can fetch and install the candidate on Intel macOS at first run, but not that the *published app's* own manifest can carry the candidate (that would require the forbidden `pyproject.toml` change). This is a reasonable reading of MDNS-10's "macOS x86_64 PyApp packaging" criterion, but the ledger must label it as candidate-installability evidence, not app-packaging evidence, to keep AC-12's demonstrated/untested distinction honest.
+
+### Suggestions
+
+1. Before starting Task 1, either push `48b7efb` to a branch on `Djelibeybi/lifx-async` or re-pin the oracle (and the Task 2 `--source-revision`) to `d09c842c...`, and add a preflight check to `resolve-provenance` that fails fast when the pinned revision is not reachable from the remote — this converts the current HIGH blocker into a one-line ledger entry.
+2. State explicitly in Task 1 that the top-level script is stdlib-only and that every candidate/oracle/emulator import happens inside spawned `uv run --with`-based environments, with the exact child-invocation shape recorded in the provenance file's `environment_digest`.
+3. Define the test-suite contract: mark `test_mdns_spike_*` files so they self-skip with a recorded reason when zeroconf/oracle/network are unavailable, keep pure datagram-injection cases always-running, and confirm the skip does not count as the spike's evidence pass (consistent with the plan's own AC-13-style honesty rule).
+4. Give `mdns-spike-evidence` an explicit trigger (`workflow_dispatch` and/or its own path filter including `scripts/**` and `docs/evidence/**`) and state expected artefact retention, so evidence runs are deliberate rather than incidental to every qualifying push.
+5. Add `scripts/spike_mdns_candidates.py` decompositional guidance or per-file ignores decision now (complexity ≤ 10, max-statements 50) to avoid a pre-commit/CI fight during a time-boxed spike.
+6. Exclude `docs/evidence/` from the mkdocs build (or relocate it), and correct the `discover_mdns()` citation to `../lifx-async/src/lifx/api.py:1266`.
+
+### Risk Assessment
+
+The plan's internal logic is sound and unusually honest about failure: the outcome state machine, permitted not-run reasons and blocking human checkpoint mean a negative or time-capped result is a designed exit, not an accident, and D-12's hold on MDNS-01–09/11 planning is structurally enforced rather than merely promised. The dominant execution risks are external: the unpushed oracle pin (HIGH — it can silently consume the four-hour budget as `tool_error` diagnosis and blocks the CI evidence path entirely), and the three under-specified integration mechanics (test placement, isolated-environment boundary, CI cadence), each of which is recoverable but likely to cost spike hours if discovered mid-run. Budget realism is itself a risk: building the provenance resolver, wire probe, state machine, tests and CI job plausibly exceeds four active hours before any candidate evaluation depth, making a provisional first outcome the realistic expectation — which the plan accommodates correctly, but the user should expect the checkpoint to land on "provisional" unless the harness is kept deliberately minimal. Security posture is appropriate for a spike (legacy replies only to the query source, exact TXT content, bounded parsing, non-publishing CI, immutable provenance), and the no-production-change verification gate keeps the blast radius at zero for the codebase itself. Overall: approvable after the pin is fixed and the three MEDIUM mechanics are specified, ideally as plan amendments rather than discovered during execution.
 
 ## Antigravity Review
 
@@ -315,4 +356,4 @@ With test isolation clarified and fallback delta assessments scoped to avoid exc
 
 ## Next step
 
-Use `$gsd-plan-phase 3 --reviews` to incorporate the actionable findings while preserving the locked constraints. OpenCode remains pending explicit retry approval.
+Use `$gsd-plan-phase 3 --reviews` to incorporate the actionable findings while preserving the locked constraints. All configured review lanes are now complete.
