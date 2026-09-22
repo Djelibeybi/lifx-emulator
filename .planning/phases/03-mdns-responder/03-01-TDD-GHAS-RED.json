@@ -1,0 +1,8 @@
+{
+  "command": "uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py::test_responder_listener_is_interface_scoped -q --no-cov",
+  "expected_failure": "The probe-responder-scope command does not exist while all three candidate listeners still bind UDP 5353 to the wildcard address.",
+  "observed_exit_code": 1,
+  "observed_failure": "argparse rejected probe-responder-scope as an invalid command",
+  "recorded_at": "2026-09-22T18:12:00Z",
+  "test": "test_responder_listener_is_interface_scoped"
+}
