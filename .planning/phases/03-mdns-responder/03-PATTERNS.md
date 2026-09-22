@@ -2,16 +2,17 @@
 
 **Mapped:** 2026-09-22  
 **Scope:** MDNS-10 four-hour implementation-selection spike only; do not plan responder production changes.  
-**Files analysed:** 5 proposed artefacts; **analogs found:** 5/5.
+**Files analysed:** 6 proposed artefacts; **analogs found:** 6/6.
 
 ## File Classification
 
 | New/modified file | Role | Data flow | Closest tracked analog | Match |
 |---|---|---|---|---|
 | `scripts/spike_mdns_candidates.py` | utility / spike harness | datagram, batch | `packages/lifx-emulator-core/tests/test_ipv6_transport.py` | role-match |
-| `packages/lifx-emulator-core/tests/test_mdns_spike_datagrams.py` | test | datagram / request-response | `packages/lifx-emulator-core/tests/test_ipv6_transport.py` | exact flow |
-| `packages/lifx-emulator-core/tests/test_mdns_spike_socket_failures.py` | test | event-driven / failure | `packages/lifx-emulator-core/tests/test_server.py` | exact flow |
-| `docs/evidence/phase-03-mdns-spike.md` | evidence | batch / transform | sibling `lifx-async` mDNS source | partial |
+| `scripts/mdns_spike_tests/test_candidates.py` | explicitly invoked spike test | datagram / lifecycle / environment classification | `packages/lifx-emulator-core/tests/test_ipv6_transport.py`, `packages/lifx-emulator-core/tests/test_server.py` | exact flow |
+| `scripts/mdns_spike_inputs/active.json` | frozen candidate input manifest | batch / configuration | `.planning/phases/03-mdns-responder/03-01-EVIDENCE.json` | role-match |
+| `.planning/phases/03-mdns-responder/03-01-EVIDENCE.json` | machine evidence | batch / transform | sibling `lifx-async` mDNS source | partial |
+| `.planning/phases/03-mdns-responder/03-01-EVIDENCE.md` | rendered evidence | batch / transform | `.planning/phases/02-ipv6-transport-and-thread-isolation/02-VERIFICATION.md` | role-match |
 | `.github/workflows/ci.yml` (only if a focused job is justified) | config | batch | `.github/workflows/ci.yml` | exact |
 
 ## Pattern Assignments
@@ -39,7 +40,11 @@ except BaseException as e:
 
 Record each candidate's installed version, command, wall/active time, 1/10/100 fleet result, RSS/CPU measurement method, and each unmet criterion. The harness is evidence tooling: use isolated uv-managed candidate dependencies and preserve the production dependency graph. Importing existing core code for the experiment is permitted; integrating a production responder is deferred.
 
-### `packages/lifx-emulator-core/tests/test_mdns_spike_datagrams.py` (test, datagram/request-response)
+### `scripts/mdns_spike_inputs/active.json` (frozen candidate input manifest)
+
+Freeze only the currently eligible candidate's source/version, generator revision, overlay and dependency constraints before its CI run. Derive one shared `input_spec_digest` from those immutable inputs; record realised OS, architecture and Python environment digests separately. Replace this manifest only in a new commit after decisive rejection makes the next D-09/D-11 candidate eligible.
+
+### `scripts/mdns_spike_tests/test_candidates.py` (explicit spike test, datagram/lifecycle)
 
 **Analog:** `packages/lifx-emulator-core/tests/test_ipv6_transport.py`.
 
@@ -62,31 +67,13 @@ finally:
     await asyncio.wait_for(protocol.closed.wait(), timeout=1.0)
 ```
 
-Keep injection hermetic: bind loopback/ephemeral ports, parse real datagrams, assert one complete response per device and legacy-unicast source destination/ID. A multicast integration remains separately marked as environment evidence; the existing skip pattern is `test_ipv6_transport.py:15-28` and must never convert a skip into a pass.
+Keep injection hermetic: bind loopback/ephemeral ports, parse real datagrams, assert one complete response per device and legacy-unicast source destination/ID. Keep this file outside root `testpaths`; candidate and network work is run only by an explicit path. Use `AsyncMock`, fake transports and patched sockets from `test_server.py` to distinguish simulated Windows evidence from Ubuntu/macOS integration.
 
-### `packages/lifx-emulator-core/tests/test_mdns_spike_socket_failures.py` (test, event-driven failure)
-
-**Analog:** `packages/lifx-emulator-core/tests/test_server.py`.
-
-```python
-# test_server.py:505-525, 624-638
-fake_loop.create_datagram_endpoint = AsyncMock(side_effect=create_endpoint)
-with patch("lifx_emulator.server.asyncio.get_running_loop", return_value=fake_loop):
-    await server.start()
-...
-with pytest.raises(OSError) as caught:
-    await server.start()
-assert ipv4_transport.closed
-assert server.ipv4_endpoint is None
-```
-
-Use `AsyncMock`, fake transports and patched sockets to distinguish simulated Windows socket-branch evidence from Ubuntu/macOS integration. This spike test may exercise a candidate adapter only; it must not assert a future responder API.
-
-### `docs/evidence/phase-03-mdns-spike.md` (evidence, batch/transform)
+### `.planning/phases/03-mdns-responder/03-01-EVIDENCE.{json,md}` (evidence, batch/transform)
 
 **Analog:** sibling tracked source `../lifx-async/src/lifx/network/discovery/mdns/discovery.py`.
 
-The evidence table must treat multiple packets as a valid discovery input. `_LifxRecordCache` is explicitly an accumulator (`discovery.py:281-284`); its packet merge entry point is `add_packet(records, source_ip)` (`discovery.py:707-724`). Cite exact candidate source/package lines beside every conclusion. Separate: demonstrated local result, Ubuntu/macOS CI result, macOS x86_64 PyApp evidence, simulated Windows result, and untested status. End with an explicit go/no-go/provisional decision and the four-hour active-work/CI-queue accounting.
+JSON is the validator's only input and Markdown is rendered from it. Treat multiple packets as valid discovery input because `_LifxRecordCache` accumulates them (`discovery.py:281-284`, `add_packet` at `:707-724`). Separate raw loopback, reachable oracle, Ubuntu/macOS CI, macOS x86_64 PyApp, simulated Windows and untested evidence, then record go/no-go/provisional plus active-work and CI-queue accounting.
 
 ### `.github/workflows/ci.yml` (config, batch)
 
