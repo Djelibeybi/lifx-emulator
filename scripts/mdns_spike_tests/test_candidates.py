@@ -68,6 +68,8 @@ def test_ci_prepares_required_daemon_and_synthetic_ula() -> None:
     assert "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN" in workflow
     assert "runner-configured-synthetic-ula" in workflow
     assert 'git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD' in workflow
+    assert "route -n get -inet 224.0.0.251" in workflow
+    assert "prefixlen 64 alias" in workflow
 
 
 def test_intel_temporary_wheel_allows_exact_direct_references() -> None:
@@ -79,6 +81,8 @@ def test_intel_temporary_wheel_allows_exact_direct_references() -> None:
     assert '"$binary" self python -c' in workflow
     assert "write-intel-pyapp-receipt" in workflow
     assert "pyapp/app.whl" not in workflow
+    assert "a419de7c068cbd0e083194bbe11c741b0497d28c" in workflow
+    assert "d87b89829042147f7b23c5fe4b5b14034d8164d4" in workflow
 
 
 def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
@@ -276,6 +280,12 @@ def test_ci_receipt_rejects_incomplete_intel_proof(tmp_path: Path) -> None:
         "candidate_final_digest": candidate["final_digest"],
         "candidate_status": "meets_gate",
         "platform_leg": "intel-pyapp",
+        "pyapp": {
+            "version": "0.26.0",
+            "revision": "a419de7c068cbd0e083194bbe11c741b0497d28c",
+            "tree": "d87b89829042147f7b23c5fe4b5b14034d8164d4",
+        },
+        "uv_version": "0.9.9",
         "environments": {"darwin/x86_64/3.12": {"os": "darwin"}},
         "direct_references": {
             "lifx_async": True,
