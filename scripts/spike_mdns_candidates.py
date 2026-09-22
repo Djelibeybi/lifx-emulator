@@ -376,6 +376,53 @@ def _new_mdns_client(interface: str) -> socket.socket:
     return client
 
 
+def _socket_option_plan(system: str) -> dict[str, Any]:
+    """Return the explicit socket choices evaluated for each host family."""
+    if system not in {"Darwin", "Linux", "Windows"}:
+        raise ValueError(f"unsupported socket platform {system!r}")
+    return {
+        "platform": system,
+        "family": "AF_INET",
+        "type": "SOCK_DGRAM",
+        "protocol": "IPPROTO_UDP",
+        "reuse_address": True,
+        "reuse_port": system != "Windows",
+        "multicast_interface": "explicit-ipv4",
+        "multicast_ttl": 1,
+        "client_bind": "explicit-ipv4:ephemeral",
+        "responder_bind": "wildcard:5353",
+        "legacy_unicast_destination": "query-source",
+    }
+
+
+def _evaluate_windows_socket_simulation() -> dict[str, Any]:
+    """Exercise Windows choices against the POSIX plans without opening sockets."""
+    plans = {name: _socket_option_plan(name) for name in ("Windows", "Darwin", "Linux")}
+    windows = plans["Windows"]
+    common = {
+        key: len({plan[key] for plan in plans.values()}) == 1
+        for key in (
+            "family",
+            "type",
+            "protocol",
+            "reuse_address",
+            "multicast_interface",
+            "multicast_ttl",
+            "client_bind",
+            "responder_bind",
+            "legacy_unicast_destination",
+        )
+    }
+    checks = {
+        "common_choices_match": all(common.values()),
+        "windows_omits_reuse_port": windows["reuse_port"] is False,
+        "posix_uses_reuse_port": all(
+            plans[name]["reuse_port"] for name in ("Darwin", "Linux")
+        ),
+    }
+    return {"plans": plans, "checks": checks, "all_passed": all(checks.values())}
+
+
 async def _collect_query(
     client: socket.socket,
     query: bytes,
@@ -678,6 +725,7 @@ async def _expanded_worker() -> int:
 
 
 async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]:
+    """Capture raw per-device wire replies without claiming oracle discovery."""
     interface = _select_ipv4_interface()
     total = wifi + thread_count
     devices = [create_color_light(f"d073d6{number:06x}") for number in range(total)]
@@ -819,7 +867,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
             "complete_devices": complete,
             "datagram_count": len(sizes),
             "datagram_sizes": sizes,
-            "complete_discovery_seconds": round(time.monotonic() - started, 6),
+            "raw_capture_seconds": round(time.monotonic() - started, 6),
             "cpu_seconds": round(time.process_time() - cpu_started, 6),
             "peak_rss": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
             "server_port": server.ipv4_endpoint[1],
@@ -831,6 +879,211 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
         responder.close()
         client.close()
         await server.stop()
+
+
+async def _run_direct_public_benchmark(
+    wifi: int, thread_count: int, thread_address: str
+) -> dict[str, Any]:
+    """Measure complete public discover_mdns discovery and stock connectivity."""
+    interface = _select_ipv4_interface()
+    total = wifi + thread_count
+    devices = [
+        create_color_light(
+            f"d073d7{number:06x}",
+            connectivity="thread" if number >= wifi else "wifi",
+        )
+        for number in range(total)
+    ]
+    server = EmulatedLifxServer(
+        devices,
+        DeviceManager(DeviceRepository()),
+        bind_address=interface,
+        port=0,
+        ipv6_bind_address=thread_address,
+    )
+    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    responder.setblocking(False)
+    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if hasattr(socket, "SO_REUSEPORT"):
+        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    responder.bind(("", 5353))
+    responder.setsockopt(
+        socket.IPPROTO_IP,
+        socket.IP_ADD_MEMBERSHIP,
+        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
+    )
+    task: asyncio.Task[None] | None = None
+    queries_received = 0
+    replies_sent = 0
+    discovered_devices: dict[str, Any] = {}
+    connectivity: dict[str, dict[str, Any]] = {}
+    try:
+        await server.start()
+        assert server.ipv4_endpoint is not None
+        advertisements = [
+            Advertisement(
+                serial=device.state.serial,
+                port=server.ipv4_endpoint[1],
+                address=thread_address if number >= wifi else interface,
+                transport="2" if number >= wifi else "1",
+            )
+            for number, device in enumerate(devices)
+        ]
+        loop = asyncio.get_running_loop()
+
+        async def serve() -> None:
+            nonlocal queries_received
+            nonlocal replies_sent
+            while True:
+                query, source = await loop.sock_recvfrom(responder, 9000)
+                queries_received += 1
+                responses = build_legacy_unicast_responses(query, advertisements)
+                for response in responses:
+                    await loop.sock_sendto(responder, response, source)
+                    replies_sent += 1
+
+        task = asyncio.create_task(serve(), name="lifx-direct-public-benchmark")
+        started = time.monotonic()
+        cpu_started = time.process_time()
+        async for discovered in discover_mdns(
+            timeout=4.0,
+            max_response_time=0.2,
+            idle_timeout_multiplier=2.0,
+            device_timeout=1.0,
+            max_retries=1,
+        ):
+            serial = str(discovered.serial)
+            if serial in {device.state.serial for device in devices}:
+                discovered_devices[serial] = discovered
+        elapsed = time.monotonic() - started
+        cpu = time.process_time() - cpu_started
+        if wifi:
+            representative = devices[0].state.serial
+            device = discovered_devices[representative]
+            await device.connection.open()
+            try:
+                control_started = time.monotonic()
+                control_cpu_started = time.process_time()
+                await device.get_power()
+            finally:
+                await device.connection.close()
+            connectivity["wifi"] = {
+                "passed": True,
+                "latency_seconds": round(time.monotonic() - control_started, 6),
+                "cpu_seconds": round(time.process_time() - control_cpu_started, 6),
+            }
+        if thread_count:
+            representative = devices[wifi].state.serial
+            device = discovered_devices[representative]
+            await device.connection.open()
+            try:
+                control_started = time.monotonic()
+                control_cpu_started = time.process_time()
+                await device.get_power()
+            finally:
+                await device.connection.close()
+            connectivity["thread"] = {
+                "passed": True,
+                "latency_seconds": round(time.monotonic() - control_started, 6),
+                "cpu_seconds": round(time.process_time() - control_cpu_started, 6),
+            }
+        return {
+            "wifi": wifi,
+            "thread": thread_count,
+            "expected": total,
+            "discovered": len(discovered_devices),
+            "discovered_serials": sorted(discovered_devices),
+            "complete_discovery_seconds": round(elapsed, 6),
+            "cpu_seconds": round(cpu, 6),
+            "peak_rss": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+            "queries_received": queries_received,
+            "reply_datagram_count": replies_sent,
+            "representative_stock_connectivity": connectivity,
+            "thread_address_class": "reachable-ula-gua" if thread_count else None,
+            "server_port": server.ipv4_endpoint[1],
+        }
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+        responder.close()
+        await server.stop()
+
+
+def _exercise_adversarial_bounds() -> dict[str, Any]:
+    """Exercise malformed, oversized, record-limit and high-rate inputs."""
+    query = _dns_query(SERVICE_TYPE, DNS_TYPE_PTR, 0xB0A0)
+    advertisement = Advertisement("d073d7000001", 56700, "192.0.2.10")
+    compression_loop = query[:12] + b"\xc0\x0c" + query[-4:]
+    malformed_inputs = {
+        "empty": b"",
+        "short_header": b"\x00" * 11,
+        "truncated_question": query[:-1],
+        "compression_pointer": compression_loop,
+        "oversized_datagram": b"\x00" * 9001,
+    }
+    rejected: dict[str, str] = {}
+    for name, value in malformed_inputs.items():
+        try:
+            build_legacy_unicast_responses(value, [advertisement])
+        except (UnicodeDecodeError, ValueError, struct.error) as error:
+            rejected[name] = type(error).__name__
+    limit_ads = [
+        Advertisement(f"d073d7{number:06x}", 56700, "192.0.2.10")
+        for number in range(100)
+    ]
+    bounded = build_legacy_unicast_responses(query, limit_ads)
+    beyond_benchmark = build_legacy_unicast_responses(
+        query,
+        [*limit_ads, Advertisement("d073d7ffffff", 56700, "192.0.2.10")],
+    )
+    threads_before = sorted(thread.name for thread in threading.enumerate())
+    current = asyncio.current_task()
+    pending_before = sorted(
+        task.get_name()
+        for task in asyncio.all_tasks()
+        if task is not current and not task.done()
+    )
+    started = time.monotonic()
+    cpu_started = time.process_time()
+    response_count = sum(
+        len(build_legacy_unicast_responses(query, [advertisement])) for _ in range(256)
+    )
+    elapsed = time.monotonic() - started
+    cpu = time.process_time() - cpu_started
+    threads_after = sorted(thread.name for thread in threading.enumerate())
+    pending_after = sorted(
+        task.get_name()
+        for task in asyncio.all_tasks()
+        if task is not current and not task.done()
+    )
+    checks = {
+        "all_malformed_rejected": set(rejected) == set(malformed_inputs),
+        "hundred_device_population_exact": len(bounded) == 100,
+        "population_above_benchmark_supported": len(beyond_benchmark) == 101,
+        "each_datagram_bounded": all(
+            len(response) <= 9000 for response in [*bounded, *beyond_benchmark]
+        ),
+        "high_rate_response_count_bounded": response_count == 256,
+        "high_rate_created_no_threads": threads_before == threads_after,
+        "high_rate_created_no_pending_tasks": pending_before == pending_after,
+    }
+    return {
+        "checks": checks,
+        "all_passed": all(checks.values()),
+        "malformed_results": rejected,
+        "benchmark_population": 100,
+        "above_benchmark_population": 101,
+        "high_rate_queries": 256,
+        "high_rate_responses": response_count,
+        "high_rate_seconds": round(elapsed, 6),
+        "high_rate_cpu_seconds": round(cpu, 6),
+        "threads_before": threads_before,
+        "threads_after": threads_after,
+        "pending_tasks_before": pending_before,
+        "pending_tasks_after": pending_after,
+    }
 
 
 async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any]:
@@ -1044,7 +1297,7 @@ async def _lifx_direct_worker() -> int:
             "wifi": wifi_oracle,
             "thread": thread_oracle,
         }
-        benchmarks: dict[str, Any] = {}
+        raw_wire_populations: dict[str, Any] = {}
         for name, population in (
             ("wifi-1", (1, 0)),
             ("thread-1", (0, 1)),
@@ -1053,16 +1306,25 @@ async def _lifx_direct_worker() -> int:
         ):
             stage = f"raw-population-{name}"
             metrics = await _run_direct_population(*population)
-            benchmarks[name] = metrics
+            raw_wire_populations[name] = metrics
             if metrics["complete_devices"] != metrics["expected"]:
                 break
-        stage = "malformed-input"
-        try:
-            build_legacy_unicast_responses(b"", [])
-        except ValueError:
-            malformed_bounded = True
-        else:
-            malformed_bounded = False
+        public_oracle_benchmarks: dict[str, Any] = {}
+        if reachable:
+            for name, population in (
+                ("wifi-1", (1, 0)),
+                ("thread-1", (0, 1)),
+                ("mixed-10", (5, 5)),
+                ("mixed-100", (50, 50)),
+            ):
+                stage = f"public-oracle-benchmark-{name}"
+                public_oracle_benchmarks[name] = await _run_direct_public_benchmark(
+                    *population, thread_address=reachable[0]
+                )
+        stage = "adversarial-bounds"
+        adversarial_bounds = _exercise_adversarial_bounds()
+        stage = "windows-socket-simulation"
+        windows_socket_simulation = _evaluate_windows_socket_simulation()
         stage = "future-fit-inputs"
         fit_checks = _evaluate_direct_fit_checks(
             Advertisement, build_legacy_unicast_responses, DNS_TYPE_PTR
@@ -1073,9 +1335,11 @@ async def _lifx_direct_worker() -> int:
             "execution_status": "completed",
             "oracle": oracle,
             "reachable_ula_gua_count": len(reachable),
-            "malformed_bounded": malformed_bounded,
+            "adversarial_bounds": adversarial_bounds,
+            "windows_socket_simulation": windows_socket_simulation,
             "fit_checks": fit_checks,
-            "benchmarks": benchmarks,
+            "raw_wire_populations": raw_wire_populations,
+            "public_oracle_benchmarks": public_oracle_benchmarks,
             "daemon_processes": _host_daemon_identity(),
             "threads_before": before,
             "threads_after": sorted(thread.name for thread in threading.enumerate()),
@@ -1091,7 +1355,10 @@ async def _lifx_direct_worker() -> int:
         environment_unavailable = (
             isinstance(error, OSError)
             and error.errno in {errno.ENETUNREACH, errno.EHOSTUNREACH}
-            and stage.startswith("raw-population-")
+            and (
+                stage.startswith("raw-population-")
+                or stage.startswith("public-oracle-benchmark-")
+            )
         )
         payload = {
             "execution_status": "completed",
@@ -1288,6 +1555,28 @@ def _load_or_initialise(path: Path, inputs: dict[str, Any]) -> dict[str, Any]:
             evidence.setdefault("input_spec_history", []).append(
                 {"digest": previous, "superseded_at": _utc_now()}
             )
+            superseded = [
+                candidate
+                for candidate in evidence.get("candidates", [])
+                if candidate.get("candidate") != "zeroconf"
+            ]
+            if superseded:
+                evidence.setdefault("candidate_revision_history", []).append(
+                    {
+                        "input_spec_digest": previous,
+                        "superseded_at": _utc_now(),
+                        "candidates": superseded,
+                        "platform_receipts": evidence.get("platform_receipts", {}),
+                        "platform_results": evidence.get("platform_results", {}),
+                    }
+                )
+                evidence["candidates"] = [
+                    candidate
+                    for candidate in evidence["candidates"]
+                    if candidate.get("candidate") == "zeroconf"
+                ]
+                evidence["platform_receipts"] = {}
+                evidence["platform_results"] = {}
             evidence["input_spec_digest"] = inputs["input_spec_digest"]
             evidence["inputs"] = inputs
         for candidate in evidence.get("candidates", []):
@@ -1644,8 +1933,11 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
             ),
         )
     )
-    benchmarks = result["benchmarks"]
-    all_wire = all(value["wire_checks_passed"] for value in benchmarks.values())
+    raw_wire_populations = result["raw_wire_populations"]
+    public_benchmarks = result["public_oracle_benchmarks"]
+    all_wire = all(
+        value["wire_checks_passed"] for value in raw_wire_populations.values()
+    )
     criteria["legacy_wire"] = asdict(
         CriterionResult(
             "demonstrated" if all_wire else "failed",
@@ -1656,7 +1948,7 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
     complete = all(
         value["complete_devices"] == value["expected"]
         and value["datagram_count"] == value["expected"]
-        for value in benchmarks.values()
+        for value in raw_wire_populations.values()
     )
     criteria["packet_boundary"] = asdict(
         CriterionResult(
@@ -1672,7 +1964,7 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
         )
     )
     direct_ok = all(
-        all(value["direct_queries"].values()) for value in benchmarks.values()
+        all(value["direct_queries"].values()) for value in raw_wire_populations.values()
     )
     criteria["direct_address_queries"] = asdict(
         CriterionResult(
@@ -1697,15 +1989,36 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
         "mixed_100_benchmark": "mixed-100",
     }
     for criterion, population in mapping.items():
-        metrics = benchmarks[population]
-        passed = (
-            metrics["discovered"] == metrics["expected"]
-            and metrics["complete_devices"] == metrics["expected"]
+        metrics = public_benchmarks.get(population)
+        if metrics is None:
+            criteria[criterion] = asdict(
+                CriterionResult(
+                    "untested",
+                    "No reachable ULA/GUA was available for the complete public "
+                    "discover_mdns() benchmark.",
+                    "Repeat the exact candidate with a reachable ULA/GUA and run "
+                    "the pristine public oracle fleet benchmark.",
+                )
+            )
+            continue
+        expected_connectivity = {
+            name
+            for name, count in (
+                ("wifi", metrics["wifi"]),
+                ("thread", metrics["thread"]),
+            )
+            if count
+        }
+        passed = metrics["discovered"] == metrics["expected"] and all(
+            metrics["representative_stock_connectivity"].get(name, {}).get("passed")
+            is True
+            for name in expected_connectivity
         )
         criteria[criterion] = asdict(
             CriterionResult(
                 "demonstrated" if passed else "failed",
-                json.dumps(metrics, sort_keys=True),
+                "Pristine public discover_mdns() benchmark with stock emulator "
+                f"connectivity: {json.dumps(metrics, sort_keys=True)}",
             )
         )
     daemon = result["daemon_processes"]
@@ -1728,17 +2041,20 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
             f"pending={result['pending_owned_tasks']}",
         )
     )
+    windows_simulation = result["windows_socket_simulation"]
     criteria["windows_socket_simulation"] = asdict(
         CriterionResult(
-            "simulated",
-            "Windows remains identified simulation-only in the initial spike.",
+            "simulated" if windows_simulation["all_passed"] else "failed",
+            "Executed socket-choice simulation: "
+            f"{json.dumps(windows_simulation, sort_keys=True)}",
         )
     )
+    adversarial = result["adversarial_bounds"]
     criteria["malformed_truncated_flood_bounds"] = asdict(
         CriterionResult(
-            "demonstrated" if result["malformed_bounded"] else "failed",
-            "Truncated queries raise a bounded ValueError; the 100-device query "
-            "returned exactly 100 bounded responses.",
+            "demonstrated" if adversarial["all_passed"] else "failed",
+            "Executed malformed, oversized, 100/101-population and high-rate "
+            f"bounds: {json.dumps(adversarial, sort_keys=True)}",
         )
     )
     criteria["configuration_interface_fit"] = asdict(
@@ -1750,9 +2066,11 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
     )
     criteria["dynamic_lifecycle_recovery_fit"] = asdict(
         CriterionResult(
-            "demonstrated" if clean else "failed",
-            "Four independent responder/server lifecycles closed with no owned "
-            "tasks or threads remaining.",
+            "untested",
+            "Independent cleanup cycles do not prove dynamic listener failure, "
+            "retry, partial-fleet recovery or status integration.",
+            "Exercise listener bind failure/retry, partial-fleet failure and "
+            "recovery/status transitions in the eventual integration design.",
         )
     )
     decisive_protocol_ok = (
@@ -1760,7 +2078,8 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
         and complete
         and direct_ok
         and clean
-        and result["malformed_bounded"]
+        and adversarial["all_passed"]
+        and windows_simulation["all_passed"]
         and all(result["fit_checks"].values())
     )
     evidence["candidates"].append(
@@ -1880,6 +2199,47 @@ def validate_evidence(path: Path) -> int:
                     "acquisition_step"
                 ):
                     raise ValueError(f"criterion {name} lacks an acquisition step")
+            if candidate["candidate"] == "lifx-direct":
+                attempt = candidate.get("attempts", [{}])[-1]
+                public_benchmarks = attempt.get("public_oracle_benchmarks", {})
+                benchmark_mapping = {
+                    "wifi_benchmark": "wifi-1",
+                    "thread_benchmark": "thread-1",
+                    "mixed_10_benchmark": "mixed-10",
+                    "mixed_100_benchmark": "mixed-100",
+                }
+                for criterion, population in benchmark_mapping.items():
+                    if candidate["criteria"][criterion]["status"] != "demonstrated":
+                        continue
+                    metrics = public_benchmarks.get(population, {})
+                    if "complete_discovery_seconds" not in metrics or not metrics.get(
+                        "representative_stock_connectivity"
+                    ):
+                        raise ValueError(
+                            f"{criterion} lacks a complete public-oracle benchmark"
+                        )
+                windows = attempt.get("windows_socket_simulation", {})
+                if candidate["criteria"]["windows_socket_simulation"][
+                    "status"
+                ] == "simulated" and not windows.get("all_passed"):
+                    raise ValueError(
+                        "Windows simulation lacks executed socket-choice results"
+                    )
+                adversarial = attempt.get("adversarial_bounds", {})
+                if candidate["criteria"]["malformed_truncated_flood_bounds"][
+                    "status"
+                ] == "demonstrated" and not adversarial.get("all_passed"):
+                    raise ValueError(
+                        "malformed/truncated/flood claim lacks executed bounds"
+                    )
+                if candidate["criteria"]["dynamic_lifecycle_recovery_fit"][
+                    "status"
+                ] == "demonstrated" and not attempt.get("dynamic_recovery", {}).get(
+                    "all_passed"
+                ):
+                    raise ValueError(
+                        "dynamic lifecycle recovery claim lacks recovery evidence"
+                    )
         if len(evidence.get("edge_coverage", [])) != 46:
             raise ValueError("all 46 SPEC edge rows must be represented")
         decision = evidence.get("decision", {}).get("status")
@@ -1909,8 +2269,10 @@ def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStat
             return False, "provisional"
         if result.get("error_type"):
             return bool(result.get("environment_unavailable")), "provisional"
+        raw_wire = result["raw_wire_populations"]
         protocol_ok = (
-            result["malformed_bounded"]
+            result["adversarial_bounds"]["all_passed"]
+            and result["windows_socket_simulation"]["all_passed"]
             and result["threads_before"] == result["threads_after"]
             and not result["pending_owned_tasks"]
             and all(
@@ -1919,7 +2281,7 @@ def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStat
                 and metrics["datagram_count"] == metrics["expected"]
                 and metrics["wire_checks_passed"]
                 and all(metrics["direct_queries"].values())
-                for metrics in result["benchmarks"].values()
+                for metrics in raw_wire.values()
             )
         )
         oracle = result["oracle"]
@@ -1931,7 +2293,18 @@ def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStat
         return False, "provisional"
     if not protocol_ok:
         return True, "rejected"
-    if oracle_ok and environment_ok:
+    public_benchmarks = result.get("public_oracle_benchmarks", {})
+    public_ok = len(public_benchmarks) == 4 and all(
+        metrics["discovered"] == metrics["expected"]
+        and all(
+            check.get("passed") is True
+            for check in metrics["representative_stock_connectivity"].values()
+        )
+        for metrics in public_benchmarks.values()
+    )
+    if public_benchmarks and not public_ok:
+        return True, "rejected"
+    if oracle_ok and environment_ok and public_ok:
         return True, "meets_gate"
     return True, "provisional"
 

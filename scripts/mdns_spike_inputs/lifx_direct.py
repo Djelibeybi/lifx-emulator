@@ -13,6 +13,7 @@ DNS_TYPE_PTR = 12
 DNS_TYPE_TXT = 16
 DNS_TYPE_AAAA = 28
 DNS_TYPE_SRV = 33
+MAX_QUERY_BYTES = 9000
 
 
 @dataclass(frozen=True)
@@ -38,9 +39,16 @@ def _name(value: str) -> bytes:
 
 
 def _question_end(query: bytes) -> int:
+    if len(query) < 12 or len(query) > MAX_QUERY_BYTES:
+        raise ValueError("DNS query size is outside the bounded range")
     offset = 12
     while offset < len(query) and query[offset]:
-        offset += query[offset] + 1
+        length = query[offset]
+        if length & 0xC0:
+            raise ValueError("compressed DNS question names are not accepted")
+        if length > 63:
+            raise ValueError("DNS label exceeds 63 bytes")
+        offset += length + 1
     end = offset + 5
     if end > len(query):
         raise ValueError("truncated DNS question")

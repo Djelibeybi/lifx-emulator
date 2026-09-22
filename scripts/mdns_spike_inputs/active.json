@@ -24,18 +24,18 @@
     "lifx-direct": {
       "base_revision": "48b7efbff59656499373b13ef17e3008d125feb5",
       "base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
-      "final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
+      "final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
       "mdns_subtree_archive_sha256": "a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b",
       "overlay_path": "scripts/mdns_spike_inputs/lifx_direct.py",
-      "overlay_sha256": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
+      "overlay_sha256": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
       "source_delta": "Add a bounded DNS response materialiser and responder loop; the pinned subtree contains query transport and parsing only."
     }
   },
   "generator": {
     "path": "scripts/spike_mdns_candidates.py",
-    "revision": "03-01-lifx-direct-v1"
+    "revision": "03-01-lifx-direct-v2"
   },
-  "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+  "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
   "oracle": {
     "commit_api_verified": true,
     "detached_fetch_verified": true,
