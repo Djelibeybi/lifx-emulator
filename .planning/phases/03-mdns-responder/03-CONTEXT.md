@@ -2,6 +2,8 @@
 
 **Amended 2026-09-23:** Packet grouping is unrestricted subject to complete-fleet discovery; zeroconf re-evaluation is pending. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md).
 
+**Accepted compatibility exception (2026-09-23):** Zeroconf continuation replies may omit the question section for the tested `lifx-async` client. This does not block candidate selection and requires no client/library patch; it is not a claim of full RFC conformance. All other protocol and evidence requirements remain in force. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
+
 **Gathered:** 2026-09-22
 **Status:** Ready for spike planning; detailed responder planning awaits go/no-go
 

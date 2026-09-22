@@ -36,8 +36,8 @@
   ],
   "next": {
     "command": "/gsd:execute-phase 3",
-    "label": "Resolve zeroconf continuation-question behaviour and remaining gates",
-    "reason": "Local 100-device discovery, metadata and representative controls passed; see 03-ZEROCONF-REEVALUATION.md. No harness changes authorised."
+    "label": "Assess remaining zeroconf platform, lifecycle and packaging gates",
+    "reason": "User accepted continuation-question omission for the tested client; local 100-device discovery and controls passed. No harness changes authorised."
   },
-  "updated_at": "2026-09-22T20:14:57Z"
+  "updated_at": "2026-09-22T23:50:35Z"
 }
