@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
+import errno
 import hashlib
 import importlib.metadata
 import ipaddress
@@ -924,6 +925,61 @@ def _probe_ipv6_route(address: str) -> dict[str, Any]:
     return {"available": True, "error_type": None, "errno": None}
 
 
+def _run_direct_fit_checks() -> dict[str, bool]:
+    """Exercise bounded future configuration and lifecycle inputs."""
+    query = _dns_query(SERVICE_TYPE, DNS_TYPE_PTR, 0xCAFE)
+    wifi = Advertisement("d073d6000101", 56700, "192.0.2.10")
+    shared = Advertisement("d073d6000102", 56700, "192.0.2.10")
+
+    def serials(responses: list[bytes]) -> set[str]:
+        return {
+            str(record.parsed_data.pairs["id"])
+            for response in responses
+            for record in parse_dns_response(response).records
+            if record.rtype == DNS_TYPE_TXT and isinstance(record.parsed_data, TxtData)
+        }
+
+    first = build_legacy_unicast_responses(query, [wifi, shared])
+    repeated = build_legacy_unicast_responses(query, [wifi, shared])
+    removed = build_legacy_unicast_responses(query, [wifi])
+    re_added = build_legacy_unicast_responses(query, [wifi, shared])
+    equivalent_compact = build_legacy_unicast_responses(
+        query, [Advertisement("d073d6000103", 56700, "fd00::1")]
+    )
+    equivalent_expanded = build_legacy_unicast_responses(
+        query,
+        [
+            Advertisement(
+                "d073d6000103",
+                56700,
+                "fd00:0000:0000:0000:0000:0000:0000:0001",
+            )
+        ],
+    )
+    try:
+        build_legacy_unicast_responses(
+            query, [Advertisement("d073d6000104", 56700, "invalid-address")]
+        )
+    except OSError:
+        invalid_address_rejected = True
+    else:
+        invalid_address_rejected = False
+    return {
+        "empty_eligible_set_has_no_reply": not build_legacy_unicast_responses(
+            query, []
+        ),
+        "shared_addresses_keep_distinct_identities": len(first) == 2
+        and serials(first) == {wifi.serial, shared.serial},
+        "repeated_unchanged_query_is_stable": repeated == first,
+        "removal_and_readd_follow_eligible_set": serials(removed) == {wifi.serial}
+        and re_added == first,
+        "equivalent_ipv6_spellings_encode_identically": (
+            equivalent_compact == equivalent_expanded
+        ),
+        "invalid_address_is_rejected_before_reply": invalid_address_rejected,
+    }
+
+
 async def _capture_direct_oracle(thread_address: str | None = None) -> dict[str, Any]:
     """Retain an unavailable public-oracle leg without losing later raw probes."""
     route = _probe_ipv6_route(thread_address) if thread_address else None
@@ -982,6 +1038,8 @@ async def _lifx_direct_worker() -> int:
             malformed_bounded = True
         else:
             malformed_bounded = False
+        stage = "future-fit-inputs"
+        fit_checks = _run_direct_fit_checks()
         await asyncio.sleep(0)
         current = asyncio.current_task()
         payload = {
@@ -989,6 +1047,7 @@ async def _lifx_direct_worker() -> int:
             "oracle": oracle,
             "reachable_ula_gua_count": len(reachable),
             "malformed_bounded": malformed_bounded,
+            "fit_checks": fit_checks,
             "benchmarks": benchmarks,
             "daemon_processes": _host_daemon_identity(),
             "threads_before": before,
@@ -1002,10 +1061,17 @@ async def _lifx_direct_worker() -> int:
             "elapsed_seconds": time.monotonic() - started,
         }
     except Exception as error:
+        environment_unavailable = (
+            isinstance(error, OSError)
+            and error.errno in {errno.ENETUNREACH, errno.EHOSTUNREACH}
+            and stage.startswith("raw-population-")
+        )
         payload = {
             "execution_status": "completed",
             "error_type": type(error).__name__,
             "error": str(error),
+            "error_errno": getattr(error, "errno", None),
+            "environment_unavailable": environment_unavailable,
             "stage": stage,
             "environment": _environment(),
             "elapsed_seconds": time.monotonic() - started,
@@ -1650,9 +1716,9 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
     )
     criteria["configuration_interface_fit"] = asdict(
         CriterionResult(
-            "demonstrated",
-            "The materialiser accepts an explicit eligible advertisement set and "
-            "explicit matching-family addresses without production APIs.",
+            "demonstrated" if all(result["fit_checks"].values()) else "failed",
+            "Bounded materialiser fit checks: "
+            f"{json.dumps(result['fit_checks'], sort_keys=True)}.",
         )
     )
     criteria["dynamic_lifecycle_recovery_fit"] = asdict(
@@ -1663,7 +1729,12 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
         )
     )
     decisive_protocol_ok = (
-        all_wire and complete and direct_ok and clean and result["malformed_bounded"]
+        all_wire
+        and complete
+        and direct_ok
+        and clean
+        and result["malformed_bounded"]
+        and all(result["fit_checks"].values())
     )
     evidence["candidates"].append(
         {
@@ -1807,8 +1878,10 @@ def validate_evidence(path: Path) -> int:
 def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStatus]:
     """Separate a completed platform probe from candidate compliance."""
     try:
-        if result.get("execution_status") != "completed" or result.get("error_type"):
+        if result.get("execution_status") != "completed":
             return False, "provisional"
+        if result.get("error_type"):
+            return bool(result.get("environment_unavailable")), "provisional"
         protocol_ok = (
             result["malformed_bounded"]
             and result["threads_before"] == result["threads_after"]

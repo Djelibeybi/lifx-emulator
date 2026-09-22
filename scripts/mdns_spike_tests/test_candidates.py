@@ -127,6 +127,7 @@ def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
         ("none", "meets_gate", 0),
         ("oracle-miss", "provisional", 0),
         ("protocol-failure", "rejected", 0),
+        ("environment-unavailable", "provisional", 0),
         ("tool-error", "provisional", 1),
     ],
 )
@@ -160,6 +161,10 @@ def test_platform_result_separates_execution_from_compliance(
         result["oracle"]["wifi"]["matched"] = False
     elif mutation == "protocol-failure":
         result["benchmarks"]["wifi-1"]["datagram_count"] = 2
+    elif mutation == "environment-unavailable":
+        result["error_type"] = "OSError"
+        result["error_errno"] = 65
+        result["environment_unavailable"] = True
     elif mutation == "tool-error":
         result["error_type"] = "RuntimeError"
     path = tmp_path / "result.json"
@@ -175,6 +180,19 @@ def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
     evidence = json.loads(EVIDENCE.read_text())
     assert evidence["candidates"][0]["candidate_status"] == "rejected"
     assert ELIGIBLE_OVERLAY.is_file(), "eligible direct fallback overlay is absent"
+
+
+def test_direct_result_retains_bounded_future_fit_checks() -> None:
+    """Keep configuration edge evidence concrete without production APIs."""
+    evidence = json.loads(EVIDENCE.read_text())
+    direct = next(
+        candidate
+        for candidate in evidence["candidates"]
+        if candidate["candidate"] == "lifx-direct"
+    )
+    fit_checks = direct["attempts"][-1]["fit_checks"]
+    assert fit_checks
+    assert all(fit_checks.values())
 
 
 @pytest.mark.parametrize(
