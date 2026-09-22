@@ -2,12 +2,14 @@
 
 - **Decision:** provisional
 - **Reason:** One or more required platform, packaging, oracle, benchmark or lifecycle gates remain untested.
-- **Active work:** 4089.272s / 14400s
+- **Active work:** 8227.189s / 14400s
 - **Input specification:** `41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03`
 
 ## Environment
 
-- `darwin/arm64/3.14.7`: `0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47`
+- `darwin/arm64/3.14.7`: `02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8`
+- `darwin/x86_64/3.12.10`: `7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62`
+- `linux/x86_64/3.14.7`: `aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55`
 
 ## Candidate ledger
 
@@ -40,24 +42,24 @@ Execution: `completed`; suitability: `provisional`.
 
 | Criterion | Status | Evidence | Acquisition step |
 |---|---|---|---|
-| configuration_interface_fit | demonstrated | The materialiser accepts an explicit eligible advertisement set and explicit matching-family addresses without production APIs. | — |
+| configuration_interface_fit | demonstrated | Bounded materialiser fit checks: {"empty_eligible_set_has_no_reply": true, "equivalent_ipv6_spellings_encode_identically": true, "invalid_address_is_rejected_before_reply": true, "removal_and_readd_follow_eligible_set": true, "repeated_unchanged_query_is_stable": true, "shared_addresses_keep_distinct_identities": true}. | — |
 | daemon_coexistence | demonstrated | Identified host daemons: ['mDNSResponder', 'mDNSResponderHelper']. | — |
 | direct_address_queries | demonstrated | Direct A and AAAA queries echoed their IDs/questions with one address. | — |
 | dynamic_lifecycle_recovery_fit | demonstrated | Four independent responder/server lifecycles closed with no owned tasks or threads remaining. | — |
 | exact_txt_and_family | demonstrated | WiFi replies contained A only; Thread replies contained AAAA only; TXT was exactly id/p/fw/tm. | — |
-| intel_pyapp_first_run | untested | The direct extension gate has not run. | Run the named local or exact-head CI probe and merge its receipt. |
+| intel_pyapp_first_run | demonstrated | Exact-head Intel macOS PyApp 0.26.0 receipt proved the candidate, stock core and app local-wheel references, binary hashes, first-run install, self-python distribution identities, rustc and uv identities. | — |
 | legacy_wire | demonstrated | Every response echoed the non-zero ID and question, cleared cache-flush, used TTL 10, and carried exact TXT. | — |
 | lifecycle_cleanup | demonstrated | threads before=['MainThread']; after=['MainThread']; pending=[] | — |
-| macos_multicast | untested | The direct extension gate has not run. | Run the named local or exact-head CI probe and merge its receipt. |
+| macos_multicast | untested | The local macOS run on the same immutable candidate demonstrated actual multicast beside mDNSResponder, but exact-head hosted macOS remained environment-unavailable at raw-population-wifi-1 with OSError errno 65 even after a destination-specific multicast route was installed. | Repeat exact head and input digest on a disposable macOS executor whose IPv4 interface permits multicast send to 224.0.0.251:5353. |
 | malformed_truncated_flood_bounds | demonstrated | Truncated queries raise a bounded ValueError; the 100-device query returned exactly 100 bounded responses. | — |
-| mixed_100_benchmark | demonstrated | {"complete_devices": 100, "complete_discovery_seconds": 0.006162, "cpu_seconds": 0.005543, "datagram_count": 100, "datagram_sizes": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], "direct_queries": {"thread": true, "wifi": true}, "discovered": 100, "expected": 100, "peak_rss": 71499776, "raw_thread_address_class": "loopback-::1", "server_port": 59837, "thread": 50, "wifi": 50, "wire_checks_passed": true} | — |
-| mixed_10_benchmark | demonstrated | {"complete_devices": 10, "complete_discovery_seconds": 0.004108, "cpu_seconds": 0.002486, "datagram_count": 10, "datagram_sizes": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], "direct_queries": {"thread": true, "wifi": true}, "discovered": 10, "expected": 10, "peak_rss": 71499776, "raw_thread_address_class": "loopback-::1", "server_port": 60440, "thread": 5, "wifi": 5, "wire_checks_passed": true} | — |
+| mixed_100_benchmark | demonstrated | {"complete_devices": 100, "complete_discovery_seconds": 0.006796, "cpu_seconds": 0.0063, "datagram_count": 100, "datagram_sizes": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], "direct_queries": {"thread": true, "wifi": true}, "discovered": 100, "expected": 100, "peak_rss": 72859648, "raw_thread_address_class": "loopback-::1", "server_port": 61278, "thread": 50, "wifi": 50, "wire_checks_passed": true} | — |
+| mixed_10_benchmark | demonstrated | {"complete_devices": 10, "complete_discovery_seconds": 0.001841, "cpu_seconds": 0.001291, "datagram_count": 10, "datagram_sizes": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], "direct_queries": {"thread": true, "wifi": true}, "discovered": 10, "expected": 10, "peak_rss": 72859648, "raw_thread_address_class": "loopback-::1", "server_port": 64804, "thread": 5, "wifi": 5, "wire_checks_passed": true} | — |
 | official_provenance | demonstrated | Pinned lifx-async 48b7efbff59656499373b13ef17e3008d125feb5 tree b26ce32ae60a65c13709ed4ecd30675f1bce1533; mDNS subtree archive a91c5a8fd4bba00c7d22a98b83a80c75415368ac8b0774c63d33a8af0032874b; overlay 7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9. | — |
-| oracle_discovery | demonstrated | Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'expected_serial': 'd073d6000002', 'matched': True, 'matched_serials': ['d073d6000002']}, 'wifi': {'address_class': 'selected-ipv4', 'expected_serial': 'd073d6000001', 'matched': True, 'matched_serials': ['d073d6000001']}}. | — |
+| oracle_discovery | demonstrated | Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'errno': None, 'error_type': None, 'expected_serial': 'd073d6000002', 'legacy_queries_received': 1, 'legacy_responses_sent': 1, 'matched': True, 'matched_serials': ['d073d6000002'], 'matching_queries_received': 4, 'queries_received': 8, 'responses_sent': 4, 'route_probe': {'available': True, 'errno': None, 'error_type': None}, 'stage': 'public-oracle'}, 'wifi': {'address_class': 'selected-ipv4', 'errno': None, 'error_type': None, 'expected_serial': 'd073d6000001', 'legacy_queries_received': 1, 'legacy_responses_sent': 1, 'matched': True, 'matched_serials': ['d073d6000001'], 'matching_queries_received': 9, 'queries_received': 12, 'responses_sent': 9, 'route_probe': None, 'stage': 'public-oracle'}}. | — |
 | packet_boundary | demonstrated | Each synthetic device produced one isolated complete datagram. | — |
-| thread_benchmark | demonstrated | {"complete_devices": 1, "complete_discovery_seconds": 0.000805, "cpu_seconds": 0.000713, "datagram_count": 1, "datagram_sizes": [282], "direct_queries": {"thread": true}, "discovered": 1, "expected": 1, "peak_rss": 71499776, "raw_thread_address_class": "loopback-::1", "server_port": 62374, "thread": 1, "wifi": 0, "wire_checks_passed": true} | — |
-| ubuntu_multicast | untested | The direct extension gate has not run. | Run the named local or exact-head CI probe and merge its receipt. |
-| wifi_benchmark | demonstrated | {"complete_devices": 1, "complete_discovery_seconds": 0.000743, "cpu_seconds": 0.000664, "datagram_count": 1, "datagram_sizes": [270], "direct_queries": {"wifi": true}, "discovered": 1, "expected": 1, "peak_rss": 71499776, "raw_thread_address_class": null, "server_port": 61090, "thread": 0, "wifi": 1, "wire_checks_passed": true} | — |
+| thread_benchmark | demonstrated | {"complete_devices": 1, "complete_discovery_seconds": 0.001051, "cpu_seconds": 0.000583, "datagram_count": 1, "datagram_sizes": [282], "direct_queries": {"thread": true}, "discovered": 1, "expected": 1, "peak_rss": 72859648, "raw_thread_address_class": "loopback-::1", "server_port": 58842, "thread": 1, "wifi": 0, "wire_checks_passed": true} | — |
+| ubuntu_multicast | demonstrated | Exact-head Ubuntu receipt identified Avahi, used a runner-configured synthetic ULA, completed both public-oracle legs and produced exact 1/1/10/100 per-device datagram counts with clean shutdown. | — |
+| wifi_benchmark | demonstrated | {"complete_devices": 1, "complete_discovery_seconds": 0.000969, "cpu_seconds": 0.000664, "datagram_count": 1, "datagram_sizes": [270], "direct_queries": {"wifi": true}, "discovered": 1, "expected": 1, "peak_rss": 72859648, "raw_thread_address_class": null, "server_port": 63268, "thread": 0, "wifi": 1, "wire_checks_passed": true} | — |
 | windows_socket_simulation | simulated | Windows remains identified simulation-only in the initial spike. | — |
 
 ## Benchmarks
