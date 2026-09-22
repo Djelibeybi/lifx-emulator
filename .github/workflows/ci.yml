@@ -247,7 +247,6 @@ jobs:
         PYAPP_UV_VERSION: 0.9.9
         PYAPP_EXPOSE_PYTHON: 'true'
         CARGO_BUILD_TARGET: x86_64-apple-darwin
-        PYAPP_INSTALL_DIR_LIFX_EMULATOR: ${{ runner.temp }}/pyapp-install
       shell: bash
       run: |
         set -euo pipefail
@@ -273,14 +272,17 @@ jobs:
         app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)
         git clone --depth 1 --branch v0.26.0 https://github.com/ofek/pyapp.git \
           "$RUNNER_TEMP/pyapp"
-        cp "$app_wheel" "$RUNNER_TEMP/pyapp/app.whl"
+        project_wheel=$(basename "$app_wheel")
+        cp "$app_wheel" "$RUNNER_TEMP/pyapp/$project_wheel"
         cd "$RUNNER_TEMP/pyapp"
-        export PYAPP_PROJECT_PATH=app.whl
+        export PYAPP_PROJECT_PATH="$project_wheel"
         rustc -Vv | tee "$RUNNER_TEMP/rustc.txt"
         cargo build --release --target "$CARGO_BUILD_TARGET"
         binary="target/$CARGO_BUILD_TARGET/release/pyapp"
-        "$binary" --help > "$RUNNER_TEMP/first-run.txt"
-        "$binary" self python -c \
+        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
+          "$binary" --help > "$RUNNER_TEMP/first-run.txt"
+        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
+          "$binary" self python -c \
           'import importlib.metadata,json; print(json.dumps({n:importlib.metadata.version(n) for n in ("lifx-emulator","lifx-emulator-core","lifx-async")},sort_keys=True))' \
           > "$RUNNER_TEMP/installed-identities.json"
         shasum -a 256 "$wheels"/*.whl "$binary" > "$RUNNER_TEMP/hashes.txt"
@@ -295,8 +297,20 @@ jobs:
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
-        uv run --frozen python -c \
-          'import hashlib,json,os,pathlib; root=pathlib.Path(os.environ["RUNNER_TEMP"]); active=json.loads((root/"active-input.json").read_text()); receipt={"schema_version":1,"candidate_head_sha":os.environ["HEAD_SHA"],"input_spec_digest":active["input_spec_digest"],"run_url":os.environ["RUN_URL"],"platform_leg":"intel-pyapp","hashes_sha256":hashlib.sha256((root/"hashes.txt").read_bytes()).hexdigest(),"identities":json.loads((root/"installed-identities.json").read_text()),"rustc":(root/"rustc.txt").read_text(),"first_run_sha256":hashlib.sha256((root/"first-run.txt").read_bytes()).hexdigest()}; (root/"intel-pyapp-receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")'
+        uv run --frozen python scripts/spike_mdns_candidates.py \
+          write-intel-pyapp-receipt \
+          --output "$RUNNER_TEMP/intel-pyapp-receipt.json" \
+          --head-sha "$HEAD_SHA" --run-url "$RUN_URL" \
+          --hashes "$RUNNER_TEMP/hashes.txt" \
+          --identities "$RUNNER_TEMP/installed-identities.json" \
+          --rustc "$RUNNER_TEMP/rustc.txt" \
+          --first-run "$RUNNER_TEMP/first-run.txt" \
+          --candidate-metadata "$RUNNER_TEMP/candidate-METADATA.txt" \
+          --app-metadata "$RUNNER_TEMP/app-METADATA.txt"
+        uv run --frozen python scripts/spike_mdns_candidates.py \
+          validate-ci-receipt \
+          --receipt "$RUNNER_TEMP/intel-pyapp-receipt.json" \
+          --head-sha "$HEAD_SHA"
 
     - name: Upload non-publishing Intel PyApp evidence
       if: always() && steps.expensive.outputs.run == 'true'

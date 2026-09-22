@@ -74,6 +74,11 @@ def test_intel_temporary_wheel_allows_exact_direct_references() -> None:
     """Keep exact local wheels buildable without changing production metadata."""
     workflow = (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").read_text()
     assert "allow-direct-references = true" in workflow
+    assert 'PYAPP_PROJECT_PATH="$project_wheel"' in workflow
+    assert "PYAPP_INSTALL_DIR_LIFX-EMULATOR=" in workflow
+    assert '"$binary" self python -c' in workflow
+    assert "write-intel-pyapp-receipt" in workflow
+    assert "pyapp/app.whl" not in workflow
 
 
 def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
@@ -108,6 +113,55 @@ def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
     tracked = checkout / "scripts" / "spike_mdns_candidates.py"
     tracked.write_text(tracked.read_text() + "\n")
     assert _run(*arguments).returncode == 1
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_status", "expected_returncode"),
+    [
+        ("none", "meets_gate", 0),
+        ("oracle-miss", "provisional", 0),
+        ("protocol-failure", "rejected", 0),
+        ("tool-error", "provisional", 1),
+    ],
+)
+def test_platform_result_separates_execution_from_compliance(
+    tmp_path: Path,
+    mutation: str,
+    expected_status: str,
+    expected_returncode: int,
+) -> None:
+    """Keep unexplained oracle misses distinct from decisive protocol failure."""
+    result = {
+        "execution_status": "completed",
+        "oracle": {"wifi": {"matched": True}, "thread": {"matched": True}},
+        "malformed_bounded": True,
+        "threads_before": ["MainThread"],
+        "threads_after": ["MainThread"],
+        "pending_owned_tasks": [],
+        "daemon_processes": ["test-daemon"],
+        "benchmarks": {
+            "wifi-1": {
+                "discovered": 1,
+                "expected": 1,
+                "complete_devices": 1,
+                "datagram_count": 1,
+                "wire_checks_passed": True,
+                "direct_queries": {"wifi": True},
+            }
+        },
+    }
+    if mutation == "oracle-miss":
+        result["oracle"]["wifi"]["matched"] = False
+    elif mutation == "protocol-failure":
+        result["benchmarks"]["wifi-1"]["datagram_count"] = 2
+    elif mutation == "tool-error":
+        result["error_type"] = "RuntimeError"
+    path = tmp_path / "result.json"
+    path.write_text(json.dumps(result))
+    completed = _run("classify-direct-result", "--input", str(path))
+    assert completed.returncode == expected_returncode
+    classified = json.loads(completed.stdout)
+    assert classified["candidate_status"] == expected_status
 
 
 def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
@@ -196,6 +250,46 @@ def test_ci_receipt_rejects_identity_mismatch(tmp_path: Path, field: str) -> Non
     }
     receipt[field] = "mismatch"
     path = tmp_path / "receipt.json"
+    path.write_text(json.dumps(receipt))
+    completed = _run(
+        "validate-ci-receipt",
+        "--receipt",
+        str(path),
+        "--head-sha",
+        head_sha,
+    )
+    assert completed.returncode == 1
+
+
+def test_ci_receipt_rejects_incomplete_intel_proof(tmp_path: Path) -> None:
+    """Require exact wheel references and first-run proof for Intel packaging."""
+    inputs = json.loads(ACTIVE_INPUTS.read_text())
+    candidate = inputs["fallbacks"]["lifx-direct"]
+    head_sha = "b" * 40
+    receipt = {
+        "candidate": "lifx-direct",
+        "candidate_head_sha": head_sha,
+        "input_spec_digest": inputs["input_spec_digest"],
+        "candidate_base_commit": candidate["base_revision"],
+        "candidate_base_tree": candidate["base_tree"],
+        "candidate_overlay_digest": candidate["overlay_sha256"],
+        "candidate_final_digest": candidate["final_digest"],
+        "candidate_status": "meets_gate",
+        "platform_leg": "intel-pyapp",
+        "environments": {"darwin/x86_64/3.12": {"os": "darwin"}},
+        "direct_references": {
+            "lifx_async": True,
+            "lifx_emulator_core": False,
+            "candidate_metadata": True,
+        },
+        "hashes_sha256": "hashes",
+        "identities": {"lifx-async": "7.3.0"},
+        "rustc": "rustc 1.98.1",
+        "first_run_sha256": "first-run",
+        "candidate_metadata_sha256": "candidate-metadata",
+        "app_metadata_sha256": "app-metadata",
+    }
+    path = tmp_path / "intel-receipt.json"
     path.write_text(json.dumps(receipt))
     completed = _run(
         "validate-ci-receipt",
