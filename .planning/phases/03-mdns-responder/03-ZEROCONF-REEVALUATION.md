@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-23 (Australia/Melbourne)
 **Authorisation:** User approved the proposed direct 100-device experiment after the packet-grouping amendment. No local or CI harness changes.
-**Result:** Complete-fleet discovery, record contents and representative control pass locally. Production selection remains provisional because a separate legacy-unicast question-echo issue and other evidence gaps remain.
+**Result:** Complete-fleet discovery, record contents and representative control pass locally. The user accepted the continuation-question omission for the tested lifx-async client. Production selection remains provisional pending the other evidence gaps.
 
 ## Inputs and method
 
@@ -46,11 +46,11 @@ The temporary script's SHA-256 was `20f27bad9f3fc102f2e5fd50046aa2a46c620565ee62
 
 These are two local discovery observations, not a statistical performance study. The first invocation already discovered all 100 in 0.615110 seconds and passed both controls, but its separate raw query incorrectly passed a trailing dot to `build_ptr_query`, yielding no matching raw replies. Correcting that invocation to `build_ptr_query(SERVICE.rstrip("."))` produced the recorded second result. The initial raw failure is an experiment error, not candidate rejection. No harness file was edited to correct it.
 
-## Remaining protocol issue
+## Accepted protocol compatibility exception
 
 [RFC 6762 section 6.7](https://www.rfc-editor.org/rfc/rfc6762.html#section-6.7) requires a legacy-unicast response to repeat the query ID and question. The observed 11 continuation datagrams have no question section. The pinned client's successful discovery does not demonstrate conformance to that requirement.
 
-The release's [DNSOutgoing.packets implementation](https://github.com/python-zeroconf/python-zeroconf/blob/0.151.3/src/zeroconf/_protocol/outgoing.py#L177-L247) advances `questions_offset` after the first packet and retains it when resetting for subsequent packets. This accounts for the observed question omission. No library patch, private hook or upstream report was made in this task. Resolving this library behaviour is the next technical investigation before a claim of complete legacy-unicast compliance; it must not be silently waived as part of the aggregation amendment.
+The release's [DNSOutgoing.packets implementation](https://github.com/python-zeroconf/python-zeroconf/blob/0.151.3/src/zeroconf/_protocol/outgoing.py#L177-L247) advances `questions_offset` after the first packet and retains it when resetting for subsequent packets. This accounts for the observed question omission. No library patch, private hook or upstream report was made in this task. The subsequent explicit user decision below accepts this behaviour for the tested client; it is no longer a candidate-selection blocker. It remains a standards deviation and must not be described as complete legacy-unicast compliance.
 
 ## Assessment of the remaining gates
 
@@ -59,3 +59,9 @@ The old packet-count rejection is superseded, and zeroconf now has direct local 
 The earlier zeroconf ledger contains useful local single-device wire, direct-address-query and cleanup observations. Its raw benchmark timings are not substituted for public-client benchmarks. The old Windows simulation label is not independently verified by this experiment. Exact candidate-specific hosted Ubuntu/macOS receipts and Intel PyApp packaging remain unproved for the revised decision; passing receipts for the direct prototype are not transferable. Dynamic membership, injected failure/retry, partial-start recovery and production status integration were not exercised here.
 
 **Disposition:** Retain zeroconf as the preferred candidate for further targeted work. Do not claim a full go or restart fallback implementation based solely on this run. No production, dependency, test, harness or workflow file changed, and no CI evidence run was explicitly requested.
+
+## User decision: continuation-question omission
+
+On 2026-09-23, after reviewing how the pinned client handles these packets, the user accepted this behaviour ("Sounds fine to me then"). The exception is limited to zeroconf replies whose continuation packets omit the question, for compatibility with the tested `lifx-async` client. The parser skips any questions present and accepts zero questions; discovery merges response records without checking question echo or correlating the query ID. The observed 100-device discovery and controls succeeded.
+
+No library or client patch is required for this accepted behaviour. Query-ID echo, response destination/source-port rules, cache-flush and TTL rules, correct device records and complete discovery remain requirements. This decision does not certify other clients, waive the remaining platform/lifecycle/packaging gates, authorise harness work or approve production integration.

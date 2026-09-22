@@ -1,7 +1,7 @@
 # Phase 3 packet-grouping amendment
 
 **Approved:** 2026-09-23, by the user's agreement with the recommendation to replace the one-packet-per-device requirement.
-**Status:** Direct local zeroconf re-evaluation found all 100 devices with correct records and representative control. Question echo on continuation packets and remaining gates keep the choice provisional. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
+**Status:** Direct local zeroconf re-evaluation found all 100 devices with correct records and representative control. The user accepted question omission on continuation packets for the tested lifx-async client; remaining platform/lifecycle/packaging gates keep the choice provisional. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
 
 ## Current contract
 
@@ -26,3 +26,5 @@ The user's no-local-or-CI-harness-work condition remains in force. This approval
 The next evaluation must establish complete discovery against the amended contract, using existing evidence where it actually proves the criterion and direct checks where needed. Any remaining evidence gap must remain explicit. MDNS-10 and the remaining Phase 3 requirements stay incomplete until a supported foundation decision is recorded.
 
 On 2026-09-23 the user subsequently authorised the proposed direct 100-device experiment. That bounded task is complete and recorded in `03-ZEROCONF-REEVALUATION.md`; the no-harness-work condition was retained.
+
+The user subsequently accepted the continuation-question compatibility exception documented in `03-ZEROCONF-REEVALUATION.md`. It no longer blocks candidate selection; the other protocol requirements and evidence gates remain unchanged.
