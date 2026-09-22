@@ -234,7 +234,67 @@ def test_direct_result_retains_bounded_future_fit_checks(tmp_path: Path) -> None
 )
 def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> None:
     """Distinguish useful provisional evidence from invalid harness output."""
-    evidence = json.loads(EVIDENCE.read_text())
+    inputs = json.loads(ACTIVE_INPUTS.read_text())
+    public_benchmarks = {
+        population: {
+            "complete_discovery_seconds": 0.1,
+            "representative_stock_connectivity": {"wifi": {"passed": True}},
+        }
+        for population in ("wifi-1", "thread-1", "mixed-10", "mixed-100")
+    }
+    demonstrated = {"status": "demonstrated", "evidence": "fixture proof"}
+    direct = {
+        "candidate": "lifx-direct",
+        "execution_status": "completed",
+        "candidate_status": "provisional",
+        "criteria": {
+            "wifi_benchmark": dict(demonstrated),
+            "thread_benchmark": dict(demonstrated),
+            "mixed_10_benchmark": dict(demonstrated),
+            "mixed_100_benchmark": dict(demonstrated),
+            "windows_socket_simulation": {
+                "status": "simulated",
+                "evidence": "fixture simulation",
+            },
+            "malformed_truncated_flood_bounds": dict(demonstrated),
+            "dynamic_lifecycle_recovery_fit": {
+                "status": "untested",
+                "evidence": "Recovery remains explicitly untested in this fixture.",
+                "acquisition_step": "Run integration recovery probes.",
+            },
+        },
+        "attempts": [
+            {
+                "public_oracle_benchmarks": public_benchmarks,
+                "windows_socket_simulation": {"all_passed": True},
+                "adversarial_bounds": {"all_passed": True},
+            }
+        ],
+    }
+    evidence = {
+        "schema_version": 1,
+        "candidate_order": [
+            "zeroconf",
+            "lifx-direct",
+            "lifx-adapted",
+            "new-responder",
+        ],
+        "active_elapsed_seconds": 1.0,
+        "inputs": inputs,
+        "input_spec_digest": inputs["input_spec_digest"],
+        "candidates": [
+            {
+                "candidate": "zeroconf",
+                "execution_status": "completed",
+                "candidate_status": "rejected",
+                "criteria": {},
+                "attempts": [],
+            },
+            direct,
+        ],
+        "edge_coverage": [{"row": number} for number in range(46)],
+        "decision": {"status": "provisional"},
+    }
     if mutation == "tool-error":
         evidence["candidates"][0]["execution_status"] = "tool_error"
     elif mutation == "unsupported-go":
@@ -242,21 +302,17 @@ def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> 
     elif mutation == "bad-order":
         evidence["candidate_order"] = list(reversed(evidence["candidate_order"]))
     elif mutation == "false-public-benchmark":
-        direct = evidence["candidates"][1]
         direct["attempts"][-1].pop("public_oracle_benchmarks", None)
         direct["criteria"]["wifi_benchmark"]["status"] = "demonstrated"
     elif mutation == "false-windows-simulation":
-        direct = evidence["candidates"][1]
         direct["attempts"][-1].pop("windows_socket_simulation", None)
         direct["criteria"]["windows_socket_simulation"]["status"] = "simulated"
     elif mutation == "false-adversarial-bounds":
-        direct = evidence["candidates"][1]
         direct["attempts"][-1].pop("adversarial_bounds", None)
         direct["criteria"]["malformed_truncated_flood_bounds"]["status"] = (
             "demonstrated"
         )
     elif mutation == "false-dynamic-recovery":
-        direct = evidence["candidates"][1]
         direct["attempts"][-1].pop("dynamic_recovery", None)
         direct["criteria"]["dynamic_lifecycle_recovery_fit"]["status"] = "demonstrated"
     path = tmp_path / "evidence.json"
