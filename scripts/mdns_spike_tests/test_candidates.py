@@ -307,6 +307,7 @@ def test_responder_listener_is_interface_scoped(tmp_path: Path) -> None:
     payload = json.loads(output.read_text())
     assert payload["bound_address"] == "224.0.0.251"
     assert payload["membership_interface"] != "0.0.0.0"
+    assert payload["reply_bound_address"] == "selected-ipv4"
     assert payload["wildcard_bound"] is False
     assert payload["platform_scope_applied"] is True
 
