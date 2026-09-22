@@ -1,5 +1,7 @@
 # Phase 3: mDNS Responder - Context
 
+**Amended 2026-09-23:** Packet grouping is unrestricted subject to complete-fleet discovery; zeroconf re-evaluation is pending. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md).
+
 **Gathered:** 2026-09-22
 **Status:** Ready for spike planning; detailed responder planning awaits go/no-go
 
@@ -17,14 +19,14 @@ Add opt-in core mDNS discovery for emulated WiFi and Thread devices. Plan the im
 **In scope (from SPEC.md):**
 
 - Core responder and configuration surface required to enable it and supply advertisement settings.
-- One packet per advertised device, with complete DNS-SD records and legacy-unicast response behaviour.
+- Complete discovery of every advertised device from correctly associated DNS-SD records, with legacy-unicast response behaviour; packet aggregation and multiple reply packets are permitted.
 - Address validation, WiFi opt-out, live device membership and non-displacing event listeners.
 - Conditional startup failure, shutdown ownership, the implementation-selection spike and focused discovery tests.
 - Corrections to MDNS-03 and Phase 3 roadmap criteria accompanying this specification.
 
 **Out of scope (from SPEC.md):**
 
-- Whole-fleet reply aggregation or rejecting a fleet because its combined records exceed one packet — the user explicitly selected per-device replies.
+- Dropping eligible devices or imposing a fleet-size limit because their combined records exceed one packet. Packet aggregation itself is permitted.
 - CLI flags, YAML, export-config and standalone default enablement — Phase 4.
 - Management API models and validation responses — Phase 5.
 - Dashboard controls — excluded from this milestone.
