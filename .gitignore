@@ -98,6 +98,8 @@ Thumbs.db
 
 # GSD cross-AI review lane diagnostics (raw CLI transcripts; REVIEWS.md is the committed artefact)
 .planning/phases/*/.review-diagnostics/
+.planning/config.claude.json
+.planning/config.codex.json
 
 # GSD runtime session locks (contain PID/session id; never commit)
 .gsd/
