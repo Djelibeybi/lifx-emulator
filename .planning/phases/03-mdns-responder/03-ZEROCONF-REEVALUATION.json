@@ -1,0 +1,129 @@
+{
+  "zeroconf": "0.151.3",
+  "lifx_async": "7.3.0",
+  "python": "3.14.7",
+  "os": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "expected": 100,
+  "wifi": 50,
+  "thread": 50,
+  "checks": {},
+  "raw": {
+    "datagrams": [
+      {
+        "bytes": 1438,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 1,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1418,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1440,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1449,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1412,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1459,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1444,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1427,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1441,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1457,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 1408,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      },
+      {
+        "bytes": 703,
+        "source_5353": true,
+        "query_id": true,
+        "questions": 0,
+        "cache_flush_clear": true,
+        "ttl_valid": true
+      }
+    ],
+    "complete_devices": 100,
+    "failed_records": []
+  },
+  "discovery_seconds": 0.538357,
+  "discovered": 100,
+  "missing": [],
+  "endpoint_or_connectivity_failures": [],
+  "control": {
+    "wifi": {
+      "passed": true,
+      "power": 65535
+    },
+    "thread": {
+      "passed": true,
+      "power": 65535
+    }
+  },
+  "threads_after_close": [
+    "MainThread"
+  ]
+}

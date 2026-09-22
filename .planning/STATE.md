@@ -2,11 +2,11 @@
 gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
-status: awaiting re-evaluation
-stopped_at: Packet-grouping amendment accepted; zeroconf re-evaluation pending
-last_updated: "2026-09-22T19:54:20Z"
+status: provisional
+stopped_at: Zeroconf discovers 100 devices; legacy question echo and remaining evidence unresolved
+last_updated: "2026-09-22T20:14:57Z"
 last_activity: 2026-09-23
-last_activity_desc: User approved complete-fleet discovery independent of packet grouping; zeroconf reopened without harness changes or new compliance claims
+last_activity_desc: Direct zeroconf run discovered all 100 devices and passed metadata/control checks; continuation packets omit questions; no full go
 state_head: 6b4aa09c9b1ffbbbc612e581d2b9602152d8bef7
 progress:
   total_phases: 6
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 ## Current Position
 
-Phase: 03 (mDNS Responder) — AWAITING RE-EVALUATION
+Phase: 03 (mDNS Responder) — PROVISIONAL
 Plan: 1 of 1
-Status: Packet-grouping amendment accepted; zeroconf re-evaluation pending. MDNS-10 and remaining requirements are not complete
-Last activity: 2026-09-23 — User approved replacing one-packet-per-device with complete-fleet discovery independent of packet grouping. Zeroconf rejection on aggregation alone is superseded; it is eligible for re-evaluation, not approved. Existing evidence remains historical and the no-harness-work condition remains in force.
+Status: Direct local zeroconf discovery passed for all 100 devices. Question echo and remaining platform/lifecycle/packaging gates are unresolved; MDNS-10 remains incomplete
+Last activity: 2026-09-23 — Direct zeroconf re-evaluation discovered all 100 devices with correct DNS-SD records and representative WiFi/Thread controls. Continuation packets omit the question, and remaining gates are unproved. No full go; no harness changes.
 
 Follow-up: The user authorised up to 60 additional minutes with no harness work. The source investigation and unsuccessful IP_PKTINFO socket experiment are recorded in `.planning/phases/03-mdns-responder/03-01-EXTENSION.md`. Work stopped early; no implementation changed and the decision remains provisional.
 
@@ -104,6 +104,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-22T19:54:20Z
-Stopped at: Packet-grouping amendment accepted; zeroconf re-evaluation pending
-Resume file: .planning/phases/03-mdns-responder/03-PACKET-GROUPING-AMENDMENT.md
+Last session: 2026-09-22T20:14:57Z
+Stopped at: Zeroconf 100-device discovery passed; continuation-question echo and remaining gates unresolved
+Resume file: .planning/phases/03-mdns-responder/03-ZEROCONF-REEVALUATION.md
+
+Latest direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; full legacy-unicast compliance remains unresolved. No harness changes.

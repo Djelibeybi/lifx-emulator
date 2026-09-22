@@ -1,7 +1,7 @@
 # Phase 3 packet-grouping amendment
 
 **Approved:** 2026-09-23, by the user's agreement with the recommendation to replace the one-packet-per-device requirement.
-**Status:** Requirement amended; candidate re-evaluation pending. No production go.
+**Status:** Direct local zeroconf re-evaluation found all 100 devices with correct records and representative control. Question echo on continuation packets and remaining gates keep the choice provisional. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
 
 ## Current contract
 
@@ -24,3 +24,5 @@ The earlier whole-fleet-single-packet assumption and the subsequent one-packet-p
 The user's no-local-or-CI-harness-work condition remains in force. This approval changes the requirement and candidate eligibility; it does not authorise harness changes, a fresh timed spike, production integration, VM provisioning or a merge. Do not resume the old plan's harness-building steps automatically.
 
 The next evaluation must establish complete discovery against the amended contract, using existing evidence where it actually proves the criterion and direct checks where needed. Any remaining evidence gap must remain explicit. MDNS-10 and the remaining Phase 3 requirements stay incomplete until a supported foundation decision is recorded.
+
+On 2026-09-23 the user subsequently authorised the proposed direct 100-device experiment. That bounded task is complete and recorded in `03-ZEROCONF-REEVALUATION.md`; the no-harness-work condition was retained.

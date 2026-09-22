@@ -36,8 +36,8 @@
   ],
   "next": {
     "command": "/gsd:execute-phase 3",
-    "label": "Re-evaluate zeroconf against the amended MDNS-03 contract",
-    "reason": "Read 03-PACKET-GROUPING-AMENDMENT.md first; aggregation alone is no longer a rejection; no local or CI harness work is authorised"
+    "label": "Resolve zeroconf continuation-question behaviour and remaining gates",
+    "reason": "Local 100-device discovery, metadata and representative controls passed; see 03-ZEROCONF-REEVALUATION.md. No harness changes authorised."
   },
-  "updated_at": "2026-09-22T19:54:20Z"
+  "updated_at": "2026-09-22T20:14:57Z"
 }
