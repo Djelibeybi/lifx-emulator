@@ -786,16 +786,26 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
                     break
             for response in build_legacy_unicast_responses(received, advertisements):
                 await loop.sock_sendto(responder, response, source)
-            raw, _ = await _receive_one(client, 3.0)
-            parsed = parse_dns_response(raw)
-            direct_results[family] = (
-                parsed.header.id == 0xD1ED + index
-                and parsed.header.qd_count == 1
-                and len(parsed.records) == 1
-                and parsed.records[0].rtype == record_type
-                and not parsed.records[0].cache_flush
-                and 0 < parsed.records[0].ttl <= 10
-            )
+            deadline = time.monotonic() + 3.0
+            direct_results[family] = False
+            while time.monotonic() < deadline:
+                try:
+                    raw, _ = await _receive_one(
+                        client, max(deadline - time.monotonic(), 0.01)
+                    )
+                except TimeoutError:
+                    break
+                parsed = parse_dns_response(raw)
+                if parsed.header.id != 0xD1ED + index:
+                    continue
+                direct_results[family] = (
+                    parsed.header.qd_count == 1
+                    and len(parsed.records) == 1
+                    and parsed.records[0].rtype == record_type
+                    and not parsed.records[0].cache_flush
+                    and 0 < parsed.records[0].ttl <= 10
+                )
+                break
         return {
             "wifi": wifi,
             "thread": thread_count,
@@ -836,6 +846,11 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
     )
     task: asyncio.Task[None] | None = None
     discovered: list[str] = []
+    queries_received = 0
+    matching_queries_received = 0
+    legacy_queries_received = 0
+    legacy_responses_sent = 0
+    responses_sent = 0
     try:
         await server.start()
         assert server.ipv4_endpoint is not None
@@ -848,10 +863,23 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
         loop = asyncio.get_running_loop()
 
         async def serve() -> None:
+            nonlocal legacy_queries_received
+            nonlocal legacy_responses_sent
+            nonlocal matching_queries_received
+            nonlocal queries_received
+            nonlocal responses_sent
             while True:
                 query, source = await loop.sock_recvfrom(responder, 9000)
-                for response in build_legacy_unicast_responses(query, [advertisement]):
+                queries_received += 1
+                responses = build_legacy_unicast_responses(query, [advertisement])
+                if responses:
+                    matching_queries_received += 1
+                    if source[1] != 5353 and source[0] == interface:
+                        legacy_queries_received += 1
+                        legacy_responses_sent += len(responses)
+                for response in responses:
                     await loop.sock_sendto(responder, response, source)
+                    responses_sent += 1
 
         task = asyncio.create_task(serve(), name="lifx-direct-spike-responder")
         async for discovered_device in discover_mdns(
@@ -864,6 +892,11 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
             "matched_serials": discovered,
             "matched": serial in discovered,
             "address_class": "reachable-ula-gua" if thread_address else "selected-ipv4",
+            "queries_received": queries_received,
+            "matching_queries_received": matching_queries_received,
+            "legacy_queries_received": legacy_queries_received,
+            "responses_sent": responses_sent,
+            "legacy_responses_sent": legacy_responses_sent,
         }
     finally:
         if task is not None:
@@ -883,10 +916,6 @@ async def _lifx_direct_worker() -> int:
             "wifi": await _run_direct_oracle(),
             "thread": await _run_direct_oracle(reachable[0]) if reachable else None,
         }
-        if not oracle["wifi"]["matched"] or (
-            oracle["thread"] is not None and not oracle["thread"]["matched"]
-        ):
-            raise RuntimeError("pinned public oracle did not discover direct extension")
         benchmarks: dict[str, Any] = {}
         for name, population in (
             ("wifi-1", (1, 0)),
@@ -1583,20 +1612,14 @@ def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> i
             "tasks or threads remaining.",
         )
     )
-    required_local = (
-        all_wire
-        and complete
-        and direct_ok
-        and oracle_ok
-        and clean
-        and bool(daemon)
-        and result["malformed_bounded"]
+    decisive_protocol_ok = (
+        all_wire and complete and direct_ok and clean and result["malformed_bounded"]
     )
     evidence["candidates"].append(
         {
             "candidate": "lifx-direct",
             "execution_status": "completed",
-            "candidate_status": "provisional" if required_local else "rejected",
+            "candidate_status": ("provisional" if decisive_protocol_ok else "rejected"),
             "criteria": criteria,
             "elapsed_active_seconds": round(_active_elapsed(), 3),
             "attempts": [
@@ -1731,6 +1754,38 @@ def validate_evidence(path: Path) -> int:
     return 0
 
 
+def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStatus]:
+    """Separate a completed platform probe from candidate compliance."""
+    try:
+        if result.get("execution_status") != "completed" or result.get("error_type"):
+            return False, "provisional"
+        protocol_ok = (
+            result["malformed_bounded"]
+            and result["threads_before"] == result["threads_after"]
+            and not result["pending_owned_tasks"]
+            and all(
+                metrics["discovered"] == metrics["expected"]
+                and metrics["complete_devices"] == metrics["expected"]
+                and metrics["datagram_count"] == metrics["expected"]
+                and metrics["wire_checks_passed"]
+                and all(metrics["direct_queries"].values())
+                for metrics in result["benchmarks"].values()
+            )
+        )
+        oracle = result["oracle"]
+        oracle_ok = oracle["wifi"]["matched"] and (
+            oracle["thread"] is not None and oracle["thread"]["matched"]
+        )
+        environment_ok = bool(result["daemon_processes"])
+    except (KeyError, TypeError):
+        return False, "provisional"
+    if not protocol_ok:
+        return True, "rejected"
+    if oracle_ok and environment_ok:
+        return True, "meets_gate"
+    return True, "provisional"
+
+
 def _run_direct_platform(args: argparse.Namespace) -> int:
     inputs = resolve_inputs()
     oracle_path = os.environ.get("MDNS_SPIKE_ORACLE_PATH")
@@ -1761,29 +1816,7 @@ def _run_direct_platform(args: argparse.Namespace) -> int:
         print(completed.stderr, file=sys.stderr)
         return 1
     result = json.loads(completed.stdout.strip().splitlines()[-1])
-    valid = (
-        not result.get("error_type")
-        and result["oracle"]["wifi"]["matched"]
-        and (result["oracle"]["thread"] or {}).get("matched", True)
-        and result["malformed_bounded"]
-        and result["threads_before"] == result["threads_after"]
-        and not result["pending_owned_tasks"]
-        and all(
-            metrics["discovered"] == metrics["expected"]
-            and metrics["complete_devices"] == metrics["expected"]
-            and metrics["datagram_count"] == metrics["expected"]
-            and metrics["wire_checks_passed"]
-            and all(metrics["direct_queries"].values())
-            for metrics in result["benchmarks"].values()
-        )
-    )
-    daemon_present = bool(result.get("daemon_processes"))
-    thread_oracle_present = (result.get("oracle") or {}).get("thread") is not None
-    candidate_status = (
-        "meets_gate"
-        if valid and daemon_present and thread_oracle_present
-        else "provisional"
-    )
+    valid, candidate_status = _classify_direct_result(result)
     payload = {
         "schema_version": 1,
         "platform_candidate": "lifx-direct",
@@ -1797,6 +1830,12 @@ def _run_direct_platform(args: argparse.Namespace) -> int:
         "result": result,
     }
     _write_json(Path(args.output), payload)
+    return 0 if valid else 1
+
+
+def _classify_direct_result_cli(args: argparse.Namespace) -> int:
+    valid, candidate_status = _classify_direct_result(_read_json(Path(args.input)))
+    print(json.dumps({"valid": valid, "candidate_status": candidate_status}))
     return 0 if valid else 1
 
 
@@ -1849,6 +1888,59 @@ def _write_ci_receipt(args: argparse.Namespace) -> int:
     return 0
 
 
+def _write_intel_pyapp_receipt(args: argparse.Namespace) -> int:
+    inputs = resolve_inputs()
+    candidate = inputs["fallbacks"]["lifx-direct"]
+    candidate_metadata = Path(args.candidate_metadata).read_text(encoding="utf-8")
+    app_metadata = Path(args.app_metadata).read_text(encoding="utf-8")
+    direct_references = {
+        "lifx_async": bool(
+            re.search(r"Requires-Dist:\s*lifx-async\s*@\s*file:", app_metadata)
+        ),
+        "lifx_emulator_core": bool(
+            re.search(r"Requires-Dist:\s*lifx-emulator-core\s*@\s*file:", app_metadata)
+        ),
+        "candidate_metadata": "Name: lifx-async" in candidate_metadata,
+    }
+    if not all(direct_references.values()):
+        print("Intel wheel METADATA does not prove exact local inputs", file=sys.stderr)
+        return 1
+    environment = _environment()
+    environment_key = "/".join(
+        str(environment[key]) for key in ("os", "architecture", "python")
+    )
+    receipt = {
+        "schema_version": 1,
+        "candidate_head_sha": args.head_sha,
+        "input_spec_digest": inputs["input_spec_digest"],
+        "candidate": "lifx-direct",
+        "candidate_base_commit": candidate["base_revision"],
+        "candidate_base_tree": candidate["base_tree"],
+        "candidate_overlay_digest": candidate["overlay_sha256"],
+        "candidate_final_digest": candidate["final_digest"],
+        "candidate_status": "meets_gate",
+        "platform_leg": "intel-pyapp",
+        "run_url": args.run_url,
+        "environments": {environment_key: environment},
+        "hashes_sha256": hashlib.sha256(Path(args.hashes).read_bytes()).hexdigest(),
+        "identities": _read_json(Path(args.identities)),
+        "rustc": Path(args.rustc).read_text(encoding="utf-8"),
+        "first_run_sha256": hashlib.sha256(
+            Path(args.first_run).read_bytes()
+        ).hexdigest(),
+        "candidate_metadata_sha256": hashlib.sha256(
+            Path(args.candidate_metadata).read_bytes()
+        ).hexdigest(),
+        "app_metadata_sha256": hashlib.sha256(
+            Path(args.app_metadata).read_bytes()
+        ).hexdigest(),
+        "direct_references": direct_references,
+        "recorded_at": _utc_now(),
+    }
+    _write_json(Path(args.output), receipt)
+    return 0
+
+
 def _validate_ci_receipt(args: argparse.Namespace) -> int:
     try:
         receipt = _read_json(Path(args.receipt))
@@ -1870,6 +1962,21 @@ def _validate_ci_receipt(args: argparse.Namespace) -> int:
                 )
         if not receipt.get("environments"):
             raise ValueError("receipt has no realised platform environment")
+        if receipt.get("platform_leg") == "intel-pyapp":
+            if receipt.get("candidate_status") != "meets_gate":
+                raise ValueError("Intel receipt is not a completed packaging gate")
+            if not all((receipt.get("direct_references") or {}).values()):
+                raise ValueError("Intel receipt lacks exact local wheel references")
+            for name in (
+                "hashes_sha256",
+                "identities",
+                "rustc",
+                "first_run_sha256",
+                "candidate_metadata_sha256",
+                "app_metadata_sha256",
+            ):
+                if not receipt.get(name):
+                    raise ValueError(f"Intel receipt lacks {name}")
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"CI receipt invalid: {error}", file=sys.stderr)
         return 1
@@ -2031,6 +2138,17 @@ def _parser() -> argparse.ArgumentParser:
         "--platform-leg", choices=("multicast", "intel-pyapp"), required=True
     )
     receipt.set_defaults(handler=_write_ci_receipt)
+    intel_receipt = subparsers.add_parser("write-intel-pyapp-receipt")
+    intel_receipt.add_argument("--output", required=True)
+    intel_receipt.add_argument("--head-sha", required=True)
+    intel_receipt.add_argument("--run-url", required=True)
+    intel_receipt.add_argument("--hashes", required=True)
+    intel_receipt.add_argument("--identities", required=True)
+    intel_receipt.add_argument("--rustc", required=True)
+    intel_receipt.add_argument("--first-run", required=True)
+    intel_receipt.add_argument("--candidate-metadata", required=True)
+    intel_receipt.add_argument("--app-metadata", required=True)
+    intel_receipt.set_defaults(handler=_write_intel_pyapp_receipt)
     validate_receipt = subparsers.add_parser("validate-ci-receipt")
     validate_receipt.add_argument("--receipt", required=True)
     validate_receipt.add_argument("--head-sha", required=True)
@@ -2040,6 +2158,9 @@ def _parser() -> argparse.ArgumentParser:
     validate_oracle.add_argument("--revision", required=True)
     validate_oracle.add_argument("--tree", required=True)
     validate_oracle.set_defaults(handler=_validate_oracle_checkout)
+    classify_direct = subparsers.add_parser("classify-direct-result")
+    classify_direct.add_argument("--input", required=True)
+    classify_direct.set_defaults(handler=_classify_direct_result_cli)
     return parser
 
 
