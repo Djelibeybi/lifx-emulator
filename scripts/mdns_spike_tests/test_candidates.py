@@ -141,12 +141,13 @@ def test_platform_result_separates_execution_from_compliance(
     result = {
         "execution_status": "completed",
         "oracle": {"wifi": {"matched": True}, "thread": {"matched": True}},
-        "malformed_bounded": True,
+        "adversarial_bounds": {"all_passed": True},
+        "windows_socket_simulation": {"all_passed": True},
         "threads_before": ["MainThread"],
         "threads_after": ["MainThread"],
         "pending_owned_tasks": [],
         "daemon_processes": ["test-daemon"],
-        "benchmarks": {
+        "raw_wire_populations": {
             "wifi-1": {
                 "discovered": 1,
                 "expected": 1,
@@ -156,11 +157,29 @@ def test_platform_result_separates_execution_from_compliance(
                 "direct_queries": {"wifi": True},
             }
         },
+        "public_oracle_benchmarks": {
+            name: {
+                "wifi": wifi,
+                "thread": thread,
+                "discovered": wifi + thread,
+                "expected": wifi + thread,
+                "representative_stock_connectivity": {
+                    **({"wifi": {"passed": True}} if wifi else {}),
+                    **({"thread": {"passed": True}} if thread else {}),
+                },
+            }
+            for name, (wifi, thread) in {
+                "wifi-1": (1, 0),
+                "thread-1": (0, 1),
+                "mixed-10": (5, 5),
+                "mixed-100": (50, 50),
+            }.items()
+        },
     }
     if mutation == "oracle-miss":
         result["oracle"]["wifi"]["matched"] = False
     elif mutation == "protocol-failure":
-        result["benchmarks"]["wifi-1"]["datagram_count"] = 2
+        result["raw_wire_populations"]["wifi-1"]["datagram_count"] = 2
     elif mutation == "environment-unavailable":
         result["error_type"] = "OSError"
         result["error_errno"] = 65
@@ -207,6 +226,10 @@ def test_direct_result_retains_bounded_future_fit_checks(tmp_path: Path) -> None
         ("tool-error", False),
         ("unsupported-go", False),
         ("bad-order", False),
+        ("false-public-benchmark", False),
+        ("false-windows-simulation", False),
+        ("false-adversarial-bounds", False),
+        ("false-dynamic-recovery", False),
     ],
 )
 def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> None:
@@ -218,6 +241,24 @@ def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> 
         evidence["decision"]["status"] = "go"
     elif mutation == "bad-order":
         evidence["candidate_order"] = list(reversed(evidence["candidate_order"]))
+    elif mutation == "false-public-benchmark":
+        direct = evidence["candidates"][1]
+        direct["attempts"][-1].pop("public_oracle_benchmarks", None)
+        direct["criteria"]["wifi_benchmark"]["status"] = "demonstrated"
+    elif mutation == "false-windows-simulation":
+        direct = evidence["candidates"][1]
+        direct["attempts"][-1].pop("windows_socket_simulation", None)
+        direct["criteria"]["windows_socket_simulation"]["status"] = "simulated"
+    elif mutation == "false-adversarial-bounds":
+        direct = evidence["candidates"][1]
+        direct["attempts"][-1].pop("adversarial_bounds", None)
+        direct["criteria"]["malformed_truncated_flood_bounds"]["status"] = (
+            "demonstrated"
+        )
+    elif mutation == "false-dynamic-recovery":
+        direct = evidence["candidates"][1]
+        direct["attempts"][-1].pop("dynamic_recovery", None)
+        direct["criteria"]["dynamic_lifecycle_recovery_fit"]["status"] = "demonstrated"
     path = tmp_path / "evidence.json"
     path.write_text(json.dumps(evidence))
     completed = _run("validate-evidence", str(path))
