@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step (plan phase 3)",
-    "reason": "Phase 3 of 6 — needs a plan"
+    "command": "/gsd:execute-phase 3",
+    "label": "Execute Phase 3 MDNS-10 spike",
+    "reason": "03-01 is verified; remaining Phase 3 planning awaits the spike go/no-go"
   },
-  "updated_at": "2026-09-10T13:12:33.913Z"
+  "updated_at": "2026-09-22T13:26:17.688Z"
 }

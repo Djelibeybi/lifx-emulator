@@ -39,7 +39,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **MDNS-07**: The responder answers direct A and AAAA queries for any hostname it advertises, so a client's follow-up address lookup succeeds
 - [ ] **MDNS-08**: The advertised record set follows runtime device additions and removals via a multi-listener `DeviceManager` event registry that does not displace the existing WebSocket event bridge
 - [ ] **MDNS-09**: The responder starts and stops with the server, tracks its own asyncio tasks, and leaks no sockets across pytest-asyncio function-scoped loops. Enabled mDNS startup failure is fatal only when Thread devices are configured; a WiFi-only server continues serving LIFX traffic with the mDNS failure observable
-- [ ] **MDNS-10**: A time-boxed spike evaluates python-zeroconf (current release) against `lifx-async` `discover_mdns()` for legacy-unicast replies, multi-instance TXT and AAAA-only records, port 5353 coexistence and macOS x86_64 PyApp packaging, and records a go/no-go decision (zeroconf vs hand-rolled) before the responder is built
+- [ ] **MDNS-10**: A time-boxed spike evaluates current python-zeroconf, then extending/adapting existing `lifx-async` mDNS code, then a new responder, against `lifx-async` `discover_mdns()` for legacy-unicast replies, per-device packet boundaries, multi-instance TXT and AAAA-only records, port 5353 coexistence and macOS x86_64 PyApp packaging; it records a go/no-go decision before detailed responder planning or construction, following `03-CONTEXT.md` D-09–D-18
 - [ ] **MDNS-11**: The responder is unit-tested by injecting datagrams directly into its protocol and integration-tested with loopback multicast on the CI runners
 
 ### Configuration and Management

@@ -4,6 +4,19 @@
 **Ambiguity score:** 0.075 (gate: ≤ 0.20)
 **Requirements:** 11 locked
 
+**Reconciled:** 2026-09-22 against `03-CONTEXT.md` D-01–D-18. The original ambiguity score describes the specification interview; it has not been recalculated for these later decisions.
+
+## Discussion refinements
+
+The following agreed refinements apply within the existing requirement IDs and acceptance criteria:
+
+- **MDNS-01/06 (D-01–D-04):** Preserve existing factory/server calls. Use server `mdns_enabled=False`, factory `mdns_enabled=True` and `mdns_address=None`. Advertisement settings are fixed at device creation. Factories validate explicit addresses, families and Thread opt-out; startup validates bind-dependent settings, and additions validate before registration.
+- **MDNS-09 (D-05–D-08):** Expose read-only `mdns_status` (`disabled`, `stopped`, `running`, `failed`) and `mdns_error`, with logged failures. Explicit `await server.retry_mdns()` recovers WiFi-only service without interrupting LIFX traffic. Failed enabled mDNS rejects Thread additions before membership changes. Runtime failure follows the same fleet policy: WiFi-only continues; Thread-only/mixed fleets shut down cleanly and retain failure details. AC-10/11 include these status, retry and runtime-failure cases.
+- **MDNS-10 (D-09–D-13):** Evaluate current python-zeroconf first, then extending or adapting existing `lifx-async` mDNS code, then a new responder. Prefer zeroconf when requirements are met unless evidence shows a material alternative advantage; assess public APIs, adapter size, private internals, forks, coupling and maintenance. Compare direct sibling extension with adaptation rather than preselecting either. Missing platform or packaging evidence keeps the decision provisional and holds detailed planning of the remaining ten requirements. Benchmark complete-fleet discovery for sizes 1, 10 and 100, recording CPU and memory; these are not supported fleet limits.
+- **MDNS-10 (D-14–D-18):** Share four active-work hours across candidates and record CI queue time separately. At the limit, record findings and unresolved evidence. An additional four hours requires concrete evidence, documentation links and exact source line references showing worthwhile depth, performance or feature completeness. Only within that justified extension, after required evidence and if time remains, define and provision a small Linux VM on `devproxmox.lot209.xyz` for optional Mac-to-guest discovery, state-query and control checks. VM definition, provisioning and cross-machine testing are excluded from the initial four hours. This experiment neither replaces required evidence nor automatically justifies an extension.
+
+Only the MDNS-10 spike is ready for detailed planning. The other requirements remain locked and pending; their mention in spike evaluation criteria does not constitute implementation coverage.
+
 ## Goal
 
 An explicitly enabled core mDNS responder lets `lifx-async` discover each emulated device from its own DNS-SD reply, advertising Thread devices with AAAA records and WiFi devices with A records.
@@ -65,8 +78,8 @@ This specification clarifies the conflicting default statements in PROJECT.md an
    - Target: Thread configuration plus failed mDNS startup yields a clear startup error and cleanup. WiFi-only configuration plus failed mDNS startup yields an observable failure without disabling the functioning LIFX server. Explicitly leaving core mDNS disabled remains supported. Shutdown releases mDNS sockets, membership, listeners and tasks, including after partial startup or repeated lifecycle operations.
    - Acceptance: AC-10 and AC-11 cover Thread-only, mixed, WiFi-only and disabled configurations, failure injection and repeated start/stop across event loops.
 
-10. **MDNS-10 — Evidence before implementation selection:** A time-boxed spike records a go/no-go decision between the current python-zeroconf release and a hand-written responder before the responder implementation is built.
-    - Current: The implementation choice is unresolved; neither candidate has the required evidence in this phase.
+10. **MDNS-10 — Evidence before implementation selection:** A time-boxed spike evaluates current python-zeroconf, then reuse of existing `lifx-async` mDNS code, then a new responder, and records a go/no-go decision before the responder implementation is built.
+    - Current: The implementation choice is unresolved; no candidate has the required evidence in this phase.
     - Target: The recorded comparison covers `lifx-async` discovery, legacy-unicast replies, per-device packet boundaries, mixed TXT/address families, host-daemon coexistence and macOS x86_64 PyApp packaging. Record versions, time box, commands, results and unsupported or untested cases. Detailed implementation planning follows the decision.
     - Acceptance: AC-12 requires an explicit decision and evidence for every criterion, including whether the candidate can meet one-reply-per-device behaviour.
 
