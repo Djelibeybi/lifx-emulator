@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: mDNS Responder
 status: "Phase 02 shipped — PR #218"
-stopped_at: Phase 02 complete, ready to plan Phase 3
-last_updated: "2026-09-10T14:53:29.727Z"
-last_activity: 2026-09-11
-last_activity_desc: Phase 02 PR 218 created; CI and merge pending; Phase 3 ready to plan
-state_head: bedd5a741a4de2a88338353b764feb9e2a21b395
+stopped_at: Phase 01 and 02 verified; ready to discuss Phase 3
+last_updated: "2026-09-22T09:39:10Z"
+last_activity: 2026-09-22
+last_activity_desc: Phase 01 and 02 verification refreshed and approved; Phase 03 discussion is next
+state_head: 01706c1bb8d56cc2b96938c03cf801df55030f9f
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
   completed_plans: 8
-  percent: 17
+  percent: 33
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 Phase: 3 — mDNS Responder
 Plan: Not started
 Status: Phase 02 shipped — PR #218
-Last activity: 2026-09-11 — Phase 02 PR #218 created; CI and merge pending; Phase 3 ready to plan
+Last activity: 2026-09-22 — Phase 01 and 02 verification refreshed and approved; Phase 03 discussion is next
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33% (2/6 phases; 8/8 existing plans complete)
 
 ## Performance Metrics
 
@@ -90,7 +90,7 @@ None yet.
 - [Phase 3]: mDNS implementation choice is unresolved until the MDNS-10 spike records a go/no-go; the remaining ten mDNS requirements cannot be planned in detail before it
 - [Phase 3]: Port 5353 is owned by the host mDNS daemon on macOS and Windows; legacy-unicast replies are the load-bearing path for `lifx-async`
 - [Phase 6]: No Windows CI leg — Windows socket-option guards must be covered by simulation tests instead
-- [Ship]: Phase 02 PR #218 uses `feat: add IPv6 transport and Thread isolation`; CI and merge remain pending. Phase 01 PR #217 merged on 2026-09-09.
+- [Maintenance]: The existing Starlette test-client deprecation remains deferred in Phase 02 deferred-items.md.
 
 ## Deferred Items
 
@@ -102,6 +102,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-10T13:15:08Z
-Stopped at: Phase 02 complete, ready to plan Phase 3
+Last session: 2026-09-22T09:39:10Z
+Stopped at: Phase 01 and 02 verified; ready to discuss Phase 3
 Resume file: None

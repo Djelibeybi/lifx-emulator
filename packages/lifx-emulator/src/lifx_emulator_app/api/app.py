@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -270,7 +271,6 @@ async def run_api_server(
         >>> server = EmulatedLifxServer(bind="127.0.0.1", port=56700)
         >>> asyncio.run(run_api_server(server, host="0.0.0.0", port=8080))
     """
-    import uvicorn
 
     app = create_api_app(server)
 

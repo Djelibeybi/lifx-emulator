@@ -1,6 +1,8 @@
 ---
 phase: 02-ipv6-transport-and-thread-isolation
-verified: 2026-09-10T13:20:15Z
+verified: 2026-09-22T09:39:10Z
+verified_base_revision: 01706c1bb8d56cc2b96938c03cf801df55030f9f
+verified_changes: "Three-file verification fix diff committed with this report"
 status: passed
 score: 24/24 must-haves verified
 covered_files:
@@ -45,14 +47,14 @@ covered_files:
   - packages/lifx-emulator/src/lifx_emulator_app/api/services/websocket_manager.py
   - packages/lifx-emulator/tests/test_api.py
   - packages/lifx-emulator/tests/test_websocket.py
-covered_digest: "v1:sha256:d191d9a62a98dd388dabbc65b0ae0e1809025d53ea319daa13799561053ee546"
+covered_digest: "v1:sha256:24d97d824b7340731aa2497fb62fd389b59b8b0b2cb63e63a252272dec80ac9c"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: passed
+  previous_status: stale
   previous_score: 24/24
   previous_verified: 2026-09-10T13:10:00Z
-  reason: "Refresh the evidence fingerprint after phase.complete updated covered planning metadata."
+  reason: "Fresh full-suite verification, strengthened real-socket isolation proof and import cleanup."
   gaps_closed: []
   gaps_remaining: []
   regressions: []
@@ -72,6 +74,35 @@ decision_coverage:
 ---
 
 # Phase 2: IPv6 Transport and Thread Isolation Verification Report
+
+## Current Re-verification — 2026-09-22
+
+**Status:** passed — 24/24 retained acceptance truths; 16/16 UAT deliverables automatically covered and approved by the user.
+**Verified by:** Codex, inline source inspection and local execution on macOS/Python 3.14.7.
+**Tree:** base `01706c1bb8d56cc2b96938c03cf801df55030f9f` plus the three-file fix diff committed with this report. The covered-input fingerprint identifies the verified file contents.
+
+Fresh inspection traced admission before allocation, immutable per-datagram family/transport context, rejection before receive counters and activity, atomic same-port dual-family publication, and retained task completion/shutdown. All corresponding tests passed in the full workspace suite, including real IPv4/IPv6 loopback tests without skips.
+
+The earlier test-quality advisory is fixed: the real-socket negative matrix now requests acknowledgements with activity logging enabled, asserts silence and no receive/activity effects, and confirms a valid IPv6 request produces activity. Function-local imports in the API app and WebSocket tests were moved to module scope. No transport implementation change was needed.
+
+| Check | Fresh result |
+| --- | --- |
+| `uv run --frozen pytest -q -p no:sugar --cov-fail-under=80` | 1,400 passed; no skips; 95.34% coverage; 13.99s |
+| `uv run --frozen ruff check .` | Passed |
+| `uv run --frozen ruff format --check .` | 116 files already formatted |
+| `uv run --frozen pyright` | 0 errors, warnings or information diagnostics |
+| `uv run --frozen prek run --all-files` | All hooks passed |
+| GSD coverage classification | 16/16 automatically covered; no errors |
+| GSD decision coverage | 16/16 honoured |
+| User confirmation | Approved on 2026-09-22 |
+
+Commands used temporary writable uv and prek caches. The old coroutine warnings are resolved. One existing Starlette test-client deprecation remains deferred; three deprecated-CLI warnings are expected compatibility coverage. The summaries lack top-level measured commit counts, so legacy commit-count reconciliation is unavailable rather than a measured mismatch. Existing security evidence records zero open threats; no fresh security audit is claimed.
+
+The phase was already complete in ROADMAP.md. STATE.md now reflects two completed phases and the Phase 03 discussion as the next action, without repeating the historical transition or rewriting shared roadmap inputs.
+
+## Historical Verification — 2026-09-10
+
+The earlier report below is retained as history. Its dates, line references and advisories describe that earlier run; the current evidence above supersedes them.
 
 **Phase Goal:** The stock server listens on IPv6 alongside IPv4, and a Thread device answers only IPv6 unicast packets addressed to its serial — with the two known `server.py` defects fixed before the file grows a second and third protocol.
 **Verified:** 2026-09-10T13:20:15Z
