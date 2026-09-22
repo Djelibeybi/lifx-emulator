@@ -58,6 +58,56 @@ def test_ci_executes_the_eligible_direct_candidate() -> None:
     evidence_step = workflow.split("name: Exercise exact candidate head", 1)[1]
     evidence_step = evidence_step.split("name: Record exact-head receipt", 1)[0]
     assert "run-candidate" not in evidence_step
+    assert "MDNS_SPIKE_ORACLE_PATH" in evidence_step
+
+
+def test_ci_prepares_required_daemon_and_synthetic_ula() -> None:
+    """Require bounded hosted-runner setup before classifying Ubuntu unavailable."""
+    workflow = (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").read_text()
+    assert "avahi-daemon" in workflow
+    assert "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN" in workflow
+    assert "runner-configured-synthetic-ula" in workflow
+    assert 'git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD' in workflow
+
+
+def test_intel_temporary_wheel_allows_exact_direct_references() -> None:
+    """Keep exact local wheels buildable without changing production metadata."""
+    workflow = (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").read_text()
+    assert "allow-direct-references = true" in workflow
+
+
+def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
+    """Reject dirty source while leaving unrelated untracked files immaterial."""
+    checkout = tmp_path / "oracle"
+    subprocess.run(
+        ["git", "clone", "--shared", "--quiet", str(REPOSITORY_ROOT), str(checkout)],
+        check=True,
+    )
+    revision = subprocess.run(
+        ["git", "-C", str(checkout), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    tree = subprocess.run(
+        ["git", "-C", str(checkout), "rev-parse", "HEAD^{tree}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    arguments = (
+        "validate-oracle-checkout",
+        "--path",
+        str(checkout),
+        "--revision",
+        revision,
+        "--tree",
+        tree,
+    )
+    assert _run(*arguments).returncode == 0
+    tracked = checkout / "scripts" / "spike_mdns_candidates.py"
+    tracked.write_text(tracked.read_text() + "\n")
+    assert _run(*arguments).returncode == 1
 
 
 def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
