@@ -4,9 +4,9 @@ current_phase: 03
 current_phase_name: mDNS Responder
 status: awaiting decision
 stopped_at: Task 3 blocking-human MDNS-10 foundation decision
-last_updated: "2026-09-22T18:37:44Z"
+last_updated: "2026-09-22T19:28:24Z"
 last_activity: 2026-09-23
-last_activity_desc: Security-fixed MDNS-10 evidence validated as provisional; hosted macOS UDP 5353 coexistence and dynamic recovery remain unproved before Task 3
+last_activity_desc: Authorised no-harness follow-up stopped early; source investigation and direct socket experiment leave macOS coexistence and dynamic recovery provisional
 state_head: 6b4aa09c9b1ffbbbc612e581d2b9602152d8bef7
 progress:
   total_phases: 6
@@ -31,6 +31,8 @@ Phase: 03 (mDNS Responder) — AWAITING DECISION
 Plan: 1 of 1
 Status: Task 3 blocking-human decision pending; MDNS-10 and remaining requirements are not complete
 Last activity: 2026-09-23 — Zeroconf was rejected; lifx-direct remains provisional because hosted macOS scoped UDP 5353 coexistence and dynamic recovery are unproved. GHAS alerts 16/17 are fixed at the final candidate head.
+
+Follow-up: The user authorised up to 60 additional minutes with no harness work. The source investigation and unsuccessful IP_PKTINFO socket experiment are recorded in `.planning/phases/03-mdns-responder/03-01-EXTENSION.md`. Work stopped early; no implementation changed and the decision remains provisional.
 
 Progress: [░░░░░░░░░░] 0% (2/6 phases; 8/9 existing plans complete)
 
@@ -102,6 +104,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-22T18:37:44Z
+Last session: 2026-09-22T19:28:24Z
 Stopped at: Task 3 blocking-human MDNS-10 foundation decision
 Resume file: .planning/phases/03-mdns-responder/03-01-PLAN.md

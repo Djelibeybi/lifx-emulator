@@ -198,6 +198,10 @@ None.
 
 Task 3 must record the blocking human choice. The validated ledger supports only **provisional hold** until hosted macOS multicast and dynamic recovery evidence are acquired; detailed Phase 3 planning remains paused.
 
+## Authorised constrained follow-up
+
+The user subsequently authorised up to 60 additional minutes with no local or CI harness work. [03-01-EXTENSION.md](03-01-EXTENSION.md) records the source investigation and unsuccessful direct socket experiment. The follow-up stopped early without changing implementation or harness files. The result remains provisional; the existing evidence ledger and its historical budget are unchanged. The earlier statement that extension was unavailable describes the original checkpoint, before this explicit user authorisation.
+
 ## Self-Check: PASSED
 
 - All created task artefacts exist.
