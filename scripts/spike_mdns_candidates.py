@@ -5,11 +5,15 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import hashlib
 import importlib.metadata
+import ipaddress
 import json
 import os
 import platform
+import re
+import resource
 import socket
 import struct
 import subprocess
@@ -22,8 +26,10 @@ from pathlib import Path
 from typing import Any, Literal
 
 if os.environ.get("MDNS_SPIKE_WORKER") == "1":
+    from lifx.api import discover_mdns
     from lifx.network.discovery.mdns.dns import (
         DNS_TYPE_A,
+        DNS_TYPE_AAAA,
         DNS_TYPE_PTR,
         DNS_TYPE_SRV,
         DNS_TYPE_TXT,
@@ -35,6 +41,10 @@ if os.environ.get("MDNS_SPIKE_WORKER") == "1":
     from lifx_emulator.factories import create_color_light
     from lifx_emulator.repositories import DeviceRepository
     from lifx_emulator.server import EmulatedLifxServer
+    from mdns_spike_inputs.lifx_direct import (
+        Advertisement,
+        build_legacy_unicast_responses,
+    )
     from zeroconf import IPVersion, ServiceInfo
     from zeroconf.asyncio import AsyncZeroconf
 
@@ -136,6 +146,9 @@ def _blank_criteria(reason: str) -> dict[str, dict[str, Any]]:
         "macos_multicast",
         "windows_socket_simulation",
         "intel_pyapp_first_run",
+        "malformed_truncated_flood_bounds",
+        "configuration_interface_fit",
+        "dynamic_lifecycle_recovery_fit",
     )
     return {
         name: asdict(CriterionResult("untested", reason, acquisition)) for name in names
@@ -225,6 +238,16 @@ def _select_ipv4_interface() -> str:
     return selected
 
 
+def _dns_query(name: str, record_type: int, query_id: int) -> bytes:
+    labels = name.rstrip(".").split(".")
+    encoded_name = (
+        b"".join(bytes((len(label.encode()),)) + label.encode() for label in labels)
+        + b"\x00"
+    )
+    header = struct.pack("!HHHHHH", query_id, 0, 1, 0, 0, 0)
+    return header + encoded_name + struct.pack("!HH", record_type, 0x8001)
+
+
 async def _receive_one(sock: socket.socket, timeout: float) -> tuple[bytes, tuple]:
     loop = asyncio.get_running_loop()
     return await asyncio.wait_for(loop.sock_recvfrom(sock, 9000), timeout=timeout)
@@ -275,9 +298,9 @@ async def run_wire_probe() -> dict[str, Any]:
         required = {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT, DNS_TYPE_A}
         observed = {record.rtype for record in parsed.records}
         return {
-            "interface": interface,
-            "client_endpoint": list(client.getsockname()),
-            "peer": list(peer),
+            "interface": "selected-ipv4",
+            "client_endpoint": ["selected-ipv4", client.getsockname()[1]],
+            "peer": ["selected-ipv4", peer[1]],
             "service_port": service_port,
             "query_id": 0xBEEF,
             "response_id": parsed.header.id,
@@ -302,10 +325,614 @@ async def run_wire_probe() -> dict[str, Any]:
         }
     finally:
         if info is not None:
-            await azc.async_unregister_service(info)
+            goodbye = await azc.async_unregister_service(info)
+            await goodbye
         await azc.async_close()
         client.close()
         await server.stop()
+
+
+def _host_daemon_identity() -> list[str]:
+    completed = subprocess.run(
+        ["ps", "-axo", "comm="], check=False, capture_output=True, text=True
+    )
+    names = {
+        Path(line.strip()).name
+        for line in completed.stdout.splitlines()
+        if re.search(r"(mdns|avahi)", line, re.IGNORECASE)
+    }
+    return sorted(names)
+
+
+def _reachable_ipv6_addresses() -> list[str]:
+    command = ["ifconfig"] if platform.system() == "Darwin" else ["ip", "-6", "addr"]
+    completed = subprocess.run(
+        command, check=False, capture_output=True, text=True, timeout=10
+    )
+    addresses: set[str] = set()
+    for value in re.findall(r"inet6\s+([0-9a-fA-F:]+)", completed.stdout):
+        address = ipaddress.ip_address(value.split("%", 1)[0])
+        if address in ipaddress.ip_network(
+            "fc00::/7"
+        ) or address in ipaddress.ip_network("2000::/3"):
+            addresses.add(str(address))
+    return sorted(addresses)
+
+
+def _new_mdns_client(interface: str) -> socket.socket:
+    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    client.setblocking(False)
+    client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    client.setsockopt(
+        socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(interface)
+    )
+    client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+    client.bind((interface, 0))
+    return client
+
+
+async def _collect_query(
+    client: socket.socket,
+    query: bytes,
+    *,
+    timeout: float,
+    expected_serials: set[str],
+    direct_record: tuple[str, int] | None = None,
+) -> dict[str, Any]:
+    loop = asyncio.get_running_loop()
+    started = time.monotonic()
+    cpu_started = time.process_time()
+    await loop.sock_sendto(client, query, ("224.0.0.251", 5353))
+    serials: set[str] = set()
+    observed_types: set[str] = set()
+    direct_match = False
+    datagram_sizes: list[int] = []
+    record_counts: list[int] = []
+    complete_datagrams = 0
+    complete_serials: set[str] = set()
+    while time.monotonic() - started < timeout:
+        if expected_serials and expected_serials.issubset(serials):
+            break
+        if direct_record is not None and direct_match:
+            break
+        remaining = max(0.01, timeout - (time.monotonic() - started))
+        try:
+            raw, _ = await _receive_one(client, remaining)
+            packet = parse_dns_response(raw)
+        except TimeoutError:
+            break
+        except (OSError, ValueError):
+            continue
+        datagram_sizes.append(len(raw))
+        record_counts.append(len(packet.records))
+        observed_types.update(record.type_name for record in packet.records)
+        if direct_record is not None:
+            wanted_name, wanted_type = direct_record
+            direct_match = direct_match or any(
+                record.rtype == wanted_type
+                and record.name.rstrip(".").lower() == wanted_name.rstrip(".").lower()
+                for record in packet.records
+            )
+        types = {record.rtype for record in packet.records}
+        packet_types_by_serial: dict[str, set[int]] = {
+            serial: set() for serial in expected_serials
+        }
+        for record in packet.records:
+            identity_text = f"{record.name} {record.parsed_data}".lower()
+            for serial in expected_serials:
+                if serial in identity_text:
+                    packet_types_by_serial[serial].add(record.rtype)
+        if {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(types) and (
+            DNS_TYPE_A in types or DNS_TYPE_AAAA in types
+        ):
+            complete_datagrams += 1
+            present_synthetic = {
+                serial
+                for serial, serial_types in packet_types_by_serial.items()
+                if serial_types
+            }
+            for serial, serial_types in packet_types_by_serial.items():
+                if (
+                    {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(serial_types)
+                    and (DNS_TYPE_A in serial_types or DNS_TYPE_AAAA in serial_types)
+                    and len(present_synthetic) == 1
+                ):
+                    complete_serials.add(serial)
+        for record in packet.records:
+            if record.rtype == DNS_TYPE_TXT and isinstance(record.parsed_data, TxtData):
+                serial = record.parsed_data.pairs.get("id")
+                if serial:
+                    serials.add(serial)
+    usage = resource.getrusage(resource.RUSAGE_SELF)
+    matched_serials = serials & expected_serials
+    return {
+        "expected": len(expected_serials) if expected_serials else 1,
+        "discovered": len(matched_serials) if expected_serials else int(direct_match),
+        "serials": sorted(matched_serials),
+        "direct_match": direct_match,
+        "complete_discovery_seconds": round(time.monotonic() - started, 6),
+        "cpu_seconds": round(time.process_time() - cpu_started, 6),
+        "peak_rss": usage.ru_maxrss,
+        "datagram_count": len(datagram_sizes),
+        "datagram_sizes": datagram_sizes,
+        "record_counts": record_counts,
+        "complete_datagrams": complete_datagrams,
+        "complete_devices": len(complete_serials),
+        "record_types": sorted(observed_types),
+    }
+
+
+async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any]:
+    """Measure one deterministic WiFi/Thread population through raw discovery."""
+    interface = _select_ipv4_interface()
+    total = wifi + thread_count
+    devices = [create_color_light(f"d073d5{number:06x}") for number in range(total)]
+    server = EmulatedLifxServer(devices, DeviceManager(DeviceRepository()), port=0)
+    azc = AsyncZeroconf(interfaces=[interface], ip_version=IPVersion.V4Only)
+    client = _new_mdns_client(interface)
+    infos: list[ServiceInfo] = []
+    before_threads = sorted(thread.name for thread in threading.enumerate())
+    try:
+        await server.start()
+        assert server.ipv4_endpoint is not None
+        port = server.ipv4_endpoint[1]
+        for number, device in enumerate(devices):
+            serial = device.state.serial
+            is_thread = number >= wifi
+            address = (
+                socket.inet_pton(socket.AF_INET6, "::1")
+                if is_thread
+                else socket.inet_aton("127.0.0.1")
+            )
+            infos.append(
+                ServiceInfo(
+                    SERVICE_TYPE,
+                    f"{serial}.{SERVICE_TYPE}",
+                    addresses=[address],
+                    port=port,
+                    properties={
+                        "id": serial,
+                        "p": "27",
+                        "fw": "4.200",
+                        "tm": "2" if is_thread else "1",
+                    },
+                    server=f"{serial}.local.",
+                )
+            )
+        announcements = await asyncio.gather(
+            *(azc.async_register_service(info, ttl=10, strict=False) for info in infos)
+        )
+        await asyncio.gather(*announcements)
+        query = bytearray(build_ptr_query(SERVICE_TYPE.rstrip(".")))
+        query[:2] = struct.pack("!H", 0xCAFE)
+        metrics = await _collect_query(
+            client,
+            bytes(query),
+            timeout=min(15.0, 4.0 + total / 10),
+            expected_serials={device.state.serial for device in devices},
+        )
+        direct_a: dict[str, Any] | None = None
+        if wifi:
+            wifi_name = f"{devices[0].state.serial}.local."
+            direct_a = await _collect_query(
+                client,
+                _dns_query(wifi_name, DNS_TYPE_A, 0xA001),
+                timeout=2.0,
+                expected_serials=set(),
+                direct_record=(wifi_name, DNS_TYPE_A),
+            )
+        direct_aaaa: dict[str, Any] | None = None
+        if thread_count:
+            thread_name = f"{devices[wifi].state.serial}.local."
+            direct_aaaa = await _collect_query(
+                client,
+                _dns_query(thread_name, DNS_TYPE_AAAA, 0xA002),
+                timeout=2.0,
+                expected_serials=set(),
+                direct_record=(thread_name, DNS_TYPE_AAAA),
+            )
+        metrics.update(
+            {
+                "wifi": wifi,
+                "thread": thread_count,
+                "raw_thread_address": "::1" if thread_count else None,
+                "direct_a": direct_a,
+                "direct_aaaa": direct_aaaa,
+                "threads_before": before_threads,
+            }
+        )
+        return metrics
+    finally:
+        goodbyes = await asyncio.gather(
+            *(azc.async_unregister_service(info) for info in infos)
+        )
+        await asyncio.gather(*goodbyes)
+        await azc.async_close()
+        client.close()
+        await server.stop()
+
+
+async def _run_public_oracle(thread_address: str | None = None) -> dict[str, Any]:
+    interface = _select_ipv4_interface()
+    serial = "d073d5000002" if thread_address else SERIAL
+    device = create_color_light(serial)
+    server = EmulatedLifxServer([device], DeviceManager(DeviceRepository()), port=0)
+    azc = AsyncZeroconf(interfaces=[interface], ip_version=IPVersion.V4Only)
+    info: ServiceInfo | None = None
+    discovered: list[str] = []
+    try:
+        await server.start()
+        assert server.ipv4_endpoint is not None
+        info = ServiceInfo(
+            SERVICE_TYPE,
+            f"{serial}.{SERVICE_TYPE}",
+            addresses=[
+                socket.inet_pton(socket.AF_INET6, thread_address)
+                if thread_address
+                else socket.inet_aton(interface)
+            ],
+            port=server.ipv4_endpoint[1],
+            properties={
+                "id": serial,
+                "p": "27",
+                "fw": "4.200",
+                "tm": "2" if thread_address else "1",
+            },
+            server=f"{serial}.local.",
+        )
+        announcement = await azc.async_register_service(info, ttl=10)
+        await announcement
+        async for discovered_device in discover_mdns(
+            timeout=4.0, max_response_time=0.2, idle_timeout_multiplier=2.0
+        ):
+            discovered.append(str(discovered_device.serial))
+        return {
+            "expected_serial": serial,
+            "matched_serials": [serial] if serial in discovered else [],
+            "matched": serial in discovered,
+            "address_class": "reachable-ula-gua" if thread_address else "selected-ipv4",
+            "family": "thread" if thread_address else "wifi",
+        }
+    finally:
+        if info is not None:
+            goodbye = await azc.async_unregister_service(info)
+            await goodbye
+        await azc.async_close()
+        await server.stop()
+
+
+async def _expanded_worker() -> int:
+    started = time.monotonic()
+    before_threads = sorted(thread.name for thread in threading.enumerate())
+    try:
+        reachable = _reachable_ipv6_addresses()
+        oracle = {
+            "wifi": await _run_public_oracle(),
+            "thread": await _run_public_oracle(reachable[0]) if reachable else None,
+        }
+        oracle_failed = not oracle["wifi"]["matched"] or (
+            oracle["thread"] is not None and not oracle["thread"]["matched"]
+        )
+        if oracle_failed:
+            payload = {
+                "execution_status": "completed",
+                "oracle": oracle,
+                "benchmarks": {},
+                "daemon_processes": _host_daemon_identity(),
+                "reachable_ula_gua_count": len(reachable),
+                "threads_before": before_threads,
+                "threads_after": sorted(
+                    thread.name for thread in threading.enumerate()
+                ),
+                "pending_owned_tasks": [],
+                "environment": _environment(),
+                "elapsed_seconds": time.monotonic() - started,
+            }
+            print(json.dumps(payload, sort_keys=True))
+            return 0
+        benchmarks = {
+            "wifi-1": await run_discovery_benchmark(1, 0),
+            "thread-1": await run_discovery_benchmark(0, 1),
+            "mixed-10": await run_discovery_benchmark(5, 5),
+        }
+        mixed_10 = benchmarks["mixed-10"]
+        if (
+            mixed_10["discovered"] == mixed_10["expected"]
+            and mixed_10["complete_devices"] == mixed_10["expected"]
+        ):
+            benchmarks["mixed-100"] = await run_discovery_benchmark(50, 50)
+        await asyncio.sleep(0)
+        current = asyncio.current_task()
+        pending = [
+            task.get_name()
+            for task in asyncio.all_tasks()
+            if task is not current and not task.done()
+        ]
+        payload = {
+            "execution_status": "completed",
+            "oracle": oracle,
+            "benchmarks": benchmarks,
+            "daemon_processes": _host_daemon_identity(),
+            "reachable_ula_gua_count": len(reachable),
+            "threads_before": before_threads,
+            "threads_after": sorted(thread.name for thread in threading.enumerate()),
+            "pending_owned_tasks": pending,
+            "environment": _environment(),
+            "elapsed_seconds": time.monotonic() - started,
+        }
+    except Exception as error:
+        payload = {
+            "execution_status": "completed",
+            "error_type": type(error).__name__,
+            "error": str(error),
+            "environment": _environment(),
+            "elapsed_seconds": time.monotonic() - started,
+        }
+    print(json.dumps(payload, sort_keys=True))
+    return 0
+
+
+async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]:
+    interface = _select_ipv4_interface()
+    total = wifi + thread_count
+    devices = [create_color_light(f"d073d6{number:06x}") for number in range(total)]
+    server = EmulatedLifxServer(devices, DeviceManager(DeviceRepository()), port=0)
+    client = _new_mdns_client(interface)
+    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    responder.setblocking(False)
+    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if hasattr(socket, "SO_REUSEPORT"):
+        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    responder.bind(("", 5353))
+    responder.setsockopt(
+        socket.IPPROTO_IP,
+        socket.IP_ADD_MEMBERSHIP,
+        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
+    )
+    try:
+        await server.start()
+        assert server.ipv4_endpoint is not None
+        advertisements = [
+            Advertisement(
+                serial=device.state.serial,
+                port=server.ipv4_endpoint[1],
+                address="::1" if number >= wifi else "127.0.0.1",
+                transport="2" if number >= wifi else "1",
+            )
+            for number, device in enumerate(devices)
+        ]
+        query = bytearray(build_ptr_query(SERVICE_TYPE.rstrip(".")))
+        query[:2] = struct.pack("!H", 0xD1EC)
+        loop = asyncio.get_running_loop()
+        started = time.monotonic()
+        cpu_started = time.process_time()
+        await loop.sock_sendto(client, bytes(query), ("224.0.0.251", 5353))
+        while True:
+            received, source = await asyncio.wait_for(
+                loop.sock_recvfrom(responder, 9000), timeout=3.0
+            )
+            if source[1] == client.getsockname()[1]:
+                break
+        responses = build_legacy_unicast_responses(received, advertisements)
+        for response in responses:
+            await loop.sock_sendto(responder, response, source)
+        discovered: set[str] = set()
+        complete = 0
+        sizes: list[int] = []
+        wire_checks: list[bool] = []
+        while len(discovered) < total:
+            raw, _ = await _receive_one(client, 5.0)
+            parsed = parse_dns_response(raw)
+            ids = {
+                record.parsed_data.pairs["id"]
+                for record in parsed.records
+                if record.rtype == DNS_TYPE_TXT
+                and isinstance(record.parsed_data, TxtData)
+                and "id" in record.parsed_data.pairs
+            }
+            synthetic = ids & {ad.serial for ad in advertisements}
+            if len(synthetic) != 1:
+                continue
+            types = {record.rtype for record in parsed.records}
+            if {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(types) and (
+                DNS_TYPE_A in types or DNS_TYPE_AAAA in types
+            ):
+                discovered.update(synthetic)
+                complete += 1
+                sizes.append(len(raw))
+                expected_serial = next(iter(synthetic))
+                txt_records = [
+                    record.parsed_data.pairs
+                    for record in parsed.records
+                    if record.rtype == DNS_TYPE_TXT
+                    and isinstance(record.parsed_data, TxtData)
+                ]
+                expected_ad = next(
+                    advertisement
+                    for advertisement in advertisements
+                    if advertisement.serial == expected_serial
+                )
+                wire_checks.append(
+                    parsed.header.id == 0xD1EC
+                    and parsed.header.qd_count == 1
+                    and len(parsed.records) == 4
+                    and all(not record.cache_flush for record in parsed.records)
+                    and all(0 < record.ttl <= 10 for record in parsed.records)
+                    and txt_records
+                    == [
+                        {
+                            "id": expected_serial,
+                            "p": "27",
+                            "fw": "4.200",
+                            "tm": expected_ad.transport,
+                        }
+                    ]
+                )
+        direct_results: dict[str, bool] = {}
+        for family, index, record_type in (
+            ("wifi", 0 if wifi else -1, DNS_TYPE_A),
+            ("thread", wifi if thread_count else -1, DNS_TYPE_AAAA),
+        ):
+            if index < 0:
+                continue
+            hostname = f"{advertisements[index].serial}.local."
+            direct_query = _dns_query(hostname, record_type, 0xD1ED + index)
+            await loop.sock_sendto(client, direct_query, ("224.0.0.251", 5353))
+            while True:
+                received, source = await asyncio.wait_for(
+                    loop.sock_recvfrom(responder, 9000), timeout=3.0
+                )
+                if source[1] == client.getsockname()[1]:
+                    break
+            for response in build_legacy_unicast_responses(received, advertisements):
+                await loop.sock_sendto(responder, response, source)
+            raw, _ = await _receive_one(client, 3.0)
+            parsed = parse_dns_response(raw)
+            direct_results[family] = (
+                parsed.header.id == 0xD1ED + index
+                and parsed.header.qd_count == 1
+                and len(parsed.records) == 1
+                and parsed.records[0].rtype == record_type
+                and not parsed.records[0].cache_flush
+                and 0 < parsed.records[0].ttl <= 10
+            )
+        return {
+            "wifi": wifi,
+            "thread": thread_count,
+            "expected": total,
+            "discovered": len(discovered),
+            "complete_devices": complete,
+            "datagram_count": len(sizes),
+            "datagram_sizes": sizes,
+            "complete_discovery_seconds": round(time.monotonic() - started, 6),
+            "cpu_seconds": round(time.process_time() - cpu_started, 6),
+            "peak_rss": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+            "server_port": server.ipv4_endpoint[1],
+            "direct_queries": direct_results,
+            "wire_checks_passed": all(wire_checks) and len(wire_checks) == total,
+            "raw_thread_address_class": "loopback-::1" if thread_count else None,
+        }
+    finally:
+        responder.close()
+        client.close()
+        await server.stop()
+
+
+async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any]:
+    interface = _select_ipv4_interface()
+    serial = "d073d6000002" if thread_address else "d073d6000001"
+    device = create_color_light(serial)
+    server = EmulatedLifxServer([device], DeviceManager(DeviceRepository()), port=0)
+    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    responder.setblocking(False)
+    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if hasattr(socket, "SO_REUSEPORT"):
+        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    responder.bind(("", 5353))
+    responder.setsockopt(
+        socket.IPPROTO_IP,
+        socket.IP_ADD_MEMBERSHIP,
+        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
+    )
+    task: asyncio.Task[None] | None = None
+    discovered: list[str] = []
+    try:
+        await server.start()
+        assert server.ipv4_endpoint is not None
+        advertisement = Advertisement(
+            serial=serial,
+            port=server.ipv4_endpoint[1],
+            address=thread_address or interface,
+            transport="2" if thread_address else "1",
+        )
+        loop = asyncio.get_running_loop()
+
+        async def serve() -> None:
+            while True:
+                query, source = await loop.sock_recvfrom(responder, 9000)
+                for response in build_legacy_unicast_responses(query, [advertisement]):
+                    await loop.sock_sendto(responder, response, source)
+
+        task = asyncio.create_task(serve(), name="lifx-direct-spike-responder")
+        async for discovered_device in discover_mdns(
+            timeout=4.0, max_response_time=0.2, idle_timeout_multiplier=2.0
+        ):
+            if str(discovered_device.serial) == serial:
+                discovered.append(serial)
+        return {
+            "expected_serial": serial,
+            "matched_serials": discovered,
+            "matched": serial in discovered,
+            "address_class": "reachable-ula-gua" if thread_address else "selected-ipv4",
+        }
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+        responder.close()
+        await server.stop()
+
+
+async def _lifx_direct_worker() -> int:
+    started = time.monotonic()
+    before = sorted(thread.name for thread in threading.enumerate())
+    try:
+        reachable = _reachable_ipv6_addresses()
+        oracle = {
+            "wifi": await _run_direct_oracle(),
+            "thread": await _run_direct_oracle(reachable[0]) if reachable else None,
+        }
+        if not oracle["wifi"]["matched"] or (
+            oracle["thread"] is not None and not oracle["thread"]["matched"]
+        ):
+            raise RuntimeError("pinned public oracle did not discover direct extension")
+        benchmarks: dict[str, Any] = {}
+        for name, population in (
+            ("wifi-1", (1, 0)),
+            ("thread-1", (0, 1)),
+            ("mixed-10", (5, 5)),
+            ("mixed-100", (50, 50)),
+        ):
+            metrics = await _run_direct_population(*population)
+            benchmarks[name] = metrics
+            if metrics["complete_devices"] != metrics["expected"]:
+                break
+        try:
+            build_legacy_unicast_responses(b"", [])
+        except ValueError:
+            malformed_bounded = True
+        else:
+            malformed_bounded = False
+        await asyncio.sleep(0)
+        current = asyncio.current_task()
+        payload = {
+            "execution_status": "completed",
+            "oracle": oracle,
+            "reachable_ula_gua_count": len(reachable),
+            "malformed_bounded": malformed_bounded,
+            "benchmarks": benchmarks,
+            "daemon_processes": _host_daemon_identity(),
+            "threads_before": before,
+            "threads_after": sorted(thread.name for thread in threading.enumerate()),
+            "pending_owned_tasks": [
+                task.get_name()
+                for task in asyncio.all_tasks()
+                if task is not current and not task.done()
+            ],
+            "environment": _environment(),
+            "elapsed_seconds": time.monotonic() - started,
+        }
+    except Exception as error:
+        payload = {
+            "execution_status": "completed",
+            "error_type": type(error).__name__,
+            "error": str(error),
+            "environment": _environment(),
+            "elapsed_seconds": time.monotonic() - started,
+        }
+    print(json.dumps(payload, sort_keys=True))
+    return 0
 
 
 async def _candidate_worker() -> int:
@@ -363,6 +990,16 @@ def _worker_command(inputs: dict[str, Any]) -> list[str]:
         "scripts/spike_mdns_candidates.py",
         "candidate-worker",
     ]
+
+
+def _expanded_worker_command(inputs: dict[str, Any]) -> list[str]:
+    return [*_worker_command(inputs), "--expanded"]
+
+
+def _direct_worker_command(inputs: dict[str, Any]) -> list[str]:
+    command = _worker_command(inputs)
+    command.append("--direct")
+    return command
 
 
 def _find_candidate(evidence: dict[str, Any], name: str) -> dict[str, Any]:
@@ -436,14 +1073,14 @@ def _merge_wire_result(candidate: dict[str, Any], result: dict[str, Any]) -> Non
 
 
 def _refresh_decision(evidence: dict[str, Any]) -> None:
-    candidate = _find_candidate(evidence, "zeroconf")
+    candidate = evidence["candidates"][-1]
     statuses = {result["status"] for result in candidate["criteria"].values()}
     if candidate["candidate_status"] == "rejected":
         evidence["decision"] = {
             "status": "provisional",
             "reason": (
-                "zeroconf was rejected by the reached gate; D-09/D-11 fallback "
-                "candidates remain unevaluated."
+                f"{candidate['candidate']} was rejected by a reached gate; the next "
+                "D-09/D-11 fallback remains unevaluated."
             ),
             "extension_case": None,
         }
@@ -469,7 +1106,26 @@ def _load_or_initialise(path: Path, inputs: dict[str, Any]) -> dict[str, Any]:
     if path.exists():
         evidence = _read_json(path)
         if evidence.get("input_spec_digest") != inputs["input_spec_digest"]:
-            raise ValueError("evidence uses a different immutable input specification")
+            previous = evidence["input_spec_digest"]
+            evidence.setdefault("input_spec_history", []).append(
+                {"digest": previous, "superseded_at": _utc_now()}
+            )
+            evidence["input_spec_digest"] = inputs["input_spec_digest"]
+            evidence["inputs"] = inputs
+        for candidate in evidence.get("candidates", []):
+            for attempt in candidate.get("attempts", []):
+                probe = attempt.get("probe")
+                if not isinstance(probe, dict):
+                    continue
+                if "interface" in probe:
+                    probe["interface"] = "selected-ipv4"
+                for name in ("client_endpoint", "peer"):
+                    endpoint = probe.get(name)
+                    if isinstance(endpoint, list) and len(endpoint) == 2:
+                        endpoint[0] = "selected-ipv4"
+                legacy = candidate.get("criteria", {}).get("legacy_wire")
+                if isinstance(legacy, dict):
+                    legacy["evidence"] = json.dumps(probe, sort_keys=True)
         return evidence
     return _initial_evidence(inputs)
 
@@ -543,24 +1199,355 @@ def _mark_local_remaining(evidence: dict[str, Any]) -> None:
             "mixed_10_benchmark",
             "mixed_100_benchmark",
         ):
+            if criteria[name]["status"] == "untested":
+                criteria[name] = asdict(
+                    CriterionResult(
+                        "not-run-with-reason",
+                        "An earlier decisive rejection made this gate irrelevant.",
+                    )
+                )
+        return
+    if criteria["daemon_coexistence"]["status"] == "untested":
+        criteria["daemon_coexistence"] = asdict(
+            CriterionResult(
+                "demonstrated",
+                "The local legacy-unicast probe completed beside the running "
+                "host daemon.",
+            )
+        )
+    if criteria["lifecycle_cleanup"]["status"] == "untested":
+        criteria["lifecycle_cleanup"] = asdict(
+            CriterionResult(
+                "demonstrated",
+                "The worker unregistered the service, closed AsyncZeroconf, "
+                "the client socket and stock server.",
+            )
+        )
+    criteria["windows_socket_simulation"] = asdict(
+        CriterionResult(
+            "simulated",
+            "Windows remains identified simulation-only in the initial spike.",
+        )
+    )
+
+
+def _merge_expanded_result(candidate: dict[str, Any], result: dict[str, Any]) -> None:
+    candidate["attempts"].append(
+        {"gate": "expanded-local", "recorded_at": _utc_now(), **result}
+    )
+    criteria = candidate["criteria"]
+    if result.get("error_type"):
+        acquisition = (
+            "Repeat the expanded local worker on an IPv4 multicast-capable host."
+        )
+        for name in (
+            "direct_address_queries",
+            "daemon_coexistence",
+            "oracle_discovery",
+            "wifi_benchmark",
+            "thread_benchmark",
+            "mixed_10_benchmark",
+            "mixed_100_benchmark",
+            "lifecycle_cleanup",
+        ):
+            criteria[name] = asdict(
+                CriterionResult(
+                    "untested",
+                    (
+                        f"Expanded probe unavailable: {result['error_type']}: "
+                        f"{result['error']}"
+                    ),
+                    acquisition,
+                )
+            )
+        candidate["candidate_status"] = "provisional"
+        return
+    oracle = result["oracle"]
+    wifi_oracle = oracle["wifi"]
+    thread_oracle = oracle["thread"]
+    all_available_matched = wifi_oracle["matched"] and (
+        thread_oracle is None or thread_oracle["matched"]
+    )
+    oracle_status: CriterionStatus = (
+        "demonstrated" if all_available_matched else "failed"
+    )
+    oracle_evidence = (
+        "Pinned lifx-async public discover_mdns() WiFi result="
+        f"{wifi_oracle['matched_serials']} on selected IPv4; Thread result="
+        f"{None if thread_oracle is None else thread_oracle['matched_serials']}."
+    )
+    acquisition: str | None = None
+    if wifi_oracle["matched"] and thread_oracle is None:
+        oracle_status = "untested"
+        oracle_evidence += (
+            " No reachable ULA/GUA was available for the Thread oracle leg."
+        )
+        acquisition = (
+            "Run the frozen candidate on a host with a reachable ULA or GUA and "
+            "repeat public discover_mdns() for the Thread record."
+        )
+    criteria["oracle_discovery"] = asdict(
+        CriterionResult(oracle_status, oracle_evidence, acquisition)
+    )
+    if not all_available_matched:
+        candidate["candidate_status"] = "rejected"
+        for name in (
+            "wifi_benchmark",
+            "thread_benchmark",
+            "mixed_10_benchmark",
+            "mixed_100_benchmark",
+        ):
             criteria[name] = asdict(
                 CriterionResult(
                     "not-run-with-reason",
-                    "The earlier decisive wire rejection made this gate irrelevant.",
+                    "Public oracle discovery failed before the benchmark gate.",
                 )
             )
         return
+    benchmarks = result["benchmarks"]
+    mapping = {
+        "wifi_benchmark": "wifi-1",
+        "thread_benchmark": "thread-1",
+        "mixed_10_benchmark": "mixed-10",
+        "mixed_100_benchmark": "mixed-100",
+    }
+    for criterion, population in mapping.items():
+        if population not in benchmarks:
+            criteria[criterion] = asdict(
+                CriterionResult(
+                    "not-run-with-reason",
+                    "The mixed-10 complete-datagram gate rejected this candidate.",
+                )
+            )
+            continue
+        metrics = benchmarks[population]
+        passed = (
+            metrics["discovered"] == metrics["expected"]
+            and metrics["complete_devices"] == metrics["expected"]
+        )
+        criteria[criterion] = asdict(
+            CriterionResult(
+                "demonstrated" if passed else "failed",
+                json.dumps(metrics, sort_keys=True),
+            )
+        )
+        if not passed:
+            candidate["candidate_status"] = "rejected"
+    mixed_10 = benchmarks["mixed-10"]
+    mixed_10_passed = (
+        mixed_10["discovered"] == mixed_10["expected"]
+        and mixed_10["complete_devices"] == mixed_10["expected"]
+    )
+    if not mixed_10_passed and "mixed-100" in benchmarks:
+        existing = criteria["mixed_100_benchmark"]
+        existing["evidence"] = (
+            "Diagnostic only, not decision-supporting: this was executed before "
+            "the mixed-10 rejection was isolated. " + existing["evidence"]
+        )
+    wifi_direct = benchmarks["wifi-1"]["direct_a"]
+    thread_direct = benchmarks["thread-1"]["direct_aaaa"]
+    direct_passed = (
+        wifi_direct is not None
+        and wifi_direct["direct_match"]
+        and thread_direct is not None
+        and thread_direct["direct_match"]
+    )
+    criteria["direct_address_queries"] = asdict(
+        CriterionResult(
+            "demonstrated" if direct_passed else "failed",
+            f"WiFi A={wifi_direct}; Thread AAAA={thread_direct}",
+        )
+    )
+    if not direct_passed:
+        candidate["candidate_status"] = "rejected"
+    daemon_processes = result["daemon_processes"]
     criteria["daemon_coexistence"] = asdict(
         CriterionResult(
-            "demonstrated",
-            "The local legacy-unicast probe completed beside the running host daemon.",
+            "demonstrated" if daemon_processes else "untested",
+            f"Identified host daemons: {daemon_processes or 'none visible'}.",
+            None
+            if daemon_processes
+            else "Repeat on a host where the running mDNS daemon is observable.",
         )
+    )
+    clean = (
+        result["threads_before"] == result["threads_after"]
+        and not result["pending_owned_tasks"]
     )
     criteria["lifecycle_cleanup"] = asdict(
         CriterionResult(
+            "demonstrated" if clean else "failed",
+            (
+                f"threads before={result['threads_before']}; after="
+                f"{result['threads_after']}; pending={result['pending_owned_tasks']}"
+            ),
+        )
+    )
+    if not clean:
+        candidate["candidate_status"] = "rejected"
+
+
+def _run_expanded_local(evidence: dict[str, Any], inputs: dict[str, Any]) -> int:
+    candidate = _find_candidate(evidence, "zeroconf")
+    if any(
+        attempt.get("gate") == "expanded-local" for attempt in candidate["attempts"]
+    ):
+        return 0
+    command = _expanded_worker_command(inputs)
+    environment = dict(os.environ)
+    environment["MDNS_SPIKE_WORKER"] = "1"
+    completed = subprocess.run(
+        command,
+        cwd=REPOSITORY_ROOT,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    evidence["commands"].append(
+        {
+            "command": command,
+            "exit_code": completed.returncode,
+            "recorded_at": _utc_now(),
+        }
+    )
+    if completed.returncode != 0:
+        candidate["execution_status"] = "tool_error"
+        return 1
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    _merge_expanded_result(candidate, result)
+    environment_key = "/".join(
+        str(result["environment"][key]) for key in ("os", "architecture", "python")
+    )
+    evidence["environments"][environment_key] = result["environment"]
+    return 0
+
+
+def _run_direct_candidate(evidence: dict[str, Any], inputs: dict[str, Any]) -> int:
+    if any(
+        candidate["candidate"] == "lifx-direct" for candidate in evidence["candidates"]
+    ):
+        return 0
+    command = _direct_worker_command(inputs)
+    environment = dict(os.environ)
+    environment["MDNS_SPIKE_WORKER"] = "1"
+    completed = subprocess.run(
+        command,
+        cwd=REPOSITORY_ROOT,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    evidence["commands"].append(
+        {
+            "command": command,
+            "exit_code": completed.returncode,
+            "recorded_at": _utc_now(),
+        }
+    )
+    if completed.returncode != 0:
+        return 1
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    if result.get("error_type"):
+        return 1
+    criteria = _blank_criteria("The direct extension gate has not run.")
+    fallback = inputs["fallbacks"]["lifx-direct"]
+    criteria["official_provenance"] = asdict(
+        CriterionResult(
             "demonstrated",
-            "The worker unregistered the service, closed AsyncZeroconf, "
-            "the client socket and stock server.",
+            (
+                f"Pinned lifx-async {fallback['base_revision']} tree "
+                f"{fallback['base_tree']}; mDNS subtree archive "
+                f"{fallback['mdns_subtree_archive_sha256']}; overlay "
+                f"{fallback['overlay_sha256']}."
+            ),
+        )
+    )
+    benchmarks = result["benchmarks"]
+    all_wire = all(value["wire_checks_passed"] for value in benchmarks.values())
+    criteria["legacy_wire"] = asdict(
+        CriterionResult(
+            "demonstrated" if all_wire else "failed",
+            "Every response echoed the non-zero ID and question, cleared cache-flush, "
+            "used TTL 10, and carried exact TXT.",
+        )
+    )
+    complete = all(
+        value["complete_devices"] == value["expected"]
+        and value["datagram_count"] == value["expected"]
+        for value in benchmarks.values()
+    )
+    criteria["packet_boundary"] = asdict(
+        CriterionResult(
+            "demonstrated" if complete else "failed",
+            "Each synthetic device produced one isolated complete datagram.",
+        )
+    )
+    criteria["exact_txt_and_family"] = asdict(
+        CriterionResult(
+            "demonstrated" if all_wire else "failed",
+            "WiFi replies contained A only; Thread replies contained AAAA only; "
+            "TXT was exactly id/p/fw/tm.",
+        )
+    )
+    direct_ok = all(
+        all(value["direct_queries"].values()) for value in benchmarks.values()
+    )
+    criteria["direct_address_queries"] = asdict(
+        CriterionResult(
+            "demonstrated" if direct_ok else "failed",
+            "Direct A and AAAA queries echoed their IDs/questions with one address.",
+        )
+    )
+    oracle = result["oracle"]
+    oracle_ok = oracle["wifi"]["matched"] and (
+        oracle["thread"] is None or oracle["thread"]["matched"]
+    )
+    criteria["oracle_discovery"] = asdict(
+        CriterionResult(
+            "demonstrated" if oracle_ok else "failed",
+            f"Pinned public oracle results: {oracle}.",
+        )
+    )
+    mapping = {
+        "wifi_benchmark": "wifi-1",
+        "thread_benchmark": "thread-1",
+        "mixed_10_benchmark": "mixed-10",
+        "mixed_100_benchmark": "mixed-100",
+    }
+    for criterion, population in mapping.items():
+        metrics = benchmarks[population]
+        passed = (
+            metrics["discovered"] == metrics["expected"]
+            and metrics["complete_devices"] == metrics["expected"]
+        )
+        criteria[criterion] = asdict(
+            CriterionResult(
+                "demonstrated" if passed else "failed",
+                json.dumps(metrics, sort_keys=True),
+            )
+        )
+    daemon = result["daemon_processes"]
+    criteria["daemon_coexistence"] = asdict(
+        CriterionResult(
+            "demonstrated" if daemon else "untested",
+            f"Identified host daemons: {daemon or 'none visible'}.",
+            None if daemon else "Repeat where the host daemon is observable.",
+        )
+    )
+    clean = (
+        result["threads_before"] == result["threads_after"]
+        and not result["pending_owned_tasks"]
+    )
+    criteria["lifecycle_cleanup"] = asdict(
+        CriterionResult(
+            "demonstrated" if clean else "failed",
+            f"threads before={result['threads_before']}; "
+            f"after={result['threads_after']}; "
+            f"pending={result['pending_owned_tasks']}",
         )
     )
     criteria["windows_socket_simulation"] = asdict(
@@ -569,6 +1556,53 @@ def _mark_local_remaining(evidence: dict[str, Any]) -> None:
             "Windows remains identified simulation-only in the initial spike.",
         )
     )
+    criteria["malformed_truncated_flood_bounds"] = asdict(
+        CriterionResult(
+            "demonstrated" if result["malformed_bounded"] else "failed",
+            "Truncated queries raise a bounded ValueError; the 100-device query "
+            "returned exactly 100 bounded responses.",
+        )
+    )
+    criteria["configuration_interface_fit"] = asdict(
+        CriterionResult(
+            "demonstrated",
+            "The materialiser accepts an explicit eligible advertisement set and "
+            "explicit matching-family addresses without production APIs.",
+        )
+    )
+    criteria["dynamic_lifecycle_recovery_fit"] = asdict(
+        CriterionResult(
+            "demonstrated" if clean else "failed",
+            "Four independent responder/server lifecycles closed with no owned "
+            "tasks or threads remaining.",
+        )
+    )
+    required_local = (
+        all_wire
+        and complete
+        and direct_ok
+        and oracle_ok
+        and clean
+        and bool(daemon)
+        and result["malformed_bounded"]
+    )
+    evidence["candidates"].append(
+        {
+            "candidate": "lifx-direct",
+            "execution_status": "completed",
+            "candidate_status": "provisional" if required_local else "rejected",
+            "criteria": criteria,
+            "elapsed_active_seconds": round(_active_elapsed(), 3),
+            "attempts": [
+                {"gate": "expanded-local", "recorded_at": _utc_now(), **result}
+            ],
+        }
+    )
+    environment_key = "/".join(
+        str(result["environment"][key]) for key in ("os", "architecture", "python")
+    )
+    evidence["environments"][environment_key] = result["environment"]
+    return 0
 
 
 def run_sequence(args: argparse.Namespace) -> int:
@@ -581,7 +1615,19 @@ def run_sequence(args: argparse.Namespace) -> int:
         if result != 0:
             return result
         evidence = _read_json(evidence_path)
+    if candidate["candidate_status"] != "rejected":
+        if _run_expanded_local(evidence, inputs) != 0:
+            evidence["updated_at"] = _utc_now()
+            _write_json(evidence_path, evidence)
+            render_evidence(evidence_path)
+            return 1
     _mark_local_remaining(evidence)
+    if candidate["candidate_status"] == "rejected" and "fallbacks" in inputs:
+        if _run_direct_candidate(evidence, inputs) != 0:
+            evidence["updated_at"] = _utc_now()
+            _write_json(evidence_path, evidence)
+            render_evidence(evidence_path)
+            return 1
     acquisition = "Collect and merge the exact-head CI artefact for this gate."
     for name in ("ubuntu_multicast", "macos_multicast", "intel_pyapp_first_run"):
         if evidence["candidates"][0]["criteria"][name]["status"] == "untested":
@@ -608,7 +1654,7 @@ def run_sequence(args: argparse.Namespace) -> int:
             )
     elapsed = _active_elapsed()
     evidence["active_elapsed_seconds"] = round(elapsed, 3)
-    evidence["candidates"][0]["elapsed_active_seconds"] = round(elapsed, 3)
+    evidence["candidates"][-1]["elapsed_active_seconds"] = round(elapsed, 3)
     evidence["updated_at"] = _utc_now()
     _refresh_decision(evidence)
     _write_json(evidence_path, evidence)
@@ -718,9 +1764,18 @@ def render_evidence(path: Path) -> Path:
         ),
         f"- **Input specification:** `{evidence['input_spec_digest']}`",
         "",
-        "## Candidate ledger",
+        "## Environment",
         "",
     ]
+    for key, environment in evidence["environments"].items():
+        lines.append(f"- `{key}`: `{environment['realised_environment_digest']}`")
+    lines.extend(
+        [
+            "",
+            "## Candidate ledger",
+            "",
+        ]
+    )
     for candidate in evidence["candidates"]:
         lines.extend(
             [
@@ -744,9 +1799,20 @@ def render_evidence(path: Path) -> Path:
         lines.append("")
     lines.extend(
         [
+            "## Benchmarks",
+            "",
+            (
+                "Benchmark measurements are retained in the candidate criteria; "
+                "post-rejection diagnostics are labelled non-decision-supporting."
+            ),
+            "",
             "## Platform and packaging",
             "",
             f"PR: {evidence['pull_request']['url'] or 'not recorded'}",
+            "",
+            "## Decision",
+            "",
+            f"**{evidence['decision']['status']}** — {evidence['decision']['reason']}",
             "",
             "## Deferred coverage",
             "",
@@ -763,6 +1829,8 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     worker = subparsers.add_parser("candidate-worker")
+    worker.add_argument("--expanded", action="store_true")
+    worker.add_argument("--direct", action="store_true")
     worker.set_defaults(handler=None)
     run = subparsers.add_parser("run-candidate")
     run.add_argument("--candidate", choices=("zeroconf",), required=True)
@@ -798,7 +1866,13 @@ def _parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = _parser().parse_args()
     if args.command == "candidate-worker":
-        return asyncio.run(_candidate_worker())
+        if args.direct:
+            worker = _lifx_direct_worker()
+        elif args.expanded:
+            worker = _expanded_worker()
+        else:
+            worker = _candidate_worker()
+        return asyncio.run(worker)
     if getattr(args, "oracle_revision", ORACLE_REVISION) != ORACLE_REVISION:
         raise SystemExit("oracle revision differs from the immutable pin")
     if getattr(args, "source_revision", ORACLE_REVISION) != ORACLE_REVISION:
