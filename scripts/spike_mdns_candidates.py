@@ -9,6 +9,7 @@ import contextlib
 import errno
 import hashlib
 import importlib.metadata
+import importlib.util
 import ipaddress
 import json
 import os
@@ -925,31 +926,35 @@ def _probe_ipv6_route(address: str) -> dict[str, Any]:
     return {"available": True, "error_type": None, "errno": None}
 
 
-def _run_direct_fit_checks() -> dict[str, bool]:
+def _evaluate_direct_fit_checks(
+    advertisement_type: Any, response_builder: Any, ptr_record_type: int
+) -> dict[str, bool]:
     """Exercise bounded future configuration and lifecycle inputs."""
-    query = _dns_query(SERVICE_TYPE, DNS_TYPE_PTR, 0xCAFE)
-    wifi = Advertisement("d073d6000101", 56700, "192.0.2.10")
-    shared = Advertisement("d073d6000102", 56700, "192.0.2.10")
+    query = _dns_query(SERVICE_TYPE, ptr_record_type, 0xCAFE)
+    wifi = advertisement_type("d073d6000101", 56700, "192.0.2.10")
+    shared = advertisement_type("d073d6000102", 56700, "192.0.2.10")
 
     def serials(responses: list[bytes]) -> set[str]:
         return {
-            str(record.parsed_data.pairs["id"])
-            for response in responses
-            for record in parse_dns_response(response).records
-            if record.rtype == DNS_TYPE_TXT and isinstance(record.parsed_data, TxtData)
+            advertisement.serial
+            for advertisement in (wifi, shared)
+            if any(
+                f"id={advertisement.serial}".encode() in response
+                for response in responses
+            )
         }
 
-    first = build_legacy_unicast_responses(query, [wifi, shared])
-    repeated = build_legacy_unicast_responses(query, [wifi, shared])
-    removed = build_legacy_unicast_responses(query, [wifi])
-    re_added = build_legacy_unicast_responses(query, [wifi, shared])
-    equivalent_compact = build_legacy_unicast_responses(
-        query, [Advertisement("d073d6000103", 56700, "fd00::1")]
+    first = response_builder(query, [wifi, shared])
+    repeated = response_builder(query, [wifi, shared])
+    removed = response_builder(query, [wifi])
+    re_added = response_builder(query, [wifi, shared])
+    equivalent_compact = response_builder(
+        query, [advertisement_type("d073d6000103", 56700, "fd00::1")]
     )
-    equivalent_expanded = build_legacy_unicast_responses(
+    equivalent_expanded = response_builder(
         query,
         [
-            Advertisement(
+            advertisement_type(
                 "d073d6000103",
                 56700,
                 "fd00:0000:0000:0000:0000:0000:0000:0001",
@@ -957,17 +962,16 @@ def _run_direct_fit_checks() -> dict[str, bool]:
         ],
     )
     try:
-        build_legacy_unicast_responses(
-            query, [Advertisement("d073d6000104", 56700, "invalid-address")]
+        response_builder(
+            query,
+            [advertisement_type("d073d6000104", 56700, "invalid-address")],
         )
     except OSError:
         invalid_address_rejected = True
     else:
         invalid_address_rejected = False
     return {
-        "empty_eligible_set_has_no_reply": not build_legacy_unicast_responses(
-            query, []
-        ),
+        "empty_eligible_set_has_no_reply": not response_builder(query, []),
         "shared_addresses_keep_distinct_identities": len(first) == 2
         and serials(first) == {wifi.serial, shared.serial},
         "repeated_unchanged_query_is_stable": repeated == first,
@@ -978,6 +982,27 @@ def _run_direct_fit_checks() -> dict[str, bool]:
         ),
         "invalid_address_is_rejected_before_reply": invalid_address_rejected,
     }
+
+
+def _run_direct_fit_checks_cli(args: argparse.Namespace) -> int:
+    """Load the frozen overlay and write hermetic candidate-fit evidence."""
+    overlay_path = REPOSITORY_ROOT / "scripts/mdns_spike_inputs/lifx_direct.py"
+    spec = importlib.util.spec_from_file_location(
+        "mdns_spike_fit_overlay", overlay_path
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("could not load the frozen direct overlay")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    checks = _evaluate_direct_fit_checks(
+        module.Advertisement,
+        module.build_legacy_unicast_responses,
+        module.DNS_TYPE_PTR,
+    )
+    payload = {"fit_checks": checks, "all_passed": all(checks.values())}
+    _write_json(Path(args.output), payload)
+    return 0 if payload["all_passed"] else 1
 
 
 async def _capture_direct_oracle(thread_address: str | None = None) -> dict[str, Any]:
@@ -1039,7 +1064,9 @@ async def _lifx_direct_worker() -> int:
         else:
             malformed_bounded = False
         stage = "future-fit-inputs"
-        fit_checks = _run_direct_fit_checks()
+        fit_checks = _evaluate_direct_fit_checks(
+            Advertisement, build_legacy_unicast_responses, DNS_TYPE_PTR
+        )
         await asyncio.sleep(0)
         current = asyncio.current_task()
         payload = {
@@ -2298,6 +2325,9 @@ def _parser() -> argparse.ArgumentParser:
     classify_direct = subparsers.add_parser("classify-direct-result")
     classify_direct.add_argument("--input", required=True)
     classify_direct.set_defaults(handler=_classify_direct_result_cli)
+    direct_fit = subparsers.add_parser("run-direct-fit-checks")
+    direct_fit.add_argument("--output", required=True)
+    direct_fit.set_defaults(handler=_run_direct_fit_checks_cli)
     return parser
 
 
