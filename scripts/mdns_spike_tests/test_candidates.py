@@ -299,6 +299,18 @@ def test_direct_result_retains_bounded_future_fit_checks(tmp_path: Path) -> None
     assert all(payload["fit_checks"].values())
 
 
+def test_responder_listener_is_interface_scoped(tmp_path: Path) -> None:
+    """Bind the multicast listener without exposing UDP 5353 on every address."""
+    output = tmp_path / "responder-scope.json"
+    completed = _run("probe-responder-scope", "--output", str(output))
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(output.read_text())
+    assert payload["bound_address"] == "224.0.0.251"
+    assert payload["membership_interface"] != "0.0.0.0"
+    assert payload["wildcard_bound"] is False
+    assert payload["platform_scope_applied"] is True
+
+
 @pytest.mark.parametrize(
     ("mutation", "valid"),
     [
