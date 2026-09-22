@@ -1,6 +1,6 @@
 {
   "active_budget_seconds": 14400,
-  "active_elapsed_seconds": 4089.272,
+  "active_elapsed_seconds": 8227.189,
   "candidate_order": [
     "zeroconf",
     "lifx-direct",
@@ -637,8 +637,8 @@
           "benchmarks": {
             "mixed-10": {
               "complete_devices": 10,
-              "complete_discovery_seconds": 0.004108,
-              "cpu_seconds": 0.002486,
+              "complete_discovery_seconds": 0.001841,
+              "cpu_seconds": 0.001291,
               "datagram_count": 10,
               "datagram_sizes": [
                 270,
@@ -658,17 +658,17 @@
               },
               "discovered": 10,
               "expected": 10,
-              "peak_rss": 71499776,
+              "peak_rss": 72859648,
               "raw_thread_address_class": "loopback-::1",
-              "server_port": 60440,
+              "server_port": 64804,
               "thread": 5,
               "wifi": 5,
               "wire_checks_passed": true
             },
             "mixed-100": {
               "complete_devices": 100,
-              "complete_discovery_seconds": 0.006162,
-              "cpu_seconds": 0.005543,
+              "complete_discovery_seconds": 0.006796,
+              "cpu_seconds": 0.0063,
               "datagram_count": 100,
               "datagram_sizes": [
                 270,
@@ -778,17 +778,17 @@
               },
               "discovered": 100,
               "expected": 100,
-              "peak_rss": 71499776,
+              "peak_rss": 72859648,
               "raw_thread_address_class": "loopback-::1",
-              "server_port": 59837,
+              "server_port": 61278,
               "thread": 50,
               "wifi": 50,
               "wire_checks_passed": true
             },
             "thread-1": {
               "complete_devices": 1,
-              "complete_discovery_seconds": 0.000805,
-              "cpu_seconds": 0.000713,
+              "complete_discovery_seconds": 0.001051,
+              "cpu_seconds": 0.000583,
               "datagram_count": 1,
               "datagram_sizes": [
                 282
@@ -798,16 +798,16 @@
               },
               "discovered": 1,
               "expected": 1,
-              "peak_rss": 71499776,
+              "peak_rss": 72859648,
               "raw_thread_address_class": "loopback-::1",
-              "server_port": 62374,
+              "server_port": 58842,
               "thread": 1,
               "wifi": 0,
               "wire_checks_passed": true
             },
             "wifi-1": {
               "complete_devices": 1,
-              "complete_discovery_seconds": 0.000743,
+              "complete_discovery_seconds": 0.000969,
               "cpu_seconds": 0.000664,
               "datagram_count": 1,
               "datagram_sizes": [
@@ -818,9 +818,9 @@
               },
               "discovered": 1,
               "expected": 1,
-              "peak_rss": 71499776,
+              "peak_rss": 72859648,
               "raw_thread_address_class": null,
-              "server_port": 61090,
+              "server_port": 63268,
               "thread": 0,
               "wifi": 1,
               "wire_checks_passed": true
@@ -830,7 +830,7 @@
             "mDNSResponder",
             "mDNSResponderHelper"
           ],
-          "elapsed_seconds": 1.2757065840996802,
+          "elapsed_seconds": 1.6488131249789149,
           "environment": {
             "architecture": "arm64",
             "implementation": "CPython",
@@ -840,29 +840,59 @@
             "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
           },
           "execution_status": "completed",
+          "fit_checks": {
+            "empty_eligible_set_has_no_reply": true,
+            "equivalent_ipv6_spellings_encode_identically": true,
+            "invalid_address_is_rejected_before_reply": true,
+            "removal_and_readd_follow_eligible_set": true,
+            "repeated_unchanged_query_is_stable": true,
+            "shared_addresses_keep_distinct_identities": true
+          },
           "gate": "expanded-local",
           "malformed_bounded": true,
           "oracle": {
             "thread": {
               "address_class": "reachable-ula-gua",
+              "errno": null,
+              "error_type": null,
               "expected_serial": "d073d6000002",
+              "legacy_queries_received": 1,
+              "legacy_responses_sent": 1,
               "matched": true,
               "matched_serials": [
                 "d073d6000002"
-              ]
+              ],
+              "matching_queries_received": 4,
+              "queries_received": 8,
+              "responses_sent": 4,
+              "route_probe": {
+                "available": true,
+                "errno": null,
+                "error_type": null
+              },
+              "stage": "public-oracle"
             },
             "wifi": {
               "address_class": "selected-ipv4",
+              "errno": null,
+              "error_type": null,
               "expected_serial": "d073d6000001",
+              "legacy_queries_received": 1,
+              "legacy_responses_sent": 1,
               "matched": true,
               "matched_serials": [
                 "d073d6000001"
-              ]
+              ],
+              "matching_queries_received": 9,
+              "queries_received": 12,
+              "responses_sent": 9,
+              "route_probe": null,
+              "stage": "public-oracle"
             }
           },
           "pending_owned_tasks": [],
-          "reachable_ula_gua_count": 18,
-          "recorded_at": "2026-09-22T16:02:12.071548Z",
+          "reachable_ula_gua_count": 19,
+          "recorded_at": "2026-09-22T17:00:46.439312Z",
           "threads_after": [
             "MainThread"
           ],
@@ -876,7 +906,7 @@
       "criteria": {
         "configuration_interface_fit": {
           "acquisition_step": null,
-          "evidence": "The materialiser accepts an explicit eligible advertisement set and explicit matching-family addresses without production APIs.",
+          "evidence": "Bounded materialiser fit checks: {\"empty_eligible_set_has_no_reply\": true, \"equivalent_ipv6_spellings_encode_identically\": true, \"invalid_address_is_rejected_before_reply\": true, \"removal_and_readd_follow_eligible_set\": true, \"repeated_unchanged_query_is_stable\": true, \"shared_addresses_keep_distinct_identities\": true}.",
           "status": "demonstrated"
         },
         "daemon_coexistence": {
@@ -900,9 +930,9 @@
           "status": "demonstrated"
         },
         "intel_pyapp_first_run": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "The direct extension gate has not run.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Exact-head Intel macOS PyApp 0.26.0 receipt proved the candidate, stock core and app local-wheel references, binary hashes, first-run install, self-python distribution identities, rustc and uv identities.",
+          "status": "demonstrated"
         },
         "legacy_wire": {
           "acquisition_step": null,
@@ -915,8 +945,8 @@
           "status": "demonstrated"
         },
         "macos_multicast": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "The direct extension gate has not run.",
+          "acquisition_step": "Repeat exact head and input digest on a disposable macOS executor whose IPv4 interface permits multicast send to 224.0.0.251:5353.",
+          "evidence": "The local macOS run on the same immutable candidate demonstrated actual multicast beside mDNSResponder, but exact-head hosted macOS remained environment-unavailable at raw-population-wifi-1 with OSError errno 65 even after a destination-specific multicast route was installed.",
           "status": "untested"
         },
         "malformed_truncated_flood_bounds": {
@@ -926,12 +956,12 @@
         },
         "mixed_100_benchmark": {
           "acquisition_step": null,
-          "evidence": "{\"complete_devices\": 100, \"complete_discovery_seconds\": 0.006162, \"cpu_seconds\": 0.005543, \"datagram_count\": 100, \"datagram_sizes\": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 100, \"expected\": 100, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 59837, \"thread\": 50, \"wifi\": 50, \"wire_checks_passed\": true}",
+          "evidence": "{\"complete_devices\": 100, \"complete_discovery_seconds\": 0.006796, \"cpu_seconds\": 0.0063, \"datagram_count\": 100, \"datagram_sizes\": [270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 100, \"expected\": 100, \"peak_rss\": 72859648, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 61278, \"thread\": 50, \"wifi\": 50, \"wire_checks_passed\": true}",
           "status": "demonstrated"
         },
         "mixed_10_benchmark": {
           "acquisition_step": null,
-          "evidence": "{\"complete_devices\": 10, \"complete_discovery_seconds\": 0.004108, \"cpu_seconds\": 0.002486, \"datagram_count\": 10, \"datagram_sizes\": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 10, \"expected\": 10, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 60440, \"thread\": 5, \"wifi\": 5, \"wire_checks_passed\": true}",
+          "evidence": "{\"complete_devices\": 10, \"complete_discovery_seconds\": 0.001841, \"cpu_seconds\": 0.001291, \"datagram_count\": 10, \"datagram_sizes\": [270, 270, 270, 270, 270, 282, 282, 282, 282, 282], \"direct_queries\": {\"thread\": true, \"wifi\": true}, \"discovered\": 10, \"expected\": 10, \"peak_rss\": 72859648, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 64804, \"thread\": 5, \"wifi\": 5, \"wire_checks_passed\": true}",
           "status": "demonstrated"
         },
         "official_provenance": {
@@ -941,7 +971,7 @@
         },
         "oracle_discovery": {
           "acquisition_step": null,
-          "evidence": "Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'expected_serial': 'd073d6000002', 'matched': True, 'matched_serials': ['d073d6000002']}, 'wifi': {'address_class': 'selected-ipv4', 'expected_serial': 'd073d6000001', 'matched': True, 'matched_serials': ['d073d6000001']}}.",
+          "evidence": "Pinned public oracle results: {'thread': {'address_class': 'reachable-ula-gua', 'errno': None, 'error_type': None, 'expected_serial': 'd073d6000002', 'legacy_queries_received': 1, 'legacy_responses_sent': 1, 'matched': True, 'matched_serials': ['d073d6000002'], 'matching_queries_received': 4, 'queries_received': 8, 'responses_sent': 4, 'route_probe': {'available': True, 'errno': None, 'error_type': None}, 'stage': 'public-oracle'}, 'wifi': {'address_class': 'selected-ipv4', 'errno': None, 'error_type': None, 'expected_serial': 'd073d6000001', 'legacy_queries_received': 1, 'legacy_responses_sent': 1, 'matched': True, 'matched_serials': ['d073d6000001'], 'matching_queries_received': 9, 'queries_received': 12, 'responses_sent': 9, 'route_probe': None, 'stage': 'public-oracle'}}.",
           "status": "demonstrated"
         },
         "packet_boundary": {
@@ -951,17 +981,17 @@
         },
         "thread_benchmark": {
           "acquisition_step": null,
-          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000805, \"cpu_seconds\": 0.000713, \"datagram_count\": 1, \"datagram_sizes\": [282], \"direct_queries\": {\"thread\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71499776, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 62374, \"thread\": 1, \"wifi\": 0, \"wire_checks_passed\": true}",
+          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.001051, \"cpu_seconds\": 0.000583, \"datagram_count\": 1, \"datagram_sizes\": [282], \"direct_queries\": {\"thread\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 72859648, \"raw_thread_address_class\": \"loopback-::1\", \"server_port\": 58842, \"thread\": 1, \"wifi\": 0, \"wire_checks_passed\": true}",
           "status": "demonstrated"
         },
         "ubuntu_multicast": {
-          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
-          "evidence": "The direct extension gate has not run.",
-          "status": "untested"
+          "acquisition_step": null,
+          "evidence": "Exact-head Ubuntu receipt identified Avahi, used a runner-configured synthetic ULA, completed both public-oracle legs and produced exact 1/1/10/100 per-device datagram counts with clean shutdown.",
+          "status": "demonstrated"
         },
         "wifi_benchmark": {
           "acquisition_step": null,
-          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000743, \"cpu_seconds\": 0.000664, \"datagram_count\": 1, \"datagram_sizes\": [270], \"direct_queries\": {\"wifi\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 71499776, \"raw_thread_address_class\": null, \"server_port\": 61090, \"thread\": 0, \"wifi\": 1, \"wire_checks_passed\": true}",
+          "evidence": "{\"complete_devices\": 1, \"complete_discovery_seconds\": 0.000969, \"cpu_seconds\": 0.000664, \"datagram_count\": 1, \"datagram_sizes\": [270], \"direct_queries\": {\"wifi\": true}, \"discovered\": 1, \"expected\": 1, \"peak_rss\": 72859648, \"raw_thread_address_class\": null, \"server_port\": 63268, \"thread\": 0, \"wifi\": 1, \"wire_checks_passed\": true}",
           "status": "demonstrated"
         },
         "windows_socket_simulation": {
@@ -970,7 +1000,7 @@
           "status": "simulated"
         }
       },
-      "elapsed_active_seconds": 4089.272,
+      "elapsed_active_seconds": 8227.189,
       "execution_status": "completed"
     }
   ],
@@ -1094,6 +1124,26 @@
       ],
       "exit_code": 0,
       "recorded_at": "2026-09-22T16:02:12.070491Z"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "../lifx-async",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T17:00:46.438601Z"
     }
   ],
   "decision": {
@@ -1450,280 +1500,418 @@
   ],
   "edge_coverage": [
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise production opt-in, repeated start/stop and duplicate-listener prevention after a foundation decision.",
+      "category": "concurrency",
+      "evidence": "Daemon coexistence and repeated clean lifecycles were exercised; production opt-in and listener concurrency remain pending.",
       "id": "SPEC-edge-01",
+      "mapping": "AC-01/02/11: opt-in reception, daemon coexistence and no duplicate listener across repeated lifecycle operations.",
+      "requirement": "MDNS-01",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise production opt-in, repeated start/stop and duplicate-listener prevention after a foundation decision.",
+      "category": "idempotency",
+      "evidence": "Daemon coexistence and repeated clean lifecycles were exercised; production opt-in and listener concurrency remain pending.",
       "id": "SPEC-edge-02",
+      "mapping": "AC-01/02/11: opt-in reception, daemon coexistence and no duplicate listener across repeated lifecycle operations.",
+      "requirement": "MDNS-01",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise production opt-in, repeated start/stop and duplicate-listener prevention after a foundation decision.",
+      "category": "unclassified",
+      "evidence": "Daemon coexistence and repeated clean lifecycles were exercised; production opt-in and listener concurrency remain pending.",
       "id": "SPEC-edge-03",
+      "mapping": "AC-01/02/11: opt-in reception, daemon coexistence and no duplicate listener across repeated lifecycle operations.",
+      "requirement": "MDNS-01",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "adjacency",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-04",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "boundary",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-05",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Add concurrent-query and reply-order integration cases after a foundation decision.",
+      "category": "concurrency",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-06",
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "empty",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-07",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "idempotency",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-08",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Add concurrent-query and reply-order integration cases after a foundation decision.",
+      "category": "ordering",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-09",
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "precision",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-10",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "Raw legacy replies preserved destination, non-zero ID, question, TTL and stable zero/repeat behaviour.",
       "id": "SPEC-edge-11",
-      "status": "untested"
+      "mapping": "AC-03/04: each query retains its own source and ID; TTL is positive and at most 10; zero eligible devices means no device replies; reply ordering does not alter destination or metadata.",
+      "requirement": "MDNS-02",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "adjacency",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-12",
-      "status": "untested"
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "boundary",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-13",
-      "status": "untested"
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise overlapping fleet changes and packet-order independence in production integration.",
+      "category": "concurrency",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-14",
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "empty",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-15",
-      "status": "untested"
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise overlapping fleet changes and packet-order independence in production integration.",
+      "category": "ordering",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-16",
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "precision",
+      "evidence": "The direct materialiser produced zero, one, ten and one hundred isolated per-device replies, retained shared-address identities and the stock bound port.",
       "id": "SPEC-edge-17",
-      "status": "untested"
+      "mapping": "AC-04/06/11: zero, one and multiple complete device replies; shared addresses do not merge identities; actual bound port is preserved; overlapping changes never yield half a device record set.",
+      "requirement": "MDNS-03",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "adjacency",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-18",
-      "status": "untested"
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise absent metadata and integer firmware encoding through the production device model.",
+      "category": "empty",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-19",
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise absent metadata and integer firmware encoding through the production device model.",
+      "category": "encoding",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-20",
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "idempotency",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-21",
-      "status": "untested"
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "ordering",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-22",
-      "status": "untested"
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "precision",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-23",
-      "status": "untested"
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "Replies carried exactly id/p/fw/tm and repeated unchanged inputs produced byte-identical output.",
       "id": "SPEC-edge-24",
-      "status": "untested"
+      "mapping": "AC-05: exactly four fields, exact serial and integer firmware representation, identical TXT content for repeated queries of unchanged state.",
+      "requirement": "MDNS-04",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "adjacency",
+      "evidence": "WiFi and Thread replies contained one matching-family address; removal omitted the absent device.",
       "id": "SPEC-edge-25",
-      "status": "untested"
+      "mapping": "AC-04/06: exactly one matching-family address per advertised device, including shared addresses; no record for absent devices; verify sets independently of packet order.",
+      "requirement": "MDNS-05",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "empty",
+      "evidence": "WiFi and Thread replies contained one matching-family address; removal omitted the absent device.",
       "id": "SPEC-edge-26",
-      "status": "untested"
+      "mapping": "AC-04/06: exactly one matching-family address per advertised device, including shared addresses; no record for absent devices; verify sets independently of packet order.",
+      "requirement": "MDNS-05",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise packet-order independence through the production integration.",
+      "category": "ordering",
+      "evidence": "WiFi and Thread replies contained one matching-family address; removal omitted the absent device.",
       "id": "SPEC-edge-27",
+      "mapping": "AC-04/06: exactly one matching-family address per advertised device, including shared addresses; no record for absent devices; verify sets independently of packet order.",
+      "requirement": "MDNS-05",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "WiFi and Thread replies contained one matching-family address; removal omitted the absent device.",
       "id": "SPEC-edge-28",
-      "status": "untested"
+      "mapping": "AC-04/06: exactly one matching-family address per advertised device, including shared addresses; no record for absent devices; verify sets independently of packet order.",
+      "requirement": "MDNS-05",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise override, wildcard fallback and concurrent address updates through the production configuration API.",
+      "category": "adjacency",
+      "evidence": "Equivalent IPv6 spellings encoded identically and invalid addresses were rejected; production override/fallback precedence remains pending.",
       "id": "SPEC-edge-29",
+      "mapping": "AC-07: override precedes concrete fallback; missing wildcard override fails; equivalent IPv6 spellings encode identically; invalid addresses never enter a reply; shared addresses remain allowed.",
+      "requirement": "MDNS-06",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise override, wildcard fallback and concurrent address updates through the production configuration API.",
+      "category": "concurrency",
+      "evidence": "Equivalent IPv6 spellings encoded identically and invalid addresses were rejected; production override/fallback precedence remains pending.",
       "id": "SPEC-edge-30",
+      "mapping": "AC-07: override precedes concrete fallback; missing wildcard override fails; equivalent IPv6 spellings encode identically; invalid addresses never enter a reply; shared addresses remain allowed.",
+      "requirement": "MDNS-06",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise override, wildcard fallback and concurrent address updates through the production configuration API.",
+      "category": "empty",
+      "evidence": "Equivalent IPv6 spellings encoded identically and invalid addresses were rejected; production override/fallback precedence remains pending.",
       "id": "SPEC-edge-31",
+      "mapping": "AC-07: override precedes concrete fallback; missing wildcard override fails; equivalent IPv6 spellings encode identically; invalid addresses never enter a reply; shared addresses remain allowed.",
+      "requirement": "MDNS-06",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "encoding",
+      "evidence": "Equivalent IPv6 spellings encoded identically and invalid addresses were rejected; production override/fallback precedence remains pending.",
       "id": "SPEC-edge-32",
-      "status": "untested"
+      "mapping": "AC-07: override precedes concrete fallback; missing wildcard override fails; equivalent IPv6 spellings encode identically; invalid addresses never enter a reply; shared addresses remain allowed.",
+      "requirement": "MDNS-06",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise override, wildcard fallback and concurrent address updates through the production configuration API.",
+      "category": "ordering",
+      "evidence": "Equivalent IPv6 spellings encoded identically and invalid addresses were rejected; production override/fallback precedence remains pending.",
       "id": "SPEC-edge-33",
+      "mapping": "AC-07: override precedes concrete fallback; missing wildcard override fails; equivalent IPv6 spellings encode identically; invalid addresses never enter a reply; shared addresses remain allowed.",
+      "requirement": "MDNS-06",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "Direct A/AAAA queries matched and explicit eligible-set removal removed lookup material.",
       "id": "SPEC-edge-34",
-      "status": "untested"
+      "mapping": "AC-08: direct queries resolve the advertised family and address; removal/opt-out removes the advertised lookup result.",
+      "requirement": "MDNS-07",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise duplicate rejection, both listeners and concurrent add/remove events after integration.",
+      "category": "adjacency",
+      "evidence": "Remove-last and re-add fit were exercised; duplicate rejection, listener events and concurrent changes remain pending.",
       "id": "SPEC-edge-35",
+      "mapping": "AC-09/11: duplicate serial rejection preserves identity; remove-last leaves an empty set; completed changes appear on the next query; both listeners retain their events.",
+      "requirement": "MDNS-08",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise duplicate rejection, both listeners and concurrent add/remove events after integration.",
+      "category": "concurrency",
+      "evidence": "Remove-last and re-add fit were exercised; duplicate rejection, listener events and concurrent changes remain pending.",
       "id": "SPEC-edge-36",
+      "mapping": "AC-09/11: duplicate serial rejection preserves identity; remove-last leaves an empty set; completed changes appear on the next query; both listeners retain their events.",
+      "requirement": "MDNS-08",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "empty",
+      "evidence": "Remove-last and re-add fit were exercised; duplicate rejection, listener events and concurrent changes remain pending.",
       "id": "SPEC-edge-37",
-      "status": "untested"
+      "mapping": "AC-09/11: duplicate serial rejection preserves identity; remove-last leaves an empty set; completed changes appear on the next query; both listeners retain their events.",
+      "requirement": "MDNS-08",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "idempotency",
+      "evidence": "Remove-last and re-add fit were exercised; duplicate rejection, listener events and concurrent changes remain pending.",
       "id": "SPEC-edge-38",
-      "status": "untested"
+      "mapping": "AC-09/11: duplicate serial rejection preserves identity; remove-last leaves an empty set; completed changes appear on the next query; both listeners retain their events.",
+      "requirement": "MDNS-08",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Exercise duplicate rejection, both listeners and concurrent add/remove events after integration.",
+      "category": "ordering",
+      "evidence": "Remove-last and re-add fit were exercised; duplicate rejection, listener events and concurrent changes remain pending.",
       "id": "SPEC-edge-39",
+      "mapping": "AC-09/11: duplicate serial rejection preserves identity; remove-last leaves an empty set; completed changes appear on the next query; both listeners retain their events.",
+      "requirement": "MDNS-08",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Inject partial startup, fleet failure, retry and loop teardown after lifecycle integration.",
+      "category": "concurrency",
+      "evidence": "Repeated clean lifecycle proof exists, but failure policy, partial start and retry injection remain pending.",
       "id": "SPEC-edge-40",
+      "mapping": "AC-10/11: failure policy depends on Thread membership; partial startup, repeated stop/start and loop teardown release owned resources.",
+      "requirement": "MDNS-09",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Inject partial startup, fleet failure, retry and loop teardown after lifecycle integration.",
+      "category": "idempotency",
+      "evidence": "Repeated clean lifecycle proof exists, but failure policy, partial start and retry injection remain pending.",
       "id": "SPEC-edge-41",
+      "mapping": "AC-10/11: failure policy depends on Thread membership; partial startup, repeated stop/start and loop teardown release owned resources.",
+      "requirement": "MDNS-09",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": "Inject partial startup, fleet failure, retry and loop teardown after lifecycle integration.",
+      "category": "unclassified",
+      "evidence": "Repeated clean lifecycle proof exists, but failure policy, partial start and retry injection remain pending.",
       "id": "SPEC-edge-42",
+      "mapping": "AC-10/11: failure policy depends on Thread membership; partial startup, repeated stop/start and loop teardown release owned resources.",
+      "requirement": "MDNS-09",
       "status": "untested"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "boundary",
+      "evidence": "The bounded ledger records exact candidates, criteria, elapsed time and an honest provisional decision.",
       "id": "SPEC-edge-43",
-      "status": "untested"
+      "mapping": "AC-12: record the time box, exact candidate version, criterion-by-criterion evidence and decision before construction; untested results cannot masquerade as demonstrated results.",
+      "requirement": "MDNS-10",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "precision",
+      "evidence": "The bounded ledger records exact candidates, criteria, elapsed time and an honest provisional decision.",
       "id": "SPEC-edge-44",
-      "status": "untested"
+      "mapping": "AC-12: record the time box, exact candidate version, criterion-by-criterion evidence and decision before construction; untested results cannot masquerade as demonstrated results.",
+      "requirement": "MDNS-10",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "The bounded ledger records exact candidates, criteria, elapsed time and an honest provisional decision.",
       "id": "SPEC-edge-45",
-      "status": "untested"
+      "mapping": "AC-12: record the time box, exact candidate version, criterion-by-criterion evidence and decision before construction; untested results cannot masquerade as demonstrated results.",
+      "requirement": "MDNS-10",
+      "status": "demonstrated"
     },
     {
-      "acquisition_step": "Acquire the mapped criterion evidence.",
-      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "acquisition_step": null,
+      "category": "unclassified",
+      "evidence": "Ubuntu, local macOS, hosted macOS-unavailable and Windows-simulated scopes are distinguished; skipped integration is not reported as pass.",
       "id": "SPEC-edge-46",
-      "status": "untested"
+      "mapping": "AC-13: repeated tests retain platform/evidence distinctions; a skipped integration check is not a pass.",
+      "requirement": "MDNS-11",
+      "status": "demonstrated"
     }
   ],
   "environments": {
@@ -1731,9 +1919,25 @@
       "architecture": "arm64",
       "implementation": "CPython",
       "os": "darwin",
-      "os_release": "27.0.0",
+      "os_release": "25.6.0",
       "python": "3.14.7",
-      "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+      "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+    },
+    "darwin/x86_64/3.12.10": {
+      "architecture": "x86_64",
+      "implementation": "CPython",
+      "os": "darwin",
+      "os_release": "24.6.0",
+      "python": "3.12.10",
+      "realised_environment_digest": "7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62"
+    },
+    "linux/x86_64/3.14.7": {
+      "architecture": "x86_64",
+      "implementation": "CPython",
+      "os": "linux",
+      "os_release": "6.17.0-1022-azure",
+      "python": "3.14.7",
+      "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
     }
   },
   "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
@@ -1794,8 +1998,438 @@
     "schema_version": 1
   },
   "plan": "03-01",
+  "platform_receipts": {
+    "intel_pyapp": {
+      "app_metadata_sha256": "858649d77d30ae02d648dade652e3c16e6d955590079b50a7ae12418d69ae497",
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
+      "candidate_head_sha": "c80471d5abfd1a8ea5bc204389ae4479f03caf91",
+      "candidate_metadata_sha256": "64f3dd877d3804f6fe611eac2c76d277acb62e06f2da78c610731733c4559ae1",
+      "candidate_overlay_digest": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
+      "candidate_status": "meets_gate",
+      "direct_references": {
+        "candidate_metadata": true,
+        "lifx_async": true,
+        "lifx_emulator_core": true
+      },
+      "environments": {
+        "darwin/x86_64/3.12.10": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "24.6.0",
+          "python": "3.12.10",
+          "realised_environment_digest": "7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62"
+        }
+      },
+      "first_run_sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
+      "hashes_sha256": "1c79be6eea24548f3c89f57d2957c2e8cabb8b2133a5a23593fff5a868ee6421",
+      "identities": {
+        "lifx-async": "7.3.0",
+        "lifx-emulator": "4.6.0",
+        "lifx-emulator-core": "3.10.0"
+      },
+      "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+      "platform_leg": "intel-pyapp",
+      "pyapp": {
+        "revision": "a419de7c068cbd0e083194bbe11c741b0497d28c",
+        "tree": "d87b89829042147f7b23c5fe4b5b14034d8164d4",
+        "version": "0.26.0"
+      },
+      "recorded_at": "2026-09-22T17:14:20.018668Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758834177",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "schema_version": 1,
+      "uv_version": "0.9.9"
+    },
+    "macos": {
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
+      "candidate_head_sha": "c80471d5abfd1a8ea5bc204389ae4479f03caf91",
+      "candidate_overlay_digest": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
+      "candidate_status": "provisional",
+      "environments": {
+        "darwin/arm64/3.14.7": {
+          "architecture": "arm64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "25.6.0",
+          "python": "3.14.7",
+          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+        }
+      },
+      "evidence_sha256": "1a5350a6a39a7e0a5490720ec7046299d10797436014919e82e02992dfaecbb5",
+      "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+      "platform_leg": "multicast",
+      "recorded_at": "2026-09-22T17:10:57.053220Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758834177",
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula"
+    },
+    "ubuntu": {
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "13d843d43202b79b834b9958cc0404fe03fbfff4c707b462eefdacfd13522bbd",
+      "candidate_head_sha": "c80471d5abfd1a8ea5bc204389ae4479f03caf91",
+      "candidate_overlay_digest": "7633bbdd56142fadb9a6bb26aed2f8a5c505261f9df7e6ca68ca71f4da85bad9",
+      "candidate_status": "meets_gate",
+      "environments": {
+        "linux/x86_64/3.14.7": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "linux",
+          "os_release": "6.17.0-1022-azure",
+          "python": "3.14.7",
+          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+        }
+      },
+      "evidence_sha256": "04bb2924af7fc486b3a6aa2666f614f522f6f00d12dfc03c779f48508065fd3e",
+      "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+      "platform_leg": "multicast",
+      "recorded_at": "2026-09-22T17:10:08.112271Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758834177",
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula"
+    }
+  },
+  "platform_results": {
+    "macos": {
+      "candidate_status": "provisional",
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "/Users/runner/work/_temp/lifx-async",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+      "platform_candidate": "lifx-direct",
+      "result": {
+        "elapsed_seconds": 0.8679803339999808,
+        "environment": {
+          "architecture": "arm64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "25.6.0",
+          "python": "3.14.7",
+          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+        },
+        "environment_unavailable": true,
+        "error": "[Errno 65] No route to host",
+        "error_errno": 65,
+        "error_type": "OSError",
+        "execution_status": "completed",
+        "stage": "raw-population-wifi-1"
+      },
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula",
+      "valid": true
+    },
+    "ubuntu": {
+      "candidate_status": "meets_gate",
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "/home/runner/work/_temp/lifx-async",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+      "platform_candidate": "lifx-direct",
+      "result": {
+        "benchmarks": {
+          "mixed-10": {
+            "complete_devices": 10,
+            "complete_discovery_seconds": 0.001351,
+            "cpu_seconds": 0.001352,
+            "datagram_count": 10,
+            "datagram_sizes": [
+              270,
+              270,
+              270,
+              270,
+              270,
+              282,
+              282,
+              282,
+              282,
+              282
+            ],
+            "direct_queries": {
+              "thread": true,
+              "wifi": true
+            },
+            "discovered": 10,
+            "expected": 10,
+            "peak_rss": 162512,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 49091,
+            "thread": 5,
+            "wifi": 5,
+            "wire_checks_passed": true
+          },
+          "mixed-100": {
+            "complete_devices": 100,
+            "complete_discovery_seconds": 0.010283,
+            "cpu_seconds": 0.010265,
+            "datagram_count": 100,
+            "datagram_sizes": [
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282
+            ],
+            "direct_queries": {
+              "thread": true,
+              "wifi": true
+            },
+            "discovered": 100,
+            "expected": 100,
+            "peak_rss": 162512,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 57977,
+            "thread": 50,
+            "wifi": 50,
+            "wire_checks_passed": true
+          },
+          "thread-1": {
+            "complete_devices": 1,
+            "complete_discovery_seconds": 0.000314,
+            "cpu_seconds": 0.000316,
+            "datagram_count": 1,
+            "datagram_sizes": [
+              282
+            ],
+            "direct_queries": {
+              "thread": true
+            },
+            "discovered": 1,
+            "expected": 1,
+            "peak_rss": 162512,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 48119,
+            "thread": 1,
+            "wifi": 0,
+            "wire_checks_passed": true
+          },
+          "wifi-1": {
+            "complete_devices": 1,
+            "complete_discovery_seconds": 0.000388,
+            "cpu_seconds": 0.000392,
+            "datagram_count": 1,
+            "datagram_sizes": [
+              270
+            ],
+            "direct_queries": {
+              "wifi": true
+            },
+            "discovered": 1,
+            "expected": 1,
+            "peak_rss": 162512,
+            "raw_thread_address_class": null,
+            "server_port": 50781,
+            "thread": 0,
+            "wifi": 1,
+            "wire_checks_passed": true
+          }
+        },
+        "daemon_processes": [
+          "avahi-daemon"
+        ],
+        "elapsed_seconds": 0.8755544529999995,
+        "environment": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "linux",
+          "os_release": "6.17.0-1022-azure",
+          "python": "3.14.7",
+          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+        },
+        "execution_status": "completed",
+        "fit_checks": {
+          "empty_eligible_set_has_no_reply": true,
+          "equivalent_ipv6_spellings_encode_identically": true,
+          "invalid_address_is_rejected_before_reply": true,
+          "removal_and_readd_follow_eligible_set": true,
+          "repeated_unchanged_query_is_stable": true,
+          "shared_addresses_keep_distinct_identities": true
+        },
+        "malformed_bounded": true,
+        "oracle": {
+          "thread": {
+            "address_class": "reachable-ula-gua",
+            "errno": null,
+            "error_type": null,
+            "expected_serial": "d073d6000002",
+            "legacy_queries_received": 1,
+            "legacy_responses_sent": 1,
+            "matched": true,
+            "matched_serials": [
+              "d073d6000002"
+            ],
+            "matching_queries_received": 1,
+            "queries_received": 1,
+            "responses_sent": 1,
+            "route_probe": {
+              "available": true,
+              "errno": null,
+              "error_type": null
+            },
+            "stage": "public-oracle"
+          },
+          "wifi": {
+            "address_class": "selected-ipv4",
+            "errno": null,
+            "error_type": null,
+            "expected_serial": "d073d6000001",
+            "legacy_queries_received": 1,
+            "legacy_responses_sent": 1,
+            "matched": true,
+            "matched_serials": [
+              "d073d6000001"
+            ],
+            "matching_queries_received": 1,
+            "queries_received": 1,
+            "responses_sent": 1,
+            "route_probe": null,
+            "stage": "public-oracle"
+          }
+        },
+        "pending_owned_tasks": [],
+        "reachable_ula_gua_count": 1,
+        "threads_after": [
+          "MainThread"
+        ],
+        "threads_before": [
+          "MainThread"
+        ]
+      },
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula",
+      "valid": true
+    }
+  },
   "pull_request": {
-    "candidate_head_sha": "57a13c1ef92e957807d3a16facb7f52c930a9c89",
+    "candidate_head_sha": "c80471d5abfd1a8ea5bc204389ae4479f03caf91",
     "runs": [
       {
         "head_sha": "3016313c7a3ce99d6f1a5559128c91ffd0200048",
@@ -1811,6 +2445,55 @@
         "input_spec_digest": "c36e962ef41e7c1fd5976f45f24574e86249221be6af2cc05b746ae520bcd595",
         "status": "in_progress",
         "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35751638759"
+      },
+      {
+        "note": "Exposed absent hosted daemon/ULA, macOS uv checkout and direct-reference packaging gaps.",
+        "status": "diagnostic",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35752366628"
+      },
+      {
+        "note": "Acquired Ubuntu daemon/ULA proof; exposed macOS oracle loss and invalid wheel basename.",
+        "status": "diagnostic",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35753914184"
+      },
+      {
+        "note": "Intel packaging passed; macOS failed before per-leg stage isolation.",
+        "status": "diagnostic",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35755632319"
+      },
+      {
+        "note": "Intel and Ubuntu passed; macOS isolated ENETUNREACH at the first raw WiFi send.",
+        "status": "diagnostic",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35756588110"
+      },
+      {
+        "note": "Destination-specific macOS route did not make hosted multicast available.",
+        "status": "diagnostic",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35757524542"
+      },
+      {
+        "note": "Focused test incorrectly depended on unreconciled evidence; no candidate claim retained.",
+        "status": "invalid",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758185405"
+      },
+      {
+        "note": "Superseded by the behavioural hermetic-fit head.",
+        "status": "superseded",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758363536"
+      },
+      {
+        "head_sha": "c80471d5abfd1a8ea5bc204389ae4479f03caf91",
+        "input_spec_digest": "41def945375501c69e4509f760da364cd052e53c7a84a62f65285c1e63d08f03",
+        "intel_candidate_status": "meets_gate",
+        "intel_receipt_sha256": "29346ffb5dfea42a480802dbc92e27122c2397288084ff507fb8b0a40dc35273",
+        "macos_candidate_status": "provisional",
+        "macos_evidence_sha256": "1a5350a6a39a7e0a5490720ec7046299d10797436014919e82e02992dfaecbb5",
+        "macos_receipt_sha256": "17426fceb65066cf43a51c84e2a74b6f35013e162725f6442b4431585aa47df7",
+        "status": "success-with-provisional-macos-environment",
+        "ubuntu_candidate_status": "meets_gate",
+        "ubuntu_evidence_sha256": "04bb2924af7fc486b3a6aa2666f614f522f6f00d12dfc03c779f48508065fd3e",
+        "ubuntu_receipt_sha256": "2eaf65eddc32b97bf74f4b8ac932c676d517e26f34830a86116456dab055d29c",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35758834177"
       }
     ],
     "url": "https://github.com/Djelibeybi/lifx-emulator/pull/224"
@@ -1818,5 +2501,5 @@
   "requirement": "MDNS-10",
   "schema_version": 1,
   "started_at": "2026-09-22T15:01:53Z",
-  "updated_at": "2026-09-22T16:10:02.271666Z"
+  "updated_at": "2026-09-22T17:19:00.188944Z"
 }
