@@ -127,7 +127,10 @@ jobs:
           pgrep -x avahi-daemon
         else
           pgrep -x mDNSResponder
-          sudo ifconfig lo0 inet6 fd00:3:1::1 prefixlen 128 alias
+          mdns_interface=$(route -n get -inet 224.0.0.251 | \
+            awk '/interface:/{print $2}')
+          test -n "$mdns_interface"
+          sudo ifconfig "$mdns_interface" inet6 fd00:3:1::1 prefixlen 64 alias
         fi
         echo "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN=runner-configured-synthetic-ula" \
           >> "$GITHUB_ENV"
@@ -272,6 +275,10 @@ jobs:
         app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)
         git clone --depth 1 --branch v0.26.0 https://github.com/ofek/pyapp.git \
           "$RUNNER_TEMP/pyapp"
+        test "$(git -C "$RUNNER_TEMP/pyapp" rev-parse HEAD)" = \
+          "a419de7c068cbd0e083194bbe11c741b0497d28c"
+        test "$(git -C "$RUNNER_TEMP/pyapp" rev-parse 'HEAD^{tree}')" = \
+          "d87b89829042147f7b23c5fe4b5b14034d8164d4"
         project_wheel=$(basename "$app_wheel")
         cp "$app_wheel" "$RUNNER_TEMP/pyapp/$project_wheel"
         cd "$RUNNER_TEMP/pyapp"

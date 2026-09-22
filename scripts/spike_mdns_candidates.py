@@ -55,6 +55,9 @@ DEFAULT_EVIDENCE = (
 )
 DEFAULT_INPUTS = REPOSITORY_ROOT / "scripts/mdns_spike_inputs/active.json"
 ORACLE_REVISION = "48b7efbff59656499373b13ef17e3008d125feb5"
+PYAPP_REVISION = "a419de7c068cbd0e083194bbe11c741b0497d28c"
+PYAPP_TREE = "d87b89829042147f7b23c5fe4b5b14034d8164d4"
+PYAPP_VERSION = "0.26.0"
 ACTIVE_BUDGET_SECONDS = 4 * 60 * 60
 STARTED_AT = "2026-09-22T15:01:53Z"
 SERVICE_TYPE = "_lifx._udp.local."
@@ -907,14 +910,58 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
         await server.stop()
 
 
+def _probe_ipv6_route(address: str) -> dict[str, Any]:
+    """Ask the kernel whether a candidate ULA/GUA has a usable local route."""
+    try:
+        with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as probe:
+            probe.connect((address, 56700))
+    except OSError as error:
+        return {
+            "available": False,
+            "error_type": type(error).__name__,
+            "errno": error.errno,
+        }
+    return {"available": True, "error_type": None, "errno": None}
+
+
+async def _capture_direct_oracle(thread_address: str | None = None) -> dict[str, Any]:
+    """Retain an unavailable public-oracle leg without losing later raw probes."""
+    route = _probe_ipv6_route(thread_address) if thread_address else None
+    try:
+        result = await _run_direct_oracle(thread_address)
+    except Exception as error:
+        return {
+            "matched": False,
+            "address_class": (
+                "reachable-ula-gua" if thread_address else "selected-ipv4"
+            ),
+            "stage": "public-oracle",
+            "error_type": type(error).__name__,
+            "errno": getattr(error, "errno", None),
+            "route_probe": route,
+        }
+    result["stage"] = "public-oracle"
+    result["error_type"] = None
+    result["errno"] = None
+    result["route_probe"] = route
+    return result
+
+
 async def _lifx_direct_worker() -> int:
     started = time.monotonic()
     before = sorted(thread.name for thread in threading.enumerate())
+    stage = "reachable-address-discovery"
     try:
         reachable = _reachable_ipv6_addresses()
+        stage = "public-oracle-wifi"
+        wifi_oracle = await _capture_direct_oracle()
+        stage = "public-oracle-thread"
+        thread_oracle = (
+            await _capture_direct_oracle(reachable[0]) if reachable else None
+        )
         oracle = {
-            "wifi": await _run_direct_oracle(),
-            "thread": await _run_direct_oracle(reachable[0]) if reachable else None,
+            "wifi": wifi_oracle,
+            "thread": thread_oracle,
         }
         benchmarks: dict[str, Any] = {}
         for name, population in (
@@ -923,10 +970,12 @@ async def _lifx_direct_worker() -> int:
             ("mixed-10", (5, 5)),
             ("mixed-100", (50, 50)),
         ):
+            stage = f"raw-population-{name}"
             metrics = await _run_direct_population(*population)
             benchmarks[name] = metrics
             if metrics["complete_devices"] != metrics["expected"]:
                 break
+        stage = "malformed-input"
         try:
             build_legacy_unicast_responses(b"", [])
         except ValueError:
@@ -957,6 +1006,7 @@ async def _lifx_direct_worker() -> int:
             "execution_status": "completed",
             "error_type": type(error).__name__,
             "error": str(error),
+            "stage": stage,
             "environment": _environment(),
             "elapsed_seconds": time.monotonic() - started,
         }
@@ -1935,6 +1985,12 @@ def _write_intel_pyapp_receipt(args: argparse.Namespace) -> int:
             Path(args.app_metadata).read_bytes()
         ).hexdigest(),
         "direct_references": direct_references,
+        "pyapp": {
+            "version": PYAPP_VERSION,
+            "revision": PYAPP_REVISION,
+            "tree": PYAPP_TREE,
+        },
+        "uv_version": os.environ.get("UV_VERSION"),
         "recorded_at": _utc_now(),
     }
     _write_json(Path(args.output), receipt)
@@ -1965,6 +2021,14 @@ def _validate_ci_receipt(args: argparse.Namespace) -> int:
         if receipt.get("platform_leg") == "intel-pyapp":
             if receipt.get("candidate_status") != "meets_gate":
                 raise ValueError("Intel receipt is not a completed packaging gate")
+            if receipt.get("pyapp") != {
+                "version": PYAPP_VERSION,
+                "revision": PYAPP_REVISION,
+                "tree": PYAPP_TREE,
+            }:
+                raise ValueError("Intel receipt has mismatched PyApp source")
+            if receipt.get("uv_version") != "0.9.9":
+                raise ValueError("Intel receipt has mismatched uv version")
             if not all((receipt.get("direct_references") or {}).values()):
                 raise ValueError("Intel receipt lacks exact local wheel references")
             for name in (
