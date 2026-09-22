@@ -4,19 +4,13 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 HARNESS = REPOSITORY_ROOT / "scripts" / "spike_mdns_candidates.py"
 ELIGIBLE_OVERLAY = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "lifx_direct.py"
-EVIDENCE = (
-    REPOSITORY_ROOT
-    / ".planning"
-    / "phases"
-    / "03-mdns-responder"
-    / "03-01-EVIDENCE.json"
-)
 ACTIVE_INPUTS = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "active.json"
 
 
@@ -30,13 +24,81 @@ def _run(*arguments: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _evidence_fixture() -> dict[str, Any]:
+    """Build validator evidence without reading the mutable result ledger."""
+    inputs = json.loads(ACTIVE_INPUTS.read_text())
+    public_benchmarks = {
+        population: {
+            "complete_discovery_seconds": 0.1,
+            "representative_stock_connectivity": {"wifi": {"passed": True}},
+        }
+        for population in ("wifi-1", "thread-1", "mixed-10", "mixed-100")
+    }
+    demonstrated = {"status": "demonstrated", "evidence": "fixture proof"}
+    direct = {
+        "candidate": "lifx-direct",
+        "execution_status": "completed",
+        "candidate_status": "provisional",
+        "criteria": {
+            "wifi_benchmark": dict(demonstrated),
+            "thread_benchmark": dict(demonstrated),
+            "mixed_10_benchmark": dict(demonstrated),
+            "mixed_100_benchmark": dict(demonstrated),
+            "windows_socket_simulation": {
+                "status": "simulated",
+                "evidence": "fixture simulation",
+            },
+            "malformed_truncated_flood_bounds": dict(demonstrated),
+            "dynamic_lifecycle_recovery_fit": {
+                "status": "untested",
+                "evidence": "Recovery remains explicitly untested in this fixture.",
+                "acquisition_step": "Run integration recovery probes.",
+            },
+        },
+        "attempts": [
+            {
+                "public_oracle_benchmarks": public_benchmarks,
+                "windows_socket_simulation": {"all_passed": True},
+                "adversarial_bounds": {"all_passed": True},
+            }
+        ],
+    }
+    return {
+        "schema_version": 1,
+        "candidate_order": [
+            "zeroconf",
+            "lifx-direct",
+            "lifx-adapted",
+            "new-responder",
+        ],
+        "active_elapsed_seconds": 1.0,
+        "commands": [],
+        "environments": {},
+        "inputs": inputs,
+        "input_spec_digest": inputs["input_spec_digest"],
+        "candidates": [
+            {
+                "candidate": "zeroconf",
+                "execution_status": "completed",
+                "candidate_status": "rejected",
+                "criteria": {},
+                "attempts": [{"gate": "legacy-wire"}],
+            },
+            direct,
+        ],
+        "edge_coverage": [{"row": number} for number in range(46)],
+        "decision": {"status": "provisional", "reason": "fixture evidence"},
+        "pull_request": {"url": None},
+    }
+
+
 def test_single_wifi_legacy_unicast_tracer() -> None:
     """Require a complete captured zeroconf WiFi legacy-unicast attempt."""
     assert HARNESS.is_file(), (
         "the mDNS spike harness must exist before the WiFi legacy-unicast "
         "tracer can run"
     )
-    evidence = json.loads(EVIDENCE.read_text())
+    evidence = _evidence_fixture()
     candidate = evidence["candidates"][0]
     assert candidate["candidate"] == "zeroconf"
     assert candidate["execution_status"] == "completed"
@@ -90,8 +152,27 @@ def test_intel_temporary_wheel_allows_exact_direct_references() -> None:
 def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
     """Reject dirty source while leaving unrelated untracked files immaterial."""
     checkout = tmp_path / "oracle"
+    checkout.mkdir()
+    subprocess.run(["git", "init", "--quiet", str(checkout)], check=True)
+    tracked = checkout / "oracle.py"
+    tracked.write_text("PINNED = True\n")
+    subprocess.run(["git", "-C", str(checkout), "add", "oracle.py"], check=True)
     subprocess.run(
-        ["git", "clone", "--shared", "--quiet", str(REPOSITORY_ROOT), str(checkout)],
+        [
+            "git",
+            "-C",
+            str(checkout),
+            "-c",
+            "user.name=Spike Fixture",
+            "-c",
+            "user.email=spike@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-m",
+            "fixture",
+        ],
         check=True,
     )
     revision = subprocess.run(
@@ -116,7 +197,6 @@ def test_local_oracle_checkout_rejects_tracked_changes(tmp_path: Path) -> None:
         tree,
     )
     assert _run(*arguments).returncode == 0
-    tracked = checkout / "scripts" / "spike_mdns_candidates.py"
     tracked.write_text(tracked.read_text() + "\n")
     assert _run(*arguments).returncode == 1
 
@@ -196,7 +276,7 @@ def test_platform_result_separates_execution_from_compliance(
 
 def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
     """Require the now-eligible direct fallback to be a reviewable source file."""
-    evidence = json.loads(EVIDENCE.read_text())
+    evidence = _evidence_fixture()
     assert evidence["candidates"][0]["candidate_status"] == "rejected"
     assert ELIGIBLE_OVERLAY.is_file(), "eligible direct fallback overlay is absent"
 
@@ -234,67 +314,8 @@ def test_direct_result_retains_bounded_future_fit_checks(tmp_path: Path) -> None
 )
 def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> None:
     """Distinguish useful provisional evidence from invalid harness output."""
-    inputs = json.loads(ACTIVE_INPUTS.read_text())
-    public_benchmarks = {
-        population: {
-            "complete_discovery_seconds": 0.1,
-            "representative_stock_connectivity": {"wifi": {"passed": True}},
-        }
-        for population in ("wifi-1", "thread-1", "mixed-10", "mixed-100")
-    }
-    demonstrated = {"status": "demonstrated", "evidence": "fixture proof"}
-    direct = {
-        "candidate": "lifx-direct",
-        "execution_status": "completed",
-        "candidate_status": "provisional",
-        "criteria": {
-            "wifi_benchmark": dict(demonstrated),
-            "thread_benchmark": dict(demonstrated),
-            "mixed_10_benchmark": dict(demonstrated),
-            "mixed_100_benchmark": dict(demonstrated),
-            "windows_socket_simulation": {
-                "status": "simulated",
-                "evidence": "fixture simulation",
-            },
-            "malformed_truncated_flood_bounds": dict(demonstrated),
-            "dynamic_lifecycle_recovery_fit": {
-                "status": "untested",
-                "evidence": "Recovery remains explicitly untested in this fixture.",
-                "acquisition_step": "Run integration recovery probes.",
-            },
-        },
-        "attempts": [
-            {
-                "public_oracle_benchmarks": public_benchmarks,
-                "windows_socket_simulation": {"all_passed": True},
-                "adversarial_bounds": {"all_passed": True},
-            }
-        ],
-    }
-    evidence = {
-        "schema_version": 1,
-        "candidate_order": [
-            "zeroconf",
-            "lifx-direct",
-            "lifx-adapted",
-            "new-responder",
-        ],
-        "active_elapsed_seconds": 1.0,
-        "inputs": inputs,
-        "input_spec_digest": inputs["input_spec_digest"],
-        "candidates": [
-            {
-                "candidate": "zeroconf",
-                "execution_status": "completed",
-                "candidate_status": "rejected",
-                "criteria": {},
-                "attempts": [],
-            },
-            direct,
-        ],
-        "edge_coverage": [{"row": number} for number in range(46)],
-        "decision": {"status": "provisional"},
-    }
+    evidence = _evidence_fixture()
+    direct = evidence["candidates"][1]
     if mutation == "tool-error":
         evidence["candidates"][0]["execution_status"] = "tool_error"
     elif mutation == "unsupported-go":
@@ -323,7 +344,24 @@ def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> 
 
 def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
     """Resume at the first unmet gate without repeating the captured attempt."""
-    evidence = json.loads(EVIDENCE.read_text())
+    evidence = _evidence_fixture()
+    zeroconf = evidence["candidates"][0]
+    criterion_names = (
+        "oracle_discovery",
+        "wifi_benchmark",
+        "thread_benchmark",
+        "mixed_10_benchmark",
+        "mixed_100_benchmark",
+        "ubuntu_multicast",
+        "macos_multicast",
+        "intel_pyapp_first_run",
+        "direct_address_queries",
+    )
+    zeroconf["criteria"] = {
+        name: {"status": "not-run-with-reason", "evidence": "fixture rejection"}
+        for name in criterion_names
+    }
+    zeroconf["attempts"] = [{"gate": "legacy-wire"}]
     before = sum(
         attempt["gate"] == "legacy-wire"
         for attempt in evidence["candidates"][0]["attempts"]
