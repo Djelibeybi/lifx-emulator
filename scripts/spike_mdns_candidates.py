@@ -315,6 +315,7 @@ def _new_scoped_mdns_responder(
                 "reply_bound_address": (
                     "selected-ipv4" if reply_address == interface else reply_address
                 ),
+                "reply_source_port": 5353,
                 "scope_controls": scope_controls,
                 "wildcard_bound": bound_address in {"", "0.0.0.0"},
             },
@@ -327,9 +328,23 @@ def _new_scoped_mdns_responder(
 
 def _probe_responder_scope(args: argparse.Namespace) -> int:
     """Record a live, privacy-safe listener scope result."""
-    responder, reply_sender, scope = _new_scoped_mdns_responder(
-        _select_ipv4_interface()
-    )
+    try:
+        responder, reply_sender, scope = _new_scoped_mdns_responder(
+            _select_ipv4_interface()
+        )
+    except OSError as error:
+        if error.errno != errno.EADDRINUSE:
+            raise
+        _write_json(
+            Path(args.output),
+            {
+                "environment_unavailable": True,
+                "error_errno": error.errno,
+                "error_type": type(error).__name__,
+                "stage": "bind-selected-reply-source-5353",
+            },
+        )
+        return 0
     responder.close()
     reply_sender.close()
     _write_json(Path(args.output), scope)
@@ -857,7 +872,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
         sizes: list[int] = []
         wire_checks: list[bool] = []
         while len(discovered) < total:
-            raw, _ = await _receive_one(client, 5.0)
+            raw, response_source = await _receive_one(client, 5.0)
             parsed = parse_dns_response(raw)
             ids = {
                 record.parsed_data.pairs["id"]
@@ -894,6 +909,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
                     and len(parsed.records) == 4
                     and all(not record.cache_flush for record in parsed.records)
                     and all(0 < record.ttl <= 10 for record in parsed.records)
+                    and response_source[1] == 5353
                     and txt_records
                     == [
                         {
@@ -1423,7 +1439,7 @@ async def _lifx_direct_worker() -> int:
     except Exception as error:
         environment_unavailable = (
             isinstance(error, OSError)
-            and error.errno in {errno.ENETUNREACH, errno.EHOSTUNREACH}
+            and error.errno in {errno.EADDRINUSE, errno.ENETUNREACH, errno.EHOSTUNREACH}
             and (
                 stage.startswith("raw-population-")
                 or stage.startswith("public-oracle-benchmark-")
