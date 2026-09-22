@@ -69,6 +69,8 @@ def test_ci_prepares_required_daemon_and_synthetic_ula() -> None:
     assert "runner-configured-synthetic-ula" in workflow
     assert 'git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD' in workflow
     assert "route -n get -inet 224.0.0.251" in workflow
+    assert "route -n add -host 224.0.0.251" in workflow
+    assert "MDNS_SPIKE_ROUTE_INTERFACE_PRESENT=true" in workflow
     assert "prefixlen 64 alias" in workflow
 
 

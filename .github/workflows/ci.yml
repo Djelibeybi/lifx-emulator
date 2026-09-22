@@ -131,6 +131,16 @@ jobs:
             awk '/interface:/{print $2}')
           test -n "$mdns_interface"
           sudo ifconfig "$mdns_interface" inet6 fd00:3:1::1 prefixlen 64 alias
+          # The hosted arm64 runner can resolve the general multicast route yet
+          # return ENETUNREACH on the first send.  Install one disposable,
+          # destination-specific route on the interface selected by the kernel.
+          sudo route -n add -host 224.0.0.251 -interface "$mdns_interface" \
+            >/dev/null 2>&1 || \
+            sudo route -n change -host 224.0.0.251 -interface "$mdns_interface" \
+              >/dev/null 2>&1
+          test "$(route -n get -inet 224.0.0.251 | \
+            awk '/interface:/{print $2}')" = "$mdns_interface"
+          echo "MDNS_SPIKE_ROUTE_INTERFACE_PRESENT=true" >> "$GITHUB_ENV"
         fi
         echo "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN=runner-configured-synthetic-ula" \
           >> "$GITHUB_ENV"
