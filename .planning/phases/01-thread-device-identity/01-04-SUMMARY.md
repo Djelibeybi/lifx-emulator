@@ -128,7 +128,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D8
-    description: "A WiFi and a Thread device in one DeviceManager each answer with their own bit, including through the tagged-broadcast target-resolution path (Phase 2 NET-03 baseline)"
+    description: "WiFi and Thread device replies retain their own identity bit; tagged broadcasts select only WiFi devices (updated for Phase 2 NET-03 during 2026-09-22 re-verification)"
     requirement: "HDR-02"
     verification:
       - kind: unit

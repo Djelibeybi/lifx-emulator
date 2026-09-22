@@ -3,7 +3,7 @@ status: complete
 phase: 01-thread-device-identity
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md]
 started: 2026-09-09T09:25:00Z
-updated: 2026-09-09T23:19:17Z
+updated: 2026-09-22T09:32:39Z
 ---
 
 ## Current Test
@@ -12,7 +12,7 @@ updated: 2026-09-09T23:19:17Z
 
 Single confirmation checkpoint: all 28 deliverables were classified as
 automatically covered (human_judgment: false, every verification ref passing
-in the latest run: 1229 tests, ruff, pyright clean). User response: "approved".
+in the latest run at a089791: 1,400 tests, 95.34% coverage, Ruff, Pyright and all pre-commit checks passed). User response on 2026-09-22: "approved".
 
 ## Tests
 
@@ -173,7 +173,7 @@ source: automated
 coverage_id: 01-04/D7
 
 ### 27. Mixed WiFi and Thread fleet (01-04 D8, HDR-02)
-expected: A WiFi and a Thread device in one `DeviceManager` each answer with their own bit, including through the tagged-broadcast path
+expected: WiFi and Thread device replies retain their own identity bit; tagged broadcasts select only WiFi devices, as required by Phase 2 NET-03
 result: pass
 source: automated
 coverage_id: 01-04/D8
@@ -196,3 +196,9 @@ blocked: 0
 ## Gaps
 
 [none yet]
+
+## Re-verification Evidence
+
+Verified by Codex at source revision `a089791a42c8ab4cfa36a562fa89cf83b62441ee` on 2026-09-22. All 28 coverage entries classify as automatically covered; all 13 trackable decisions remain honoured. The four legacy summaries lack `plan_head_before`, so commit-count reconciliation is unavailable rather than a measured mismatch.
+
+The suite emitted one existing Starlette test-client deprecation and three expected `--persistent` deprecations. No coroutine warnings or failures occurred. The mixed-fleet expectation above replaces the Phase 1 broadcast baseline with the implemented Phase 2 contract.
