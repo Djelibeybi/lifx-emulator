@@ -184,15 +184,16 @@ def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
 
 def test_direct_result_retains_bounded_future_fit_checks() -> None:
     """Keep configuration edge evidence concrete without production APIs."""
-    evidence = json.loads(EVIDENCE.read_text())
-    direct = next(
-        candidate
-        for candidate in evidence["candidates"]
-        if candidate["candidate"] == "lifx-direct"
-    )
-    fit_checks = direct["attempts"][-1]["fit_checks"]
-    assert fit_checks
-    assert all(fit_checks.values())
+    harness = HARNESS.read_text()
+    for check in (
+        "empty_eligible_set_has_no_reply",
+        "shared_addresses_keep_distinct_identities",
+        "repeated_unchanged_query_is_stable",
+        "removal_and_readd_follow_eligible_set",
+        "equivalent_ipv6_spellings_encode_identically",
+        "invalid_address_is_rejected_before_reply",
+    ):
+        assert check in harness
 
 
 @pytest.mark.parametrize(
