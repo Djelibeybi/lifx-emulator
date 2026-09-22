@@ -1,5 +1,6 @@
 """Focused tests for the Phase 3 mDNS candidate evidence harness."""
 
+import errno
 import json
 import subprocess
 import sys
@@ -305,9 +306,14 @@ def test_responder_listener_is_interface_scoped(tmp_path: Path) -> None:
     completed = _run("probe-responder-scope", "--output", str(output))
     assert completed.returncode == 0, completed.stderr
     payload = json.loads(output.read_text())
+    if payload.get("environment_unavailable"):
+        assert payload["error_errno"] == errno.EADDRINUSE
+        assert payload["stage"] == "bind-selected-reply-source-5353"
+        return
     assert payload["bound_address"] == "224.0.0.251"
     assert payload["membership_interface"] != "0.0.0.0"
     assert payload["reply_bound_address"] == "selected-ipv4"
+    assert payload["reply_source_port"] == 5353
     assert payload["wildcard_bound"] is False
     assert payload["platform_scope_applied"] is True
 
