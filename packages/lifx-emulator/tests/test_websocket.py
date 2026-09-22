@@ -12,17 +12,23 @@ import lifx_emulator_app.api.app as api_app_module
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.background_tasks import BackgroundTaskTracker
-from lifx_emulator.devices import DeviceManager, PacketEvent
-from lifx_emulator.factories import create_color_light
+from lifx_emulator.devices import ActivityLogger, DeviceManager, PacketEvent
+from lifx_emulator.factories import (
+    create_color_light,
+    create_multizone_light,
+    create_tile_device,
+)
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api.app import create_api_app
 from lifx_emulator_app.api.services import MessageType, Topic, WebSocketManager
 from lifx_emulator_app.api.services.event_bridge import (
+    StatsBroadcaster,
     WebSocketActivityObserver,
     WebSocketEventQueue,
     WebSocketStateChangeObserver,
     wire_device_events,
+    wire_device_state_events,
 )
 
 
@@ -459,9 +465,6 @@ class TestEventBridge:
 
     def test_wire_device_events_with_non_device_manager(self):
         """Test wire_device_events handles non-DeviceManager instances."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import wire_device_events
 
         # Create a mock that's not a DeviceManager
         mock_manager = MagicMock()
@@ -472,11 +475,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_init_with_inner(self):
         """Test WebSocketActivityObserver initializes with inner observer."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_inner = MagicMock()
@@ -486,12 +484,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_init_without_inner(self):
         """Test WebSocketActivityObserver creates ActivityLogger when no inner."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator.devices import ActivityLogger
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
 
@@ -500,11 +492,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_get_recent_activity(self):
         """Test WebSocketActivityObserver.get_recent_activity delegates to inner."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_inner = MagicMock()
@@ -518,11 +505,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_get_recent_activity_no_method(self):
         """Test get_recent_activity returns empty list when inner lacks method."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_inner = MagicMock(spec=[])  # No get_recent_activity method
@@ -534,10 +516,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_on_packet_received(self):
         """Test on_packet_received broadcasts activity."""
-        from lifx_emulator.devices import PacketEvent
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_activity = AsyncMock()
@@ -574,10 +552,6 @@ class TestEventBridge:
 
     def test_websocket_activity_observer_on_packet_sent(self):
         """Test on_packet_sent broadcasts activity."""
-        from lifx_emulator.devices import PacketEvent
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketActivityObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_activity = AsyncMock()
@@ -614,12 +588,6 @@ class TestEventBridge:
 
     def test_wire_device_state_events_with_non_device_manager(self):
         """Test wire_device_state_events handles non-DeviceManager instances."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-            wire_device_state_events,
-        )
 
         # Create a mock that's not a DeviceManager
         mock_manager = MagicMock()
@@ -631,14 +599,6 @@ class TestEventBridge:
 
     def test_wire_device_state_events_wires_existing_devices(self):
         """Test wire_device_state_events wires callback to existing devices."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator.devices import DeviceManager
-        from lifx_emulator.repositories import DeviceRepository
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-            wire_device_state_events,
-        )
 
         # Create manager with a device
         device_manager = DeviceManager(DeviceRepository())
@@ -657,15 +617,6 @@ class TestEventBridge:
 
     def test_wire_device_state_events_wires_new_devices(self):
         """Test wire_device_state_events wires callback to newly added devices."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator.devices import DeviceManager
-        from lifx_emulator.repositories import DeviceRepository
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-            wire_device_events,
-            wire_device_state_events,
-        )
 
         # Create empty manager
         device_manager = DeviceManager(DeviceRepository())
@@ -687,9 +638,6 @@ class TestEventBridge:
 
     def test_state_change_observer_invokes_broadcast(self, server):
         """Test WebSocketStateChangeObserver broadcasts device updates."""
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
@@ -786,11 +734,6 @@ class TestEventBridge:
 
     def test_state_change_observer_category_detection(self):
         """Test WebSocketStateChangeObserver correctly categorizes packet types."""
-        from unittest.mock import MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-        )
 
         mock_ws_manager = MagicMock()
         observer = WebSocketStateChangeObserver(mock_ws_manager)
@@ -818,10 +761,6 @@ class TestEventBridge:
 
     def test_state_change_observer_with_zone_device(self):
         """Test WebSocketStateChangeObserver broadcasts zone changes."""
-        from lifx_emulator.factories import create_multizone_light
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
@@ -838,10 +777,6 @@ class TestEventBridge:
 
     def test_state_change_observer_with_tile_device(self):
         """Test WebSocketStateChangeObserver broadcasts tile changes."""
-        from lifx_emulator.factories import create_tile_device
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
@@ -858,10 +793,6 @@ class TestEventBridge:
 
     def test_state_change_observer_with_metadata_change(self):
         """Test WebSocketStateChangeObserver broadcasts metadata changes."""
-        from lifx_emulator.factories import create_color_light
-        from lifx_emulator_app.api.services.event_bridge import (
-            WebSocketStateChangeObserver,
-        )
 
         mock_ws_manager = MagicMock()
         mock_ws_manager.broadcast_device_updated = AsyncMock()
@@ -893,7 +824,6 @@ class TestStatsBroadcaster:
     @pytest.mark.asyncio
     async def test_stats_broadcaster_start_stop(self, server, ws_manager):
         """Test StatsBroadcaster can be started and stopped."""
-        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
 
         broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
 
@@ -915,7 +845,6 @@ class TestStatsBroadcaster:
     @pytest.mark.asyncio
     async def test_stats_broadcaster_start_idempotent(self, server, ws_manager):
         """Test calling start() multiple times is idempotent."""
-        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
 
         broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
 
@@ -934,7 +863,6 @@ class TestStatsBroadcaster:
     @pytest.mark.asyncio
     async def test_stats_broadcaster_stop_idempotent(self, server, ws_manager):
         """Test calling stop() when not running is safe."""
-        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
 
         broadcaster = StatsBroadcaster(server, ws_manager, interval=0.1)
 
@@ -945,9 +873,6 @@ class TestStatsBroadcaster:
     @pytest.mark.asyncio
     async def test_stats_broadcaster_handles_broadcast_exception(self):
         """Test StatsBroadcaster handles exceptions in broadcast loop."""
-        from unittest.mock import AsyncMock, MagicMock
-
-        from lifx_emulator_app.api.services.event_bridge import StatsBroadcaster
 
         mock_server = MagicMock()
         mock_server.get_stats = MagicMock(side_effect=RuntimeError("Stats error"))
@@ -973,7 +898,6 @@ class TestWebSocketManagerBroadcasting:
     @pytest.mark.asyncio
     async def test_broadcast_methods_coverage(self, ws_manager):
         """Test all broadcast methods for coverage."""
-        from unittest.mock import AsyncMock, MagicMock
 
         # Create mock WebSocket and register with all subscriptions
         mock_ws = MagicMock()
@@ -1006,7 +930,6 @@ class TestWebSocketManagerBroadcasting:
     @pytest.mark.asyncio
     async def test_broadcast_error_handling(self, ws_manager):
         """Test broadcast handles client send failures."""
-        from unittest.mock import AsyncMock, MagicMock
 
         # Create mock that fails on send
         mock_ws = MagicMock()
@@ -1028,7 +951,6 @@ class TestWebSocketManagerBroadcasting:
     @pytest.mark.asyncio
     async def test_send_to_client_error_handling(self, ws_manager):
         """Test _send_to_client method handles exceptions."""
-        from unittest.mock import AsyncMock, MagicMock
 
         mock_ws = MagicMock()
         mock_ws.accept = AsyncMock()
@@ -1045,7 +967,6 @@ class TestWebSocketManagerBroadcasting:
     @pytest.mark.asyncio
     async def test_sync_with_nonexistent_client(self, ws_manager):
         """Test _send_full_sync handles nonexistent client gracefully."""
-        from unittest.mock import MagicMock
 
         # Create a mock websocket that was never connected
         mock_ws = MagicMock()
@@ -1059,7 +980,6 @@ class TestWebSocketExceptionHandling:
 
     def test_websocket_error_logging(self, client, caplog):
         """Test WebSocket logs errors when invalid data is received."""
-        import logging
 
         with caplog.at_level(logging.ERROR):
             # Note: TestClient has limitations with async WebSocket error scenarios

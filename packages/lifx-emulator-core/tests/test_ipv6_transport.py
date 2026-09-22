@@ -48,6 +48,7 @@ def _get_label_request(
     sequence: int,
     target: bytes | None = None,
     tagged: bool = False,
+    ack_required: bool = False,
 ) -> bytes:
     """Build one response-requesting GetLabel datagram."""
     return LifxHeader(
@@ -57,6 +58,7 @@ def _get_label_request(
         sequence=sequence,
         pkt_type=23,
         tagged=tagged,
+        ack_required=ack_required,
         res_required=True,
     ).pack()
 
@@ -153,7 +155,7 @@ async def test_thread_exact_ipv6_unicast_is_sole_response_path():
     """Thread stays silent for IPv4, broadcast, tagged, zero and mismatch cases."""
     thread_device = create_color_light("d073d5000202", connectivity="thread")
     server = EmulatedLifxServer(
-        [thread_device], DeviceManager(DeviceRepository()), port=0, track_activity=False
+        [thread_device], DeviceManager(DeviceRepository()), port=0
     )
     ipv4_transport = None
     ipv6_transport = None
@@ -195,6 +197,7 @@ async def test_thread_exact_ipv6_unicast_is_sole_response_path():
                     sequence=sequence,
                     target=target,
                     tagged=tagged,
+                    ack_required=True,
                 ),
                 endpoint,
             )
@@ -215,6 +218,7 @@ async def test_thread_exact_ipv6_unicast_is_sole_response_path():
         assert LifxHeader.unpack(response).sequence == 99
         assert ":" in peer[0]
         assert server.packets_received == baseline_received + 1
+        assert server.get_recent_activity()
         assert ipv4_protocol.received.empty()
     finally:
         await server.stop()
