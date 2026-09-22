@@ -1,6 +1,7 @@
 ---
 phase: 01-thread-device-identity
-verified: 2026-09-09T23:52:09Z
+verified: 2026-09-22T09:32:39Z
+verified_revision: a089791a42c8ab4cfa36a562fa89cf83b62441ee
 status: passed
 score: 12/12 must-haves verified
 covered_files:
@@ -38,11 +39,11 @@ covered_files:
   - "packages/lifx-emulator-core/tests/test_products_specs.py"
   - "packages/lifx-emulator-core/tests/test_thread_identity.py"
   - "packages/lifx-emulator-core/tests/test_tile_handlers_extended.py"
-covered_digest: "v1:sha256:04e43993000ff76d78691ca2f96127e29ae6991c9372c1c505a400544bbdea93"
+covered_digest: "v1:sha256:bfc8e8955af1550b77a97f4dc40576dbf1a5bf8848f6e732deba693ac1921033"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: passed
+  previous_status: stale
   previous_score: 12/12
   gaps_closed: []
   gaps_remaining: []
@@ -50,6 +51,36 @@ re_verification:
 ---
 
 # Phase 1: Thread Device Identity Verification Report
+
+## Current Re-verification — 2026-09-22
+
+**Status:** passed — 12/12 previously established truths retained; 28/28 UAT deliverables automatically covered and approved by the user.
+**Source revision:** `a089791a42c8ab4cfa36a562fa89cf83b62441ee`.
+**Verifier:** Codex, inline source/diff inspection and fresh local checks on macOS with Python 3.14.7.
+
+The earlier fingerprint became stale after Phase 2 changed covered implementation and planning inputs. Inspection confirmed connectivity-derived response headers, immutable network identity, firmware floor/ceiling enforcement, factory forwarding and cached persistence restoration remain wired. Existing identity, header, firmware, matrix, scenario and persistence tests all passed in the full workspace run.
+
+The mixed-fleet test intentionally changed under Phase 2 NET-03: tagged broadcasts select WiFi devices only. Device replies retain their respective identity bits. UAT test 27 and the Plan 04 coverage description now reflect that contract; the historical Phase 1 broadcast baseline is superseded.
+
+| Check | Fresh result |
+| --- | --- |
+| `uv run --frozen pytest -q -p no:sugar --cov-fail-under=80` | 1,400 passed; 95.34% coverage; 14.87s |
+| `uv run --frozen ruff check .` | Passed |
+| `uv run --frozen ruff format --check .` | 116 files already formatted |
+| `uv run --frozen pyright` | 0 errors, warnings or information diagnostics |
+| `uv run --frozen prek run --all-files` | All hooks passed |
+| GSD coverage classification | 28/28 automatically covered; no classification errors |
+| GSD decision coverage | 13/13 honoured |
+| Phase artifact audit | No Phase 01 open items |
+| User confirmation | Approved on 2026-09-22 |
+
+Commands used a writable temporary uv cache; pre-commit used a temporary prek cache. Four test warnings remain: one existing Starlette test-client deprecation and three expected deprecated-CLI warnings. No coroutine warnings occurred. The legacy summaries lack `plan_head_before`; commit-count reconciliation is unavailable, not a measured mismatch. No new security audit is claimed; the existing Phase 01 security report records zero open threats.
+
+No implementation changes were needed. The canonical fingerprint was recomputed with `verification.fingerprint` after updating the covered summary. Phase 01 was already marked complete in the roadmap; this refresh preserves the project's Phase 03 focus rather than repeating its historical transition.
+
+## Historical Verification — 2026-09-09
+
+The report below records the previous verification run. Its dates, counts and source line references are historical; the current verdict and evidence above supersede them.
 
 **Phase Goal:** A core-library device can be created as a Thread device, and everything about its identity — firmware, WiFi reporting, persisted state and every header byte it emits — matches a real Thread bulb.
 **Verified:** 2026-09-09T23:52:09Z
