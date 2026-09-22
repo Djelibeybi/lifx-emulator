@@ -1,0 +1,530 @@
+{
+  "active_budget_seconds": 14400,
+  "active_elapsed_seconds": 1348.09,
+  "candidate_order": [
+    "zeroconf",
+    "lifx-direct",
+    "lifx-adapted",
+    "new-responder"
+  ],
+  "candidates": [
+    {
+      "attempts": [
+        {
+          "candidate_status": "meets_gate",
+          "elapsed_seconds": 1.2759641660377383,
+          "environment": {
+            "architecture": "arm64",
+            "implementation": "CPython",
+            "os": "darwin",
+            "os_release": "27.0.0",
+            "python": "3.14.7",
+            "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+          },
+          "error": null,
+          "error_type": null,
+          "execution_status": "completed",
+          "gate": "legacy-wire",
+          "probe": {
+            "a_only": true,
+            "all_cache_flush_clear": true,
+            "client_endpoint": [
+              "192.168.17.244",
+              50249
+            ],
+            "datagram_size": 174,
+            "interface": "192.168.17.244",
+            "lifx_async_version": "7.3.0",
+            "peer": [
+              "192.168.17.244",
+              5353
+            ],
+            "query_id": 48879,
+            "question_count": 1,
+            "record_count": 5,
+            "record_types": [
+              "PTR",
+              "SRV",
+              "A",
+              "TYPE47",
+              "TXT"
+            ],
+            "required_records_present": true,
+            "response_id": 48879,
+            "response_received_on_ephemeral_socket": true,
+            "service_port": 53574,
+            "threads_before_close": [
+              "MainThread"
+            ],
+            "ttl_valid": true,
+            "ttl_values": [
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "txt_exact": true,
+            "txt_records": [
+              {
+                "fw": "4.200",
+                "id": "d073d5000001",
+                "p": "27",
+                "tm": "1"
+              }
+            ],
+            "zeroconf_version": "0.151.3"
+          },
+          "recorded_at": "2026-09-22T15:20:19.281956Z"
+        }
+      ],
+      "candidate": "zeroconf",
+      "candidate_status": "provisional",
+      "criteria": {
+        "daemon_coexistence": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "direct_address_queries": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "exact_txt_and_family": {
+          "acquisition_step": null,
+          "evidence": "TXT=[{'fw': '4.200', 'id': 'd073d5000001', 'p': '27', 'tm': '1'}]; A-only=True",
+          "status": "demonstrated"
+        },
+        "intel_pyapp_first_run": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "legacy_wire": {
+          "acquisition_step": null,
+          "evidence": "{\"a_only\": true, \"all_cache_flush_clear\": true, \"client_endpoint\": [\"192.168.17.244\", 50249], \"datagram_size\": 174, \"interface\": \"192.168.17.244\", \"lifx_async_version\": \"7.3.0\", \"peer\": [\"192.168.17.244\", 5353], \"query_id\": 48879, \"question_count\": 1, \"record_count\": 5, \"record_types\": [\"PTR\", \"SRV\", \"A\", \"TYPE47\", \"TXT\"], \"required_records_present\": true, \"response_id\": 48879, \"response_received_on_ephemeral_socket\": true, \"service_port\": 53574, \"threads_before_close\": [\"MainThread\"], \"ttl_valid\": true, \"ttl_values\": [10, 10, 10, 10, 10], \"txt_exact\": true, \"txt_records\": [{\"fw\": \"4.200\", \"id\": \"d073d5000001\", \"p\": \"27\", \"tm\": \"1\"}], \"zeroconf_version\": \"0.151.3\"}",
+          "status": "demonstrated"
+        },
+        "lifecycle_cleanup": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "macos_multicast": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "mixed_100_benchmark": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "mixed_10_benchmark": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "official_provenance": {
+          "acquisition_step": null,
+          "evidence": "PyPI JSON resolved latest non-yanked zeroconf 0.151.3 with sdist SHA256 ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a; annotated tag resolves to b7aea22b51d82f2139c9143292e86a361ea6796f. GitHub commits API and a detached exact-SHA fetch verified oracle 48b7efbff59656499373b13ef17e3008d125feb5.",
+          "status": "demonstrated"
+        },
+        "oracle_discovery": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "packet_boundary": {
+          "acquisition_step": null,
+          "evidence": "One captured datagram carried record types ['PTR', 'SRV', 'A', 'TYPE47', 'TXT'] and 5 records.",
+          "status": "demonstrated"
+        },
+        "thread_benchmark": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "ubuntu_multicast": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "wifi_benchmark": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        },
+        "windows_socket_simulation": {
+          "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+          "evidence": "Not yet reached by the progressive candidate sequence.",
+          "status": "untested"
+        }
+      },
+      "elapsed_active_seconds": 1348.09,
+      "execution_status": "completed"
+    }
+  ],
+  "ci_queue_seconds": 0.0,
+  "commands": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-09-22T15:20:19.281815Z"
+    }
+  ],
+  "decision": {
+    "extension_case": null,
+    "reason": "One or more required platform, packaging, oracle, benchmark or lifecycle gates remain untested.",
+    "status": "provisional"
+  },
+  "edge_coverage": [
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-01",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-02",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-03",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-04",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-05",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-06",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-07",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-08",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-09",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-10",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-11",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-12",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-13",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-14",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-15",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-16",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-17",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-18",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-19",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-20",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-21",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-22",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-23",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-24",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-25",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-26",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-27",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-28",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-29",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-30",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-31",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-32",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-33",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-34",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-35",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-36",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-37",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-38",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-39",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-40",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-41",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-42",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-43",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-44",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-45",
+      "status": "untested"
+    },
+    {
+      "acquisition_step": "Acquire the mapped criterion evidence.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "id": "SPEC-edge-46",
+      "status": "untested"
+    }
+  ],
+  "environments": {
+    "darwin/arm64/3.14.7": {
+      "architecture": "arm64",
+      "implementation": "CPython",
+      "os": "darwin",
+      "os_release": "27.0.0",
+      "python": "3.14.7",
+      "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
+    }
+  },
+  "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+  "inputs": {
+    "candidate": {
+      "commit": "b7aea22b51d82f2139c9143292e86a361ea6796f",
+      "name": "zeroconf",
+      "overlay_digest": null,
+      "sdist_sha256": "ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a",
+      "sdist_url": "https://files.pythonhosted.org/packages/2b/7f/bb22975bbbc04765920b766e433410422794568053bff0ab5b3f0bf0197c/zeroconf-0.151.3.tar.gz",
+      "tag": "0.151.3",
+      "tree": "46f1c2da6670ed0189f78c14a5d65662ac7a7916",
+      "version": "0.151.3"
+    },
+    "constraints": {
+      "candidate_install": "zeroconf==0.151.3",
+      "core_install": "./packages/lifx-emulator-core",
+      "lifx_async_install": "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+      "production_dependencies_unchanged": true,
+      "python": ">=3.10,<3.15"
+    },
+    "emulator_core": {
+      "repository_revision": "8f31243d7760d61063989b24a146509304208317",
+      "tree": "88a6de500bca4a69fc1560ac85fe707564004766"
+    },
+    "generator": {
+      "path": "scripts/spike_mdns_candidates.py",
+      "revision": "03-01-zeroconf-v1"
+    },
+    "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+    "oracle": {
+      "commit_api_verified": true,
+      "detached_fetch_verified": true,
+      "revision": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533"
+    },
+    "schema_version": 1
+  },
+  "plan": "03-01",
+  "pull_request": {
+    "candidate_head_sha": null,
+    "runs": [],
+    "url": null
+  },
+  "requirement": "MDNS-10",
+  "schema_version": 1,
+  "started_at": "2026-09-22T15:01:53Z",
+  "updated_at": "2026-09-22T15:24:21.089650Z"
+}

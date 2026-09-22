@@ -1,0 +1,35 @@
+{
+  "candidate": {
+    "commit": "b7aea22b51d82f2139c9143292e86a361ea6796f",
+    "name": "zeroconf",
+    "overlay_digest": null,
+    "sdist_sha256": "ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a",
+    "sdist_url": "https://files.pythonhosted.org/packages/2b/7f/bb22975bbbc04765920b766e433410422794568053bff0ab5b3f0bf0197c/zeroconf-0.151.3.tar.gz",
+    "tag": "0.151.3",
+    "tree": "46f1c2da6670ed0189f78c14a5d65662ac7a7916",
+    "version": "0.151.3"
+  },
+  "constraints": {
+    "candidate_install": "zeroconf==0.151.3",
+    "core_install": "./packages/lifx-emulator-core",
+    "lifx_async_install": "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+    "production_dependencies_unchanged": true,
+    "python": ">=3.10,<3.15"
+  },
+  "emulator_core": {
+    "repository_revision": "8f31243d7760d61063989b24a146509304208317",
+    "tree": "88a6de500bca4a69fc1560ac85fe707564004766"
+  },
+  "generator": {
+    "path": "scripts/spike_mdns_candidates.py",
+    "revision": "03-01-zeroconf-v1"
+  },
+  "input_spec_digest": "ce65e5472a6614bed6cc4fa09069a1de8aea17f486ed03127224d16142285717",
+  "oracle": {
+    "commit_api_verified": true,
+    "detached_fetch_verified": true,
+    "revision": "48b7efbff59656499373b13ef17e3008d125feb5",
+    "tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533"
+  },
+  "schema_version": 1
+}
