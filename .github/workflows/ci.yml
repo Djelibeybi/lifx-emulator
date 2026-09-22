@@ -106,10 +106,37 @@ jobs:
         version: ${{ env.UV_VERSION }}
         python-version: ${{ env.PYTHON_VERSION }}
 
+    - name: Prepare host daemon, synthetic ULA and exact oracle
+      if: steps.expensive.outputs.run == 'true'
+      env:
+        SOURCE_REVISION: 48b7efbff59656499373b13ef17e3008d125feb5
+      shell: bash
+      run: |
+        set -euo pipefail
+        git init "$RUNNER_TEMP/lifx-async"
+        git -C "$RUNNER_TEMP/lifx-async" remote add origin \
+          https://github.com/Djelibeybi/lifx-async.git
+        git -C "$RUNNER_TEMP/lifx-async" fetch --depth 1 origin "$SOURCE_REVISION"
+        git -C "$RUNNER_TEMP/lifx-async" checkout --detach FETCH_HEAD
+        test "$(git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD)" = "$SOURCE_REVISION"
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          sudo apt-get update
+          sudo apt-get install -y avahi-daemon
+          sudo systemctl start avahi-daemon
+          sudo ip -6 addr add fd00:3:1::1/128 dev lo
+          pgrep -x avahi-daemon
+        else
+          pgrep -x mDNSResponder
+          sudo ifconfig lo0 inet6 fd00:3:1::1 prefixlen 128 alias
+        fi
+        echo "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN=runner-configured-synthetic-ula" \
+          >> "$GITHUB_ENV"
+
     - name: Exercise exact candidate head
       if: steps.expensive.outputs.run == 'true'
       env:
         EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
+        MDNS_SPIKE_ORACLE_PATH: ${{ runner.temp }}/lifx-async
       run: |
         uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov
         uv run --frozen python scripts/spike_mdns_candidates.py \
@@ -240,7 +267,7 @@ jobs:
         core_wheel=$(find "$wheels" -name 'lifx_emulator_core-*.whl' -print -quit)
         candidate_wheel=$(find "$wheels" -name 'lifx_async-*.whl' -print -quit)
         uv run --frozen python -c \
-          'import pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); p.write_text(s)' \
+          'import pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
           "$RUNNER_TEMP/lifx-emulator-app/pyproject.toml" "$core_wheel" "$candidate_wheel"
         uv build --wheel "$RUNNER_TEMP/lifx-emulator-app" --out-dir "$wheels"
         app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)

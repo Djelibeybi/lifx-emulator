@@ -997,7 +997,13 @@ def _expanded_worker_command(inputs: dict[str, Any]) -> list[str]:
 
 
 def _direct_worker_command(inputs: dict[str, Any]) -> list[str]:
+    oracle_path = os.environ.get("MDNS_SPIKE_ORACLE_PATH")
     command = _worker_command(inputs)
+    if oracle_path:
+        dependency_index = command.index(
+            f"lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@{ORACLE_REVISION}"
+        )
+        command[dependency_index] = oracle_path
     command.append("--direct")
     return command
 
@@ -1727,6 +1733,18 @@ def validate_evidence(path: Path) -> int:
 
 def _run_direct_platform(args: argparse.Namespace) -> int:
     inputs = resolve_inputs()
+    oracle_path = os.environ.get("MDNS_SPIKE_ORACLE_PATH")
+    if oracle_path:
+        candidate = inputs["fallbacks"]["lifx-direct"]
+        if not _oracle_checkout_matches(
+            oracle_path, candidate["base_revision"], candidate["base_tree"]
+        ):
+            print(
+                "local oracle checkout differs from the immutable commit/tree or "
+                "has tracked changes",
+                file=sys.stderr,
+            )
+            return 1
     command = _direct_worker_command(inputs)
     environment = dict(os.environ)
     environment["MDNS_SPIKE_WORKER"] = "1"
@@ -1759,11 +1777,22 @@ def _run_direct_platform(args: argparse.Namespace) -> int:
             for metrics in result["benchmarks"].values()
         )
     )
+    daemon_present = bool(result.get("daemon_processes"))
+    thread_oracle_present = (result.get("oracle") or {}).get("thread") is not None
+    candidate_status = (
+        "meets_gate"
+        if valid and daemon_present and thread_oracle_present
+        else "provisional"
+    )
     payload = {
         "schema_version": 1,
         "platform_candidate": "lifx-direct",
         "input_spec_digest": inputs["input_spec_digest"],
         "valid": valid,
+        "candidate_status": candidate_status,
+        "thread_address_origin": os.environ.get(
+            "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN", "host-existing"
+        ),
         "command": command,
         "result": result,
     }
@@ -1808,6 +1837,8 @@ def _write_ci_receipt(args: argparse.Namespace) -> int:
         "candidate_base_tree": base_tree,
         "candidate_overlay_digest": overlay_digest,
         "candidate_final_digest": final_digest,
+        "candidate_status": evidence.get("candidate_status", "provisional"),
+        "thread_address_origin": evidence.get("thread_address_origin", "host-existing"),
         "platform_leg": args.platform_leg,
         "run_url": args.run_url,
         "environments": environments,
@@ -1844,6 +1875,47 @@ def _validate_ci_receipt(args: argparse.Namespace) -> int:
         return 1
     print("CI receipt valid: lifx-direct exact head and immutable inputs match")
     return 0
+
+
+def _oracle_checkout_matches(
+    path: str, expected_revision: str, expected_tree: str
+) -> bool:
+    """Require an exact, tracked-clean checkout before using a local oracle."""
+    for arguments, expected in (
+        (("rev-parse", "HEAD"), expected_revision),
+        (("rev-parse", "HEAD^{tree}"), expected_tree),
+    ):
+        completed = subprocess.run(
+            ["git", "-C", path, *arguments],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if completed.returncode != 0 or completed.stdout.strip() != expected:
+            return False
+    for arguments in (("diff", "--quiet"), ("diff", "--cached", "--quiet")):
+        completed = subprocess.run(
+            ["git", "-C", path, *arguments],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if completed.returncode != 0:
+            return False
+    return True
+
+
+def _validate_oracle_checkout(args: argparse.Namespace) -> int:
+    if _oracle_checkout_matches(args.path, args.revision, args.tree):
+        print("Oracle checkout valid: exact commit/tree with clean tracked files")
+        return 0
+    print(
+        "Oracle checkout invalid: commit/tree mismatch or tracked changes",
+        file=sys.stderr,
+    )
+    return 1
 
 
 def render_evidence(path: Path) -> Path:
@@ -1963,6 +2035,11 @@ def _parser() -> argparse.ArgumentParser:
     validate_receipt.add_argument("--receipt", required=True)
     validate_receipt.add_argument("--head-sha", required=True)
     validate_receipt.set_defaults(handler=_validate_ci_receipt)
+    validate_oracle = subparsers.add_parser("validate-oracle-checkout")
+    validate_oracle.add_argument("--path", required=True)
+    validate_oracle.add_argument("--revision", required=True)
+    validate_oracle.add_argument("--tree", required=True)
+    validate_oracle.set_defaults(handler=_validate_oracle_checkout)
     return parser
 
 
