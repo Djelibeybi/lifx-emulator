@@ -1,0 +1,9 @@
+{
+  "command": "uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov -k evidence_classification",
+  "expected_failure": "The pre-correction validator accepts four unsupported demonstrated claims after their public benchmark, Windows simulation, adversarial bounds, or dynamic recovery evidence is removed.",
+  "failed": 4,
+  "passed": 4,
+  "recorded_at": "2026-09-22T17:42:00Z",
+  "result": "intentional-red",
+  "task": "Task 2 corrective evidence validation"
+}
