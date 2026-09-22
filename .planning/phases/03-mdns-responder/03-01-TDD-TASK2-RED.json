@@ -1,0 +1,11 @@
+{
+  "command": "uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov -k fallback --tb=short",
+  "actual": "AssertionError: eligible adapted fallback overlay is absent",
+  "exitCode": 1,
+  "expected": "The now-eligible adapted fallback overlay exists as frozen reviewable source",
+  "output": "TAP version 13\nnot ok 1 - test_fallback_overlay_is_frozen_only_after_zeroconf_rejection\n1..1\n# tests 1\n# pass 0\n# fail 1\n",
+  "recorded_at": "2026-09-22T15:43:00Z",
+  "targetFile": "scripts/mdns_spike_tests/test_candidates.py",
+  "targetTest": "test_fallback_overlay_is_frozen_only_after_zeroconf_rejection",
+  "task": "03-01/2"
+}

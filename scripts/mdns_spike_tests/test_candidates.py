@@ -9,6 +9,7 @@ import pytest
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 HARNESS = REPOSITORY_ROOT / "scripts" / "spike_mdns_candidates.py"
+ADAPTED_OVERLAY = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "lifx_adapted.py"
 EVIDENCE = (
     REPOSITORY_ROOT
     / ".planning"
@@ -49,6 +50,13 @@ def test_default_collection_excludes_spike_directory() -> None:
     assert "scripts/mdns_spike_tests" not in configuration
 
 
+def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
+    """Require the now-eligible adapted fallback to be a reviewable source file."""
+    evidence = json.loads(EVIDENCE.read_text())
+    assert evidence["candidates"][0]["candidate_status"] == "rejected"
+    assert ADAPTED_OVERLAY.is_file(), "eligible adapted fallback overlay is absent"
+
+
 @pytest.mark.parametrize(
     ("mutation", "valid"),
     [
@@ -76,7 +84,10 @@ def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> 
 def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
     """Resume at the first unmet gate without repeating the captured attempt."""
     evidence = json.loads(EVIDENCE.read_text())
-    before = len(evidence["candidates"][0]["attempts"])
+    before = sum(
+        attempt["gate"] == "legacy-wire"
+        for attempt in evidence["candidates"][0]["attempts"]
+    )
     path = tmp_path / "evidence.json"
     path.write_text(json.dumps(evidence))
     completed = _run(
@@ -89,4 +100,8 @@ def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
     )
     assert completed.returncode == 0, completed.stderr
     resumed = json.loads(path.read_text())
-    assert len(resumed["candidates"][0]["attempts"]) == before
+    after = sum(
+        attempt["gate"] == "legacy-wire"
+        for attempt in resumed["candidates"][0]["attempts"]
+    )
+    assert after == before
