@@ -1,6 +1,6 @@
 {
   "active_budget_seconds": 14400,
-  "active_elapsed_seconds": 11118.822,
+  "active_elapsed_seconds": 11281.618,
   "candidate_order": [
     "zeroconf",
     "lifx-direct",
@@ -2103,7 +2103,7 @@
           "status": "simulated"
         }
       },
-      "elapsed_active_seconds": 11118.822,
+      "elapsed_active_seconds": 11281.618,
       "execution_status": "completed"
     }
   ],
@@ -3940,5 +3940,5 @@
   "requirement": "MDNS-10",
   "schema_version": 1,
   "started_at": "2026-09-22T15:01:53Z",
-  "updated_at": "2026-09-23T04:07:11.822980+10:00"
+  "updated_at": "2026-09-23T04:09:54.618539+10:00"
 }
