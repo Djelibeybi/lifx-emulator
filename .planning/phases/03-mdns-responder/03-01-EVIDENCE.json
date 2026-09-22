@@ -1,6 +1,6 @@
 {
   "active_budget_seconds": 14400,
-  "active_elapsed_seconds": 11281.618,
+  "active_elapsed_seconds": 12782.923,
   "candidate_order": [
     "zeroconf",
     "lifx-direct",
@@ -2047,9 +2047,14 @@
           "evidence": "threads before=['MainThread']; after=['MainThread']; pending=[]",
           "status": "demonstrated"
         },
+        "listener_interface_scope": {
+          "acquisition_step": null,
+          "evidence": "Local Darwin and exact-head Ubuntu used a group-address receiver, explicit selected-interface membership and selected-interface UDP 5353 reply source. Darwin={\"bound_address\": \"224.0.0.251\", \"membership_interface\": \"selected-ipv4\", \"platform_scope_applied\": true, \"reply_bound_address\": \"selected-ipv4\", \"reply_source_port\": 5353, \"scope_controls\": [\"group-address-bind\", \"explicit-interface-membership\", \"IP_BOUND_IF=selected-interface\"], \"wildcard_bound\": false}; Linux={\"bound_address\": \"224.0.0.251\", \"membership_interface\": \"selected-ipv4\", \"platform_scope_applied\": true, \"reply_bound_address\": \"selected-ipv4\", \"reply_source_port\": 5353, \"scope_controls\": [\"group-address-bind\", \"explicit-interface-membership\", \"IP_MULTICAST_ALL=0\"], \"wildcard_bound\": false}. GHAS alerts 16 and 17 are fixed and no open alert remains on refs/pull/224/head.",
+          "status": "demonstrated"
+        },
         "macos_multicast": {
-          "acquisition_step": "Repeat exact head and input digest on a disposable macOS executor whose IPv4 interface permits multicast send to 224.0.0.251:5353.",
-          "evidence": "The local macOS run on the same immutable candidate demonstrated actual multicast beside mDNSResponder, but exact-head hosted macOS remained environment-unavailable at raw-population-wifi-1 with OSError errno 65 even after a destination-specific multicast route was installed.",
+          "acquisition_step": "Repeat exact head and input digest on a disposable macOS executor whose mDNS daemon permits the RFC-required selected-interface UDP 5353 reply source to coexist with the group/interface-scoped listener.",
+          "evidence": "The local macOS run on the same immutable candidate demonstrated actual multicast beside mDNSResponder, but exact-head hosted macOS remained environment-unavailable at raw-population-wifi-1 with OSError errno 48: mDNSResponder prevented the selected-interface UDP 5353 reply-source bind.",
           "status": "untested"
         },
         "malformed_truncated_flood_bounds": {
@@ -2103,7 +2108,7 @@
           "status": "simulated"
         }
       },
-      "elapsed_active_seconds": 11281.618,
+      "elapsed_active_seconds": 12782.923,
       "execution_status": "completed"
     }
   ],
@@ -2271,7 +2276,7 @@
   ],
   "decision": {
     "extension_case": null,
-    "reason": "The direct foundation passed local protocol, oracle, benchmark, cleanup, Ubuntu and Intel PyApp gates. Exact-head hosted macOS could not send the first IPv4 multicast query despite a concrete route, and dynamic listener failure/retry/partial-fleet recovery remains untested; go is unavailable until those proofs are acquired.",
+    "reason": "The direct foundation passed local protocol, oracle, benchmark, cleanup, Ubuntu and Intel PyApp gates. Exact-head hosted macOS could not bind the RFC-required selected-interface UDP 5353 reply source beside mDNSResponder, and dynamic listener failure/retry/partial-fleet recovery remains untested; go is unavailable until those proofs are acquired.",
     "status": "provisional"
   },
   "diagnostic_history": [
@@ -3124,149 +3129,8 @@
     },
     "schema_version": 1
   },
-  "plan": "03-01",
-  "platform_receipts": {
-    "intel_pyapp": {
-      "app_metadata_sha256": "858649d77d30ae02d648dade652e3c16e6d955590079b50a7ae12418d69ae497",
-      "candidate": "lifx-direct",
-      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
-      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
-      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
-      "candidate_head_sha": "914e51b2cf6c4d897198158b828956adddd6ff93",
-      "candidate_metadata_sha256": "64f3dd877d3804f6fe611eac2c76d277acb62e06f2da78c610731733c4559ae1",
-      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
-      "candidate_status": "meets_gate",
-      "direct_references": {
-        "candidate_metadata": true,
-        "lifx_async": true,
-        "lifx_emulator_core": true
-      },
-      "environments": {
-        "darwin/x86_64/3.12.10": {
-          "architecture": "x86_64",
-          "implementation": "CPython",
-          "os": "darwin",
-          "os_release": "24.6.0",
-          "python": "3.12.10",
-          "realised_environment_digest": "7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62"
-        }
-      },
-      "first_run_sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
-      "hashes_sha256": "c3d1cbcf44ac3aaa7c22e5febf1c4027bf25bd1d7b9e9236591938e09e9043bb",
-      "identities": {
-        "lifx-async": "7.3.0",
-        "lifx-emulator": "4.6.0",
-        "lifx-emulator-core": "3.10.0"
-      },
-      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
-      "platform_leg": "intel-pyapp",
-      "pyapp": {
-        "revision": "a419de7c068cbd0e083194bbe11c741b0497d28c",
-        "tree": "d87b89829042147f7b23c5fe4b5b14034d8164d4",
-        "version": "0.26.0"
-      },
-      "recorded_at": "2026-09-22T18:05:18.493360Z",
-      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35764215809",
-      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
-      "schema_version": 1,
-      "uv_version": "0.9.9"
-    },
-    "macos": {
-      "candidate": "lifx-direct",
-      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
-      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
-      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
-      "candidate_head_sha": "914e51b2cf6c4d897198158b828956adddd6ff93",
-      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
-      "candidate_status": "provisional",
-      "environments": {
-        "darwin/arm64/3.14.7": {
-          "architecture": "arm64",
-          "implementation": "CPython",
-          "os": "darwin",
-          "os_release": "25.6.0",
-          "python": "3.14.7",
-          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
-        }
-      },
-      "evidence_sha256": "10face1e7fa8de382a79b15a25704e18d09a25e0e250159fc65644234f92bd90",
-      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
-      "platform_leg": "multicast",
-      "recorded_at": "2026-09-22T18:00:02.044451Z",
-      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35764215809",
-      "schema_version": 1,
-      "thread_address_origin": "runner-configured-synthetic-ula"
-    },
-    "ubuntu": {
-      "candidate": "lifx-direct",
-      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
-      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
-      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
-      "candidate_head_sha": "914e51b2cf6c4d897198158b828956adddd6ff93",
-      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
-      "candidate_status": "meets_gate",
-      "environments": {
-        "linux/x86_64/3.14.7": {
-          "architecture": "x86_64",
-          "implementation": "CPython",
-          "os": "linux",
-          "os_release": "6.17.0-1022-azure",
-          "python": "3.14.7",
-          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
-        }
-      },
-      "evidence_sha256": "2e29f0ea503851aa118d947f4462f3b1293f842e101324851811047def5aea71",
-      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
-      "platform_leg": "multicast",
-      "recorded_at": "2026-09-22T18:00:19.996810Z",
-      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35764215809",
-      "schema_version": 1,
-      "thread_address_origin": "runner-configured-synthetic-ula"
-    }
-  },
-  "platform_results": {
-    "macos": {
-      "candidate_status": "provisional",
-      "command": [
-        "uv",
-        "run",
-        "--isolated",
-        "--no-project",
-        "--with",
-        "./packages/lifx-emulator-core",
-        "--with",
-        "zeroconf==0.151.3",
-        "--with",
-        "/Users/runner/work/_temp/lifx-async",
-        "python",
-        "scripts/spike_mdns_candidates.py",
-        "candidate-worker",
-        "--direct"
-      ],
-      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
-      "platform_candidate": "lifx-direct",
-      "result": {
-        "elapsed_seconds": 0.8662976669999978,
-        "environment": {
-          "architecture": "arm64",
-          "implementation": "CPython",
-          "os": "darwin",
-          "os_release": "25.6.0",
-          "python": "3.14.7",
-          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
-        },
-        "environment_unavailable": true,
-        "error": "[Errno 65] No route to host",
-        "error_errno": 65,
-        "error_type": "OSError",
-        "execution_status": "completed",
-        "stage": "raw-population-wifi-1"
-      },
-      "schema_version": 1,
-      "thread_address_origin": "runner-configured-synthetic-ula",
-      "valid": true
-    },
-    "ubuntu": {
+  "local_security_reprobe": {
+    "result": {
       "candidate_status": "meets_gate",
       "command": [
         "uv",
@@ -3278,7 +3142,7 @@
         "--with",
         "zeroconf==0.151.3",
         "--with",
-        "/home/runner/work/_temp/lifx-async",
+        "/Volumes/External/Developer/Djelibeybi/lifx-async",
         "python",
         "scripts/spike_mdns_candidates.py",
         "candidate-worker",
@@ -3300,10 +3164,10 @@
             "hundred_device_population_exact": true,
             "population_above_benchmark_supported": true
           },
-          "high_rate_cpu_seconds": 0.002543,
+          "high_rate_cpu_seconds": 0.002616,
           "high_rate_queries": 256,
           "high_rate_responses": 256,
-          "high_rate_seconds": 0.002543,
+          "high_rate_seconds": 0.002628,
           "malformed_results": {
             "compression_pointer": "ValueError",
             "empty": "ValueError",
@@ -3321,16 +3185,18 @@
           ]
         },
         "daemon_processes": [
-          "avahi-daemon"
+          "mDNSResponder",
+          "mDNSResponderHelper",
+          "python"
         ],
-        "elapsed_seconds": 3.1077038219999977,
+        "elapsed_seconds": 5.701869875076227,
         "environment": {
-          "architecture": "x86_64",
+          "architecture": "arm64",
           "implementation": "CPython",
-          "os": "linux",
-          "os_release": "6.17.0-1022-azure",
+          "os": "darwin",
+          "os_release": "27.0.0",
           "python": "3.14.7",
-          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+          "realised_environment_digest": "0a21200ab877a4beb36c16b42dc8ceaae71c856cd59244142ffc2e5697069d47"
         },
         "execution_status": "completed",
         "fit_checks": {
@@ -3349,13 +3215,26 @@
             "expected_serial": "d073d6000002",
             "legacy_queries_received": 1,
             "legacy_responses_sent": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
             "matched": true,
             "matched_serials": [
               "d073d6000002"
             ],
-            "matching_queries_received": 1,
-            "queries_received": 1,
-            "responses_sent": 1,
+            "matching_queries_received": 6,
+            "queries_received": 10,
+            "responses_sent": 6,
             "route_probe": {
               "available": true,
               "errno": null,
@@ -3370,13 +3249,26 @@
             "expected_serial": "d073d6000001",
             "legacy_queries_received": 1,
             "legacy_responses_sent": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
             "matched": true,
             "matched_serials": [
               "d073d6000001"
             ],
-            "matching_queries_received": 1,
-            "queries_received": 1,
-            "responses_sent": 1,
+            "matching_queries_received": 4,
+            "queries_received": 8,
+            "responses_sent": 4,
             "route_probe": null,
             "stage": "public-oracle"
           }
@@ -3384,8 +3276,8 @@
         "pending_owned_tasks": [],
         "public_oracle_benchmarks": {
           "mixed-10": {
-            "complete_discovery_seconds": 0.402459,
-            "cpu_seconds": 0.002017,
+            "complete_discovery_seconds": 0.770323,
+            "cpu_seconds": 0.019601,
             "discovered": 10,
             "discovered_serials": [
               "d073d7000000",
@@ -3400,29 +3292,42 @@
               "d073d7000009"
             ],
             "expected": 10,
-            "peak_rss": 170428,
-            "queries_received": 1,
-            "reply_datagram_count": 10,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 74432512,
+            "queries_received": 13,
+            "reply_datagram_count": 90,
             "representative_stock_connectivity": {
               "thread": {
-                "cpu_seconds": 0.000456,
-                "latency_seconds": 0.100574,
+                "cpu_seconds": 0.001989,
+                "latency_seconds": 0.105081,
                 "passed": true
               },
               "wifi": {
-                "cpu_seconds": 0.000651,
-                "latency_seconds": 0.100764,
+                "cpu_seconds": 0.00346,
+                "latency_seconds": 0.103469,
                 "passed": true
               }
             },
-            "server_port": 45814,
+            "server_port": 53722,
             "thread": 5,
             "thread_address_class": "reachable-ula-gua",
             "wifi": 5
           },
           "mixed-100": {
-            "complete_discovery_seconds": 0.422244,
-            "cpu_seconds": 0.021816,
+            "complete_discovery_seconds": 0.731967,
+            "cpu_seconds": 0.034266,
             "discovered": 100,
             "discovered_serials": [
               "d073d7000000",
@@ -3527,68 +3432,107 @@
               "d073d7000063"
             ],
             "expected": 100,
-            "peak_rss": 170428,
-            "queries_received": 1,
-            "reply_datagram_count": 100,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 75005952,
+            "queries_received": 8,
+            "reply_datagram_count": 400,
             "representative_stock_connectivity": {
               "thread": {
-                "cpu_seconds": 0.000571,
-                "latency_seconds": 0.100683,
+                "cpu_seconds": 0.001402,
+                "latency_seconds": 0.10161,
                 "passed": true
               },
               "wifi": {
-                "cpu_seconds": 0.00067,
-                "latency_seconds": 0.100778,
+                "cpu_seconds": 0.012059,
+                "latency_seconds": 0.102317,
                 "passed": true
               }
             },
-            "server_port": 59778,
+            "server_port": 55924,
             "thread": 50,
             "thread_address_class": "reachable-ula-gua",
             "wifi": 50
           },
           "thread-1": {
-            "complete_discovery_seconds": 0.401261,
-            "cpu_seconds": 0.000827,
+            "complete_discovery_seconds": 0.756708,
+            "cpu_seconds": 0.01923,
             "discovered": 1,
             "discovered_serials": [
               "d073d7000000"
             ],
             "expected": 1,
-            "peak_rss": 170428,
-            "queries_received": 1,
-            "reply_datagram_count": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 74432512,
+            "queries_received": 14,
+            "reply_datagram_count": 10,
             "representative_stock_connectivity": {
               "thread": {
-                "cpu_seconds": 0.000887,
-                "latency_seconds": 0.100993,
+                "cpu_seconds": 0.001492,
+                "latency_seconds": 0.102492,
                 "passed": true
               }
             },
-            "server_port": 48617,
+            "server_port": 54239,
             "thread": 1,
             "thread_address_class": "reachable-ula-gua",
             "wifi": 0
           },
           "wifi-1": {
-            "complete_discovery_seconds": 0.40113,
-            "cpu_seconds": 0.000698,
+            "complete_discovery_seconds": 0.790678,
+            "cpu_seconds": 0.015217,
             "discovered": 1,
             "discovered_serials": [
               "d073d7000000"
             ],
             "expected": 1,
-            "peak_rss": 170428,
-            "queries_received": 1,
-            "reply_datagram_count": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 74399744,
+            "queries_received": 12,
+            "reply_datagram_count": 8,
             "representative_stock_connectivity": {
               "wifi": {
-                "cpu_seconds": 0.002683,
-                "latency_seconds": 0.102802,
+                "cpu_seconds": 0.003836,
+                "latency_seconds": 0.104627,
                 "passed": true
               }
             },
-            "server_port": 49791,
+            "server_port": 50935,
             "thread": 0,
             "thread_address_class": null,
             "wifi": 1
@@ -3597,7 +3541,7 @@
         "raw_wire_populations": {
           "mixed-10": {
             "complete_devices": 10,
-            "cpu_seconds": 0.000684,
+            "cpu_seconds": 0.000955,
             "datagram_count": 10,
             "datagram_sizes": [
               270,
@@ -3617,17 +3561,30 @@
             },
             "discovered": 10,
             "expected": 10,
-            "peak_rss": 170428,
-            "raw_capture_seconds": 0.000683,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 74039296,
+            "raw_capture_seconds": 0.00115,
             "raw_thread_address_class": "loopback-::1",
-            "server_port": 43894,
+            "server_port": 54582,
             "thread": 5,
             "wifi": 5,
             "wire_checks_passed": true
           },
           "mixed-100": {
             "complete_devices": 100,
-            "cpu_seconds": 0.004885,
+            "cpu_seconds": 0.004403,
             "datagram_count": 100,
             "datagram_sizes": [
               270,
@@ -3737,17 +3694,30 @@
             },
             "discovered": 100,
             "expected": 100,
-            "peak_rss": 170428,
-            "raw_capture_seconds": 0.004882,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 74366976,
+            "raw_capture_seconds": 0.004693,
             "raw_thread_address_class": "loopback-::1",
-            "server_port": 32857,
+            "server_port": 51163,
             "thread": 50,
             "wifi": 50,
             "wire_checks_passed": true
           },
           "thread-1": {
             "complete_devices": 1,
-            "cpu_seconds": 0.000272,
+            "cpu_seconds": 0.000461,
             "datagram_count": 1,
             "datagram_sizes": [
               282
@@ -3757,17 +3727,30 @@
             },
             "discovered": 1,
             "expected": 1,
-            "peak_rss": 170428,
-            "raw_capture_seconds": 0.000271,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 73990144,
+            "raw_capture_seconds": 0.00088,
             "raw_thread_address_class": "loopback-::1",
-            "server_port": 45645,
+            "server_port": 58682,
             "thread": 1,
             "wifi": 0,
             "wire_checks_passed": true
           },
           "wifi-1": {
             "complete_devices": 1,
-            "cpu_seconds": 0.00032,
+            "cpu_seconds": 0.000558,
             "datagram_count": 1,
             "datagram_sizes": [
               270
@@ -3777,10 +3760,878 @@
             },
             "discovered": 1,
             "expected": 1,
-            "peak_rss": 170428,
-            "raw_capture_seconds": 0.000317,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_BOUND_IF=selected-interface"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 73990144,
+            "raw_capture_seconds": 0.000948,
             "raw_thread_address_class": null,
-            "server_port": 50015,
+            "server_port": 59808,
+            "thread": 0,
+            "wifi": 1,
+            "wire_checks_passed": true
+          }
+        },
+        "reachable_ula_gua_count": 19,
+        "threads_after": [
+          "MainThread"
+        ],
+        "threads_before": [
+          "MainThread"
+        ],
+        "windows_socket_simulation": {
+          "all_passed": true,
+          "checks": {
+            "common_choices_match": true,
+            "posix_uses_reuse_port": true,
+            "windows_omits_reuse_port": true
+          },
+          "plans": {
+            "Darwin": {
+              "client_bind": "explicit-ipv4:ephemeral",
+              "family": "AF_INET",
+              "legacy_unicast_destination": "query-source",
+              "multicast_interface": "explicit-ipv4",
+              "multicast_ttl": 1,
+              "platform": "Darwin",
+              "protocol": "IPPROTO_UDP",
+              "responder_bind": "wildcard:5353",
+              "reuse_address": true,
+              "reuse_port": true,
+              "type": "SOCK_DGRAM"
+            },
+            "Linux": {
+              "client_bind": "explicit-ipv4:ephemeral",
+              "family": "AF_INET",
+              "legacy_unicast_destination": "query-source",
+              "multicast_interface": "explicit-ipv4",
+              "multicast_ttl": 1,
+              "platform": "Linux",
+              "protocol": "IPPROTO_UDP",
+              "responder_bind": "wildcard:5353",
+              "reuse_address": true,
+              "reuse_port": true,
+              "type": "SOCK_DGRAM"
+            },
+            "Windows": {
+              "client_bind": "explicit-ipv4:ephemeral",
+              "family": "AF_INET",
+              "legacy_unicast_destination": "query-source",
+              "multicast_interface": "explicit-ipv4",
+              "multicast_ttl": 1,
+              "platform": "Windows",
+              "protocol": "IPPROTO_UDP",
+              "responder_bind": "wildcard:5353",
+              "reuse_address": true,
+              "reuse_port": false,
+              "type": "SOCK_DGRAM"
+            }
+          }
+        }
+      },
+      "schema_version": 1,
+      "thread_address_origin": "host-existing",
+      "valid": true
+    },
+    "sha256": "fa30455ca45cc59edce8bfee5276750eec48502cf5668e9c53df457769051d34"
+  },
+  "plan": "03-01",
+  "platform_receipts": {
+    "intel_pyapp": {
+      "app_metadata_sha256": "858649d77d30ae02d648dade652e3c16e6d955590079b50a7ae12418d69ae497",
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
+      "candidate_head_sha": "0669c07bf547cca38bd38cd77393b658139abd79",
+      "candidate_metadata_sha256": "64f3dd877d3804f6fe611eac2c76d277acb62e06f2da78c610731733c4559ae1",
+      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
+      "candidate_status": "meets_gate",
+      "direct_references": {
+        "candidate_metadata": true,
+        "lifx_async": true,
+        "lifx_emulator_core": true
+      },
+      "environments": {
+        "darwin/x86_64/3.12.10": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "24.6.0",
+          "python": "3.12.10",
+          "realised_environment_digest": "7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62"
+        }
+      },
+      "first_run_sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
+      "hashes_sha256": "c3d1cbcf44ac3aaa7c22e5febf1c4027bf25bd1d7b9e9236591938e09e9043bb",
+      "identities": {
+        "lifx-async": "7.3.0",
+        "lifx-emulator": "4.6.0",
+        "lifx-emulator-core": "3.10.0"
+      },
+      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+      "platform_leg": "intel-pyapp",
+      "pyapp": {
+        "revision": "a419de7c068cbd0e083194bbe11c741b0497d28c",
+        "tree": "d87b89829042147f7b23c5fe4b5b14034d8164d4",
+        "version": "0.26.0"
+      },
+      "recorded_at": "2026-09-22T18:34:10.697456Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35767055166",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "schema_version": 1,
+      "uv_version": "0.9.9"
+    },
+    "macos": {
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
+      "candidate_head_sha": "0669c07bf547cca38bd38cd77393b658139abd79",
+      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
+      "candidate_status": "provisional",
+      "environments": {
+        "darwin/arm64/3.14.7": {
+          "architecture": "arm64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "25.6.0",
+          "python": "3.14.7",
+          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+        }
+      },
+      "evidence_sha256": "3d0bceee2a177d13544b980ca4504f1cc84bc40b7d20ea5a0a04c38258a71681",
+      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+      "platform_leg": "multicast",
+      "recorded_at": "2026-09-22T18:26:24.148484Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35767055166",
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula"
+    },
+    "ubuntu": {
+      "candidate": "lifx-direct",
+      "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+      "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+      "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
+      "candidate_head_sha": "0669c07bf547cca38bd38cd77393b658139abd79",
+      "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
+      "candidate_status": "meets_gate",
+      "environments": {
+        "linux/x86_64/3.14.7": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "linux",
+          "os_release": "6.17.0-1022-azure",
+          "python": "3.14.7",
+          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+        }
+      },
+      "evidence_sha256": "f906cb8d55967486a9bd082a9d32ec7a4b4dd270192491a3d0ee4960a58b2433",
+      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+      "platform_leg": "multicast",
+      "recorded_at": "2026-09-22T18:26:14.159849Z",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35767055166",
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula"
+    }
+  },
+  "platform_results": {
+    "macos": {
+      "candidate_status": "provisional",
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "/Users/runner/work/_temp/lifx-async",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+      "platform_candidate": "lifx-direct",
+      "result": {
+        "elapsed_seconds": 0.22235699999998815,
+        "environment": {
+          "architecture": "arm64",
+          "implementation": "CPython",
+          "os": "darwin",
+          "os_release": "25.6.0",
+          "python": "3.14.7",
+          "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+        },
+        "environment_unavailable": true,
+        "error": "[Errno 48] Address already in use",
+        "error_errno": 48,
+        "error_type": "OSError",
+        "execution_status": "completed",
+        "stage": "raw-population-wifi-1"
+      },
+      "schema_version": 1,
+      "thread_address_origin": "runner-configured-synthetic-ula",
+      "valid": true
+    },
+    "ubuntu": {
+      "candidate_status": "meets_gate",
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "--with",
+        "./packages/lifx-emulator-core",
+        "--with",
+        "zeroconf==0.151.3",
+        "--with",
+        "/home/runner/work/_temp/lifx-async",
+        "python",
+        "scripts/spike_mdns_candidates.py",
+        "candidate-worker",
+        "--direct"
+      ],
+      "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+      "platform_candidate": "lifx-direct",
+      "result": {
+        "adversarial_bounds": {
+          "above_benchmark_population": 101,
+          "all_passed": true,
+          "benchmark_population": 100,
+          "checks": {
+            "all_malformed_rejected": true,
+            "each_datagram_bounded": true,
+            "high_rate_created_no_pending_tasks": true,
+            "high_rate_created_no_threads": true,
+            "high_rate_response_count_bounded": true,
+            "hundred_device_population_exact": true,
+            "population_above_benchmark_supported": true
+          },
+          "high_rate_cpu_seconds": 0.005154,
+          "high_rate_queries": 256,
+          "high_rate_responses": 256,
+          "high_rate_seconds": 0.005154,
+          "malformed_results": {
+            "compression_pointer": "ValueError",
+            "empty": "ValueError",
+            "oversized_datagram": "ValueError",
+            "short_header": "ValueError",
+            "truncated_question": "ValueError"
+          },
+          "pending_tasks_after": [],
+          "pending_tasks_before": [],
+          "threads_after": [
+            "MainThread"
+          ],
+          "threads_before": [
+            "MainThread"
+          ]
+        },
+        "daemon_processes": [
+          "avahi-daemon"
+        ],
+        "elapsed_seconds": 3.179067423999996,
+        "environment": {
+          "architecture": "x86_64",
+          "implementation": "CPython",
+          "os": "linux",
+          "os_release": "6.17.0-1022-azure",
+          "python": "3.14.7",
+          "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+        },
+        "execution_status": "completed",
+        "fit_checks": {
+          "empty_eligible_set_has_no_reply": true,
+          "equivalent_ipv6_spellings_encode_identically": true,
+          "invalid_address_is_rejected_before_reply": true,
+          "removal_and_readd_follow_eligible_set": true,
+          "repeated_unchanged_query_is_stable": true,
+          "shared_addresses_keep_distinct_identities": true
+        },
+        "oracle": {
+          "thread": {
+            "address_class": "reachable-ula-gua",
+            "errno": null,
+            "error_type": null,
+            "expected_serial": "d073d6000002",
+            "legacy_queries_received": 1,
+            "legacy_responses_sent": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "matched": true,
+            "matched_serials": [
+              "d073d6000002"
+            ],
+            "matching_queries_received": 1,
+            "queries_received": 1,
+            "responses_sent": 1,
+            "route_probe": {
+              "available": true,
+              "errno": null,
+              "error_type": null
+            },
+            "stage": "public-oracle"
+          },
+          "wifi": {
+            "address_class": "selected-ipv4",
+            "errno": null,
+            "error_type": null,
+            "expected_serial": "d073d6000001",
+            "legacy_queries_received": 1,
+            "legacy_responses_sent": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "matched": true,
+            "matched_serials": [
+              "d073d6000001"
+            ],
+            "matching_queries_received": 1,
+            "queries_received": 1,
+            "responses_sent": 1,
+            "route_probe": null,
+            "stage": "public-oracle"
+          }
+        },
+        "pending_owned_tasks": [],
+        "public_oracle_benchmarks": {
+          "mixed-10": {
+            "complete_discovery_seconds": 0.40418,
+            "cpu_seconds": 0.003741,
+            "discovered": 10,
+            "discovered_serials": [
+              "d073d7000000",
+              "d073d7000001",
+              "d073d7000002",
+              "d073d7000003",
+              "d073d7000004",
+              "d073d7000005",
+              "d073d7000006",
+              "d073d7000007",
+              "d073d7000008",
+              "d073d7000009"
+            ],
+            "expected": 10,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "queries_received": 1,
+            "reply_datagram_count": 10,
+            "representative_stock_connectivity": {
+              "thread": {
+                "cpu_seconds": 0.00087,
+                "latency_seconds": 0.100973,
+                "passed": true
+              },
+              "wifi": {
+                "cpu_seconds": 0.000913,
+                "latency_seconds": 0.101011,
+                "passed": true
+              }
+            },
+            "server_port": 47305,
+            "thread": 5,
+            "thread_address_class": "reachable-ula-gua",
+            "wifi": 5
+          },
+          "mixed-100": {
+            "complete_discovery_seconds": 0.46132,
+            "cpu_seconds": 0.060886,
+            "discovered": 100,
+            "discovered_serials": [
+              "d073d7000000",
+              "d073d7000001",
+              "d073d7000002",
+              "d073d7000003",
+              "d073d7000004",
+              "d073d7000005",
+              "d073d7000006",
+              "d073d7000007",
+              "d073d7000008",
+              "d073d7000009",
+              "d073d700000a",
+              "d073d700000b",
+              "d073d700000c",
+              "d073d700000d",
+              "d073d700000e",
+              "d073d700000f",
+              "d073d7000010",
+              "d073d7000011",
+              "d073d7000012",
+              "d073d7000013",
+              "d073d7000014",
+              "d073d7000015",
+              "d073d7000016",
+              "d073d7000017",
+              "d073d7000018",
+              "d073d7000019",
+              "d073d700001a",
+              "d073d700001b",
+              "d073d700001c",
+              "d073d700001d",
+              "d073d700001e",
+              "d073d700001f",
+              "d073d7000020",
+              "d073d7000021",
+              "d073d7000022",
+              "d073d7000023",
+              "d073d7000024",
+              "d073d7000025",
+              "d073d7000026",
+              "d073d7000027",
+              "d073d7000028",
+              "d073d7000029",
+              "d073d700002a",
+              "d073d700002b",
+              "d073d700002c",
+              "d073d700002d",
+              "d073d700002e",
+              "d073d700002f",
+              "d073d7000030",
+              "d073d7000031",
+              "d073d7000032",
+              "d073d7000033",
+              "d073d7000034",
+              "d073d7000035",
+              "d073d7000036",
+              "d073d7000037",
+              "d073d7000038",
+              "d073d7000039",
+              "d073d700003a",
+              "d073d700003b",
+              "d073d700003c",
+              "d073d700003d",
+              "d073d700003e",
+              "d073d700003f",
+              "d073d7000040",
+              "d073d7000041",
+              "d073d7000042",
+              "d073d7000043",
+              "d073d7000044",
+              "d073d7000045",
+              "d073d7000046",
+              "d073d7000047",
+              "d073d7000048",
+              "d073d7000049",
+              "d073d700004a",
+              "d073d700004b",
+              "d073d700004c",
+              "d073d700004d",
+              "d073d700004e",
+              "d073d700004f",
+              "d073d7000050",
+              "d073d7000051",
+              "d073d7000052",
+              "d073d7000053",
+              "d073d7000054",
+              "d073d7000055",
+              "d073d7000056",
+              "d073d7000057",
+              "d073d7000058",
+              "d073d7000059",
+              "d073d700005a",
+              "d073d700005b",
+              "d073d700005c",
+              "d073d700005d",
+              "d073d700005e",
+              "d073d700005f",
+              "d073d7000060",
+              "d073d7000061",
+              "d073d7000062",
+              "d073d7000063"
+            ],
+            "expected": 100,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "queries_received": 1,
+            "reply_datagram_count": 100,
+            "representative_stock_connectivity": {
+              "thread": {
+                "cpu_seconds": 0.000854,
+                "latency_seconds": 0.100978,
+                "passed": true
+              },
+              "wifi": {
+                "cpu_seconds": 0.000965,
+                "latency_seconds": 0.101089,
+                "passed": true
+              }
+            },
+            "server_port": 34161,
+            "thread": 50,
+            "thread_address_class": "reachable-ula-gua",
+            "wifi": 50
+          },
+          "thread-1": {
+            "complete_discovery_seconds": 0.401566,
+            "cpu_seconds": 0.001124,
+            "discovered": 1,
+            "discovered_serials": [
+              "d073d7000000"
+            ],
+            "expected": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "queries_received": 1,
+            "reply_datagram_count": 1,
+            "representative_stock_connectivity": {
+              "thread": {
+                "cpu_seconds": 0.000943,
+                "latency_seconds": 0.101071,
+                "passed": true
+              }
+            },
+            "server_port": 38188,
+            "thread": 1,
+            "thread_address_class": "reachable-ula-gua",
+            "wifi": 0
+          },
+          "wifi-1": {
+            "complete_discovery_seconds": 0.401367,
+            "cpu_seconds": 0.00094,
+            "discovered": 1,
+            "discovered_serials": [
+              "d073d7000000"
+            ],
+            "expected": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "queries_received": 1,
+            "reply_datagram_count": 1,
+            "representative_stock_connectivity": {
+              "wifi": {
+                "cpu_seconds": 0.003306,
+                "latency_seconds": 0.103429,
+                "passed": true
+              }
+            },
+            "server_port": 58422,
+            "thread": 0,
+            "thread_address_class": null,
+            "wifi": 1
+          }
+        },
+        "raw_wire_populations": {
+          "mixed-10": {
+            "complete_devices": 10,
+            "cpu_seconds": 0.001347,
+            "datagram_count": 10,
+            "datagram_sizes": [
+              270,
+              270,
+              270,
+              270,
+              270,
+              282,
+              282,
+              282,
+              282,
+              282
+            ],
+            "direct_queries": {
+              "thread": true,
+              "wifi": true
+            },
+            "discovered": 10,
+            "expected": 10,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "raw_capture_seconds": 0.001346,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 44783,
+            "thread": 5,
+            "wifi": 5,
+            "wire_checks_passed": true
+          },
+          "mixed-100": {
+            "complete_devices": 100,
+            "cpu_seconds": 0.010066,
+            "datagram_count": 100,
+            "datagram_sizes": [
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              270,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282,
+              282
+            ],
+            "direct_queries": {
+              "thread": true,
+              "wifi": true
+            },
+            "discovered": 100,
+            "expected": 100,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "raw_capture_seconds": 0.010064,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 47608,
+            "thread": 50,
+            "wifi": 50,
+            "wire_checks_passed": true
+          },
+          "thread-1": {
+            "complete_devices": 1,
+            "cpu_seconds": 0.000357,
+            "datagram_count": 1,
+            "datagram_sizes": [
+              282
+            ],
+            "direct_queries": {
+              "thread": true
+            },
+            "discovered": 1,
+            "expected": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "raw_capture_seconds": 0.000356,
+            "raw_thread_address_class": "loopback-::1",
+            "server_port": 51863,
+            "thread": 1,
+            "wifi": 0,
+            "wire_checks_passed": true
+          },
+          "wifi-1": {
+            "complete_devices": 1,
+            "cpu_seconds": 0.000436,
+            "datagram_count": 1,
+            "datagram_sizes": [
+              270
+            ],
+            "direct_queries": {
+              "wifi": true
+            },
+            "discovered": 1,
+            "expected": 1,
+            "listener_scope": {
+              "bound_address": "224.0.0.251",
+              "membership_interface": "selected-ipv4",
+              "platform_scope_applied": true,
+              "reply_bound_address": "selected-ipv4",
+              "reply_source_port": 5353,
+              "scope_controls": [
+                "group-address-bind",
+                "explicit-interface-membership",
+                "IP_MULTICAST_ALL=0"
+              ],
+              "wildcard_bound": false
+            },
+            "peak_rss": 169552,
+            "raw_capture_seconds": 0.000432,
+            "raw_thread_address_class": null,
+            "server_port": 51200,
             "thread": 0,
             "wifi": 1,
             "wire_checks_passed": true
@@ -3849,7 +4700,7 @@
     }
   },
   "pull_request": {
-    "candidate_head_sha": "914e51b2cf6c4d897198158b828956adddd6ff93",
+    "candidate_head_sha": "0669c07bf547cca38bd38cd77393b658139abd79",
     "runs": [
       {
         "head_sha": "3016313c7a3ce99d6f1a5559128c91ffd0200048",
@@ -3933,6 +4784,25 @@
         "ubuntu_evidence_sha256": "2e29f0ea503851aa118d947f4462f3b1293f842e101324851811047def5aea71",
         "ubuntu_receipt_sha256": "b7923ce6b4e14cfbfcc2674fc2cfcdfeead245cf2fee0014ec172870aae38a11",
         "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35764215809"
+      },
+      {
+        "note": "The first scoped-listener head exposed hosted macOS UDP 5353 coexistence before provisional classification was added.",
+        "status": "invalid",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35766433638"
+      },
+      {
+        "head_sha": "0669c07bf547cca38bd38cd77393b658139abd79",
+        "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+        "intel_candidate_status": "meets_gate",
+        "intel_receipt_sha256": "5a20f4f250dae77e0f03126616e47575cae38c86b03c4954b8216b76fe3023ff",
+        "macos_candidate_status": "provisional",
+        "macos_evidence_sha256": "3d0bceee2a177d13544b980ca4504f1cc84bc40b7d20ea5a0a04c38258a71681",
+        "macos_receipt_sha256": "be2879d611d8e41d2200fd844f28c63de93247f9267dbd6ca383c29c7488bb03",
+        "status": "success-with-provisional-macos-and-untested-dynamic-recovery",
+        "ubuntu_candidate_status": "meets_gate",
+        "ubuntu_evidence_sha256": "f906cb8d55967486a9bd082a9d32ec7a4b4dd270192491a3d0ee4960a58b2433",
+        "ubuntu_receipt_sha256": "443e182a8738ce9567fc9f138839cacee88234e3d036b9593ab64a104977365e",
+        "url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35767055166"
       }
     ],
     "url": "https://github.com/Djelibeybi/lifx-emulator/pull/224"
@@ -3940,5 +4810,5 @@
   "requirement": "MDNS-10",
   "schema_version": 1,
   "started_at": "2026-09-22T15:01:53Z",
-  "updated_at": "2026-09-23T04:09:54.618539+10:00"
+  "updated_at": "2026-09-23T04:34:55.924063+10:00"
 }
