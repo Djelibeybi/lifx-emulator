@@ -64,6 +64,9 @@ ACTIVE_BUDGET_SECONDS = 4 * 60 * 60
 STARTED_AT = "2026-09-22T15:01:53Z"
 SERVICE_TYPE = "_lifx._udp.local."
 SERIAL = "d073d5000001"
+MDNS_IPV4_GROUP = "224.0.0.251"
+LINUX_IP_MULTICAST_ALL = 49
+DARWIN_IP_BOUND_IF = 25
 
 CriterionStatus = Literal[
     "demonstrated", "failed", "simulated", "untested", "not-run-with-reason"
@@ -241,6 +244,96 @@ def _select_ipv4_interface() -> str:
     if selected == "0.0.0.0":
         raise OSError("no concrete IPv4 multicast interface is available")
     return selected
+
+
+def _darwin_interface_index(interface: str) -> int:
+    """Resolve the selected IPv4 address to a Darwin interface index."""
+    executable = "/sbin/ifconfig" if Path("/sbin/ifconfig").is_file() else "ifconfig"
+    pattern = re.compile(rf"\binet\s+{re.escape(interface)}(?:\s|$)")
+    for index, name in socket.if_nameindex():
+        completed = subprocess.run(
+            [executable, name],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if completed.returncode == 0 and pattern.search(completed.stdout):
+            return index
+    raise OSError("selected IPv4 address has no Darwin interface index")
+
+
+def _new_scoped_mdns_responder(
+    interface: str,
+) -> tuple[socket.socket, socket.socket, dict[str, Any]]:
+    """Create an mDNS listener scoped to one group membership and interface."""
+    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    reply_sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    try:
+        for current in (responder, reply_sender):
+            current.setblocking(False)
+            current.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if hasattr(socket, "SO_REUSEPORT"):
+                current.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        scope_controls = ["group-address-bind", "explicit-interface-membership"]
+        if sys.platform.startswith("linux"):
+            responder.setsockopt(
+                socket.IPPROTO_IP,
+                LINUX_IP_MULTICAST_ALL,
+                0,
+            )
+            scope_controls.append("IP_MULTICAST_ALL=0")
+        elif sys.platform == "darwin":
+            interface_index = _darwin_interface_index(interface)
+            responder.setsockopt(
+                socket.IPPROTO_IP,
+                DARWIN_IP_BOUND_IF,
+                interface_index,
+            )
+            reply_sender.setsockopt(
+                socket.IPPROTO_IP,
+                DARWIN_IP_BOUND_IF,
+                interface_index,
+            )
+            scope_controls.append("IP_BOUND_IF=selected-interface")
+        responder.bind((MDNS_IPV4_GROUP, 5353))
+        responder.setsockopt(
+            socket.IPPROTO_IP,
+            socket.IP_ADD_MEMBERSHIP,
+            socket.inet_aton(MDNS_IPV4_GROUP) + socket.inet_aton(interface),
+        )
+        reply_sender.bind((interface, 5353))
+        bound_address = responder.getsockname()[0]
+        reply_address = reply_sender.getsockname()[0]
+        return (
+            responder,
+            reply_sender,
+            {
+                "bound_address": bound_address,
+                "membership_interface": "selected-ipv4",
+                "platform_scope_applied": len(scope_controls) == 3,
+                "reply_bound_address": (
+                    "selected-ipv4" if reply_address == interface else reply_address
+                ),
+                "scope_controls": scope_controls,
+                "wildcard_bound": bound_address in {"", "0.0.0.0"},
+            },
+        )
+    except Exception:
+        responder.close()
+        reply_sender.close()
+        raise
+
+
+def _probe_responder_scope(args: argparse.Namespace) -> int:
+    """Record a live, privacy-safe listener scope result."""
+    responder, reply_sender, scope = _new_scoped_mdns_responder(
+        _select_ipv4_interface()
+    )
+    responder.close()
+    reply_sender.close()
+    _write_json(Path(args.output), scope)
+    return 0
 
 
 def _dns_query(name: str, record_type: int, query_id: int) -> bytes:
@@ -731,17 +824,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
     devices = [create_color_light(f"d073d6{number:06x}") for number in range(total)]
     server = EmulatedLifxServer(devices, DeviceManager(DeviceRepository()), port=0)
     client = _new_mdns_client(interface)
-    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    responder.setblocking(False)
-    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if hasattr(socket, "SO_REUSEPORT"):
-        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    responder.bind(("", 5353))
-    responder.setsockopt(
-        socket.IPPROTO_IP,
-        socket.IP_ADD_MEMBERSHIP,
-        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
-    )
+    responder, reply_sender, _scope = _new_scoped_mdns_responder(interface)
     try:
         await server.start()
         assert server.ipv4_endpoint is not None
@@ -768,7 +851,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
                 break
         responses = build_legacy_unicast_responses(received, advertisements)
         for response in responses:
-            await loop.sock_sendto(responder, response, source)
+            await loop.sock_sendto(reply_sender, response, source)
         discovered: set[str] = set()
         complete = 0
         sizes: list[int] = []
@@ -838,7 +921,7 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
                 if source[1] == client.getsockname()[1]:
                     break
             for response in build_legacy_unicast_responses(received, advertisements):
-                await loop.sock_sendto(responder, response, source)
+                await loop.sock_sendto(reply_sender, response, source)
             deadline = time.monotonic() + 3.0
             direct_results[family] = False
             while time.monotonic() < deadline:
@@ -874,9 +957,11 @@ async def _run_direct_population(wifi: int, thread_count: int) -> dict[str, Any]
             "direct_queries": direct_results,
             "wire_checks_passed": all(wire_checks) and len(wire_checks) == total,
             "raw_thread_address_class": "loopback-::1" if thread_count else None,
+            "listener_scope": _scope,
         }
     finally:
         responder.close()
+        reply_sender.close()
         client.close()
         await server.stop()
 
@@ -901,17 +986,7 @@ async def _run_direct_public_benchmark(
         port=0,
         ipv6_bind_address=thread_address,
     )
-    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    responder.setblocking(False)
-    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if hasattr(socket, "SO_REUSEPORT"):
-        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    responder.bind(("", 5353))
-    responder.setsockopt(
-        socket.IPPROTO_IP,
-        socket.IP_ADD_MEMBERSHIP,
-        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
-    )
+    responder, reply_sender, _scope = _new_scoped_mdns_responder(interface)
     task: asyncio.Task[None] | None = None
     queries_received = 0
     replies_sent = 0
@@ -939,7 +1014,7 @@ async def _run_direct_public_benchmark(
                 queries_received += 1
                 responses = build_legacy_unicast_responses(query, advertisements)
                 for response in responses:
-                    await loop.sock_sendto(responder, response, source)
+                    await loop.sock_sendto(reply_sender, response, source)
                     replies_sent += 1
 
         task = asyncio.create_task(serve(), name="lifx-direct-public-benchmark")
@@ -1001,6 +1076,7 @@ async def _run_direct_public_benchmark(
             "representative_stock_connectivity": connectivity,
             "thread_address_class": "reachable-ula-gua" if thread_count else None,
             "server_port": server.ipv4_endpoint[1],
+            "listener_scope": _scope,
         }
     finally:
         if task is not None:
@@ -1008,6 +1084,7 @@ async def _run_direct_public_benchmark(
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         responder.close()
+        reply_sender.close()
         await server.stop()
 
 
@@ -1091,17 +1168,7 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
     serial = "d073d6000002" if thread_address else "d073d6000001"
     device = create_color_light(serial)
     server = EmulatedLifxServer([device], DeviceManager(DeviceRepository()), port=0)
-    responder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    responder.setblocking(False)
-    responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if hasattr(socket, "SO_REUSEPORT"):
-        responder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    responder.bind(("", 5353))
-    responder.setsockopt(
-        socket.IPPROTO_IP,
-        socket.IP_ADD_MEMBERSHIP,
-        socket.inet_aton("224.0.0.251") + socket.inet_aton(interface),
-    )
+    responder, reply_sender, _scope = _new_scoped_mdns_responder(interface)
     task: asyncio.Task[None] | None = None
     discovered: list[str] = []
     queries_received = 0
@@ -1136,7 +1203,7 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
                         legacy_queries_received += 1
                         legacy_responses_sent += len(responses)
                 for response in responses:
-                    await loop.sock_sendto(responder, response, source)
+                    await loop.sock_sendto(reply_sender, response, source)
                     responses_sent += 1
 
         task = asyncio.create_task(serve(), name="lifx-direct-spike-responder")
@@ -1155,6 +1222,7 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
             "legacy_queries_received": legacy_queries_received,
             "responses_sent": responses_sent,
             "legacy_responses_sent": legacy_responses_sent,
+            "listener_scope": _scope,
         }
     finally:
         if task is not None:
@@ -1162,6 +1230,7 @@ async def _run_direct_oracle(thread_address: str | None = None) -> dict[str, Any
             with contextlib.suppress(asyncio.CancelledError):
                 await task
         responder.close()
+        reply_sender.close()
         await server.stop()
 
 
@@ -2701,6 +2770,9 @@ def _parser() -> argparse.ArgumentParser:
     direct_fit = subparsers.add_parser("run-direct-fit-checks")
     direct_fit.add_argument("--output", required=True)
     direct_fit.set_defaults(handler=_run_direct_fit_checks_cli)
+    responder_scope = subparsers.add_parser("probe-responder-scope")
+    responder_scope.add_argument("--output", required=True)
+    responder_scope.set_defaults(handler=_probe_responder_scope)
     return parser
 
 
