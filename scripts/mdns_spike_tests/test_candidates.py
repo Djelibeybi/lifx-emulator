@@ -17,6 +17,7 @@ EVIDENCE = (
     / "03-mdns-responder"
     / "03-01-EVIDENCE.json"
 )
+ACTIVE_INPUTS = REPOSITORY_ROOT / "scripts" / "mdns_spike_inputs" / "active.json"
 
 
 def _run(*arguments: str) -> subprocess.CompletedProcess[str]:
@@ -48,6 +49,15 @@ def test_default_collection_excludes_spike_directory() -> None:
     configuration = (REPOSITORY_ROOT / "pyproject.toml").read_text()
     assert 'testpaths = ["packages/lifx-emulator-core/tests",' in configuration
     assert "scripts/mdns_spike_tests" not in configuration
+
+
+def test_ci_executes_the_eligible_direct_candidate() -> None:
+    """Prevent a green platform job from accidentally rerunning zeroconf."""
+    workflow = (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").read_text()
+    assert "run-direct-platform --output" in workflow
+    evidence_step = workflow.split("name: Exercise exact candidate head", 1)[1]
+    evidence_step = evidence_step.split("name: Record exact-head receipt", 1)[0]
+    assert "run-candidate" not in evidence_step
 
 
 def test_fallback_overlay_is_frozen_only_after_zeroconf_rejection() -> None:
@@ -105,3 +115,43 @@ def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
         for attempt in resumed["candidates"][0]["attempts"]
     )
     assert after == before
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "candidate",
+        "candidate_head_sha",
+        "input_spec_digest",
+        "candidate_base_commit",
+        "candidate_base_tree",
+        "candidate_overlay_digest",
+        "candidate_final_digest",
+    ],
+)
+def test_ci_receipt_rejects_identity_mismatch(tmp_path: Path, field: str) -> None:
+    """Reject a receipt that differs from any immutable candidate identity."""
+    inputs = json.loads(ACTIVE_INPUTS.read_text())
+    candidate = inputs["fallbacks"]["lifx-direct"]
+    head_sha = "a" * 40
+    receipt = {
+        "candidate": "lifx-direct",
+        "candidate_head_sha": head_sha,
+        "input_spec_digest": inputs["input_spec_digest"],
+        "candidate_base_commit": candidate["base_revision"],
+        "candidate_base_tree": candidate["base_tree"],
+        "candidate_overlay_digest": candidate["overlay_sha256"],
+        "candidate_final_digest": candidate["final_digest"],
+        "environments": {"test/x86_64/3.12": {"os": "test"}},
+    }
+    receipt[field] = "mismatch"
+    path = tmp_path / "receipt.json"
+    path.write_text(json.dumps(receipt))
+    completed = _run(
+        "validate-ci-receipt",
+        "--receipt",
+        str(path),
+        "--head-sha",
+        head_sha,
+    )
+    assert completed.returncode == 1
