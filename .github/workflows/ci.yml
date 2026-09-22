@@ -18,8 +18,12 @@ jobs:
   changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       source: ${{ steps.filter.outputs.source }}
+      mdns_spike: ${{ steps.filter.outputs.mdns_spike }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
     - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -30,6 +34,110 @@ jobs:
             - 'packages/**'
             - 'pyproject.toml'
             - 'uv.lock'
+          mdns_spike:
+            - '.github/workflows/ci.yml'
+            - 'scripts/spike_mdns_candidates.py'
+            - 'scripts/mdns_spike_tests/**'
+            - 'scripts/mdns_spike_inputs/**'
+
+  mdns-spike-evidence:
+    name: mDNS spike evidence (${{ matrix.os }})
+    needs: changes
+    if: >-
+      github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened", "reopened", "ready_for_review", "synchronize"]'),
+      github.event.action)
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    concurrency:
+      group: mdns-spike-${{ github.event.pull_request.number }}-${{ matrix.os }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
+      with:
+        fetch-depth: 0
+
+    - name: Decide whether exact synchronize inputs changed
+      id: expensive
+      env:
+        ACTION: ${{ github.event.action }}
+        BEFORE: ${{ github.event.before }}
+        AFTER: ${{ github.event.after }}
+        FULL_PR_FILTER: ${{ needs.changes.outputs.mdns_spike }}
+      shell: bash
+      run: |
+        run=false
+        reason=full-pr-filter
+        if [[ "$ACTION" == "synchronize" ]]; then
+          run=true
+          reason=conservative-missing-sha-or-diff
+          if [[ -n "$BEFORE" && -n "$AFTER" ]] \
+            && git fetch --no-tags origin "$BEFORE" "$AFTER" \
+            && changed=$(git diff --name-only "$BEFORE" "$AFTER"); then
+            if grep -Eq '^(\.github/workflows/ci\.yml|scripts/spike_mdns_candidates\.py|scripts/mdns_spike_tests/|scripts/mdns_spike_inputs/)' <<<"$changed"; then
+              run=true
+              reason=synchronize-input-change
+            else
+              run=false
+              reason=synchronize-receipt-only
+            fi
+          fi
+        elif [[ "$FULL_PR_FILTER" == "true" ]]; then
+          run=true
+        fi
+        echo "run=$run" >> "$GITHUB_OUTPUT"
+        echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Python
+      if: steps.expensive.outputs.run == 'true'
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97   # v7
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install uv
+      if: steps.expensive.outputs.run == 'true'
+      uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4   # v10.1.0
+      with:
+        version: ${{ env.UV_VERSION }}
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Exercise exact candidate head
+      if: steps.expensive.outputs.run == 'true'
+      env:
+        EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
+      run: |
+        uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov
+        uv run --frozen python scripts/spike_mdns_candidates.py run-candidate \
+          --candidate zeroconf \
+          --oracle-revision 48b7efbff59656499373b13ef17e3008d125feb5 \
+          --stop-after legacy-wire \
+          --evidence "$EVIDENCE"
+        uv run --frozen python scripts/spike_mdns_candidates.py validate-evidence "$EVIDENCE"
+
+    - name: Record exact-head receipt
+      if: steps.expensive.outputs.run == 'true'
+      env:
+        EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
+        RECEIPT: mdns-spike-${{ runner.os }}-${{ runner.arch }}-receipt.json
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: >-
+        uv run --frozen python scripts/spike_mdns_candidates.py write-ci-receipt
+        --evidence "$EVIDENCE" --output "$RECEIPT" --head-sha "$HEAD_SHA"
+        --run-url "$RUN_URL" --platform-leg multicast
+
+    - name: Upload non-publishing evidence
+      if: steps.expensive.outputs.run == 'true'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a   # v7
+      with:
+        name: mdns-spike-${{ runner.os }}-${{ runner.arch }}
+        path: mdns-spike-${{ runner.os }}-${{ runner.arch }}*.json
+        retention-days: 7
 
   # Code quality checks
   quality:
