@@ -11,21 +11,43 @@ import logging
 import socket
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from lifx_emulator.devices.states import Connectivity
+from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 if TYPE_CHECKING:
     from lifx_emulator.devices.device import EmulatedLifxDevice
     from lifx_emulator.protocol.header import LifxHeader
     from lifx_emulator.repositories import IDeviceRepository
-    from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 logger = logging.getLogger(__name__)
 
 # Type aliases for device lifecycle callbacks
 DeviceAddedCallback = Callable[["EmulatedLifxDevice"], None]
 DeviceRemovedCallback = Callable[[str], None]
+
+
+@dataclass(frozen=True, eq=False)
+class DeviceLifecycleListener:
+    """Independent synchronous observers of committed membership changes."""
+
+    on_added: DeviceAddedCallback | None = None
+    on_removed: DeviceRemovedCallback | None = None
+
+
+@runtime_checkable
+class IDeviceLifecycleSource(Protocol):
+    """Optional capability for non-displacing membership subscriptions."""
+
+    def add_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
+        """Subscribe by object identity."""
+        ...
+
+    def remove_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
+        """Unsubscribe idempotently."""
+        ...
 
 
 @runtime_checkable
@@ -152,8 +174,44 @@ class DeviceManager:
         """
         self._device_repository = device_repository
         self._serial_lock = threading.Lock()
+        self._lifecycle_listeners: list[DeviceLifecycleListener] = []
         self.on_device_added = on_device_added
         self.on_device_removed = on_device_removed
+
+    def add_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
+        """Register once by identity, retaining deterministic insertion order."""
+        if not any(item is listener for item in self._lifecycle_listeners):
+            self._lifecycle_listeners.append(listener)
+
+    def remove_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
+        """Remove only the specified subscription, with idempotent cleanup."""
+        self._lifecycle_listeners[:] = [
+            item for item in self._lifecycle_listeners if item is not listener
+        ]
+
+    def _notify_added(self, device: EmulatedLifxDevice) -> None:
+        listeners = tuple(self._lifecycle_listeners)
+        callbacks = (self.on_device_added, *(item.on_added for item in listeners))
+        for callback in callbacks:
+            if callback is not None:
+                try:
+                    callback(device)
+                except Exception:
+                    logger.exception(
+                        "Error in on_device_added callback for %s", device.state.serial
+                    )
+
+    def _notify_removed(self, serial: str) -> None:
+        listeners = tuple(self._lifecycle_listeners)
+        callbacks = (self.on_device_removed, *(item.on_removed for item in listeners))
+        for callback in callbacks:
+            if callback is not None:
+                try:
+                    callback(serial)
+                except Exception:
+                    logger.exception(
+                        "Error in on_device_removed callback for %s", serial
+                    )
 
     def add_device(
         self,
@@ -171,8 +229,6 @@ class DeviceManager:
         """
         # If device is using HierarchicalScenarioManager, share the provided manager
         if scenario_manager is not None:
-            from lifx_emulator.scenarios import HierarchicalScenarioManager
-
             if isinstance(device.scenario_manager, HierarchicalScenarioManager):
                 device.scenario_manager = scenario_manager
                 device.invalidate_scenario_cache()
@@ -183,11 +239,7 @@ class DeviceManager:
             serial = device.state.serial
             device.activate_persistence()
             logger.info("Added device: %s (product=%s)", serial, device.state.product)
-            if self.on_device_added is not None:
-                try:
-                    self.on_device_added(device)
-                except Exception:
-                    logger.exception("Error in on_device_added callback for %s", serial)
+            self._notify_added(device)
         return success
 
     async def remove_device(self, serial: str, storage=None) -> bool:
@@ -225,11 +277,7 @@ class DeviceManager:
 
         logger.info("Removed device: %s", serial)
 
-        if self.on_device_removed is not None:
-            try:
-                self.on_device_removed(serial)
-            except Exception:
-                logger.exception("Error in on_device_removed callback for %s", serial)
+        self._notify_removed(serial)
 
         return success
 
@@ -271,20 +319,13 @@ class DeviceManager:
                     device.reopen()
             raise
 
-        device_count = 0
-        for serial in serials:
-            device_count += int(self._device_repository.remove(serial))
+        removed = [
+            serial for serial in serials if self._device_repository.remove(serial)
+        ]
+        device_count = len(removed)
         logger.info("Removed all %s device(s)", device_count)
-
-        # Notify callbacks for each removed device
-        if self.on_device_removed is not None:
-            for serial in serials:
-                try:
-                    self.on_device_removed(serial)
-                except Exception:
-                    logger.exception(
-                        "Error in on_device_removed callback for %s", serial
-                    )
+        for serial in removed:
+            self._notify_removed(serial)
 
         return device_count
 

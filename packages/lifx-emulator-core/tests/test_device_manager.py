@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from lifx_emulator import Connectivity
-from lifx_emulator.devices.manager import DeviceManager
+from lifx_emulator.devices.manager import DeviceLifecycleListener, DeviceManager
 from lifx_emulator.devices.persistence import (
     DevicePersistenceAsyncFile,
     DevicePersistenceError,
@@ -805,3 +805,62 @@ def test_lifecycle_listener_contract():
     manager = DeviceManager(DeviceRepository())
     assert callable(getattr(manager, "add_lifecycle_listener", None))
     assert callable(getattr(manager, "remove_lifecycle_listener", None))
+
+
+async def test_listener_order_isolation_identity_and_snapshot(caplog):
+    events = []
+    manager = DeviceManager(
+        DeviceRepository(), on_device_added=lambda d: events.append("legacy")
+    )
+    late = DeviceLifecycleListener(on_added=lambda d: events.append("late"))
+
+    def first(device):
+        events.append("first")
+        manager.remove_lifecycle_listener(second)
+        manager.add_lifecycle_listener(late)
+        raise RuntimeError("listener failure")
+
+    one = DeviceLifecycleListener(on_added=first)
+    second = DeviceLifecycleListener(on_added=lambda d: events.append("second"))
+    manager.add_lifecycle_listener(one)
+    manager.add_lifecycle_listener(one)
+    manager.add_lifecycle_listener(second)
+    device = create_color_light()
+    assert manager.add_device(device)
+    assert events == ["legacy", "first", "second"]
+    assert "listener failure" in caplog.text
+    assert not manager.add_device(device)
+    assert events == ["legacy", "first", "second"]
+    manager.remove_lifecycle_listener(one)
+    manager.remove_lifecycle_listener(one)
+    assert manager.add_device(create_color_light())
+    assert events[-2:] == ["legacy", "late"]
+    removed = []
+    manager.add_lifecycle_listener(
+        DeviceLifecycleListener(
+            on_removed=lambda serial: removed.append((serial, manager.count_devices()))
+        )
+    )
+    assert await manager.remove_all_devices() == 2
+    assert len(removed) == 2
+    assert all(count == 0 for _, count in removed)
+    assert not await manager.remove_device(device.state.serial)
+    assert len(removed) == 2
+
+
+async def test_failed_persistence_emits_no_listener_event():
+    manager = DeviceManager(DeviceRepository())
+    added, removed = [], []
+    manager.add_lifecycle_listener(
+        DeviceLifecycleListener(on_added=added.append, on_removed=removed.append)
+    )
+    device = create_color_light()
+    assert manager.add_device(device)
+    storage = Mock()
+    storage.delete_device_state = AsyncMock(side_effect=RuntimeError("storage failure"))
+    with pytest.raises(RuntimeError, match="storage failure"):
+        await manager.remove_device(device.state.serial, storage)
+    assert manager.get_device(device.state.serial) is device
+    assert added == [device]
+    assert removed == []
+    await manager.remove_all_devices()

@@ -18,8 +18,10 @@ from lifx_emulator.devices.device import (
 )
 from lifx_emulator.devices.manager import (
     DeviceAddedCallback,
+    DeviceLifecycleListener,
     DeviceManager,
     DeviceRemovedCallback,
+    IDeviceLifecycleSource,
     IDeviceManager,
 )
 from lifx_emulator.devices.observers import (
@@ -36,6 +38,8 @@ from lifx_emulator.devices.persistence import (
 from lifx_emulator.devices.states import Connectivity, DeviceState
 
 __all__ = [
+    "DeviceLifecycleListener",
+    "IDeviceLifecycleSource",
     "EmulatedLifxDevice",
     "StateChangeCallback",
     "StateMutation",
