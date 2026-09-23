@@ -37,6 +37,7 @@ jobs:
           mdns_spike:
             - '.github/workflows/ci.yml'
             - 'scripts/spike_mdns_candidates.py'
+            - 'scripts/spike_mdns_recovery.py'
             - 'scripts/mdns_spike_tests/**'
             - 'scripts/mdns_spike_inputs/**'
 
@@ -150,7 +151,7 @@ jobs:
         EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
         MDNS_SPIKE_ORACLE_PATH: ${{ runner.temp }}/lifx-async
       run: |
-        uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov
+        uv run --frozen pytest scripts/mdns_spike_tests -q --no-cov
         uv run --frozen python scripts/spike_mdns_candidates.py \
           run-zeroconf-platform --output "$EVIDENCE"
 

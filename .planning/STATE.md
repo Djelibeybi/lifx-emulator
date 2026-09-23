@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
 status: provisional
-stopped_at: Zeroconf continuation demonstrates fleet discovery, membership restoration and Intel packaging; platform and recovery gates remain
-last_updated: "2026-09-23T00:52:05.259990Z"
+stopped_at: Zeroconf recovery prototype passes; supported listener-failure detection and robustness gates remain
+last_updated: "2026-09-23T01:04:55.219663+00:00"
 last_activity: 2026-09-23
-last_activity_desc: Harness restriction lifted; targeted zeroconf continuation demonstrates local and Ubuntu discovery/restoration plus Intel packaging; no full go
-state_head: b8a4607bc00de09ad014a4e9d03b41c9015d7aa9
+last_activity_desc: Bounded recovery prototype passes locally; actual listener-failure detection remains unproved
+state_head: a057365fb08b1582cc76d9cf819bfed637b38955
 progress:
   total_phases: 6
   completed_phases: 0
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 Phase: 03 (mDNS Responder) — PROVISIONAL
 Plan: 1 of 1
-Status: Zeroconf remains preferred and provisional. Local macOS and hosted Ubuntu discovery/restoration plus Intel packaging have evidence; hosted macOS loopback multicast also passed; full recovery and robustness gates remain unresolved. MDNS-10 remains incomplete.
+Status: Zeroconf remains preferred and provisional. Platform discovery, restoration and Intel packaging have evidence. The local recovery prototype passes partial-startup cleanup and explicit retry with uninterrupted WiFi control. Actual listener-failure detection and robustness remain unresolved. MDNS-10 remains incomplete.
 Last activity: 2026-09-23 — User lifted the harness restriction. Corrected record aggregation checks and public-API restoration probes passed locally and on Ubuntu. Intel PyApp imports pinned zeroconf. Hosted virtual-interface sends fail with EHOSTUNREACH, but the permitted loopback-multicast run passed with the pristine client. No production integration or full go.
 
-Follow-up: The earlier 60-minute allowance used 4 minutes 33 seconds. The user subsequently lifted the harness restriction where it accelerates progress. The remaining allowance funds the targeted continuation in `.planning/phases/03-mdns-responder/03-CONTINUATION.md`; the original direct-prototype investigation remains historical evidence.
+Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Actual listener-loss detection remains unproved. No production integration is authorised.
 
 Progress: [░░░░░░░░░░] 0% (2/6 phases; 8/9 existing plans complete)
 
