@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 03
-current_phase_name: mDNS Responder
-status: verification_pending
-stopped_at: Phase 3 reopened for inline review; Linux receive-scope decision pending
+current_phase: 4
+current_phase_name: CLI and Configuration
+status: planning
+stopped_at: Phase 3 complete with accepted AR-06; ready to plan Phase 4
 last_updated: "2026-09-23T10:12:08.039Z"
 last_activity: 2026-09-23
-last_activity_desc: Phase 3 review fixes locally verified; hosted CI passed; receive-scope decision pending
+last_activity_desc: Phase 3 review fixes passed CI; user accepted AR-06
 state_head: f8d9f86501385fcf57999d2094eff4d6b72ec52d
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
   completed_plans: 15
-  percent: 33
+  percent: 50
 ---
 
 # Project State
@@ -23,18 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** A LAN client library can discover and control an emulated Thread device exactly as it would a real one: found only over mDNS with an AAAA record, reachable only by IPv6 unicast, every reply carrying the Thread connection bit.
-**Current focus:** Phase 3 — review follow-up
+**Current focus:** Phase 4 — CLI and Configuration
 
 ## Current Position
 
-Phase: 3 — mDNS Responder
-Plan: All seven implemented; review follow-up open
-Status: Awaiting receive-scope decision (hosted CI passed)
-Last activity: 2026-09-23 — Phase 3 review fixes locally verified; hosted CI passed; receive-scope decision pending
+Phase: 4 — CLI and Configuration
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-23 — Phase 3 review fixes passed CI; user accepted AR-06
 
-Follow-up: See `.planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md`. Twelve review comments have fixes with 1,486 local tests and all jobs in hosted run 35862702391 passing. Linux receive-interface leakage is confirmed and needs a decision about the public-API-only constraint. The dependency now uses the user-approved `>=0.151.3`.
+Follow-up: See `.planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md`. Twelve review comments have fixes with 1,486 local tests and all jobs in hosted run 35862702391 passing. The user explicitly accepted the confirmed Linux receive-scope limitation as AR-06; public zeroconf APIs are retained. The dependency now uses the user-approved `>=0.151.3`.
 
-Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
+Progress: [█████░░░░░] 50% (3 of 6 phases complete)
 
 ## Performance Metrics
 
@@ -103,5 +103,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-23
-Stopped at: Phase 3 review follow-up; receive-scope decision pending
-Resume file: .planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md
+Stopped at: Phase 3 complete with accepted AR-06; ready to plan Phase 4
+Resume file: None

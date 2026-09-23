@@ -16,7 +16,7 @@
     {
       "number": "3",
       "name": "mDNS Responder",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "4",
@@ -36,8 +36,8 @@
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Resume Phase 3 review follow-up",
-    "reason": "Linux receive-scope decision and hosted validation pending"
+    "label": "Plan Phase 4",
+    "reason": "Phase 3 review closed; Linux receive-scope limitation explicitly accepted"
   },
-  "updated_at": "2026-09-23T10:12:08.052Z"
+  "updated_at": "2026-09-23T12:56:55.059960+00:00"
 }

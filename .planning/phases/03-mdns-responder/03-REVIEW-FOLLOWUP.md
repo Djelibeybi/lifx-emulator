@@ -1,6 +1,6 @@
 # PR 224 review follow-up — 2026-09-23
 
-Claude's 13 inline comments were published under Djelibeybi's account against `b63e988`. Twelve findings have local fixes; receive-interface isolation remains a confirmed issue pending a constraint decision. Earlier clean review/security/verification reports describe the pre-review checks and do not override these findings.
+Claude's 13 inline comments were published under Djelibeybi's account against `b63e988`. Twelve findings are fixed and hosted CI passed; the user explicitly accepted the confirmed Linux receive-interface limitation on 2026-09-23. Earlier clean review/security/verification reports describe the pre-review checks and do not override these findings.
 
 ## Dispositions
 
@@ -15,7 +15,7 @@ Claude's 13 inline comments were published under Djelibeybi's account against `b
 | [4081631316](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631316) | Worker cancellation cancels innocent waiters | Barrier waits for completion without raising the worker's cancellation; interrupted work produces MdnsUpdateError. Committed deletions retain results. |
 | [4081631451](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631451) | Packet admission continues during teardown | Close both protocol admission paths before draining mDNS. `test_stop_closes_packet_admission_before_mdns_drain` |
 | [4081631588](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631588) | Serial per-change reconciliation backlog | One owned worker consumes the latest lazy snapshot; synchronous bursts build one fleet snapshot and probe concurrently. `test_burst_adds_share_one_reconciliation` |
-| [4081631743](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631743) | Linux receive-interface leak | **Confirmed, unresolved.** Isolated Linux reproduction below. Public-only zeroconf interface configuration is not a receive security boundary. |
+| [4081631743](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631743) | Linux receive-interface leak | **Confirmed and explicitly accepted by the user.** Isolated Linux reproduction below; documented as AR-06 and in the core README. Public-only zeroconf interface configuration is not a receive security boundary. |
 | [4081631876](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081631876) | API listeners survive lifespans | Wiring returns teardown functions; app exit removes listeners and restores callbacks/activity observer it owns. `test_app_lifespans_release_membership_listeners` |
 | [4081632001](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081632001) | Retained traceback grows; retry shows stale failure | Raise fresh barrier errors chained to the stored cause, observe task completion without re-raising its exception, and replace last supported failure. Two dedicated regressions. |
 | [4081632121](https://github.com/Djelibeybi/lifx-emulator/pull/224#discussion_r4081632121) | Published dependency exact pin | User approved `zeroconf>=0.151.3`; uv.lock remains 0.151.3. Intel packaging derives its exact verification version from the frozen workspace rather than a second literal. |
@@ -30,7 +30,7 @@ Claude's 13 inline comments were published under Djelibeybi's account against `b
 
 The output omits private addresses. The container published no ports and was removed after execution. Home Assistant likewise configures public `interfaces`/`ip_version` and adds no receive-scope restriction in its zeroconf wrapper; that is a code inspection, not a live Home Assistant reproduction. Its documentation describes choosing broadcast interfaces.
 
-Enforcing receive isolation requires relaxing the approved public-API-only dependency boundary or choosing a different implementation. A permission question for an isolated Linux socket restriction is pending; no private dependency access has been added.
+The user chose “Document and accept the limitation” on 2026-09-23. No private dependency access or socket patch is added. AR-06 records that selected interfaces do not guarantee receive isolation; the core README documents the observable behaviour and external isolation option. This is acceptance of the reproduced limitation, not a claim that the leak has been fixed.
 
 ## Validation
 
@@ -38,4 +38,4 @@ Enforcing receive isolation requires relaxing the approved public-API-only depen
 - Combined lifecycle, responder and WebSocket suite: 99 passed.
 - Expanded deterministic review suite: 10 passed; delayed-cache wire regression passed separately in 13.13 seconds.
 - Configured Pyright: zero errors.
-- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted CI [35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9: all ten Python/OS jobs, both required production integrations, code quality, spike evidence and Intel PyApp packaging. This closes the validation gate for the twelve fixes; the Linux receive-scope decision remains open.
+- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted CI [35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9: all ten Python/OS jobs, both required production integrations, code quality, spike evidence and Intel PyApp packaging. This closes the validation gate for the twelve fixes; the Linux receive-scope decision is closed by explicit acceptance AR-06.

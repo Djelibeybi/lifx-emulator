@@ -49,6 +49,10 @@ async def main():
 asyncio.run(main())
 ```
 
+## mDNS interface limitation
+
+mDNS is opt-in (`mdns_enabled=True`). On Linux, zeroconf may receive and answer mDNS queries through an interface other than the selected one when another process has joined the multicast group there. Selecting an interface, including loopback, is not a receive-isolation security boundary; synthetic device records may be visible on that other network. Strict isolation requires an external network boundary such as a dedicated network namespace or firewall policy. The emulator retains the public zeroconf API and does not patch its sockets to enforce receive isolation.
+
 ## Features
 
 - Emulate color lights, multizone strips, tiles, infrared, HEV, and switch devices

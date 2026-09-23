@@ -1,8 +1,8 @@
 ---
 phase: "03"
 slug: mdns-responder
-status: blocked
-threats_open: 1
+status: verified
+threats_open: 0
 asvs_level: 1
 block_on: high
 created: "2026-09-23"
@@ -10,9 +10,9 @@ created: "2026-09-23"
 
 # Phase 3 — Security
 
-**Reopened 2026-09-23:** Current T-03-21 receive-interface isolation is OPEN (high). A Linux reproduction confirms that zeroconf can answer through a non-selected interface. The prior L1 presence check did not establish that boundary. See `03-REVIEW-FOLLOWUP.md`. No new risk acceptance or private socket modification has been authorised. The earlier audit below is retained as historical evidence.
+**Review closeout 2026-09-23:** The user explicitly accepted the confirmed Linux receive-scope limitation after reviewing the reproduction. T-03-21 is closed by documented risk acceptance AR-06, not by technical mitigation. The twelve other review findings have fixes validated by hosted run 35862702391 at a1308f9. No blocking threats remain. Earlier audit evidence is retained below.
 
-L1 presence audit by the gsd-security-auditor subagent at implementation head `721601a`. All 32 plan-scoped rows resolved: 27 mitigations present and five previously documented accepted dispositions. Five rows belong to halted/superseded 03-01 and are historical controls, not a current direct-responder requirement. No new risk acceptance is introduced here.
+L1 presence audit by the gsd-security-auditor subagent at implementation head `721601a`. All 32 plan-scoped rows resolved: 27 mitigations present and five previously documented accepted dispositions. Five rows belong to halted/superseded 03-01 and are historical controls, not a current direct-responder requirement. That original audit predates AR-06; the explicit user acceptance below supersedes its strict receive-scope claim.
 
 Production short paths below resolve under `packages/lifx-emulator-core/src/lifx_emulator`; test short paths under `packages/lifx-emulator-core/tests`; `event_bridge.py` under `packages/lifx-emulator/src/lifx_emulator_app/api/services`. Phase document paths are relative to this directory.
 
@@ -36,7 +36,7 @@ Production short paths below resolve under `packages/lifx-emulator-core/src/lifx
 | 03-01/T-03-04 | Denial of Service | Lifecycle/thread ownership | medium | mitigate | Repeat open/close with socket, task and thread inventories before/during/after. | closed (historical) | scripts/mdns_spike_tests/test_candidates.py:611-657; scripts/spike_mdns_candidates.py:1280-1324 |
 | 03-01/T-03-SC | Tampering | Candidate package and PyApp payload | high | mitigate | Official provenance, immutable commits, uv isolation, local-wheel hash/METADATA proof and non-publishing CI artefacts. | closed (historical) | scripts/spike_mdns_candidates.py:2405-2422,2708-2835; .github/workflows/ci.yml:235-241,312-409 |
 | 03-02/T-03-20 | Denial of Service | zeroconf datagram ingestion | high | mitigate | Fixed malformed/truncated corpus and 256-query pressure case must preserve a fresh valid query path, bounded completion and unchanged pending-task/thread inventory. | closed | scripts/spike_mdns_candidates.py:3014-3036,3155-3197,3488-3527 |
-| 03-02/T-03-21 | Spoofing / Information Disclosure | interface and legacy-unicast routing | high | mitigate | Exact-head receipts retain explicit IPv4 interface, source/destination/query correlation and exact public TXT/address records. | OPEN — blocking | scripts/spike_mdns_candidates.py:2997-3000,3039-3052,3120-3151 |
+| 03-02/T-03-21 | Spoofing / Information Disclosure | interface and legacy-unicast routing | high | accept | Explicit sender/join selection remains; strict receive-interface isolation is not guaranteed. | closed — accepted AR-06 | User decision 2026-09-23; 03-review-evidence/linux-interface-scope.py; 03-REVIEW-FOLLOWUP.md |
 | 03-02/T-03-22 | Tampering | candidate/version and historical evidence | high | mitigate | Validator checks official provenance, exact version/revision, SHA-256 inputs and candidate labels; direct-responder passes cannot fill zeroconf rows. | closed | scripts/spike_mdns_candidates.py:3654-3679,3802-3952 |
 | 03-02/T-03-23 | Denial of Service | lifecycle operation failures | high | mitigate | Public-operation boundary tests require retained error identity, owned cleanup, blocked replacement after cleanup failure and explicit retry only. | closed | scripts/mdns_spike_inputs/zeroconf_recovery.py:40-138; scripts/mdns_spike_tests/test_recovery.py:134-216 |
 | 03-02/T-03-24 | Denial of Service | silent listener loss | medium | accept | D-08 explicitly accepts nondetection for this test-oriented emulator; status text and the decision must avoid a network-health guarantee. | closed | 03-CONTEXT.md:58-61; 03-02-SUMMARY.md:88-90 |
@@ -72,6 +72,7 @@ Production short paths below resolve under `packages/lifx-emulator-core/src/lifx
 | AR-03 | T-03-05-04 | Lifecycle listeners are trusted in-process callbacks with no privilege boundary. | Existing 03-05 plan disposition | 2026-09-23 |
 | AR-04 | T-03-06-05 | No automatic retry or interface selection; recovery is explicit. | Existing plan and user-approved D-08 | 2026-09-23 |
 | AR-05 | T-03-07-04 | Bounded 100-device CI integration has no performance threshold. | Existing 03-07 plan disposition | 2026-09-23 |
+| AR-06 | T-03-21 | Linux may answer through non-selected interfaces when another process joins the multicast group there. Interface selection is not a security boundary; preserve public zeroconf APIs and document the limitation. | User: “Document and accept the limitation” | 2026-09-23 |
 
 The already-approved zeroconf continuation-question exception remains in 03-CONTEXT.md:3-5 and 03-02-SUMMARY.md:88-90. It is an existing selection boundary, not a new acceptance.
 
@@ -79,7 +80,8 @@ The already-approved zeroconf continuation-question exception remains in 03-CONT
 
 | Audit Date | Threats Total | Closed | Blocking Open | Run By |
 |---|---|---|---|---|
-| 2026-09-23 | 32 | 32 | 0 | gsd-security-auditor, ASVS L1 |
+| 2026-09-23 | 32 | 32 | 0 | gsd-security-auditor, ASVS L1 (historical) |
+| 2026-09-23 | 32 | 32 | 0 | Review fixes passed CI; user accepted AR-06 |
 
 No SUMMARY Threat Flags or unregistered flags were found. This is a presence audit, not a general penetration test. Hosted functional CI is a separate gate. A subsequent test-only Python 3.10 fixture repair uses the public DatagramProtocol API and preserves the raw-wire assertions and owned socket cleanup; production mitigations are unchanged.
 
@@ -87,7 +89,7 @@ No SUMMARY Threat Flags or unregistered flags were found. This is a presence aud
 
 - [x] All threats have a declared disposition.
 - [x] Previously accepted risks recorded.
-- [ ] Zero blocking threats (Linux receive scope remains open).
-- [ ] Revised implementation and receive boundary verified.
+- [x] Zero blocking threats; receive-scope limitation explicitly accepted as AR-06.
+- [x] Revised implementation passed CI; receive-boundary limitation reproduced and documented.
 
-**Approval:** blocked pending T-03-21 resolution.
+**Approval:** verified with explicit accepted risk AR-06, 2026-09-23.

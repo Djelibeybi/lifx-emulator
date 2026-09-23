@@ -9,6 +9,8 @@
 
 **Accepted runtime failure scope (2026-09-23):** D-08 covers failures surfaced by supported zeroconf operations. Silent listener loss and network unresponsiveness are not guaranteed to be detected. This test-oriented, non-production emulator does not require an upstream callback, vendored or patched zeroconf, private listener access, or a responsiveness watchdog for this purpose. Users can report such limitations when encountered. Startup failure, observable runtime errors, owned cleanup and explicit retry remain covered.
 
+**Accepted Linux receive-scope limitation (2026-09-23):** The user explicitly chose “Document and accept the limitation” after the Linux reproduction and Home Assistant comparison. On Linux, zeroconf may receive and answer mDNS queries through an interface other than the selected one when another process has joined the multicast group there. Selecting an interface, including loopback, is not a receive-isolation security boundary; synthetic device records may be visible on that other network. Strict isolation requires an external network boundary such as a dedicated network namespace or firewall policy. Retain the public-API-only zeroconf adapter; no private socket restriction, monkey-patch or dependency fork is required. This narrows prior interface-isolation claims without changing address validation or the explicit interface selection used for joins/senders. See `03-REVIEW-FOLLOWUP.md` and security risk AR-06.
+
 <domain>
 ## Phase Boundary
 

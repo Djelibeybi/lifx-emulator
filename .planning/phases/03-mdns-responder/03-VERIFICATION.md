@@ -1,8 +1,8 @@
 ---
 phase: 03-mdns-responder
 verified: 2026-09-23T10:09:30Z
-status: gaps_found
-score: pending review follow-up verification
+status: passed
+score: 5/5 must-haves verified with accepted receive-scope limitation
 covered_files:
   - .github/workflows/ci.yml
   - .planning/REQUIREMENTS.md
@@ -56,7 +56,7 @@ covered_files:
   - scripts/prepare_mdns_oracle.py
   - scripts/spike_mdns_candidates.py
   - uv.lock
-covered_digest: "v1:sha256:fd178945358032d8719252de0dd4f0b459d8144336622ade919d4d645ef62ca7"
+covered_digest: "v1:sha256:ed1b7c963b9c9da743538c5266e06718a73ffb3478ca0737b5cbb1f8d583f72d"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -64,13 +64,14 @@ re_verification:
   previous_score: 4/5
   gaps_closed:
     - "The production loopback-multicast integration tests passed on both hosted Ubuntu and hosted macOS in run 35846599552 at f8d9f86501385fcf57999d2094eff4d6b72ec52d."
+    - "Review fixes passed hosted run 35862702391; user explicitly accepted Linux receive-scope limitation AR-06 on 2026-09-23."
   gaps_remaining: []
   regressions: []
 ---
 
 # Phase 3: mDNS Responder Verification Report
 
-**Reopened 2026-09-23:** PR review revealed a confirmed Linux receive-interface isolation gap and lifecycle defects. Twelve comments have local fixes and 1,486 tests pass; hosted run 35862702391 passed all jobs at a1308f9. The Linux scope decision is unresolved. See `03-REVIEW-FOLLOWUP.md`. The report below is historical evidence for f8d9f86, not approval of the revised implementation.
+**Review closeout 2026-09-23:** Twelve review findings are fixed; 1,486 local tests and all hosted jobs in [run 35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9. The user explicitly accepted the reproduced Linux receive-scope limitation as AR-06. No implementation change is claimed for that limitation. The public-API boundary is preserved. Current status: passed with accepted risk; no unresolved review gate. See `03-REVIEW-FOLLOWUP.md` and `03-SECURITY.md`. Earlier verification evidence follows.
 
 ## Historical verification
 
