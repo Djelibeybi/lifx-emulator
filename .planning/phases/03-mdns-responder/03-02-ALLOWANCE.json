@@ -1,0 +1,17 @@
+{
+  "plan": "03-02",
+  "decision": "approve-120",
+  "authority": "User selected option 1 after the explicit fresh-budget checkpoint",
+  "started_at": "2026-09-23T06:26:20Z",
+  "active_budget_seconds": 7200,
+  "ci_queue_seconds": 0,
+  "scope": [
+    "zeroconf malformed/flood/resource cases",
+    "identified Windows simulation",
+    "configuration/interface candidate fit",
+    "supported-operation failures and recovery",
+    "exact-head CI receipts and evidence validation"
+  ],
+  "automatic_extension": false,
+  "production_implementation_authorised": false
+}
