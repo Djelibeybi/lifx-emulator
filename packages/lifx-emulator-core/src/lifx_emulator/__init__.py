@@ -15,11 +15,13 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.mdns import MdnsStatus
 from lifx_emulator.server import EmulatedLifxServer
 
 __version__ = get_version("lifx-emulator-core")
 
 __all__ = [
+    "MdnsStatus",
     "EmulatedLifxServer",
     "EmulatedLifxDevice",
     "Connectivity",
