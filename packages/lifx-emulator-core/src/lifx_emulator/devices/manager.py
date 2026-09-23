@@ -43,11 +43,9 @@ class IDeviceLifecycleSource(Protocol):
 
     def add_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
         """Subscribe by object identity."""
-        ...
 
     def remove_lifecycle_listener(self, listener: DeviceLifecycleListener) -> None:
         """Unsubscribe idempotently."""
-        ...
 
 
 @runtime_checkable

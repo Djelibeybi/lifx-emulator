@@ -58,3 +58,19 @@ the resulting commit remain the authority for the coverage merge gate.
 
 Local validation: 1,493 passed, four environment-gated skips; Ruff checks and
 format checks passed; configured Pyright reported zero errors.
+
+### Complete changed-line coverage — 2026-09-24
+
+The user requested closing the remaining 11 missing/partial changed lines even
+though both Codecov checks passed at 2c36732. Added regressions for unsupported
+legacy managers, concurrent failures sharing cleanup, explicit-only WiFi retry,
+cancelled advertisement restart preserving existing endpoints, and a completion
+barrier following a replaced worker. Protocol declarations now use their existing
+docstrings as bodies without redundant ellipsis statements. Responder cleanup
+explicitly releases its reference on success and retains it after failed close;
+this removes an infeasible normal-return branch from the previous `finally`.
+
+Local full-suite validation: 1,499 passed, four environment-gated skips. Coverage
+compared against Codecov's base 6095060 reports zero missing and zero partial
+changed lines. Configured Pyright and Ruff pass. Hosted Codecov verification is
+recorded in the PR description after upload; no thresholds or exclusions changed.

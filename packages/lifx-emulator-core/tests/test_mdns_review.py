@@ -327,3 +327,109 @@ async def test_startup_cleanup_failure_remains_owned_for_later_stop(monkeypatch)
 def test_broadcast_advertisement_address_is_rejected():
     with pytest.raises(ValueError, match="Broadcast mDNS address"):
         create_color_light(mdns_address="255.255.255.255")
+
+
+@pytest.mark.parametrize("entrypoint", ["start", "_open_mdns_locked"])
+async def test_mdns_rejects_manager_without_lifecycle_subscriptions(entrypoint):
+    class LegacyManager:
+        def get_all_devices(self):
+            return []
+
+    server = make_server([])
+    server._device_manager = LegacyManager()
+    with pytest.raises(TypeError, match="IDeviceLifecycleSource"):
+        await getattr(server, entrypoint)()
+    assert server.ipv4_endpoint is None
+    assert server._mdns is None
+
+
+async def test_concurrent_failures_share_one_cleanup_task(monkeypatch):
+    owner = MembershipOwner()
+    monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kw: owner)
+    server = make_server([])
+    await server.start()
+    try:
+        async with server._lifecycle_lock:
+            server._mdns_failed(RuntimeError("first failure"))
+            cleanup = server._mdns_failure_task
+            server._mdns_failed(RuntimeError("latest failure"))
+            assert server._mdns_failure_task is cleanup
+        await cleanup
+        assert owner.closes == 1
+        assert str(server.mdns_error) == "latest failure"
+        assert server.transport is not None
+    finally:
+        await server.stop()
+
+
+async def test_repeated_start_does_not_implicitly_retry_failed_wifi(monkeypatch):
+    owner = MembershipOwner()
+    owner.failure = ("register", "outer")
+    creations = []
+
+    def create_owner(**kwargs):
+        creations.append(owner)
+        return owner
+
+    monkeypatch.setattr(mdns, "AsyncZeroconf", create_owner)
+    server = make_server([create_color_light()])
+    await server.start()
+    endpoint = server.transport
+    try:
+        await server.start()
+        assert server.transport is endpoint
+        assert server.mdns_status == "failed"
+        assert len(creations) == 1
+    finally:
+        await server.stop()
+
+
+async def test_cancelled_advertisement_restart_preserves_existing_endpoints(
+    monkeypatch,
+):
+    first, second = MembershipOwner(), MembershipOwner()
+    second.held = "register"
+    owners = iter([first, second])
+    monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kw: next(owners))
+    server = make_server([create_color_light()])
+    await server.start()
+    endpoint = server.transport
+    async with server._lifecycle_lock:
+        await server._stop_mdns_locked()
+    restart = asyncio.create_task(server.start())
+    await asyncio.wait_for(second.entered.wait(), 1)
+    restart.cancel()
+    try:
+        with pytest.raises(asyncio.CancelledError):
+            await restart
+        assert server.transport is endpoint
+        assert server.mdns_error is None
+        assert first.closes == second.closes == 1
+    finally:
+        await server.stop()
+
+
+async def test_barrier_follows_worker_replaced_before_waiter_resumes(monkeypatch):
+    owner = MembershipOwner()
+    owner.held = "register"
+    monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kw: owner)
+    responder = mdns.MdnsResponder("127.0.0.1", 56700)
+    first = create_color_light(serial="d073d5990201")
+    second = create_color_light(serial="d073d5990202")
+    await responder.start([])
+    try:
+        responder.schedule(lambda: responder.snapshot([first]))
+        await asyncio.wait_for(owner.entered.wait(), 1)
+        original_worker = responder._tail
+        waiter = asyncio.create_task(responder.wait_for_updates())
+        await asyncio.sleep(0)
+        original_worker.add_done_callback(
+            lambda _: responder.schedule(lambda: responder.snapshot([first, second]))
+        )
+        owner.release.set()
+        await asyncio.wait_for(waiter, 1)
+        assert responder._tail is not original_worker
+        assert responder._tail.done()
+        assert set(responder._services) == set(responder.snapshot([first, second]))
+    finally:
+        await responder.stop()

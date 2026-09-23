@@ -56,7 +56,7 @@ covered_files:
   - scripts/prepare_mdns_oracle.py
   - scripts/spike_mdns_candidates.py
   - uv.lock
-covered_digest: "v1:sha256:be6d0d458cc264de3375d2d80cb78f29e568c479003f6df9f1ed3d6dcdabdeef"
+covered_digest: "v1:sha256:152dac0c26704b2dec81c74ba74a9f0f6f6f53e5636a9a9c6234bd4f34561736"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
