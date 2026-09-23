@@ -16,6 +16,7 @@ from lifx_emulator.background_tasks import BackgroundTaskTracker
 from lifx_emulator.devices import (
     EXTERNAL_STATE_UPDATE,
     ActivityLogger,
+    DeviceLifecycleListener,
     DeviceManager,
     PacketEvent,
     StateChangeCallback,
@@ -241,8 +242,9 @@ def wire_device_events(
         )
         logger.debug("Scheduled device_removed broadcast for %s", serial)
 
-    device_manager.on_device_added = on_device_added
-    device_manager.on_device_removed = on_device_removed
+    device_manager.add_lifecycle_listener(
+        DeviceLifecycleListener(on_added=on_device_added, on_removed=on_device_removed)
+    )
 
     logger.info("Device event callbacks wired to WebSocket manager")
 
@@ -565,15 +567,12 @@ def wire_device_state_events(
 
     logger.info("Wired state callbacks for %d existing devices", len(existing_devices))
 
-    # Hook into device_added to wire new devices
-    original_callback = device_manager.on_device_added
-
-    def on_device_added_wrapper(device: EmulatedLifxDevice) -> None:
-        """Wrapper to wire state callback before calling original handler."""
+    def on_device_added(device: EmulatedLifxDevice) -> None:
+        """Attach state observation without displacing other consumers."""
         device.on_state_changed = callback
-        if original_callback:
-            original_callback(device)
 
-    device_manager.on_device_added = on_device_added_wrapper
+    device_manager.add_lifecycle_listener(
+        DeviceLifecycleListener(on_added=on_device_added)
+    )
 
     logger.info("Device state change callbacks wired to WebSocket manager")

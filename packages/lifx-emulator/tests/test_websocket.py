@@ -12,7 +12,12 @@ import lifx_emulator_app.api.app as api_app_module
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.background_tasks import BackgroundTaskTracker
-from lifx_emulator.devices import ActivityLogger, DeviceManager, PacketEvent
+from lifx_emulator.devices import (
+    ActivityLogger,
+    DeviceLifecycleListener,
+    DeviceManager,
+    PacketEvent,
+)
 from lifx_emulator.factories import (
     create_color_light,
     create_multizone_light,
@@ -1008,3 +1013,30 @@ class TestWebSocketExceptionHandling:
 
         # Connection should close cleanly without server errors
         # (verified by context manager exiting without exception)
+
+
+async def test_event_bridge_listener_coexistence():
+    manager = DeviceManager(DeviceRepository())
+    legacy = []
+    manager.on_device_added = legacy.append
+    ws = MagicMock(spec=WebSocketManager)
+    ws.broadcast_device_added = AsyncMock()
+    tracker = BackgroundTaskTracker("listener-test")
+    observer = WebSocketStateChangeObserver(ws, task_tracker=tracker)
+    wire_device_events(manager, ws, task_tracker=tracker)
+    wire_device_state_events(manager, observer)
+    assert manager.on_device_added == legacy.append
+    calls = []
+
+    def broken(device):
+        calls.append(device)
+        raise RuntimeError("independent listener")
+
+    manager.add_lifecycle_listener(DeviceLifecycleListener(on_added=broken))
+    device = create_color_light()
+    assert manager.add_device(device)
+    await tracker.shutdown()
+    assert legacy == [device]
+    assert calls == [device]
+    assert device.on_state_changed == observer.get_callback()
+    ws.broadcast_device_added.assert_awaited_once()
