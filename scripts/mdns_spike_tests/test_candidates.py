@@ -813,3 +813,19 @@ def test_closeout_never_accepts_simulation_or_direct_history_as_real_gate():
     cases["local_configuration"]["status"] = "demonstrated"
     cases["local_configuration"]["candidate"] = "lifx-direct"
     assert module["_closeout_routes"](cases) == ["provisional"]
+
+
+def test_closeout_filters_foreign_responders_before_recording():
+    module = run_path(str(HARNESS))
+    own = SimpleNamespace(
+        rtype=12, name="_lifx._udp.local.", parsed_data="d073d503c001._lifx._udp.local."
+    )
+    foreign = SimpleNamespace(
+        rtype=12, name="_lifx._udp.local.", parsed_data="d073d5999999._lifx._udp.local."
+    )
+    address = SimpleNamespace(
+        rtype=1, name="d073d503c001.local.", parsed_data="127.0.0.1"
+    )
+    assert module["_owned_query_records"](
+        [foreign, own, address], {"d073d503c001"}
+    ) == [own, address]
