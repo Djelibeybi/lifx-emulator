@@ -1057,3 +1057,18 @@ async def test_app_lifespans_release_membership_listeners(server):
         await asyncio.sleep(0)
         assert server.websocket_events_dropped == 0
     assert all(device.on_state_changed is None for device in server.get_all_devices())
+
+
+async def test_app_shutdown_preserves_replacement_observers(server):
+    """A later subscriber retains ownership when the app releases its bridges."""
+    device = create_color_light()
+    server.add_device(device)
+    app = create_api_app(server)
+    replacement_activity = MagicMock()
+    replacement_state = MagicMock()
+    async with app.router.lifespan_context(app):
+        server.activity_observer = replacement_activity
+        device.on_state_changed = replacement_state
+    assert server.activity_observer is replacement_activity
+    assert device.on_state_changed is replacement_state
+    assert server._device_manager._lifecycle_listeners == []

@@ -38,4 +38,23 @@ The user chose “Document and accept the limitation” on 2026-09-23. No privat
 - Combined lifecycle, responder and WebSocket suite: 99 passed.
 - Expanded deterministic review suite: 10 passed; delayed-cache wire regression passed separately in 13.13 seconds.
 - Configured Pyright: zero errors.
-- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted CI [35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9: all ten Python/OS jobs, both required production integrations, code quality, spike evidence and Intel PyApp packaging. This closes the validation gate for the twelve fixes; the Linux receive-scope decision is closed by explicit acceptance AR-06.
+- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted CI [35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9: all ten Python/OS jobs, both required production integrations, code quality, spike evidence and Intel PyApp packaging. These workflow results validate the twelve fixes but do not establish that the separate Codecov merge gates pass; the Linux receive-scope decision is closed by explicit acceptance AR-06.
+
+
+## Coverage gate follow-up
+
+The Codecov checks at e142e5e failed: patch coverage was 91.58879% against
+94.65%, and project coverage was 94.45% against a 94.65% base. The rounded
+pytest coverage percentage and green Actions workflow were insufficient to
+claim merge readiness.
+
+Added regression tests for live and tombstoned service record updates,
+idempotent responder start and closed admission, cancellation during goodbyes,
+synchronous scheduling failure, stale failure-policy work, repeated cleanup
+failure with retained ownership, broadcast-address rejection, empty fleet
+removal, and preserving replacement app observers during shutdown. No coverage
+thresholds, exclusions or runtime code were changed. Hosted Codecov results on
+the resulting commit remain the authority for the coverage merge gate.
+
+Local validation: 1,493 passed, four environment-gated skips; Ruff checks and
+format checks passed; configured Pyright reported zero errors.
