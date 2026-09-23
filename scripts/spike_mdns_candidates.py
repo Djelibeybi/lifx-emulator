@@ -3769,8 +3769,8 @@ def _closeout_derive_cases(ledger):
         None
         if ledger_benchmarks
         else (
-            "Acquire candidate-specific public-client 1/10/100 discovery "
-            "timings with CPU/RSS metrics"
+            "Acquire the candidate-specific public-client 100-device observation "
+            "plus labelled raw 1/10/100 record timing/CPU/RSS metrics"
         ),
     )
     return cases
