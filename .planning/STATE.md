@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
 status: provisional
-stopped_at: Listener-health investigation confirms startup checks miss transport loss; D-08 decision remains
-last_updated: "2026-09-23T01:22:47.743481+00:00"
+stopped_at: "Phase 3 D-08 amended: supported-operation failures only; remaining spike evidence and go/no-go pending"
+last_updated: "2026-09-23T02:47:24.674Z"
 last_activity: 2026-09-23
-last_activity_desc: Real transport closure is invisible to zeroconf startup checks; supported failure notification remains unavailable
-state_head: 1766cb6
+last_activity_desc: User narrowed D-08 to supported-operation failures; silent listener loss accepted for test-oriented use; other spike gates remain
+state_head: 1e808ad0d7ea996535160790e76835d43cb7c5fb
 progress:
   total_phases: 6
   completed_phases: 0
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 Phase: 03 (mDNS Responder) — PROVISIONAL
 Plan: 1 of 1
-Status: Zeroconf remains preferred and provisional. Platform discovery, restoration and Intel packaging have evidence. The local recovery prototype passes partial-startup cleanup and explicit retry with uninterrupted WiFi control. Actual listener-failure detection and robustness remain unresolved. MDNS-10 remains incomplete.
+Status: Provisional. D-08 now covers supported-operation failures only; silent listener-loss detection is an accepted limitation for this test-oriented emulator. Zeroconf remains preferred; robustness, Windows simulation and configuration/interface evidence plus the MDNS-10 decision remain pending.
 Last activity: 2026-09-23 — User lifted the harness restriction. Corrected record aggregation checks and public-API restoration probes passed locally and on Ubuntu. Intel PyApp imports pinned zeroconf. Hosted virtual-interface sends fail with EHOSTUNREACH, but the permitted loopback-multicast run passed with the pristine client. No production integration or full go.
 
 Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Actual listener-loss detection remains unproved. No production integration is authorised.
@@ -104,9 +104,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-23T00:52:05.259990Z
-Stopped at: Targeted zeroconf continuation; local/Ubuntu discovery and membership restoration plus Intel packaging passed; remaining gates unresolved
-Resume file: .planning/phases/03-mdns-responder/03-CONTINUATION.md
+Last session: 2026-09-23T02:46:50.663Z
+Stopped at: Phase 3 D-08 amended: supported-operation failures only; remaining spike evidence and go/no-go pending
+Resume file: .planning/phases/03-mdns-responder/03-CONTEXT.md
 
 Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
 
