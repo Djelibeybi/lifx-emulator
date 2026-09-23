@@ -706,7 +706,7 @@ def test_closeout_malformed_corpus_and_load_are_fixed():
         "large",
     }
     assert corpus["empty"] == b""
-    assert len(corpus["large"]) == 60000
+    assert len(corpus["large"]) == 8192
     assert module["CLOSEOUT_QUERY_COUNT"] == 256
 
 
@@ -726,3 +726,90 @@ def test_closeout_validator_rejects_empty_ledger(tmp_path):
     ledger = tmp_path / "closeout.json"
     ledger.write_text("{}")
     assert _run("validate-zeroconf-closeout", str(ledger)).returncode == 1
+
+
+def _closeout_robustness_fixture():
+    module = run_path(str(HARNESS))
+    inventory = {"pending_tasks": [], "threads": ["MainThread"], "descriptor_count": 10}
+    return {
+        "corpus": {
+            name: {
+                "bytes_sent": len(raw),
+                "sha256": module["hashlib"].sha256(raw).hexdigest(),
+            }
+            for name, raw in module["_closeout_malformed_corpus"]().items()
+        },
+        "queries": [
+            {
+                "query_id": 0xE000 + i,
+                "source_port": 50000 + i,
+                "direct": bool(i % 2),
+                "passed": True,
+                "metrics": {
+                    "wire_checks_passed": True,
+                    "discovered": 1,
+                    "complete_devices": 0 if i % 2 else 1,
+                },
+            }
+            for i in range(256)
+        ],
+        "after_malformed": {"passed": True},
+        "pristine_discovery_after_flood": True,
+        "before": dict(inventory),
+        "after": dict(inventory),
+        "public_done": True,
+        "batch_pending_tasks": [0] * 16,
+        "flood_seconds": 2,
+    }
+
+
+@pytest.mark.parametrize("fault", ["id", "port", "wire", "discovery", "missing"])
+def test_closeout_robustness_cannot_claim_success_from_bad_observations(fault):
+    module = run_path(str(HARNESS))
+    payload = _closeout_robustness_fixture()
+    assert module["_closeout_robustness_passed"](payload)
+    if fault == "id":
+        payload["queries"][1]["query_id"] = payload["queries"][0]["query_id"]
+    elif fault == "port":
+        payload["queries"][0]["source_port"] = 5353
+    elif fault == "wire":
+        payload["queries"][0]["metrics"]["wire_checks_passed"] = False
+    elif fault == "discovery":
+        payload["pristine_discovery_after_flood"] = False
+    else:
+        payload["corpus"].pop("compression-loop")
+    assert not module["_closeout_robustness_passed"](payload)
+
+
+@pytest.mark.parametrize("fault", ["tasks", "fds", "threads", "growth", "deadline"])
+def test_closeout_resources_reject_leaks_and_unbounded_work(fault):
+    module = run_path(str(HARNESS))
+    payload = _closeout_robustness_fixture()
+    assert module["_closeout_resources_passed"](payload)
+    if fault == "tasks":
+        payload["after"]["pending_tasks"] = ["orphan"]
+    elif fault == "fds":
+        payload["after"]["descriptor_count"] += 1
+    elif fault == "threads":
+        payload["after"]["threads"] = ["MainThread", "leaked"]
+    elif fault == "growth":
+        payload["batch_pending_tasks"][-1] = 1
+    else:
+        payload["flood_seconds"] = 46
+    assert not module["_closeout_resources_passed"](payload)
+
+
+def test_closeout_never_accepts_simulation_or_direct_history_as_real_gate():
+    module = run_path(str(HARNESS))
+    cases = {
+        "local_windows": module["_closeout_case"]("simulated", "constructor seam"),
+        "local_configuration": module["_closeout_case"](
+            "demonstrated", "real candidate"
+        ),
+    }
+    assert "go" in module["_closeout_routes"](cases)
+    cases["local_configuration"]["status"] = "simulated"
+    assert module["_closeout_routes"](cases) == ["provisional"]
+    cases["local_configuration"]["status"] = "demonstrated"
+    cases["local_configuration"]["candidate"] = "lifx-direct"
+    assert module["_closeout_routes"](cases) == ["provisional"]
