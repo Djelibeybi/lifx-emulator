@@ -1,4 +1,6 @@
-# Phase 3 execution checkpoint — 2026-09-23
+# Phase 3 execution checkpoint — resolved 2026-09-23
+
+**Current status:** Phase complete. The user approved the push. Hosted CI [35846599552](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35846599552) passed at `f8d9f86`, including all ten Python/OS jobs and both production integrations (4/4 each, no skips). Verification passed 5/5; security audit has zero blocking threats. PR #224 remains open, not merged or released. The checkpoint below is historical and no longer blocks progression.
 
 Production mDNS implementation is committed locally on `codex/phase-03-mdns-responder`. Existing PR: https://github.com/Djelibeybi/lifx-emulator/pull/224. Phase remains open; verifier status `gaps_found`, score 4/5. No remote changes were made during this execution.
 
@@ -10,7 +12,7 @@ Production mDNS implementation is committed locally on `codex/phase-03-mdns-resp
 - Configured Pyright, Ruff, pre-commit hooks, wheel and sdist build passed. Code review clean after two fixes.
 - Production CI commit `7e7d10b`; production tests `53b08ef`; review fixes `7a482f1`. No source changed after the final passing suite.
 
-## Resume
+## Historical resume instructions (resolved)
 
 1. Obtain explicit approval to push this branch to existing PR #224. Automatic approval review rejected two pushes, including a retry after verifying the public repository and authenticated owner's admin access, because explicit push authorisation was required. Do not repeat without that approval.
 2. Push the committed implementation and update the existing PR title/body to its final scope. A prepared body is in `/tmp/lifx-phase3-pr-body.md`; reconstruct from summaries if that temporary file is gone.

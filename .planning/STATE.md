@@ -1,46 +1,46 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 03
-current_phase_name: mDNS Responder
-status: verification_pending
-stopped_at: Production implementation committed locally; hosted CI awaits explicit push approval
-last_updated: "2026-09-23T09:45:43.399626+00:00"
+current_phase: 4
+current_phase_name: CLI and Configuration
+status: planning
+stopped_at: Phase 3 complete, ready to plan Phase 4
+last_updated: "2026-09-23T10:12:08.039Z"
 last_activity: 2026-09-23
-last_activity_desc: Phase 03 local execution and review complete; verification 4/5
-state_head: 26af0a43fab77d42ae7dfd810fbca06481ced9f3
+last_activity_desc: Phase 3 complete, transitioned to Phase 4
+state_head: f8d9f86501385fcf57999d2094eff4d6b72ec52d
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 14
-  percent: 33
+  completed_plans: 15
+  percent: 50
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-10)
+See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** A LAN client library can discover and control an emulated Thread device exactly as it would a real one: found only over mDNS with an AAAA record, reachable only by IPv6 unicast, every reply carrying the Thread connection bit.
-**Current focus:** Phase 03 — mDNS Responder
+**Current focus:** Phase 4 — CLI and Configuration
 
 ## Current Position
 
-Phase: 03 (mDNS Responder) — VERIFICATION PENDING
-Plan: 6 of 7 closed; 03-07 hosted validation pending
-Status: Local implementation complete; phase verifier gaps_found (4/5)
-Last activity: 2026-09-23 — All production changes committed, review clean, required-mode local integration passed
+Phase: 4 — CLI and Configuration
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-23 — Phase 3 complete, transitioned to Phase 4
 
-Follow-up: See `.planning/phases/03-mdns-responder/03-EXECUTION-CHECKPOINT.md`. Automatic approval review rejected pushing the implementation to existing PR #224 without explicit user approval. Hosted Ubuntu/macOS production evidence and the configured security gate remain outstanding.
+Follow-up: Phase 3 verification passed 5/5. Hosted CI run 35846599552 passed all ten Python/OS jobs and both production integration jobs; the security audit has zero blocking threats. PR #224 remains open and unmerged. Next: $gsd-discuss-phase 4.
 
-Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
+Progress: [█████░░░░░] 50% (3 of 6 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans closed: 14 (including historical 03-01; 03-07 validation pending)
+- Total plans closed: 15 (including historical 03-01)
 - Average duration: —
 - Total execution time: —
 
@@ -48,8 +48,8 @@ Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 4 | - | - |
 | 02 | 4 | - | - |
+| 3 | 7 | - | - |
 
 **Recent Trend:**
 
@@ -77,13 +77,10 @@ Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Phase 03]: User approved zeroconf 0.151.3 on 2026-09-23 against the validated closeout digest; MDNS-10 complete, return to planning.
-
-- Roadmap: Horizontal layers — core identity → IPv6 transport → mDNS → CLI/config → API → verification.
-- [Phase 02]: Thread devices accept only exact untagged IPv6 unicast; rejection happens before counters, activity, acknowledgements or processing.
-- [Phase 02]: The server atomically publishes a same-port IPv4 plus `AF_INET6`/`V6ONLY` pair, with protocol-owned immutable reply routing and bounded generation-aware shutdown.
-- [Phase 02]: Packet and WebSocket bridge capacity is bounded; every admitted unit is retained, while excess work is rejected before allocation and counted in overload metrics.
-- [Phase 03]: Evaluate python-zeroconf, then lifx-async reuse, then a new responder. The MDNS-10 spike gates remaining mDNS work; context is in .planning/phases/03-mdns-responder/03-CONTEXT.md.
+- [Phase 3]: Public zeroconf 0.151.3 responder is opt-in for core users; per-device advertisement intent is immutable and validated before membership.
+- [Phase 3]: `running` describes lifecycle ownership, not silent listener health. Recovery is explicit, with no automatic interface selection.
+- [Phase 3]: Independent ordered listeners preserve WebSocket consumers; callers can await live mDNS reconciliation.
+- [Phase 2]: IPv4 and V6-only IPv6 endpoints share a committed port; Thread accepts only exact untagged IPv6 unicast.
 
 ### Pending Todos
 
@@ -91,11 +88,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 3]: Verifier supports MDNS-01–10; MDNS-11 needs successful hosted Ubuntu/macOS production jobs. Phase requirement checkboxes remain pending under the gaps_found workflow; the approved selection decision is unchanged.
-- [Phase 3]: Explicit push approval is required by automatic approval review. Run $gsd-secure-phase 3 before advancing.
-- [Phase 3]: Port 5353 is owned by the host mDNS daemon on macOS and Windows; legacy-unicast replies are the load-bearing path for `lifx-async`
-- [Phase 6]: No Windows CI leg — Windows socket-option guards must be covered by simulation tests instead
-- [Maintenance]: The existing Starlette test-client deprecation remains deferred in Phase 02 deferred-items.md.
+- [Phase 4]: Core mDNS is opt-in; CLI/config defaults and serialisation still need implementation.
+- [Phase 6]: Windows public-owner guards have simulation coverage; no hosted Windows socket run is claimed.
+- [Maintenance]: Existing Starlette test-client deprecation remains tracked in Phase 02 deferred-items.md.
 
 ## Deferred Items
 
@@ -107,16 +102,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-23T07:01:48.946192Z
-Stopped at: Production implementation committed locally; hosted CI awaits explicit push approval
-Resume file: .planning/phases/03-mdns-responder/03-EXECUTION-CHECKPOINT.md
+Last session: 2026-09-23
+Stopped at: Phase 3 complete, ready to discuss and plan Phase 4
+Resume file: None
 
-Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
-
-Historical continuation: `03-CONTINUATION.md` and `03-continuation-evidence/manifest.json` retain candidate-specific observations and hashes. The old direct-prototype receipts do not establish current zeroconf compliance. At that point, failure/retry, startup and robustness gaps remained. The new closeout supersedes those gaps only where its case ledger demonstrates them; production status integration is now implemented; see the execution checkpoint for current evidence.
-
-Historical continuation tested input head: `b8a4607`; CI run `35803195241` passed all jobs. The continuation is closed within its time allowance. No full go or production implementation is recorded.
-
-Listener-health follow-up (2026-09-23): `03-LISTENER-HEALTH-INVESTIGATION.md` and `03-recovery-evidence/listener-health-local-macos.json` record real transport-close injection. Both socket descriptors closed, while `started` and the adapter stayed running; startup wait and same-interface refresh returned normally with zero open readers. No supported direct failure callback was found. Superseded by the subsequent D-08 amendment: silent loss is accepted, with no callback or responsiveness guarantee required. The later approved 03-02 closeout supersedes that provisional status.
-
-Current closeout: `03-02-CHECKPOINT.md` and `03-ZEROCONF-CLOSEOUT.json` bind the approved 120-minute allowance, evaluated head, official distribution, retained historical inputs and current platform receipts. The user approved go; 03-02-SUMMARY.md records completion of MDNS-10. Production plans 03-03–03-07 are implemented locally. Current verification is 4/5, with hosted production CI pending. Phase 3 remains incomplete.
+Current evidence: `.planning/phases/03-mdns-responder/03-VERIFICATION.md` (5/5), `03-SECURITY.md` (zero blocking threats), and `03-EXECUTION-CHECKPOINT.md` (resolved checkpoint). Historical selection evidence remains in the Phase 3 directory. PR #224 is open; phase completion does not imply merge or release.
