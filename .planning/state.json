@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:progress",
-    "label": "Review recovery prototype and resolve runtime listener-failure detection",
-    "reason": "Local partial-registration cleanup, explicit retry and injected failure policy passed with uninterrupted WiFi control. Real listener-loss detection and remaining robustness gates are unproved; MDNS-10 stays provisional."
+    "command": "/gsd:execute-phase 3",
+    "label": "Execute the reviewed zeroconf closeout plan",
+    "reason": "03-02 is ready at its fresh 120-minute allowance checkpoint. MDNS-10 remains provisional and implementation remains gated on the human go decision."
   },
-  "updated_at": "2026-09-23T01:04:55.221667+00:00"
+  "updated_at": "2026-09-23T06:22:02.102Z"
 }

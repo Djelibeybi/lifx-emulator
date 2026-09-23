@@ -1,11 +1,22 @@
-
-> **2026-09-23 amendment:** The user approved complete-fleet discovery independent of packet grouping. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md). Earlier packet-count requirements and zeroconf rejection on aggregation alone are superseded. Historical observations and reviews below remain unchanged; they do not establish compliance with the revised contract. Do not resume the old execution steps or change the local/CI harness under this amendment.
-
 # Phase 3: mDNS Responder - Pattern Map
 
-**Mapped:** 2026-09-22  
-**Scope:** MDNS-10 four-hour implementation-selection spike only; do not plan responder production changes.  
-**Files analysed:** 6 proposed artefacts; **analogs found:** 6/6.
+**Mapped:** 2026-09-22
+**Reconciled:** 2026-09-23 against the completed continuation, recovery prototype and amended D-08
+**Scope:** MDNS-10 spike closeout only; do not plan responder production changes.
+**Historical mapping:** 6 proposed artefacts with analogs for all 6; the closeout addendum also maps the retained recovery and listener-health harnesses.
+
+## Current Closeout Guidance (2026-09-23)
+
+The historical harness restriction was lifted for focused evidence work, and the authorised budgets are exhausted. Zeroconf remains the preferred provisional foundation; do not restart generic candidate exploration, fallback construction, VM work or production integration. Silent listener loss is outside amended D-08, and `running` is lifecycle state rather than independently verified health. No fork, vendoring, private listener access, watchdog or upstream callback is needed for closeout.
+
+| Remaining check | Reuse this existing seam | Do not inherit |
+|---|---|---|
+| Zeroconf robustness | Extend the existing `candidate-worker --expanded` payload in `scripts/spike_mdns_candidates.py`; add focused assertions in `scripts/mdns_spike_tests/test_candidates.py`. | Direct-prototype `_exercise_adversarial_bounds` results. |
+| Zeroconf Windows simulation | Extend `scripts/mdns_spike_tests/test_candidates.py` and retain the evidence validator's explicit `simulated` classification. | The direct responder's generic `_socket_option_plan` result. |
+| Configuration/interface fit | Use `run_discovery_benchmark()` and `_expanded_worker()` in `scripts/spike_mdns_candidates.py`, with focused negative cases in `test_candidates.py`. | Production server/factory implementation or automatic interface selection. |
+| Final MDNS-10 decision | Use the existing `validate-evidence` and `render-evidence` entry points after the three checks; preserve `03-01-EVIDENCE.*` as historical and record a current closeout decision. | An inferred go from green continuation jobs. |
+
+Recovery work stays in `scripts/mdns_spike_inputs/zeroconf_recovery.py`, `scripts/spike_mdns_recovery.py` and `scripts/mdns_spike_tests/test_recovery.py`. It already covers partial-start cleanup, explicit retry, surfaced-error policy, cancellation and concurrent retry. `scripts/spike_mdns_listener_health.py` is retained negative diagnostic evidence only; do not convert it into a production health detector.
 
 ## File Classification
 
@@ -70,7 +81,7 @@ finally:
     await asyncio.wait_for(protocol.closed.wait(), timeout=1.0)
 ```
 
-Keep injection hermetic: bind loopback/ephemeral ports, parse real datagrams, assert one complete response per device and legacy-unicast source destination/ID. Keep this file outside root `testpaths`; candidate and network work is run only by an explicit path. Use `AsyncMock`, fake transports and patched sockets from `test_server.py` to distinguish simulated Windows evidence from Ubuntu/macOS integration.
+Keep injection hermetic: bind loopback/ephemeral ports, parse real datagrams, assert complete correctly associated record sets across one or more datagrams and legacy-unicast source destination/ID. Keep this file outside root `testpaths`; candidate and network work is run only by an explicit path. Use `AsyncMock`, fake transports and patched sockets from `test_server.py` to distinguish simulated Windows evidence from Ubuntu/macOS integration.
 
 ### `.planning/phases/03-mdns-responder/03-01-EVIDENCE.{json,md}` (evidence, batch/transform)
 
@@ -105,7 +116,7 @@ Root workspace test configuration names core/application source roots (`pyprojec
 
 ### Datagram lifecycle and evidence quality
 
-Use real loopback sockets for protocol facts, then close transports and await `connection_lost` (`test_ipv6_transport.py:139-149`). Use mocks for deterministic socket failures (`test_server.py:604-638`). State which kind of evidence each result is. Experiments are the purpose of spike execution, not this planning run. VM work is extension-only; production responder implementation awaits the selection decision.
+Use real loopback sockets for protocol facts and mocks for deterministic surfaced failures. State which kind of evidence each result is. Closing zeroconf transports does not produce a supported owner notification, and amended D-08 does not require detecting that silent loss. VM work remains extension-only; production responder implementation awaits the explicit selection decision.
 
 ## No Analog Found
 
@@ -115,7 +126,7 @@ Use real loopback sockets for protocol facts, then close transports and await `c
 
 ## Metadata
 
-**Analog search scope:** core UDP tests/server, sibling `lifx-async` mDNS transport/cache, CI and PyApp workflow.  
-**Tracked-source gate:** verified for every named analog, including from the sibling repository root.  
-**Files scanned:** 8.  
+**Analog search scope:** core UDP tests/server, sibling `lifx-async` mDNS transport/cache, CI and PyApp workflow.
+**Tracked-source gate:** verified for every named analog, including from the sibling repository root.
+**Files scanned:** 8.
 **Pattern extraction date:** 2026-09-22.

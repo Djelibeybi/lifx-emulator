@@ -1,21 +1,23 @@
 # Phase 3: mDNS Responder — Specification
 
-**Amended 2026-09-23:** Packet grouping is unrestricted subject to complete-fleet discovery; zeroconf re-evaluation is pending. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md).
+**Amended 2026-09-23:** Packet grouping is unrestricted subject to complete-fleet discovery. Zeroconf re-evaluation and targeted continuation evidence are complete; remaining closeout checks and the explicit MDNS-10 decision are still pending. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md) and [03-CONTINUATION.md](03-CONTINUATION.md).
 
 **Accepted compatibility exception (2026-09-23):** Zeroconf continuation replies may omit the question section for the tested `lifx-async` client. This does not block candidate selection and requires no client/library patch; it is not a claim of full RFC conformance. All other protocol and evidence requirements remain in force. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
+
+**Accepted runtime scope (2026-09-23):** MDNS-09 remains a startup and owned-lifecycle guarantee. D-08 additionally applies the fleet-dependent policy when a supported zeroconf operation surfaces a runtime error. Silent listener loss and network unresponsiveness are excluded: `running` records successful lifecycle startup with no handled failure observed, not fresh network health. No upstream callback, fork, vendoring, private listener access or watchdog is required. See [03-CONTEXT.md](03-CONTEXT.md).
 
 **Created:** 2026-09-11
 **Ambiguity score:** 0.075 (gate: ≤ 0.20)
 **Requirements:** 11 locked
 
-**Reconciled:** 2026-09-22 against `03-CONTEXT.md` D-01–D-18. The original ambiguity score describes the specification interview; it has not been recalculated for these later decisions.
+**Reconciled:** 2026-09-23 against `03-CONTEXT.md` D-01–D-18 and amended D-08. The original ambiguity score describes the specification interview; it has not been recalculated for these later decisions.
 
 ## Discussion refinements
 
 The following agreed refinements apply within the existing requirement IDs and acceptance criteria:
 
 - **MDNS-01/06 (D-01–D-04):** Preserve existing factory/server calls. Use server `mdns_enabled=False`, factory `mdns_enabled=True` and `mdns_address=None`. Advertisement settings are fixed at device creation. Factories validate explicit addresses, families and Thread opt-out; startup validates bind-dependent settings, and additions validate before registration.
-- **MDNS-09 (D-05–D-08):** Expose read-only `mdns_status` (`disabled`, `stopped`, `running`, `failed`) and `mdns_error`, with logged failures. Explicit `await server.retry_mdns()` recovers WiFi-only service without interrupting LIFX traffic. Failed enabled mDNS rejects Thread additions before membership changes. Runtime failure follows the same fleet policy: WiFi-only continues; Thread-only/mixed fleets shut down cleanly and retain failure details. AC-10/11 include these status, retry and runtime-failure cases.
+- **MDNS-09 (D-05–D-08):** Expose read-only `mdns_status` (`disabled`, `stopped`, `running`, `failed`) and `mdns_error`, with logged failures. Explicit `await server.retry_mdns()` recovers WiFi-only service without interrupting LIFX traffic. Failed enabled mDNS rejects Thread additions before membership changes. The same fleet policy applies to runtime errors surfaced by supported zeroconf operations: WiFi-only continues; Thread-only/mixed fleets shut down cleanly and retain failure details. Silent listener loss and network unresponsiveness are excluded, and `running` is lifecycle state rather than a health probe. AC-10/11 retain the locked startup and owned-cleanup guarantees; D-08 supplies this narrower runtime scope without adding a watchdog, fork, private listener access or upstream callback dependency.
 - **MDNS-10 (D-09–D-13):** Evaluate current python-zeroconf first, then extending or adapting existing `lifx-async` mDNS code, then a new responder. Prefer zeroconf when requirements are met unless evidence shows a material alternative advantage; assess public APIs, adapter size, private internals, forks, coupling and maintenance. Compare direct sibling extension with adaptation rather than preselecting either. Missing platform or packaging evidence keeps the decision provisional and holds detailed planning of the remaining ten requirements. Benchmark complete-fleet discovery for sizes 1, 10 and 100, recording CPU and memory; these are not supported fleet limits.
 - **MDNS-10 (D-14–D-18):** Share four active-work hours across candidates and record CI queue time separately. At the limit, record findings and unresolved evidence. An additional four hours requires concrete evidence, documentation links and exact source line references showing worthwhile depth, performance or feature completeness. Only within that justified extension, after required evidence and if time remains, define and provision a small Linux VM on `devproxmox.lot209.xyz` for optional Mac-to-guest discovery, state-query and control checks. VM definition, provisioning and cross-machine testing are excluded from the initial four hours. This experiment neither replaces required evidence nor automatically justifies an extension.
 

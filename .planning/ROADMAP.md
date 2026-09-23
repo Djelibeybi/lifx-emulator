@@ -101,13 +101,14 @@ Plans:
   4. A direct A or AAAA query for any advertised hostname is answered, and adding or removing a device at runtime changes the next reply's record set while the existing WebSocket device events keep firing unchanged.
   5. The core responder is opt-in and starts and stops with the server. If enabled mDNS startup fails, startup is fatal only when Thread devices are configured; WiFi-only operation continues with an observable mDNS failure. The responder leaves no sockets or tasks behind across pytest-asyncio function-scoped loops and is covered by both datagram-injection unit tests and loopback-multicast integration tests that pass on the Ubuntu and macOS CI legs.
 
-**Plans**: 1 historical spike plan; zeroconf re-evaluation pending under the approved packet-grouping amendment. Remaining implementation plans stay gated on go/no-go
+**Plans**: 2 spike plans: 03-01 is historically halted; 03-02 closes the remaining zeroconf evidence under amended D-08. Remaining implementation plans stay gated on go/no-go.
 
 **Wave 1 — implementation-selection spike**
 
-- [ ] 03-01-PLAN.md — Historical spike; read 03-PACKET-GROUPING-AMENDMENT.md before any continuation. Zeroconf is reopened, with no new compliance verdict yet
+- [ ] 03-01-PLAN.md — Historical halted spike; retained evidence is input to 03-02, not an execution dependency.
+- [ ] 03-02-PLAN.md — Fresh bounded allowance, remaining zeroconf evidence, and human MDNS-10 decision; silent listener loss is an accepted limitation.
 
-**Pending planning:** MDNS-01–09 and MDNS-11 remain in Phase 3. They are evaluation inputs to the spike, not implementation requirements covered by 03-01.
+**Pending planning:** MDNS-01–09 and MDNS-11 remain in Phase 3. They are evaluation inputs to the spike, not implementation requirements covered by 03-01 or 03-02.
 
 **UI hint**: no
 **Note**: MDNS-10 is the first plan of this phase. The remaining ten requirements are planned against whichever implementation the recorded go/no-go selects.
@@ -169,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Thread Device Identity | 4/4 | Complete    | 2026-09-09 |
 | 2. IPv6 Transport and Thread Isolation | 4/4 | Complete    | 2026-09-10 |
-| 3. mDNS Responder | 0/1 (spike; remaining plans TBD) | Spike planned | - |
+| 3. mDNS Responder | 0/2 (spike; remaining plans TBD) | Closeout planned; MDNS-10 provisional | - |
 | 4. CLI and Configuration | 0/TBD | Not started | - |
 | 5. Management API | 0/TBD | Not started | - |
 | 6. Verification Against lifx-async | 0/TBD | Not started | - |
