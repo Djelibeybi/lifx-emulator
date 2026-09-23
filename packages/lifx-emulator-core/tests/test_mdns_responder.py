@@ -59,7 +59,9 @@ def dns_name(name):
     )
 
 
-async def raw_query(query_id, name="_lifx._udp.local.", qtype=12, duration=0.4):
+async def raw_query(
+    query_id, name="_lifx._udp.local.", qtype=12, duration=0.4, interface="127.0.0.1"
+):
     packet = (
         struct.pack("!6H", query_id, 0, 1, 0, 0, 0)
         + dns_name(name)
@@ -69,9 +71,9 @@ async def raw_query(query_id, name="_lifx._udp.local.", qtype=12, duration=0.4):
     results = []
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.setblocking(False)
-        sock.bind(("127.0.0.1", 0))
+        sock.bind((interface, 0))
         sock.setsockopt(
-            socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton("127.0.0.1")
+            socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(interface)
         )
         await loop.sock_sendto(sock, packet, ("224.0.0.251", 5353))
         deadline = loop.time() + duration
