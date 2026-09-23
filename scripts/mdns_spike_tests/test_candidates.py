@@ -883,3 +883,15 @@ def test_closeout_operation_requires_post_failure_progress_and_cleanup(fault):
     else:
         row["all_owners_closed_after_cleanup"] = False
     assert not check(row)
+
+
+def test_closeout_rejects_substitute_allowance_before_loading_it():
+    module = run_path(str(HARNESS))
+    ledger = {
+        "allowance": {
+            "path": "scripts/mdns_spike_inputs/active.json",
+            "sha256": "a" * 64,
+        }
+    }
+    with pytest.raises(ValueError, match="canonical allowance"):
+        module["_closeout_validate_allowance"](ledger)
