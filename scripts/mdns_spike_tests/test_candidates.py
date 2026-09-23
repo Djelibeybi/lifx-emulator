@@ -829,3 +829,17 @@ def test_closeout_filters_foreign_responders_before_recording():
     assert module["_owned_query_records"](
         [foreign, own, address], {"d073d503c001"}
     ) == [own, address]
+
+
+def test_closeout_decision_binds_receipt_bytes_not_just_case_labels():
+    module = run_path(str(HARNESS))
+    ledger = {
+        "platforms": {"local": {"sha256": "a" * 64}},
+        "cases": {},
+        "decision": {"status": "pending-human"},
+    }
+    before = module["_closeout_decision_digest"](ledger)
+    ledger["decision"] = {"status": "provisional"}
+    assert module["_closeout_decision_digest"](ledger) == before
+    ledger["platforms"]["local"]["sha256"] = "b" * 64
+    assert module["_closeout_decision_digest"](ledger) != before

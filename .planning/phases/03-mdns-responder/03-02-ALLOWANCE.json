@@ -13,5 +13,6 @@
     "exact-head CI receipts and evidence validation"
   ],
   "automatic_extension": false,
-  "production_implementation_authorised": false
+  "production_implementation_authorised": false,
+  "base_revision": "e6e9dbe8e33125ccbb76d6e7029fa2bc5b44a2e3"
 }
