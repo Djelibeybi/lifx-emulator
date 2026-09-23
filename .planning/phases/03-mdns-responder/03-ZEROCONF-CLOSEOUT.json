@@ -1,0 +1,450 @@
+{
+  "allowance": {
+    "path": ".planning/phases/03-mdns-responder/03-02-ALLOWANCE.json",
+    "sha256": "9fd1083dadd9ea7a1870e4e096a85c5f0f7b1e439aa3d3c8ade70f2ce26366ad"
+  },
+  "budget": {
+    "accounting": "conservative wall time including concurrent CI; no idle time excluded",
+    "active_budget_seconds": 7200,
+    "active_elapsed_seconds": 2225.568,
+    "ci_queue_seconds": 71.0
+  },
+  "candidate": "zeroconf",
+  "cases": {
+    "current_version": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": "https://pypi.org/pypi/zeroconf/json",
+      "status": "demonstrated"
+    },
+    "darwin_complete_records": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_configuration": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_daemon_coexistence": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_direct_queries": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_malformed_flood": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_membership": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_opt_in_empty_interface": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_pristine_client": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_resources": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_supported_operations": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "demonstrated"
+    },
+    "darwin_windows": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+      "status": "simulated"
+    },
+    "linux_complete_records": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_configuration": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_daemon_coexistence": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_direct_queries": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_malformed_flood": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_membership": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_opt_in_empty_interface": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_pristine_client": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_resources": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_supported_operations": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "demonstrated"
+    },
+    "linux_windows": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+      "status": "simulated"
+    },
+    "local_complete_records": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_configuration": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_daemon_coexistence": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_direct_queries": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_malformed_flood": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_membership": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_opt_in_empty_interface": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_pristine_client": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_resources": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_supported_operations": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "demonstrated"
+    },
+    "local_windows": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+      "status": "simulated"
+    },
+    "retained_fleet_evidence": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": "public-client 100-device local observation plus labelled raw 1/10/100 record timing/CPU/RSS in hash-verified continuation records",
+      "status": "demonstrated"
+    },
+    "retained_packaging": {
+      "acquisition_step": null,
+      "candidate": "zeroconf",
+      "evidence": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-zeroconf-packaging.json",
+      "status": "demonstrated"
+    }
+  },
+  "decision": {
+    "status": "pending-human"
+  },
+  "decision_support": {
+    "allowed": [
+      "go",
+      "provisional"
+    ],
+    "cases_digest": "a6b009ba50f757fc106d99984cd80bd309d0c784c215c07cdbeda7e1e72277f4"
+  },
+  "evaluated_distribution": {
+    "commit": "b7aea22b51d82f2139c9143292e86a361ea6796f",
+    "name": "zeroconf",
+    "overlay_digest": null,
+    "sdist_sha256": "ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a",
+    "sdist_url": "https://files.pythonhosted.org/packages/2b/7f/bb22975bbbc04765920b766e433410422794568053bff0ab5b3f0bf0197c/zeroconf-0.151.3.tar.gz",
+    "tag": "0.151.3",
+    "tree": "46f1c2da6670ed0189f78c14a5d65662ac7a7916",
+    "version": "0.151.3"
+  },
+  "evaluated_head": "481c06d41223339df94dfc93e474664c69742103",
+  "evaluated_version": "0.151.3",
+  "historical_direct_candidate": "03-01-EVIDENCE.json retained by digest; no result transferred to zeroconf",
+  "inputs": [
+    {
+      "path": "scripts/spike_mdns_candidates.py",
+      "sha256": "de398a75dba4160818a240be9c9890e3a6deeb7f095944e2a909fff1cd4923ab"
+    },
+    {
+      "path": "scripts/mdns_spike_inputs/zeroconf_recovery.py",
+      "sha256": "ab4511d8b4f136e3cd2e5e9144e8fe5e50433e898bd51bf6808f804aec3ad676"
+    },
+    {
+      "path": "scripts/mdns_spike_tests/test_candidates.py",
+      "sha256": "c04be7a8fb4f3a5806d38ecad61abed20ded3bd108fd644abdb9a7d73992beb8"
+    },
+    {
+      "path": "scripts/mdns_spike_tests/test_recovery.py",
+      "sha256": "c82ff63fb858ab1c26df7d062317146f5bcd65b50015670f01ed0971ab0ee2d9"
+    },
+    {
+      "path": "scripts/mdns_spike_inputs/active.json",
+      "sha256": "b8a35bafd8f8f6b49d5850e5583504cd8ddb06b4044f3e71f74d952c6caea6e3"
+    }
+  ],
+  "pending_requirements": [
+    "MDNS-01",
+    "MDNS-02",
+    "MDNS-03",
+    "MDNS-04",
+    "MDNS-05",
+    "MDNS-06",
+    "MDNS-07",
+    "MDNS-08",
+    "MDNS-09",
+    "MDNS-11"
+  ],
+  "platforms": {
+    "darwin": {
+      "evidence": {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin.json",
+        "sha256": "092bc5209d1f40eaafc8e0b9c18935e167083b8a8be321a07a3403fecc70bb45"
+      },
+      "receipt": {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/darwin-receipt.json",
+        "sha256": "27b73ac6dc9b35deccfcfdc3b48d0d8775f2a4660c4036cd649cbb4f0814e7a7"
+      }
+    },
+    "linux": {
+      "evidence": {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux.json",
+        "sha256": "2e920b78709a9028203b55aca6d6dba926730411bb7e5f5bb2bb5c30d93d7515"
+      },
+      "receipt": {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/linux-receipt.json",
+        "sha256": "031248489ba5b0ca4dbda09ad27732eedd923762c0b8c7dd2116546bd76a8384"
+      }
+    },
+    "local": {
+      "evidence": {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/local.json",
+        "sha256": "5debbcbe1084c607e2c36efef8b1bf1cdcec7c0ff7cbd0cc443e6f1451ed07f4"
+      }
+    }
+  },
+  "production_implementation_authorised": false,
+  "provenance": {
+    "current_version": "0.151.3",
+    "repository": "https://github.com/python-zeroconf/python-zeroconf",
+    "response_parts": [
+      {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/pypi-zeroconf-00.gz.part",
+        "sha256": "b7668a3f204facc8ecba512b9e9578a3e5909f1fa227d97fc773d9de1ca2875a"
+      },
+      {
+        "path": ".planning/phases/03-mdns-responder/03-closeout-evidence/pypi-zeroconf-01.gz.part",
+        "sha256": "60cb14402c01e0aa78511f56567ddefb63406b29395fc75cec9065f8d3a38548"
+      }
+    ],
+    "response_sha256": "cd49bac6e841fcdaaa1fc774bf877465b13fe2fe26e6b60170a2269c0f4228cb",
+    "retrieved_at": "2026-09-23T07:03:25.552852Z",
+    "sdist_sha256": "ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a",
+    "sdist_url": "https://files.pythonhosted.org/packages/2b/7f/bb22975bbbc04765920b766e433410422794568053bff0ab5b3f0bf0197c/zeroconf-0.151.3.tar.gz",
+    "url": "https://pypi.org/pypi/zeroconf/json"
+  },
+  "recorded_at": "2026-09-23T07:03:25.567492Z",
+  "retained": [
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/manifest.json",
+      "sha256": "07dad9a35bea6c76a81659830547e17eb0afae3cffe131fcd64d1d5ed9024042"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/local-12a71bd.json",
+      "sha256": "cd1496d1f1c44b4f25da3fa8ebaf11df033b1cc85fa28353dfadbffab6937ab3"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-da6053b.json",
+      "sha256": "85ec4075fa7ab2711e6043d98b1bed55bd12fa308afc1049f2c5bf6df206e4d7"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-da6053b-receipt.json",
+      "sha256": "2c64dbfdd13117794a4e1a727b466fa7675d3bc53add860e4c916545d365ad89"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-8892dc7.json",
+      "sha256": "789ea90a1d11b4c685411a5f631e19906455676e06da3d70030633a16df0f04d"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-8892dc7-receipt.json",
+      "sha256": "b62a43ec451158ebae73af453b7db3dd0c010639e2038da0267e612b66930e28"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/macos-8892dc7.json",
+      "sha256": "144a6db8f2fbe452147946bdcef420597d774c4545e42062a2384bc421afc77a"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-da6053b-zeroconf-packaging.json",
+      "sha256": "ec32dfc7476da74aedd3e3a6ec2b836176353171d15e186df7d87d4e2d50d084"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-da6053b-app-METADATA.txt",
+      "sha256": "a0f72a585311f8edc5d17190522bec4e1c127d4df86a576650d8aa4fe71b0f77"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-da6053b-first-run.txt",
+      "sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-da6053b-hashes.txt",
+      "sha256": "6811b02d8f264c83f62f5cb8ceab256e0907c81b3b7f78240ce8fca177e62e9e"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/macos-f55be54.json",
+      "sha256": "a1c40dc9deeb2542b8f833b4d867e709aacf798b72aac3c27c533b9c0eb9ce72"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/macos-b8a4607-receipt.json",
+      "sha256": "42b7388c419b3d64e104a69f290ab40ea6bf98f157646718456de5d6a58ed426"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/macos-b8a4607.json",
+      "sha256": "24553e8f7b0e0ff8ed7ab4117b1f32f5ebc84bd456af2ac58121fec692c61051"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-b8a4607.json",
+      "sha256": "05be2b767016b5194e1214bdf3d6a567172023214325c58aad2592bc2ea5c17a"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/linux-b8a4607-receipt.json",
+      "sha256": "f13981d04b4625e4a19163b8c29103efe3d9af1e386f6d0cfdde3451e93c3abb"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-zeroconf-packaging.json",
+      "sha256": "ec32dfc7476da74aedd3e3a6ec2b836176353171d15e186df7d87d4e2d50d084"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-app-METADATA.txt",
+      "sha256": "a0f72a585311f8edc5d17190522bec4e1c127d4df86a576650d8aa4fe71b0f77"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-first-run.txt",
+      "sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-hashes.txt",
+      "sha256": "6811b02d8f264c83f62f5cb8ceab256e0907c81b3b7f78240ce8fca177e62e9e"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-continuation-evidence/intel-b8a4607-intel-pyapp-receipt.json",
+      "sha256": "a2e6e9eaabe47b36a74e6853c159486e16d693aae793b301ecc02bb6eee27ca5"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-01-EVIDENCE.json",
+      "sha256": "84053a58fa837b10530ab4b18e4df256f678c2f96a737588088983c586184965"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-01-SUMMARY.md",
+      "sha256": "8618b21d9b36334b7c5d8a5a3a324dffe8bca1219d92d7b64106a1fe2e850c9a"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-ZEROCONF-REEVALUATION.json",
+      "sha256": "d6ac73f9d41961624031ef98bceffc9c08cdc74f2b5830c320006e0c764f6e1e"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-ZEROCONF-REEVALUATION.md",
+      "sha256": "6d5af258e9d45a95f6a4f0da5dc2cf3370a0004972d652da89ad27b0dd8e5211"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-recovery-evidence/local-macos.json",
+      "sha256": "8ac1d1b042b3d91ff511ccc078952cf156a64f00b7949b2604e918dd51ff0b0b"
+    },
+    {
+      "path": ".planning/phases/03-mdns-responder/03-recovery-evidence/listener-health-local-macos.json",
+      "sha256": "58da011c189f20bf246edda7f15a4507928caef3ef37ad406b273d1386a31c7b"
+    }
+  ],
+  "runtime_status_contract": "lifecycle only; silent listener loss accepted",
+  "schema_version": 1,
+  "source_revision": "48b7efbff59656499373b13ef17e3008d125feb5"
+}
