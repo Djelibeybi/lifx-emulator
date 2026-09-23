@@ -2514,6 +2514,19 @@ def _run_zeroconf_platform(args: argparse.Namespace) -> int:
     """Collect revised-contract evidence without rewriting the historical ledger."""
     inputs = resolve_inputs()
     command = _expanded_worker_command(inputs)
+    oracle_path = os.environ.get("MDNS_SPIKE_ORACLE_PATH")
+    if oracle_path:
+        if not _oracle_checkout_matches(
+            oracle_path, inputs["oracle"]["revision"], inputs["oracle"]["tree"]
+        ):
+            print(
+                "oracle checkout differs from the pinned revision/tree", file=sys.stderr
+            )
+            return 1
+        pinned = f"lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@{ORACLE_REVISION}"
+        command[command.index(pinned)] = (
+            f"lifx-async @ {Path(oracle_path).resolve().as_uri()}"
+        )
     completed = subprocess.run(
         command,
         cwd=REPOSITORY_ROOT,
@@ -2785,7 +2798,10 @@ def _validate_ci_receipt(args: argparse.Namespace) -> int:
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"CI receipt invalid: {error}", file=sys.stderr)
         return 1
-    print("CI receipt valid: lifx-direct exact head and immutable inputs match")
+    print(
+        f"CI receipt valid: {receipt['candidate']} "
+        "exact head and immutable inputs match"
+    )
     return 0
 
 
