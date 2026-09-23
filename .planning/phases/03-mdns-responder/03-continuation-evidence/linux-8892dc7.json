@@ -1,0 +1,716 @@
+{
+  "candidate_status": "provisional",
+  "command": [
+    "uv",
+    "run",
+    "--isolated",
+    "--no-project",
+    "--with",
+    "./packages/lifx-emulator-core",
+    "--with",
+    "zeroconf==0.151.3",
+    "--with",
+    "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+    "python",
+    "scripts/spike_mdns_candidates.py",
+    "candidate-worker",
+    "--expanded"
+  ],
+  "contract": "complete-record-sets-with-continuation-question-exception",
+  "criteria": {
+    "configuration_interface_fit": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "daemon_coexistence": {
+      "acquisition_step": null,
+      "evidence": "Identified host daemons: ['avahi-daemon'].",
+      "status": "demonstrated"
+    },
+    "direct_address_queries": {
+      "acquisition_step": null,
+      "evidence": "WiFi A={'complete_datagrams': 0, 'complete_devices': 0, 'complete_discovery_seconds': 0.000278, 'cpu_seconds': 0.00028, 'datagram_count': 1, 'datagram_sizes': [69], 'direct_match': True, 'discovered': 1, 'expected': 1, 'observed_serials': [], 'peak_rss': 168544, 'record_counts': [2], 'record_types': ['A', 'TYPE47'], 'serials': [], 'wire_checks_passed': True}; Thread AAAA={'complete_datagrams': 0, 'complete_devices': 0, 'complete_discovery_seconds': 0.000305, 'cpu_seconds': 0.000308, 'datagram_count': 1, 'datagram_sizes': [84], 'direct_match': True, 'discovered': 1, 'expected': 1, 'observed_serials': [], 'peak_rss': 168544, 'record_counts': [2], 'record_types': ['AAAA', 'TYPE47'], 'serials': [], 'wire_checks_passed': True}",
+      "status": "demonstrated"
+    },
+    "dynamic_lifecycle_recovery_fit": {
+      "acquisition_step": "Prove listener failure/retry and production status integration; resolve any observed service re-add failure first.",
+      "evidence": "{\"after_readd\": 10, \"all_passed\": true, \"readd_error\": null, \"readd_via_public_update_after_name_conflict\": true, \"remaining_after_remove\": 9, \"removed_absent\": true, \"scope\": \"public registration removal/re-add; not listener failure or production status integration\"}",
+      "status": "untested"
+    },
+    "exact_txt_and_family": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "intel_pyapp_first_run": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "legacy_wire": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "lifecycle_cleanup": {
+      "acquisition_step": null,
+      "evidence": "threads before=['MainThread']; after=['MainThread']; pending=[]",
+      "status": "demonstrated"
+    },
+    "macos_multicast": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "malformed_truncated_flood_bounds": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "mixed_100_benchmark": {
+      "acquisition_step": null,
+      "evidence": "{\"complete_datagrams\": 0, \"complete_devices\": 100, \"complete_discovery_seconds\": 0.072402, \"cpu_seconds\": 0.07241, \"datagram_count\": 12, \"datagram_sizes\": [1438, 1418, 1438, 1439, 1456, 1438, 1442, 1446, 1448, 1458, 1442, 607], \"direct_a\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.00046, \"cpu_seconds\": 0.000462, \"datagram_count\": 1, \"datagram_sizes\": [69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"A\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_aaaa\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000244, \"cpu_seconds\": 0.000246, \"datagram_count\": 1, \"datagram_sizes\": [84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"AAAA\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_match\": false, \"discovered\": 100, \"expected\": 100, \"membership\": null, \"observed_serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\", \"d073d500000a\", \"d073d500000b\", \"d073d500000c\", \"d073d500000d\", \"d073d500000e\", \"d073d500000f\", \"d073d5000010\", \"d073d5000011\", \"d073d5000012\", \"d073d5000013\", \"d073d5000014\", \"d073d5000015\", \"d073d5000016\", \"d073d5000017\", \"d073d5000018\", \"d073d5000019\", \"d073d500001a\", \"d073d500001b\", \"d073d500001c\", \"d073d500001d\", \"d073d500001e\", \"d073d500001f\", \"d073d5000020\", \"d073d5000021\", \"d073d5000022\", \"d073d5000023\", \"d073d5000024\", \"d073d5000025\", \"d073d5000026\", \"d073d5000027\", \"d073d5000028\", \"d073d5000029\", \"d073d500002a\", \"d073d500002b\", \"d073d500002c\", \"d073d500002d\", \"d073d500002e\", \"d073d500002f\", \"d073d5000030\", \"d073d5000031\", \"d073d5000032\", \"d073d5000033\", \"d073d5000034\", \"d073d5000035\", \"d073d5000036\", \"d073d5000037\", \"d073d5000038\", \"d073d5000039\", \"d073d500003a\", \"d073d500003b\", \"d073d500003c\", \"d073d500003d\", \"d073d500003e\", \"d073d500003f\", \"d073d5000040\", \"d073d5000041\", \"d073d5000042\", \"d073d5000043\", \"d073d5000044\", \"d073d5000045\", \"d073d5000046\", \"d073d5000047\", \"d073d5000048\", \"d073d5000049\", \"d073d500004a\", \"d073d500004b\", \"d073d500004c\", \"d073d500004d\", \"d073d500004e\", \"d073d500004f\", \"d073d5000050\", \"d073d5000051\", \"d073d5000052\", \"d073d5000053\", \"d073d5000054\", \"d073d5000055\", \"d073d5000056\", \"d073d5000057\", \"d073d5000058\", \"d073d5000059\", \"d073d500005a\", \"d073d500005b\", \"d073d500005c\", \"d073d500005d\", \"d073d500005e\", \"d073d500005f\", \"d073d5000060\", \"d073d5000061\", \"d073d5000062\", \"d073d5000063\"], \"peak_rss\": 168544, \"raw_thread_address\": \"::1\", \"record_counts\": [52, 51, 41, 42, 42, 41, 43, 43, 42, 43, 43, 17], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\", \"d073d500000a\", \"d073d500000b\", \"d073d500000c\", \"d073d500000d\", \"d073d500000e\", \"d073d500000f\", \"d073d5000010\", \"d073d5000011\", \"d073d5000012\", \"d073d5000013\", \"d073d5000014\", \"d073d5000015\", \"d073d5000016\", \"d073d5000017\", \"d073d5000018\", \"d073d5000019\", \"d073d500001a\", \"d073d500001b\", \"d073d500001c\", \"d073d500001d\", \"d073d500001e\", \"d073d500001f\", \"d073d5000020\", \"d073d5000021\", \"d073d5000022\", \"d073d5000023\", \"d073d5000024\", \"d073d5000025\", \"d073d5000026\", \"d073d5000027\", \"d073d5000028\", \"d073d5000029\", \"d073d500002a\", \"d073d500002b\", \"d073d500002c\", \"d073d500002d\", \"d073d500002e\", \"d073d500002f\", \"d073d5000030\", \"d073d5000031\", \"d073d5000032\", \"d073d5000033\", \"d073d5000034\", \"d073d5000035\", \"d073d5000036\", \"d073d5000037\", \"d073d5000038\", \"d073d5000039\", \"d073d500003a\", \"d073d500003b\", \"d073d500003c\", \"d073d500003d\", \"d073d500003e\", \"d073d500003f\", \"d073d5000040\", \"d073d5000041\", \"d073d5000042\", \"d073d5000043\", \"d073d5000044\", \"d073d5000045\", \"d073d5000046\", \"d073d5000047\", \"d073d5000048\", \"d073d5000049\", \"d073d500004a\", \"d073d500004b\", \"d073d500004c\", \"d073d500004d\", \"d073d500004e\", \"d073d500004f\", \"d073d5000050\", \"d073d5000051\", \"d073d5000052\", \"d073d5000053\", \"d073d5000054\", \"d073d5000055\", \"d073d5000056\", \"d073d5000057\", \"d073d5000058\", \"d073d5000059\", \"d073d500005a\", \"d073d500005b\", \"d073d500005c\", \"d073d500005d\", \"d073d500005e\", \"d073d500005f\", \"d073d5000060\", \"d073d5000061\", \"d073d5000062\", \"d073d5000063\"], \"thread\": 50, \"threads_before\": [\"MainThread\"], \"wifi\": 50, \"wire_checks_passed\": true}",
+      "status": "demonstrated"
+    },
+    "mixed_10_benchmark": {
+      "acquisition_step": null,
+      "evidence": "{\"complete_datagrams\": 1, \"complete_devices\": 10, \"complete_discovery_seconds\": 0.001623, \"cpu_seconds\": 0.001627, \"datagram_count\": 2, \"datagram_sizes\": [1425, 138], \"direct_a\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000257, \"cpu_seconds\": 0.000259, \"datagram_count\": 1, \"datagram_sizes\": [69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"A\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_aaaa\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000233, \"cpu_seconds\": 0.000235, \"datagram_count\": 1, \"datagram_sizes\": [84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"AAAA\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_match\": false, \"discovered\": 10, \"expected\": 10, \"membership\": {\"after_readd\": 10, \"all_passed\": true, \"readd_error\": null, \"readd_via_public_update_after_name_conflict\": true, \"remaining_after_remove\": 9, \"removed_absent\": true, \"scope\": \"public registration removal/re-add; not listener failure or production status integration\"}, \"observed_serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\"], \"peak_rss\": 168544, \"raw_thread_address\": \"::1\", \"record_counts\": [47, 3], \"record_types\": [\"A\", \"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\", \"d073d5000001\", \"d073d5000002\", \"d073d5000003\", \"d073d5000004\", \"d073d5000005\", \"d073d5000006\", \"d073d5000007\", \"d073d5000008\", \"d073d5000009\"], \"thread\": 5, \"threads_before\": [\"MainThread\"], \"wifi\": 5, \"wire_checks_passed\": true}",
+      "status": "demonstrated"
+    },
+    "official_provenance": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "oracle_discovery": {
+      "acquisition_step": null,
+      "evidence": "Pinned lifx-async public discover_mdns() WiFi result=['d073d5000001'] on selected IPv4; Thread result=['d073d5000002'].",
+      "status": "demonstrated"
+    },
+    "packet_boundary": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "thread_benchmark": {
+      "acquisition_step": null,
+      "evidence": "{\"complete_datagrams\": 1, \"complete_devices\": 1, \"complete_discovery_seconds\": 0.000569, \"cpu_seconds\": 0.000572, \"datagram_count\": 1, \"datagram_sizes\": [189], \"direct_a\": null, \"direct_aaaa\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000305, \"cpu_seconds\": 0.000308, \"datagram_count\": 1, \"datagram_sizes\": [84], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"AAAA\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_match\": false, \"discovered\": 1, \"expected\": 1, \"membership\": null, \"observed_serials\": [\"d073d5000000\"], \"peak_rss\": 168544, \"raw_thread_address\": \"::1\", \"record_counts\": [5], \"record_types\": [\"AAAA\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\"], \"thread\": 1, \"threads_before\": [\"MainThread\"], \"wifi\": 0, \"wire_checks_passed\": true}",
+      "status": "demonstrated"
+    },
+    "ubuntu_multicast": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "wifi_benchmark": {
+      "acquisition_step": null,
+      "evidence": "{\"complete_datagrams\": 1, \"complete_devices\": 1, \"complete_discovery_seconds\": 0.000634, \"cpu_seconds\": 0.00064, \"datagram_count\": 1, \"datagram_sizes\": [174], \"direct_a\": {\"complete_datagrams\": 0, \"complete_devices\": 0, \"complete_discovery_seconds\": 0.000278, \"cpu_seconds\": 0.00028, \"datagram_count\": 1, \"datagram_sizes\": [69], \"direct_match\": true, \"discovered\": 1, \"expected\": 1, \"observed_serials\": [], \"peak_rss\": 168544, \"record_counts\": [2], \"record_types\": [\"A\", \"TYPE47\"], \"serials\": [], \"wire_checks_passed\": true}, \"direct_aaaa\": null, \"direct_match\": false, \"discovered\": 1, \"expected\": 1, \"membership\": null, \"observed_serials\": [\"d073d5000000\"], \"peak_rss\": 168544, \"raw_thread_address\": null, \"record_counts\": [5], \"record_types\": [\"A\", \"PTR\", \"SRV\", \"TXT\", \"TYPE47\"], \"serials\": [\"d073d5000000\"], \"thread\": 0, \"threads_before\": [\"MainThread\"], \"wifi\": 1, \"wire_checks_passed\": true}",
+      "status": "demonstrated"
+    },
+    "windows_socket_simulation": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    }
+  },
+  "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+  "platform_candidate": "zeroconf",
+  "result": {
+    "benchmarks": {
+      "mixed-10": {
+        "complete_datagrams": 1,
+        "complete_devices": 10,
+        "complete_discovery_seconds": 0.001623,
+        "cpu_seconds": 0.001627,
+        "datagram_count": 2,
+        "datagram_sizes": [
+          1425,
+          138
+        ],
+        "direct_a": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.000257,
+          "cpu_seconds": 0.000259,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            69
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "A",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_aaaa": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.000233,
+          "cpu_seconds": 0.000235,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            84
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "AAAA",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_match": false,
+        "discovered": 10,
+        "expected": 10,
+        "membership": {
+          "after_readd": 10,
+          "all_passed": true,
+          "readd_error": null,
+          "readd_via_public_update_after_name_conflict": true,
+          "remaining_after_remove": 9,
+          "removed_absent": true,
+          "scope": "public registration removal/re-add; not listener failure or production status integration"
+        },
+        "observed_serials": [
+          "d073d5000000",
+          "d073d5000001",
+          "d073d5000002",
+          "d073d5000003",
+          "d073d5000004",
+          "d073d5000005",
+          "d073d5000006",
+          "d073d5000007",
+          "d073d5000008",
+          "d073d5000009"
+        ],
+        "peak_rss": 168544,
+        "raw_thread_address": "::1",
+        "record_counts": [
+          47,
+          3
+        ],
+        "record_types": [
+          "A",
+          "AAAA",
+          "PTR",
+          "SRV",
+          "TXT",
+          "TYPE47"
+        ],
+        "serials": [
+          "d073d5000000",
+          "d073d5000001",
+          "d073d5000002",
+          "d073d5000003",
+          "d073d5000004",
+          "d073d5000005",
+          "d073d5000006",
+          "d073d5000007",
+          "d073d5000008",
+          "d073d5000009"
+        ],
+        "thread": 5,
+        "threads_before": [
+          "MainThread"
+        ],
+        "wifi": 5,
+        "wire_checks_passed": true
+      },
+      "mixed-100": {
+        "complete_datagrams": 0,
+        "complete_devices": 100,
+        "complete_discovery_seconds": 0.072402,
+        "cpu_seconds": 0.07241,
+        "datagram_count": 12,
+        "datagram_sizes": [
+          1438,
+          1418,
+          1438,
+          1439,
+          1456,
+          1438,
+          1442,
+          1446,
+          1448,
+          1458,
+          1442,
+          607
+        ],
+        "direct_a": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.00046,
+          "cpu_seconds": 0.000462,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            69
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "A",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_aaaa": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.000244,
+          "cpu_seconds": 0.000246,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            84
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "AAAA",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_match": false,
+        "discovered": 100,
+        "expected": 100,
+        "membership": null,
+        "observed_serials": [
+          "d073d5000000",
+          "d073d5000001",
+          "d073d5000002",
+          "d073d5000003",
+          "d073d5000004",
+          "d073d5000005",
+          "d073d5000006",
+          "d073d5000007",
+          "d073d5000008",
+          "d073d5000009",
+          "d073d500000a",
+          "d073d500000b",
+          "d073d500000c",
+          "d073d500000d",
+          "d073d500000e",
+          "d073d500000f",
+          "d073d5000010",
+          "d073d5000011",
+          "d073d5000012",
+          "d073d5000013",
+          "d073d5000014",
+          "d073d5000015",
+          "d073d5000016",
+          "d073d5000017",
+          "d073d5000018",
+          "d073d5000019",
+          "d073d500001a",
+          "d073d500001b",
+          "d073d500001c",
+          "d073d500001d",
+          "d073d500001e",
+          "d073d500001f",
+          "d073d5000020",
+          "d073d5000021",
+          "d073d5000022",
+          "d073d5000023",
+          "d073d5000024",
+          "d073d5000025",
+          "d073d5000026",
+          "d073d5000027",
+          "d073d5000028",
+          "d073d5000029",
+          "d073d500002a",
+          "d073d500002b",
+          "d073d500002c",
+          "d073d500002d",
+          "d073d500002e",
+          "d073d500002f",
+          "d073d5000030",
+          "d073d5000031",
+          "d073d5000032",
+          "d073d5000033",
+          "d073d5000034",
+          "d073d5000035",
+          "d073d5000036",
+          "d073d5000037",
+          "d073d5000038",
+          "d073d5000039",
+          "d073d500003a",
+          "d073d500003b",
+          "d073d500003c",
+          "d073d500003d",
+          "d073d500003e",
+          "d073d500003f",
+          "d073d5000040",
+          "d073d5000041",
+          "d073d5000042",
+          "d073d5000043",
+          "d073d5000044",
+          "d073d5000045",
+          "d073d5000046",
+          "d073d5000047",
+          "d073d5000048",
+          "d073d5000049",
+          "d073d500004a",
+          "d073d500004b",
+          "d073d500004c",
+          "d073d500004d",
+          "d073d500004e",
+          "d073d500004f",
+          "d073d5000050",
+          "d073d5000051",
+          "d073d5000052",
+          "d073d5000053",
+          "d073d5000054",
+          "d073d5000055",
+          "d073d5000056",
+          "d073d5000057",
+          "d073d5000058",
+          "d073d5000059",
+          "d073d500005a",
+          "d073d500005b",
+          "d073d500005c",
+          "d073d500005d",
+          "d073d500005e",
+          "d073d500005f",
+          "d073d5000060",
+          "d073d5000061",
+          "d073d5000062",
+          "d073d5000063"
+        ],
+        "peak_rss": 168544,
+        "raw_thread_address": "::1",
+        "record_counts": [
+          52,
+          51,
+          41,
+          42,
+          42,
+          41,
+          43,
+          43,
+          42,
+          43,
+          43,
+          17
+        ],
+        "record_types": [
+          "A",
+          "AAAA",
+          "PTR",
+          "SRV",
+          "TXT",
+          "TYPE47"
+        ],
+        "serials": [
+          "d073d5000000",
+          "d073d5000001",
+          "d073d5000002",
+          "d073d5000003",
+          "d073d5000004",
+          "d073d5000005",
+          "d073d5000006",
+          "d073d5000007",
+          "d073d5000008",
+          "d073d5000009",
+          "d073d500000a",
+          "d073d500000b",
+          "d073d500000c",
+          "d073d500000d",
+          "d073d500000e",
+          "d073d500000f",
+          "d073d5000010",
+          "d073d5000011",
+          "d073d5000012",
+          "d073d5000013",
+          "d073d5000014",
+          "d073d5000015",
+          "d073d5000016",
+          "d073d5000017",
+          "d073d5000018",
+          "d073d5000019",
+          "d073d500001a",
+          "d073d500001b",
+          "d073d500001c",
+          "d073d500001d",
+          "d073d500001e",
+          "d073d500001f",
+          "d073d5000020",
+          "d073d5000021",
+          "d073d5000022",
+          "d073d5000023",
+          "d073d5000024",
+          "d073d5000025",
+          "d073d5000026",
+          "d073d5000027",
+          "d073d5000028",
+          "d073d5000029",
+          "d073d500002a",
+          "d073d500002b",
+          "d073d500002c",
+          "d073d500002d",
+          "d073d500002e",
+          "d073d500002f",
+          "d073d5000030",
+          "d073d5000031",
+          "d073d5000032",
+          "d073d5000033",
+          "d073d5000034",
+          "d073d5000035",
+          "d073d5000036",
+          "d073d5000037",
+          "d073d5000038",
+          "d073d5000039",
+          "d073d500003a",
+          "d073d500003b",
+          "d073d500003c",
+          "d073d500003d",
+          "d073d500003e",
+          "d073d500003f",
+          "d073d5000040",
+          "d073d5000041",
+          "d073d5000042",
+          "d073d5000043",
+          "d073d5000044",
+          "d073d5000045",
+          "d073d5000046",
+          "d073d5000047",
+          "d073d5000048",
+          "d073d5000049",
+          "d073d500004a",
+          "d073d500004b",
+          "d073d500004c",
+          "d073d500004d",
+          "d073d500004e",
+          "d073d500004f",
+          "d073d5000050",
+          "d073d5000051",
+          "d073d5000052",
+          "d073d5000053",
+          "d073d5000054",
+          "d073d5000055",
+          "d073d5000056",
+          "d073d5000057",
+          "d073d5000058",
+          "d073d5000059",
+          "d073d500005a",
+          "d073d500005b",
+          "d073d500005c",
+          "d073d500005d",
+          "d073d500005e",
+          "d073d500005f",
+          "d073d5000060",
+          "d073d5000061",
+          "d073d5000062",
+          "d073d5000063"
+        ],
+        "thread": 50,
+        "threads_before": [
+          "MainThread"
+        ],
+        "wifi": 50,
+        "wire_checks_passed": true
+      },
+      "thread-1": {
+        "complete_datagrams": 1,
+        "complete_devices": 1,
+        "complete_discovery_seconds": 0.000569,
+        "cpu_seconds": 0.000572,
+        "datagram_count": 1,
+        "datagram_sizes": [
+          189
+        ],
+        "direct_a": null,
+        "direct_aaaa": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.000305,
+          "cpu_seconds": 0.000308,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            84
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "AAAA",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_match": false,
+        "discovered": 1,
+        "expected": 1,
+        "membership": null,
+        "observed_serials": [
+          "d073d5000000"
+        ],
+        "peak_rss": 168544,
+        "raw_thread_address": "::1",
+        "record_counts": [
+          5
+        ],
+        "record_types": [
+          "AAAA",
+          "PTR",
+          "SRV",
+          "TXT",
+          "TYPE47"
+        ],
+        "serials": [
+          "d073d5000000"
+        ],
+        "thread": 1,
+        "threads_before": [
+          "MainThread"
+        ],
+        "wifi": 0,
+        "wire_checks_passed": true
+      },
+      "wifi-1": {
+        "complete_datagrams": 1,
+        "complete_devices": 1,
+        "complete_discovery_seconds": 0.000634,
+        "cpu_seconds": 0.00064,
+        "datagram_count": 1,
+        "datagram_sizes": [
+          174
+        ],
+        "direct_a": {
+          "complete_datagrams": 0,
+          "complete_devices": 0,
+          "complete_discovery_seconds": 0.000278,
+          "cpu_seconds": 0.00028,
+          "datagram_count": 1,
+          "datagram_sizes": [
+            69
+          ],
+          "direct_match": true,
+          "discovered": 1,
+          "expected": 1,
+          "observed_serials": [],
+          "peak_rss": 168544,
+          "record_counts": [
+            2
+          ],
+          "record_types": [
+            "A",
+            "TYPE47"
+          ],
+          "serials": [],
+          "wire_checks_passed": true
+        },
+        "direct_aaaa": null,
+        "direct_match": false,
+        "discovered": 1,
+        "expected": 1,
+        "membership": null,
+        "observed_serials": [
+          "d073d5000000"
+        ],
+        "peak_rss": 168544,
+        "raw_thread_address": null,
+        "record_counts": [
+          5
+        ],
+        "record_types": [
+          "A",
+          "PTR",
+          "SRV",
+          "TXT",
+          "TYPE47"
+        ],
+        "serials": [
+          "d073d5000000"
+        ],
+        "thread": 0,
+        "threads_before": [
+          "MainThread"
+        ],
+        "wifi": 1,
+        "wire_checks_passed": true
+      }
+    },
+    "daemon_processes": [
+      "avahi-daemon"
+    ],
+    "elapsed_seconds": 17.437584763999993,
+    "environment": {
+      "architecture": "x86_64",
+      "implementation": "CPython",
+      "os": "linux",
+      "os_release": "6.17.0-1022-azure",
+      "python": "3.14.7",
+      "realised_environment_digest": "aeb304d6b114ab727f7f99679b0a72072e3ce2697a6ca4800c307559543dff55"
+    },
+    "execution_status": "completed",
+    "oracle": {
+      "thread": {
+        "address_class": "reachable-ula-gua",
+        "expected_serial": "d073d5000002",
+        "family": "thread",
+        "matched": true,
+        "matched_serials": [
+          "d073d5000002"
+        ]
+      },
+      "wifi": {
+        "address_class": "selected-ipv4",
+        "expected_serial": "d073d5000001",
+        "family": "wifi",
+        "matched": true,
+        "matched_serials": [
+          "d073d5000001"
+        ]
+      }
+    },
+    "pending_owned_tasks": [],
+    "reachable_ula_gua_count": 1,
+    "threads_after": [
+      "MainThread"
+    ],
+    "threads_before": [
+      "MainThread"
+    ]
+  },
+  "runner_sha256": "e688936a0bde3950e4be806420c55bf4e2ff9ff94a43ea74cfd43c86814241b7",
+  "schema_version": 1,
+  "thread_address_origin": "runner-configured-synthetic-ula",
+  "valid": true
+}

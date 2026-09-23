@@ -1,0 +1,45 @@
+{
+  "app_metadata_sha256": "a0f72a585311f8edc5d17190522bec4e1c127d4df86a576650d8aa4fe71b0f77",
+  "candidate": "lifx-direct",
+  "candidate_base_commit": "48b7efbff59656499373b13ef17e3008d125feb5",
+  "candidate_base_tree": "b26ce32ae60a65c13709ed4ecd30675f1bce1533",
+  "candidate_final_digest": "a2ce9236de92b3df1c22af39c0249978a8cda096d06c9e2729bbed0fe2af440e",
+  "candidate_head_sha": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+  "candidate_metadata_sha256": "64f3dd877d3804f6fe611eac2c76d277acb62e06f2da78c610731733c4559ae1",
+  "candidate_overlay_digest": "32e4bed7f27a9a4aa71b98299aaf067c5d0fc9d6f5561cb0fbb321c445b9c685",
+  "candidate_status": "meets_gate",
+  "direct_references": {
+    "candidate_metadata": true,
+    "lifx_async": true,
+    "lifx_emulator_core": true
+  },
+  "environments": {
+    "darwin/x86_64/3.12.10": {
+      "architecture": "x86_64",
+      "implementation": "CPython",
+      "os": "darwin",
+      "os_release": "24.6.0",
+      "python": "3.12.10",
+      "realised_environment_digest": "7a63ebf1307f357d1c02349ac00ecf42a0c564153f3b80a470c25edc66bbba62"
+    }
+  },
+  "first_run_sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
+  "hashes_sha256": "6811b02d8f264c83f62f5cb8ceab256e0907c81b3b7f78240ce8fca177e62e9e",
+  "identities": {
+    "lifx-async": "7.3.0",
+    "lifx-emulator": "4.6.0",
+    "lifx-emulator-core": "3.10.0"
+  },
+  "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+  "platform_leg": "intel-pyapp",
+  "pyapp": {
+    "revision": "a419de7c068cbd0e083194bbe11c741b0497d28c",
+    "tree": "d87b89829042147f7b23c5fe4b5b14034d8164d4",
+    "version": "0.26.0"
+  },
+  "recorded_at": "2026-09-23T00:49:43.941494Z",
+  "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "schema_version": 1,
+  "uv_version": "0.9.9"
+}

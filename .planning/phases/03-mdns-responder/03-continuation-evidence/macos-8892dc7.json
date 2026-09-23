@@ -1,0 +1,139 @@
+{
+  "candidate_status": "provisional",
+  "command": [
+    "uv",
+    "run",
+    "--isolated",
+    "--no-project",
+    "--with",
+    "./packages/lifx-emulator-core",
+    "--with",
+    "zeroconf==0.151.3",
+    "--with",
+    "lifx-async @ git+https://github.com/Djelibeybi/lifx-async.git@48b7efbff59656499373b13ef17e3008d125feb5",
+    "python",
+    "scripts/spike_mdns_candidates.py",
+    "candidate-worker",
+    "--expanded"
+  ],
+  "contract": "complete-record-sets-with-continuation-question-exception",
+  "criteria": {
+    "configuration_interface_fit": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "daemon_coexistence": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "direct_address_queries": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "dynamic_lifecycle_recovery_fit": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "exact_txt_and_family": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "intel_pyapp_first_run": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "legacy_wire": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "lifecycle_cleanup": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "macos_multicast": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "malformed_truncated_flood_bounds": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "mixed_100_benchmark": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "mixed_10_benchmark": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "official_provenance": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "oracle_discovery": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "packet_boundary": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "thread_benchmark": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "ubuntu_multicast": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    },
+    "wifi_benchmark": {
+      "acquisition_step": "Repeat the expanded local worker on an IPv4 multicast-capable host.",
+      "evidence": "Expanded probe unavailable: OSError: [Errno 65] No route to host",
+      "status": "untested"
+    },
+    "windows_socket_simulation": {
+      "acquisition_step": "Run the named local or exact-head CI probe and merge its receipt.",
+      "evidence": "Not yet reached by the progressive candidate sequence.",
+      "status": "untested"
+    }
+  },
+  "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+  "platform_candidate": "zeroconf",
+  "result": {
+    "elapsed_seconds": 6.6221965830000045,
+    "environment": {
+      "architecture": "arm64",
+      "implementation": "CPython",
+      "os": "darwin",
+      "os_release": "25.6.0",
+      "python": "3.14.7",
+      "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+    },
+    "error": "[Errno 65] No route to host",
+    "error_type": "OSError",
+    "execution_status": "completed",
+    "failed_stage": "wifi-1",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/runner/work/lifx-emulator/lifx-emulator/scripts/spike_mdns_candidates.py\", line 887, in _expanded_worker\n    benchmarks[stage] = await run_discovery_benchmark(wifi, thread_count)\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/runner/work/lifx-emulator/lifx-emulator/scripts/spike_mdns_candidates.py\", line 706, in run_discovery_benchmark\n    metrics = await _collect_query(\n              ^^^^^^^^^^^^^^^^^^^^^\n    ...<17 lines>...\n    )\n    ^\n  File \"/Users/runner/work/lifx-emulator/lifx-emulator/scripts/spike_mdns_candidates.py\", line 586, in _collect_query\n    await loop.sock_sendto(client, query, (\"224.0.0.251\", 5353))\n  File \"/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py\", line 594, in sock_sendto\n    return sock.sendto(data, address)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^\nOSError: [Errno 65] No route to host\n"
+  },
+  "runner_sha256": "e688936a0bde3950e4be806420c55bf4e2ff9ff94a43ea74cfd43c86814241b7",
+  "schema_version": 1,
+  "thread_address_origin": "runner-configured-synthetic-ula",
+  "valid": false
+}

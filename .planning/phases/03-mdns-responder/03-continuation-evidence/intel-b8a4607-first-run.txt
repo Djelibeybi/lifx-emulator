@@ -1,0 +1,72 @@
+Usage: lifx-emulator COMMAND [OPTIONS]
+
+LIFX LAN Protocol Emulator provides virtual LIFX devices for testing
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ clear-storage         Clear all persistent device state from storage.        │
+│ export-config         Export persistent device storage as a YAML config      │
+│                       file.                                                  │
+│ list-products         List all available LIFX products from the registry.    │
+│ --help (-h)           Display this message and exit.                         │
+│ --install-completion  Install shell completion for this application.         │
+│ --version             Display application version.                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Configuration ──────────────────────────────────────────────────────────────╮
+│ --config  Path to YAML config file. If not specified, checks                 │
+│           LIFX_EMULATOR_CONFIG env var, then auto-detects lifx-emulator.yaml │
+│           or lifx-emulator.yml in current directory.                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Server Options ─────────────────────────────────────────────────────────────╮
+│ --bind     IP address to bind to. Default: 127.0.0.1.                        │
+│ --port     UDP port to listen on. Default: 56700.                            │
+│ --verbose  Enable verbose logging showing all packets sent and received.     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Storage & Persistence ──────────────────────────────────────────────────────╮
+│ --persistent            [DEPRECATED] Use a config file instead. See          │
+│                         'export-config'.                                     │
+│ --persistent-scenarios  [DEPRECATED] Use a config file instead. See          │
+│                         'export-config'.                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ HTTP API Server ────────────────────────────────────────────────────────────╮
+│ --api                Enable HTTP API server for monitoring and runtime       │
+│                      device management.                                      │
+│ --api-host           API server host to bind to. Default: 127.0.0.1.         │
+│ --api-port           API server port. Default: 8080.                         │
+│ --api-activity       Enable activity logging in API. Disable to reduce       │
+│   --no-api-activity  traffic and save UI space on the monitoring dashboard.  │
+│                      Default: true.                                          │
+│ --browser            Open dashboard in default browser when API starts.      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Device Creation ────────────────────────────────────────────────────────────╮
+│ --product            Create devices by product ID. Can be specified multiple │
+│                      times. Run 'lifx-emulator list-products' to see         │
+│                      available products.                                     │
+│ --color              Number of full-color RGB lights to emulate.             │
+│ --color-temperature  Number of color temperature (white spectrum) lights.    │
+│ --infrared           Number of infrared lights with night vision capability. │
+│ --hev                Number of HEV/Clean lights with UV-C germicidal         │
+│                      capability.                                             │
+│ --multizone          Number of multizone strip or beam devices.              │
+│ --tile               Number of tile/matrix chain devices.                    │
+│ --switch             Number of LIFX Switch devices (relays, no lighting).    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Multizone Options ──────────────────────────────────────────────────────────╮
+│ --multizone-zones          Number of zones per multizone device. Uses        │
+│                            product defaults if not specified.                │
+│ --multizone-extended       Enable extended multizone support (Beam). Set     │
+│   --no-multizone-extended  --no-multizone-extended for basic multizone (Z)   │
+│                            devices. Default: true.                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Tile/Matrix Options ────────────────────────────────────────────────────────╮
+│ --tile-count   Number of tiles per device. Uses product defaults if not      │
+│                specified (5 for Tile, 1 for Candle/Ceiling).                 │
+│ --tile-width   Width of each tile in zones. Uses product defaults if not     │
+│                specified (8 for most devices).                               │
+│ --tile-height  Height of each tile in zones. Uses product defaults if not    │
+│                specified (8 for most devices).                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Serial Number Options ──────────────────────────────────────────────────────╮
+│ --serial-prefix  Serial number prefix as 6 hex characters. Default: d073d5.  │
+│ --serial-start   Starting serial suffix for auto-incrementing device         │
+│                  serials. Default: 1.                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯

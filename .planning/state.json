@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:execute-phase 3",
-    "label": "Assess remaining zeroconf platform, lifecycle and packaging gates",
-    "reason": "User accepted continuation-question omission for the tested client; local 100-device discovery and controls passed. No harness changes authorised."
+    "command": "/gsd:progress",
+    "label": "Review the targeted zeroconf continuation and remaining decision gate",
+    "reason": "Local macOS, hosted Ubuntu and hosted macOS loopback discovery/restoration plus Intel packaging have evidence. Listener failure/retry, partial startup and candidate-specific robustness still need proof before a full go."
   },
-  "updated_at": "2026-09-22T23:50:35Z"
+  "updated_at": "2026-09-23T00:48:32.895640Z"
 }

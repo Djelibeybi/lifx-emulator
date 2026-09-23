@@ -1,0 +1,26 @@
+{
+  "candidate": "zeroconf",
+  "candidate_base_commit": "b7aea22b51d82f2139c9143292e86a361ea6796f",
+  "candidate_base_tree": "46f1c2da6670ed0189f78c14a5d65662ac7a7916",
+  "candidate_final_digest": "ce6c548e665759b6150cef4db9ab9d7bdd89857e90c513abd6b7340bdd7dbd6a",
+  "candidate_head_sha": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+  "candidate_overlay_digest": null,
+  "candidate_status": "provisional",
+  "environments": {
+    "platform": {
+      "architecture": "arm64",
+      "implementation": "CPython",
+      "os": "darwin",
+      "os_release": "25.6.0",
+      "python": "3.14.7",
+      "realised_environment_digest": "02bd4903b03fd3279fb9329f9817106f8731eb419fc81b81eded8035ebf748e8"
+    }
+  },
+  "evidence_sha256": "24553e8f7b0e0ff8ed7ab4117b1f32f5ebc84bd456af2ac58121fec692c61051",
+  "input_spec_digest": "dedb9b03390bd0230e8cb503dc2f9a829db1aa12dc523b7ba1125d627d9ed75e",
+  "platform_leg": "multicast",
+  "recorded_at": "2026-09-23T00:43:11.172935Z",
+  "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241",
+  "schema_version": 1,
+  "thread_address_origin": "runner-configured-synthetic-ula"
+}

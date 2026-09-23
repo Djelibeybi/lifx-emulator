@@ -1,0 +1,125 @@
+{
+  "scope": "Candidate-specific continuation evidence; no production approval",
+  "artifacts": [
+    {
+      "file": "local-12a71bd.json",
+      "sha256": "cd1496d1f1c44b4f25da3fa8ebaf11df033b1cc85fa28353dfadbffab6937ab3",
+      "source_head": "12a71bd52a5a25e467e9d2185237532007d1d31d",
+      "run_url": null
+    },
+    {
+      "file": "linux-da6053b.json",
+      "sha256": "85ec4075fa7ab2711e6043d98b1bed55bd12fa308afc1049f2c5bf6df206e4d7",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "linux-da6053b-receipt.json",
+      "sha256": "2c64dbfdd13117794a4e1a727b466fa7675d3bc53add860e4c916545d365ad89",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "linux-8892dc7.json",
+      "sha256": "789ea90a1d11b4c685411a5f631e19906455676e06da3d70030633a16df0f04d",
+      "source_head": "8892dc7355c9a6823369063f5c48c291036f3c1e",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35802045060"
+    },
+    {
+      "file": "linux-8892dc7-receipt.json",
+      "sha256": "b62a43ec451158ebae73af453b7db3dd0c010639e2038da0267e612b66930e28",
+      "source_head": "8892dc7355c9a6823369063f5c48c291036f3c1e",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35802045060"
+    },
+    {
+      "file": "macos-8892dc7.json",
+      "sha256": "144a6db8f2fbe452147946bdcef420597d774c4545e42062a2384bc421afc77a",
+      "source_head": "8892dc7355c9a6823369063f5c48c291036f3c1e",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35802045060"
+    },
+    {
+      "file": "intel-da6053b-zeroconf-packaging.json",
+      "sha256": "ec32dfc7476da74aedd3e3a6ec2b836176353171d15e186df7d87d4e2d50d084",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "intel-da6053b-app-METADATA.txt",
+      "sha256": "a0f72a585311f8edc5d17190522bec4e1c127d4df86a576650d8aa4fe71b0f77",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "intel-da6053b-first-run.txt",
+      "sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "intel-da6053b-hashes.txt",
+      "sha256": "6811b02d8f264c83f62f5cb8ceab256e0907c81b3b7f78240ce8fca177e62e9e",
+      "source_head": "da6053b5f7b6fc625ca7fcd21b1787ed9dc7f8de",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35801477606"
+    },
+    {
+      "file": "macos-f55be54.json",
+      "sha256": "a1c40dc9deeb2542b8f833b4d867e709aacf798b72aac3c27c533b9c0eb9ce72",
+      "source_head": "f55be54eedb89f601ab8632e4dd8a21221429bf5",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35802869679"
+    },
+    {
+      "file": "macos-b8a4607-receipt.json",
+      "sha256": "42b7388c419b3d64e104a69f290ab40ea6bf98f157646718456de5d6a58ed426",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "macos-b8a4607.json",
+      "sha256": "24553e8f7b0e0ff8ed7ab4117b1f32f5ebc84bd456af2ac58121fec692c61051",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "linux-b8a4607.json",
+      "sha256": "05be2b767016b5194e1214bdf3d6a567172023214325c58aad2592bc2ea5c17a",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "linux-b8a4607-receipt.json",
+      "sha256": "f13981d04b4625e4a19163b8c29103efe3d9af1e386f6d0cfdde3451e93c3abb",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "intel-b8a4607-zeroconf-packaging.json",
+      "sha256": "ec32dfc7476da74aedd3e3a6ec2b836176353171d15e186df7d87d4e2d50d084",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "intel-b8a4607-app-METADATA.txt",
+      "sha256": "a0f72a585311f8edc5d17190522bec4e1c127d4df86a576650d8aa4fe71b0f77",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "intel-b8a4607-first-run.txt",
+      "sha256": "1d781a3ce266d85fab364644251b8a7fb75ba2225490ca4ad9654ddde91c95f7",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "intel-b8a4607-hashes.txt",
+      "sha256": "6811b02d8f264c83f62f5cb8ceab256e0907c81b3b7f78240ce8fca177e62e9e",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    },
+    {
+      "file": "intel-b8a4607-intel-pyapp-receipt.json",
+      "sha256": "a2e6e9eaabe47b36a74e6853c159486e16d693aae793b301ecc02bb6eee27ca5",
+      "source_head": "b8a4607bc00de09ad014a4e9d03b41c9015d7aa9",
+      "run_url": "https://github.com/Djelibeybi/lifx-emulator/actions/runs/35803195241"
+    }
+  ]
+}
