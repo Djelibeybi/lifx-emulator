@@ -1,20 +1,44 @@
-# API Coverage — python-zeroconf closeout
+# API Coverage — python-zeroconf production integration
 
-> Full public-operation coverage for the Phase 3 selection spike. This matrix describes candidate evaluation, not production integration.
+> Full public-operation coverage for the selected Phase 3 production integration. The 03-02 closeout remains the historical selection evidence; this matrix defines what 03-03 through 03-07 implement or explicitly exclude.
 
 | capability | decision | reason |
 |---|---|---|
-| `AsyncZeroconf` construction/startup | INTEGRATE | Required to prove explicit-interface startup, daemon coexistence and startup failure reporting. |
-| `async_register_service` and returned announcement awaitable | INTEGRATE | Required for initial fleet ownership, partial-start cleanup and surfaced registration/announcement failures. |
-| `async_update_service` | INTEGRATE | Required for the retained public removal/restoration route and surfaced update failures. |
-| `async_unregister_service` | INTEGRATE | Required for removal ownership and surfaced unregistration failures. |
-| `async_update_interfaces` | INTEGRATE | Required to measure the public explicit-interface operation and its surfaced failures; it is not treated as a health check. |
-| `async_wait_for_start` / `started` | INTEGRATE | Required to preserve the measured distinction between lifecycle startup and network health under D-08. |
-| `async_close` | INTEGRATE | Required for owned cleanup, retry gating and surfaced close failures. |
-| `ServiceInfo` public record construction | INTEGRATE | Required for executable A/AAAA, TXT, service identity, address override/fallback and configuration-fit evidence. |
-| Service browser/listener consumer APIs | OPT-OUT | The pristine `lifx-async` client remains the discovery oracle; Phase 3 does not add a second consumer implementation. |
-| Private listener/engine/socket internals | OPT-OUT | D-08 and D-10 reject private access, monkey-patching, forks and a listener-health watchdog for the supported contract. |
-| IPv6 mDNS multicast APIs | OPT-OUT | The locked phase scope uses IPv4 mDNS multicast; advertised Thread endpoints remain IPv6 records. |
-| Automatic interface/address selection | OPT-OUT | The user requires explicit interface/address selection and rejects automatic selection. |
+| `AsyncZeroconf` construction/startup | INTEGRATE | Own one responder lifecycle on the explicit interface and expose startup outcomes. |
+| `async_register_service` | INTEGRATE | Register complete immutable `ServiceInfo` snapshots and await both the outer coroutine and its returned announcement awaitable. |
+| `async_update_service` | INTEGRATE | Restore a previously owned same-serial service and await both the outer coroutine and its returned announcement awaitable. |
+| `async_unregister_service` | INTEGRATE | Remove owned membership and await both the outer coroutine and its returned goodbye awaitable before the completion boundary succeeds. |
+| `async_wait_for_start` / `started` | INTEGRATE | Distinguish lifecycle readiness from unpromised listener-health detection under D-08. |
+| `async_close` | INTEGRATE | Await the single close coroutine for the owned zeroconf instance at stop/retry. |
+| `ServiceInfo` public record construction | INTEGRATE | Construct complete PTR/SRV/TXT/A-or-AAAA snapshots for registration and update. |
+| `async_update_interfaces` | OPT-OUT | The interface is immutable for a server lifecycle; explicit retry creates a fresh owner, and this operation must not be represented as a listener-health check. |
+| Service browser/listener consumer APIs, including `AsyncServiceBrowser` | OPT-OUT | Pristine `lifx-async` is the discovery oracle; the emulator does not add a second consumer implementation. |
+| Resolver APIs, including `AsyncServiceInfo` lookup and `async_get_service_info` | OPT-OUT | Phase 3 owns a responder and validates it through raw DNS and the existing consumer. |
+| Private listener, engine and socket internals | OPT-OUT | D-08 and D-10 reject private access, monkey-patching, forks and a listener-health watchdog for the supported contract. |
+| IPv6 mDNS multicast APIs | OPT-OUT | The locked phase scope uses IPv4 mDNS multicast while Thread endpoints are advertised as IPv6 records. |
+| Automatic interface/address selection | OPT-OUT | The server requires an explicit advertised address or a validated concrete bind fallback. |
+| Service-type enumeration and administrative browsing APIs | OPT-OUT | These consumer/admin operations do not participate in `_lifx._udp.local.` registration or discovery validation. |
 
-The closeout runner must fail validation if an `INTEGRATE` row lacks a demonstrated, failed or explicitly untested case with an acquisition step. An `OPT-OUT` row cannot be used as evidence for go beyond the stated boundary.
+## Plan mapping
+
+| capability group | plans |
+|---|---|
+| owner startup, register and close | 03-03, 03-06 |
+| update, unregister and retry lifecycle | 03-06 |
+| ServiceInfo record construction | 03-03, 03-04 |
+| production client and network validation | 03-07 |
+
+## Dependency version gate
+
+The approved and currently latest PyPI release is `zeroconf==0.151.3`. Plan 03-03 rechecks the live latest release immediately before `uv add --package lifx-emulator-core "zeroconf==0.151.3"`; any drift fails the task and returns to the Phase 3 selection gate instead of silently changing the approved dependency.
+
+## Decision coverage
+
+| decisions | disposition | coverage |
+|---|---|---|
+| D-01–D-04 | production implementation | 03-03 and 03-04 implement the selected public zeroconf responder, immutable configuration and address/record policy; 03-07 validates the observable network behaviour. |
+| D-05–D-08 | production implementation | 03-06 implements fleet-sensitive admission, observable failure/retry, bounded ownership and the accepted no-listener-health-promise boundary; 03-07 validates those contracts. |
+| D-09–D-15 | historical completion | 03-02 and `03-ZEROCONF-CLOSEOUT.json` already supplied the time-boxed selection, daemon coexistence, packaging, client-oracle and public-operation evidence. The implementation plans consume that go decision without repeating the spike. |
+| D-16–D-18 | optional environment, out of scope | The optional VM/cross-machine continuations were not authorised and are not required by the approved go. Plans use real local Ubuntu/macOS networking and Windows simulations only. |
+
+All production zeroconf calls stay within the documented public surface above. An `OPT-OUT` row cannot be used to claim a Phase 3 capability or health guarantee.
