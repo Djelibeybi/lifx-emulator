@@ -21,6 +21,7 @@ from lifx_emulator.devices import (
     NullObserver,
     PacketEvent,
 )
+from lifx_emulator.mdns import MdnsResponder
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, get_packet_class
 from lifx_emulator.repositories import IScenarioStorageBackend
@@ -166,8 +167,11 @@ class EmulatedLifxServer:
         *,
         ipv6_bind_address: str = "::1",
         max_pending_packets: int = 1024,
+        mdns_enabled: bool = False,
     ):
         # Device manager (required dependency injection)
+        self._mdns_enabled = mdns_enabled
+        self._mdns: MdnsResponder | None = None
         self._device_manager = device_manager
         self.bind_address = bind_address
         self.ipv6_bind_address = ipv6_bind_address
@@ -870,6 +874,15 @@ class EmulatedLifxServer:
         """Atomically bind and publish one IPv4/IPv6 endpoint pair."""
         async with self._lifecycle_lock:
             await self._start_locked()
+            if self._mdns_enabled and self._mdns is None:
+                self._mdns = MdnsResponder(
+                    self.bind_address, self._effective_port or self.port
+                )
+                try:
+                    await self._mdns.start(self.get_all_devices())
+                except BaseException:
+                    await self._stop_locked()
+                    raise
 
     async def _start_locked(self) -> None:
         """Start one endpoint pair while holding the lifecycle lock."""
@@ -995,6 +1008,15 @@ class EmulatedLifxServer:
 
     async def _stop_locked(self) -> None:
         """Stop the endpoint pair while holding the lifecycle lock."""
+        mdns_error: BaseException | None = None
+        responder = getattr(self, "_mdns", None)
+        if responder is not None:
+            try:
+                await responder.stop()
+            except BaseException as error:
+                mdns_error = error
+            finally:
+                self._mdns = None
         protocols = (
             getattr(self, "_ipv4_protocol", None),
             getattr(self, "_ipv6_protocol", None),
@@ -1053,6 +1075,9 @@ class EmulatedLifxServer:
             if not transports_closed:
                 self._close_unique_transports(*transports)
             self._reset_endpoint_state()
+
+        if mdns_error is not None:
+            raise mdns_error
 
     async def __aenter__(self):
         """Async context manager entry"""
