@@ -117,6 +117,8 @@ class DeviceBuilder:
         self._color: LightHsbk | None = None
         self._advertised_services: list[tuple[int, int]] | None = None
         self._connectivity: Connectivity | str | None = None
+        self._mdns_enabled = True
+        self._mdns_address: str | None = None
         self._persist_initial_state = False
 
         # Helper services
@@ -343,6 +345,14 @@ class DeviceBuilder:
 
         return Connectivity.WIFI
 
+    def with_mdns(
+        self, enabled: bool = True, address: str | None = None
+    ) -> DeviceBuilder:
+        """Set immutable advertisement intent; validate after radio resolution."""
+        self._mdns_enabled = enabled
+        self._mdns_address = address
+        return self
+
     def build(self) -> EmulatedLifxDevice:
         """Build the emulated device.
 
@@ -384,7 +394,12 @@ class DeviceBuilder:
         # to report; 0.0 signals "no WiFi signal" rather than a fabricated
         # reading. A WiFi device keeps the pre-Thread default.
         wifi_signal = 0.0 if connectivity == Connectivity.THREAD else -45.0
-        network = NetworkState(connectivity=connectivity, wifi_signal=wifi_signal)
+        network = NetworkState(
+            connectivity=connectivity,
+            wifi_signal=wifi_signal,
+            mdns_enabled=self._mdns_enabled,
+            mdns_address=self._mdns_address,
+        )
         location = LocationState()
         group = GroupState()
         waveform = WaveformState()

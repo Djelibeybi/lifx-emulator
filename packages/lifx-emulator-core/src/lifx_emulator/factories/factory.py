@@ -20,6 +20,9 @@ def create_color_light(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a regular color light (LIFX Color).
 
@@ -32,6 +35,8 @@ def create_color_light(
             emitted as one StateService reply each, in order, in response
             to GetService. Defaults to a single UDP reply on the device's
             port.
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -48,6 +53,8 @@ def create_color_light(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )  # LIFX Color
 
 
@@ -58,6 +65,9 @@ def create_infrared_light(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create an infrared-enabled light (LIFX A19 Night Vision).
 
@@ -70,6 +80,8 @@ def create_infrared_light(
             emitted as one StateService reply each, in order, in response
             to GetService. Defaults to a single UDP reply on the device's
             port.
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -86,6 +98,8 @@ def create_infrared_light(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )  # LIFX A19 Night Vision
 
 
@@ -96,6 +110,9 @@ def create_hev_light(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create an HEV-enabled light (LIFX Clean).
 
@@ -108,6 +125,8 @@ def create_hev_light(
             emitted as one StateService reply each, in order, in response
             to GetService. Defaults to a single UDP reply on the device's
             port.
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -124,6 +143,8 @@ def create_hev_light(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )  # LIFX Clean
 
 
@@ -136,6 +157,9 @@ def create_multizone_light(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a multizone light (LIFX Beam)
 
@@ -146,6 +170,8 @@ def create_multizone_light(
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -161,6 +187,8 @@ def create_multizone_light(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )
 
 
@@ -174,6 +202,9 @@ def create_tile_device(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a tile device (LIFX Tile)
 
@@ -185,6 +216,8 @@ def create_tile_device(
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. LIFX Tile (product 55) has a terminal firmware ceiling
@@ -203,6 +236,8 @@ def create_tile_device(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )  # LIFX Tile
 
 
@@ -213,6 +248,9 @@ def create_color_temperature_light(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a color temperature light (LIFX Mini White to Warm).
 
@@ -227,6 +265,8 @@ def create_color_temperature_light(
             emitted as one StateService reply each, in order, in response
             to GetService. Defaults to a single UDP reply on the device's
             port.
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -243,6 +283,8 @@ def create_color_temperature_light(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )  # LIFX Mini White to Warm
 
 
@@ -254,6 +296,9 @@ def create_switch(
     scenario_manager: HierarchicalScenarioManager | None = None,
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a LIFX Switch device.
 
@@ -266,6 +311,8 @@ def create_switch(
         firmware_version: Optional firmware version (major, minor)
         storage: Optional persistence backend
         scenario_manager: Optional scenario manager for testing
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -282,6 +329,8 @@ def create_switch(
         scenario_manager=scenario_manager,
         advertised_services=advertised_services,
         connectivity=connectivity,
+        mdns_enabled=mdns_enabled,
+        mdns_address=mdns_address,
     )
 
 
@@ -299,6 +348,9 @@ def create_device(
     advertised_services: list[tuple[int, int]] | None = None,
     connectivity: Connectivity | str | None = None,
     persist_initial_state: bool = False,
+    *,
+    mdns_enabled: bool = True,
+    mdns_address: str | None = None,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -323,6 +375,8 @@ def create_device(
                          to GetService. service_id is a raw uint8 (0-255) and
                          may be outside the DeviceService enum. Defaults to a
                          single UDP reply on the device's port.
+        mdns_enabled: Advertise this device when server mDNS is enabled.
+        mdns_address: Explicit matching-family address, or concrete bind fallback.
         connectivity: Optional connectivity ("wifi", "thread", or a
                          Connectivity member). None means unspecified and
                          resolves to WiFi. An explicit string that is not
@@ -383,6 +437,7 @@ def create_device(
     if connectivity is not None:
         builder.with_connectivity(connectivity)
 
+    builder.with_mdns(mdns_enabled, mdns_address)
     builder.with_initial_persistence(persist_initial_state)
 
     return builder.build()
