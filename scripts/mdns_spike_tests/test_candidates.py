@@ -656,3 +656,14 @@ def test_raw_query_socket_scoping_and_failure_cleanup(
         assert factory("192.0.2.1") is fake
         assert not closed
     assert ((socket.IPPROTO_IP, 25, 7) in calls) == (platform_name == "darwin")
+
+
+def test_zeroconf_platform_rejects_unverified_local_oracle(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MDNS_SPIKE_ORACLE_PATH", str(tmp_path))
+    output = tmp_path / "evidence.json"
+    result = _run("run-zeroconf-platform", "--output", str(output))
+    assert result.returncode == 1
+    assert "differs from the pinned revision/tree" in result.stderr
+    assert not output.exists()
