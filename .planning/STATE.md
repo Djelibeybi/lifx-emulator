@@ -3,15 +3,15 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
 status: provisional
-stopped_at: "Phase 3 D-08 amended: supported-operation failures only; remaining spike evidence and go/no-go pending"
-last_updated: "2026-09-23T02:47:24.674Z"
+stopped_at: "Phase 3 closeout plan 03-02 reviewed; execute at fresh-budget checkpoint; MDNS-10 provisional"
+last_updated: "2026-09-23T06:22:12.679Z"
 last_activity: 2026-09-23
-last_activity_desc: User narrowed D-08 to supported-operation failures; silent listener loss accepted for test-oriented use; other spike gates remain
-state_head: 1e808ad0d7ea996535160790e76835d43cb7c5fb
+last_activity_desc: Closeout plan 03-02 passed independent review; implementation remains gated on MDNS-10
+state_head: 730f7acd009df151ae63548aa6dca41c4a963307
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 9
+  completed_phases: 2
+  total_plans: 10
   completed_plans: 8
   percent: 0
 ---
@@ -27,14 +27,14 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 ## Current Position
 
-Phase: 03 (mDNS Responder) — PROVISIONAL
-Plan: 1 of 1
+Phase: 03 (mDNS Responder) — READY TO EXECUTE
+Plan: 2 of 2 (03-02 closeout; 03-01 historical halt)
 Status: Provisional. D-08 now covers supported-operation failures only; silent listener-loss detection is an accepted limitation for this test-oriented emulator. Zeroconf remains preferred; robustness, Windows simulation and configuration/interface evidence plus the MDNS-10 decision remain pending.
-Last activity: 2026-09-23 — User lifted the harness restriction. Corrected record aggregation checks and public-API restoration probes passed locally and on Ubuntu. Intel PyApp imports pinned zeroconf. Hosted virtual-interface sends fail with EHOSTUNREACH, but the permitted loopback-multicast run passed with the pristine client. No production integration or full go.
+Last activity: 2026-09-23 — Planned and independently reviewed 03-02: fresh 120-minute allowance checkpoint, remaining zeroconf evidence, then human MDNS-10 decision. No new experiments or implementation.
 
-Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Actual listener-loss detection remains unproved. No production integration is authorised.
+Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Silent listener loss is accepted outside D-08; supported-operation failure checks remain in the closeout. No production integration is authorised.
 
-Progress: [░░░░░░░░░░] 0% (2/6 phases; 8/9 existing plans complete)
+Progress: 2/6 phases; 8/10 existing plans complete. Phase 3 implementation plans remain pending.
 
 ## Performance Metrics
 
@@ -105,8 +105,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-23T02:46:50.663Z
-Stopped at: Phase 3 D-08 amended: supported-operation failures only; remaining spike evidence and go/no-go pending
-Resume file: .planning/phases/03-mdns-responder/03-CONTEXT.md
+Stopped at: Phase 3 closeout plan 03-02 reviewed; execute at fresh-budget checkpoint; MDNS-10 provisional
+Resume file: .planning/phases/03-mdns-responder/03-02-PLAN.md
 
 Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
 
@@ -114,4 +114,4 @@ Latest continuation: `03-CONTINUATION.md` and `03-continuation-evidence/manifest
 
 Final tested input head: `b8a4607`; CI run `35803195241` passed all jobs. The continuation is closed within its time allowance. No full go or production implementation is recorded.
 
-Listener-health follow-up (2026-09-23): `03-LISTENER-HEALTH-INVESTIGATION.md` and `03-recovery-evidence/listener-health-local-macos.json` record real transport-close injection. Both socket descriptors closed, while `started` and the adapter stayed running; startup wait and same-interface refresh returned normally with zero open readers. No supported direct failure callback was found. Choose an upstream supported callback or explicitly agree a responsiveness contract before further integration; MDNS-10 remains provisional.
+Listener-health follow-up (2026-09-23): `03-LISTENER-HEALTH-INVESTIGATION.md` and `03-recovery-evidence/listener-health-local-macos.json` record real transport-close injection. Both socket descriptors closed, while `started` and the adapter stayed running; startup wait and same-interface refresh returned normally with zero open readers. No supported direct failure callback was found. Superseded by the subsequent D-08 amendment: silent loss is accepted, with no callback or responsiveness guarantee required. MDNS-10 remains provisional pending the other closeout cases.

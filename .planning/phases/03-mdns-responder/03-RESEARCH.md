@@ -1,11 +1,9 @@
-
-> **2026-09-23 amendment:** The user approved complete-fleet discovery independent of packet grouping. See [03-PACKET-GROUPING-AMENDMENT.md](03-PACKET-GROUPING-AMENDMENT.md). Earlier packet-count requirements and zeroconf rejection on aggregation alone are superseded. Historical observations and reviews below remain unchanged; they do not establish compliance with the revised contract. Do not resume the old execution steps or change the local/CI harness under this amendment.
-
 # Phase 3: mDNS Responder - Research
 
 **Researched:** 2026-09-22
+**Reconciled:** 2026-09-23 against the completed continuation, recovery prototype and amended D-08
 **Domain:** asyncio mDNS responder selection, DNS-SD interoperability and PyApp packaging
-**Confidence:** HIGH for repository integration and the spike contract; MEDIUM for candidate suitability pending execution evidence
+**Confidence:** HIGH for the remaining spike-closeout scope; candidate selection remains provisional
 
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
@@ -19,7 +17,7 @@
 - **D-05:** Expose read-only `mdns_status` with `disabled`, `stopped`, `running` and `failed` states, plus `mdns_error`; log failures. No status callback was selected.
 - **D-06:** Provide explicit `await server.retry_mdns()` to recover failed mDNS on a functioning WiFi-only server without interrupting LIFX traffic. Automatic retries were not selected.
 - **D-07:** When enabled mDNS has failed, reject Thread device additions before changing fleet membership, explaining that mDNS must recover first. Intentionally disabled mDNS remains supported.
-- **D-08:** Apply the fleet-dependent failure policy to runtime failure too: WiFi-only continues serving LIFX with failed mDNS status; Thread-only and mixed fleets shut down cleanly and retain the failure details.
+- **D-08 (amended 2026-09-23):** Apply the fleet-dependent failure policy to runtime failures surfaced by supported zeroconf operations: WiFi-only continues serving LIFX with failed mDNS status; Thread-only and mixed fleets shut down cleanly and retain the failure details. Do not promise detection of silent listener loss or network unresponsiveness. `running` means lifecycle startup succeeded and no handled failure has been observed, not independently verified network health. No upstream failure callback, fork, vendoring, monkey-patching, private listener inspection or responsiveness watchdog is required for this scope. Retain startup failure handling, observable runtime error handling, owned cleanup and explicit retry. The user accepts the narrower guarantee for this non-production, test-oriented use case and expects users to report encountered limitations.
 - **D-09:** Evaluate in order: current `python-zeroconf`; extending or augmenting existing `lifx-async` mDNS; an entirely new responder if neither existing implementation is suitable. Stop investigating a candidate once decisive evidence rules it out.
 - **D-10:** Prefer `python-zeroconf` when candidates meet the locked requirements, unless evidence demonstrates a material advantage for an alternative. Use public APIs and a small adapter; dependence on private internals, monkey-patching or a maintained fork favours the fallback candidates.
 - **D-11:** For `lifx-async` reuse, compare extending that library directly with adapting relevant code into the emulator. Recommend based on coupling, maintenance and compatibility; neither location is preselected.
@@ -42,17 +40,17 @@ No additional future-phase capability was adopted. Cross-machine testing remains
 
 ## Summary
 
-Plan one bounded MDNS-10 spike, then stop. Current `python-zeroconf` exposes public asyncio construction, registration, update, interface and close APIs, and its source recognises legacy-unicast queries. Its response builder collects records across services into one outgoing answer, so the locked one-complete-packet-per-device behaviour is a material live-test risk rather than a settled compatibility result. [VERIFIED: https://github.com/python-zeroconf/python-zeroconf/blob/0.151.3/src/zeroconf/asyncio.py#L107-L248] [VERIFIED: https://github.com/python-zeroconf/python-zeroconf/blob/0.151.3/src/zeroconf/_handlers/query_handler.py#L200-L284] [VERIFIED: https://github.com/python-zeroconf/python-zeroconf/blob/0.151.3/src/zeroconf/_handlers/answers.py#L82-L110]
+The implementation-selection work is now in closeout, not initial candidate exploration. Zeroconf 0.151.3 is the preferred provisional foundation after complete-fleet discovery, public-client discovery, membership restoration, direct A/AAAA queries, daemon coexistence, hosted Ubuntu/macOS multicast and Intel PyApp packaging passed in the retained continuation evidence. These results do not constitute the explicit MDNS-10 go decision. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:33-65]
 
-The sibling `lifx-async` implementation is a useful acceptance oracle and source-reuse candidate, but the opened modules contain query construction, response parsing, record accumulation and an ephemeral-port client transport rather than a responder encoder/listener. Direct extension and adaptation therefore both require new responder work and must be compared only if zeroconf is ruled out. [VERIFIED: ../lifx-async/src/lifx/network/discovery/mdns/__init__.py:1-42] [VERIFIED: ../lifx-async/src/lifx/network/discovery/mdns/dns.py:1-485] [VERIFIED: ../lifx-async/src/lifx/network/discovery/mdns/transport.py:1-92]
+The recovery prototype also demonstrates public-API partial-start cleanup, explicit retry with a fresh owner, continued WiFi LIFX traffic and Thread/mixed shutdown after an injected surfaced error. It does not prove automatic listener-failure detection. Amended D-08 intentionally excludes silent listener loss and network unresponsiveness, so the negative listener-health diagnostic is a documented limitation rather than a gate requiring an upstream callback, fork, private inspection or watchdog. [VERIFIED: .planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md:9-30] [VERIFIED: .planning/phases/03-mdns-responder/03-CONTEXT.md:56-68]
 
-**Primary recommendation:** Plan the four-hour MDNS-10 spike around hard evidence gates in the fixed candidate order; do not select a candidate or plan MDNS-01–09/11 implementation until protocol, daemon coexistence, no-packet-thread, platform and Intel macOS PyApp evidence is complete.
+**Primary recommendation:** Reuse the existing spike harness for only four remaining closeout checks: zeroconf-specific robustness, zeroconf-specific Windows simulation, candidate configuration/interface fit, and the explicit MDNS-10 go/no-go decision. Preserve older evidence as historical, do not restart fallback comparison, do not spend more exhausted spike budget, and do not authorise responder implementation until that decision is recorded. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:49-65]
 
 ## Architectural Responsibility Map
 
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |---|---|---|---|
-| Candidate harness and evidence ledger | Test/research tooling | Release CI | Produces the go/no-go evidence without changing production behaviour. |
+| Candidate harness and evidence ledger | Test/research tooling | Release CI | Existing scripts and focused tests produce the remaining go/no-go evidence without changing production behaviour. |
 | mDNS socket and reply lifecycle | Core backend | OS networking | The core server owns endpoints, tasks, startup and shutdown. [VERIFIED: packages/lifx-emulator-core/src/lifx_emulator/server.py:154-190] |
 | Discovery completeness | Sibling client | Core responder | `lifx-async` is the consumer oracle and accumulates records across packets. [VERIFIED: ../lifx-async/src/lifx/network/discovery/mdns/discovery.py:707-844] |
 | Intel macOS packaging | Release CI | PyApp/runtime installer | The release workflow has a distinct Intel macOS target and pins its build inputs. [VERIFIED: .github/workflows/release-binaries.yml:7-9] [VERIFIED: .github/workflows/release-binaries.yml:23-83] |
@@ -65,15 +63,15 @@ The sibling `lifx-async` implementation is a useful acceptance oracle and source
 |---|---|---|
 | MDNS-01 | Opt-in IPv4 multicast reception beside the host daemon | Future hard gate: socket reuse, membership and daemon coexistence; detailed implementation deferred. |
 | MDNS-02 | Correct legacy-unicast replies | Spike gate from RFC 6762 and raw datagram assertions; implementation deferred. |
-| MDNS-03 | One complete reply packet per device | Highest-risk candidate discriminator; inspect each datagram at 0/1/many devices. |
+| MDNS-03 | Complete discovery independent of packet grouping | Continuation evidence passed exact associations across datagrams for 1/1/10/100 fleets; preserve packet grouping as unconstrained. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:37-45] |
 | MDNS-04 | Exact `id`, `p`, `fw`, `tm` TXT metadata | Future record-content gate; implementation deferred. |
 | MDNS-05 | AAAA-only Thread and A-only WiFi | Spike mixed-family compatibility gate; implementation deferred. |
 | MDNS-06 | Explicit usable advertised addresses | Future validation gate; implementation deferred. |
 | MDNS-07 | Direct A/AAAA follow-up queries | Spike responder-capability gate; implementation deferred. |
 | MDNS-08 | Live membership with multiple listeners | Future integration gate; existing manager has single callback slots. [VERIFIED: packages/lifx-emulator-core/src/lifx_emulator/devices/manager.py:140-156] |
-| MDNS-09 | Owned lifecycle and fleet-dependent failure | Future lifecycle gate using existing atomic startup/rollback patterns; implementation deferred. [VERIFIED: packages/lifx-emulator-core/src/lifx_emulator/server.py:869-1064] |
-| MDNS-10 | Evidence-led implementation selection | **Plan now:** execute the bounded spike and record explicit go/no-go or provisional outcome. |
-| MDNS-11 | Focused datagram, multicast and client tests | Spike evidence criterion; durable implementation tests are planned only after go/no-go. |
+| MDNS-09 | Conditional startup failure and owned lifecycle | Recovery evidence supports partial-start cleanup and explicit retry. D-08 handles only errors surfaced by supported zeroconf operations; silent listener loss is outside the guarantee. [VERIFIED: .planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md:9-30] |
+| MDNS-10 | Evidence-led implementation selection | **Plan now:** close the four remaining checks and record an explicit go/no-go; a provisional preference is not a decision. |
+| MDNS-11 | Focused datagram, multicast and client tests | Hosted Ubuntu/macOS and focused tests exist; remaining Windows evidence must be candidate-specific simulation rather than inherited direct-responder evidence. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:37-58] |
 </phase_requirements>
 
 ## Project Constraints (from AGENTS.md)
@@ -89,7 +87,7 @@ The sibling `lifx-async` implementation is a useful acceptance oracle and source
 
 | Candidate/order | Observed version | Role | Planning direction |
 |---|---:|---|---|
-| `python-zeroconf` (1) | 0.151.3, released 2026-08-30 | Public asyncio mDNS/DNS-SD implementation | Test first; prefer only if every hard gate passes through public APIs and a small adapter. [VERIFIED: https://pypi.org/project/zeroconf/] |
+| `python-zeroconf` (1) | 0.151.3 in retained evidence | Preferred provisional public asyncio mDNS/DNS-SD foundation | Close the four remaining gates through public APIs and the existing harness; do not restart candidate order unless the final checks decisively reject it. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:33-60] |
 | sibling `lifx-async` (2) | 7.3.0 | Discovery oracle and possible code/library reuse | Compare direct extension with adaptation only after decisive zeroconf evidence. [VERIFIED: ../lifx-async/pyproject.toml:1-20] |
 | standard library/new responder (3) | Python 3.10–3.14 | Final fallback | Scope the minimum responder only if both earlier candidates fail. [VERIFIED: .planning/phases/03-mdns-responder/03-SPEC.md:151-163] |
 | PyApp release path | project pin 0.26.0 / Python 3.12 | Intel macOS packaging proof | Test the actual pinned workflow; upstream/latest migration is a separate decision. [VERIFIED: .github/workflows/release-binaries.yml:7-9] |
@@ -108,29 +106,31 @@ Packages removed as `SLOP`: none. The heuristic result is recorded as a limitati
 
 ```mermaid
 flowchart LR
-  Q[Raw PTR/A/AAAA query] --> H[Candidate public API or adapter]
-  H --> G{All hard gates pass?}
-  G -->|yes| O[Record version, commands, packets, timing, CPU/RSS and PyApp evidence]
-  G -->|decisive no| N[Next candidate in fixed order]
-  G -->|evidence missing| P[Provisional result; hold responder planning]
-  O --> D[Explicit go/no-go]
-  D -->|go| F[Later plans for MDNS-01–09 and MDNS-11]
+  E[Retained zeroconf continuation and recovery evidence] --> R[Candidate-specific robustness]
+  E --> W[Candidate-specific Windows simulation]
+  E --> C[Configuration and interface fit]
+  R --> D{All remaining checks resolved?}
+  W --> D
+  C --> D
+  D -->|yes| G[Record explicit MDNS-10 go/no-go]
+  D -->|no| P[Remain provisional; hold responder planning]
+  G -->|go| F[Later plans for MDNS-01–09 and MDNS-11]
 ```
 
 Use a criterion-by-criterion evidence ledger. Each result must say demonstrated, failed, simulated or untested; include exact versions, elapsed active time, CI queue time, commands, packet captures/assertions and source/document line links. A score cannot override a failed hard gate.
 
-Stop a candidate as soon as decisive evidence requires private internals, monkey-patching, a maintained fork, violates per-device packet boundaries, or cannot meet a locked platform/package gate. Source inspection may identify the next live check, but it cannot by itself select the implementation.
+Do not add private listener inspection, monkey-patching, vendoring, a maintained fork, an upstream callback dependency or a responsiveness watchdog to close D-08. Supported-operation errors are the runtime boundary; `running` is lifecycle state, not a fresh network-health assertion. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTEXT.md:56-68]
 
-## MDNS-10 Spike Contract
+## MDNS-10 Spike Closeout Contract
 
-1. **Start the four-hour active-work clock and ledger.** Record environment, exact versions and exclusions. CI queue time is separate. Do not edit production responder code.
-2. **Evaluate current zeroconf first.** Through public APIs only, inject legacy-unicast PTR and direct A/AAAA queries. Assert destination, query ID, questions, cache-flush bits, TTL, exact record sets and exactly one complete datagram per eligible device. Run 1, 10 and 100-device discovery through `lifx-async`, recording complete-fleet time, CPU, peak RSS, datagram count/size and thread inventory.
-3. **Prove system boundaries.** Exercise explicit IPv4 interface selection beside the active host daemon, repeated open/close, Ubuntu/macOS actual multicast, identified Windows socket simulation, and Intel macOS PyApp build plus first-run dependency installation using the release workflow. Missing required evidence means provisional, not pass.
-4. **Only after decisive zeroconf failure, evaluate lifx-async reuse.** Compare the smallest direct-library extension with the smallest adapted-code implementation for coupling, maintenance, supported Python/platforms and the same protocol gates. The source currently offers no responder encoder, so record the required delta explicitly.
-5. **Only after both fail, assess a new responder.** Bound it to the minimum listener, parser/dispatcher and response encoder needed by the locked criteria; do not construct production code during the spike.
-6. **At four active hours, stop and decide.** Record go/no-go or provisional plus missing evidence. Request up to four further active hours only with D-15 evidence. VM definition, provisioning and Mac-to-guest discovery/state/control may occur only inside that justified extension after required evidence.
+The initial four-hour budget and both bounded follow-ups are exhausted. The historical no-harness restriction was explicitly lifted for work that moves the decision forward; this permits focused edits to the existing harness, but does not authorise production integration or a fresh generic candidate spike. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:3-19] [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:63-65]
 
-For the size-one benchmark, run one WiFi and one Thread case separately; use deterministic mixed fleets for 10 and 100. This preserves both address-family checks without treating benchmark sizes as support limits.
+| Remaining check | Existing entry point | Required evidence | Completion effect |
+|---|---|---|---|
+| Zeroconf-specific robustness | `scripts/spike_mdns_candidates.py` existing `candidate-worker --expanded` path, with focused assertions in `scripts/mdns_spike_tests/test_candidates.py` | Malformed/truncated input and bounded-load behaviour for zeroconf itself; do not inherit the old direct responder's `_exercise_adversarial_bounds` result. [VERIFIED: scripts/spike_mdns_candidates.py:880-935] [VERIFIED: scripts/spike_mdns_candidates.py:1210-1282] | Resolve the retained “malformed/flood behaviour” gap. |
+| Zeroconf-specific Windows simulation | `scripts/mdns_spike_tests/test_candidates.py`, retaining its explicit simulation labelling and evidence validation | Exercise the candidate/adapter's Windows-facing public configuration seam; do not reuse the direct responder's generic `_socket_option_plan` as zeroconf proof. [VERIFIED: scripts/spike_mdns_candidates.py:500-542] [VERIFIED: scripts/mdns_spike_tests/test_candidates.py:337-360] | Satisfy the simulation-only Windows part of AC-13 without claiming a real Windows run. |
+| Configuration/interface fit | `scripts/spike_mdns_candidates.py` existing expanded worker and `scripts/mdns_spike_tests/test_candidates.py` | Prove the candidate can be driven by explicit interfaces and can materialise the locked address/family/empty-fleet rules. Production factory/server integration remains later work. [VERIFIED: scripts/spike_mdns_candidates.py:673-826] [VERIFIED: scripts/mdns_spike_tests/test_candidates.py:504-550] | Resolve the candidate-fit gate without implementing MDNS-01–09. |
+| Explicit MDNS-10 decision | Existing evidence validator/renderer commands in `scripts/spike_mdns_candidates.py`; preserve `03-01-EVIDENCE.*` as historical and record the reconciled decision in a current closeout artefact | Criterion-by-criterion pass/fail/untested disposition, exact candidate/version, timebox history, accepted continuation-question exception, amended D-08 boundary and no implementation authorisation by implication. [VERIFIED: scripts/spike_mdns_candidates.py:2924-2955] | Only an explicit go permits detailed responder planning. |
 
 ## Don't Hand-Roll
 
@@ -140,14 +140,15 @@ For the size-one benchmark, run one WiFi and one Thread case separately; use det
 | Client acceptance | A substitute discovery parser | Sibling `lifx-async` as the end-to-end oracle. |
 | Async task ownership | A second task registry | Existing `BackgroundTaskTracker` pattern after go/no-go. [VERIFIED: packages/lifx-emulator-core/src/lifx_emulator/background_tasks.py:13-173] |
 | Cross-machine environment | An initial-timebox VM | D-17 extension-only VM after resources/network are defined. |
+| Silent listener-health detection | Fork, vendored patch, private listener access, watchdog or upstream callback work | Amended D-08's supported-operation error boundary and honest status semantics. |
 
 ## Common Pitfalls
 
-- **Selecting from API shape:** `AsyncZeroconf` and `ServiceInfo` existing does not prove per-device packet boundaries, daemon coexistence, or Intel PyApp operation. Require live evidence. [VERIFIED: https://python-zeroconf.readthedocs.io/en/latest/api.html]
-- **Treating absent wheels as incompatibility:** PyPI lists no macOS x86_64 wheel for 0.151.3, but absence is not proof of failure; run the actual PyApp first-run path. [VERIFIED: https://pypi.org/project/zeroconf/]
-- **Aggregating evidence:** A client discovering all devices does not prove one complete datagram per device; retain packet-level assertions.
-- **Spending the extension early:** source curiosity, available time or an optional VM does not satisfy D-15.
-- **Planning ahead:** candidate findings are evaluation criteria only; D-12 forbids detailed MDNS-01–09/11 implementation plans before go/no-go.
+- **Reopening packet-boundary rejection:** aggregation and records spread across packets are permitted. Judge complete, correctly associated fleet discovery instead. [VERIFIED: .planning/phases/03-mdns-responder/03-PACKET-GROUPING-AMENDMENT.md:6-19]
+- **Treating `running` as a health probe:** it means startup succeeded and no handled failure was observed; it does not guarantee current socket or network responsiveness. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTEXT.md:56-68]
+- **Transferring fallback evidence:** the direct prototype's malformed/flood and Windows results are historical evidence for that prototype, not zeroconf evidence. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:49-58]
+- **Restarting generic exploration:** current work closes named zeroconf gaps. It does not restart fallback comparison, VM work or cross-machine experiments.
+- **Planning ahead:** a provisional preference is not the MDNS-10 decision; detailed MDNS-01–09/11 implementation planning remains held.
 
 ## Code Example
 
@@ -170,8 +171,8 @@ await azc.async_close()
 | `uv` | 0.12.7 | Use for isolated spike execution; do not install during planning. |
 | Local Python | 3.14.7 on arm64 macOS | Useful local case, but cannot prove Intel macOS. |
 | Rust/Cargo | 1.97 | PyApp build tooling is present locally; Intel proof still belongs on the Intel runner. |
-| Intel macOS runner | Defined as `macos-15-intel` in release workflow. [VERIFIED: .github/workflows/release-binaries.yml:23-43] | Queue/build/first-run evidence is required; queue time is outside active-work time. |
-| Windows | Release build target exists, but MDNS-11 calls for identified socket simulation. [VERIFIED: .github/workflows/release-binaries.yml:23-43] | Do not report a build target as socket-behaviour evidence. |
+| Intel macOS runner | Retained PyApp artefacts contain zeroconf 0.151.3, first-run success and public async API import. [VERIFIED: .planning/phases/03-mdns-responder/03-CONTINUATION.md:45-47] | Gate demonstrated for the provisional candidate. |
+| Windows | Candidate-specific simulation remains open. | Do not report a build target or direct-responder socket plan as zeroconf evidence. |
 | Proxmox guest | User reports none usable (D-17). | No VM work in the initial four hours. |
 
 ## Security Domain
@@ -186,12 +187,12 @@ await azc.async_close()
 
 Treat malformed datagrams and packet floods as availability threats, multicast replies as possible amplification, and interface/address choice as exposure boundaries. The spike should verify bounded parsing/work, legacy replies only to the query source, explicit interface selection, TTL at most 10 and absence of secrets in TXT. RFC 6762 requires legacy-unicast ID/question echo, clear cache-flush bits and TTL no greater than 10 seconds. [VERIFIED: https://datatracker.ietf.org/doc/html/rfc6762#section-6.7]
 
-## Open Questions for Spike Execution
+## Open Questions for Spike Closeout
 
-1. Can zeroconf public APIs emit exactly one complete reply packet per device without private hooks?
-2. Does explicit-interface operation coexist with the host daemon on every required platform while keeping the packet path thread-free?
-3. Does the actual Intel macOS PyApp build and first run install and load the selected dependency successfully?
-4. If zeroconf fails, is a direct lifx-async extension or adapted source smaller and safer under the same gates?
+1. Does zeroconf itself remain bounded and safe under the required malformed, truncated and load cases?
+2. Does the candidate/adapter configuration seam have identified Windows simulation evidence?
+3. Does the candidate fit every locked explicit-interface, address-family and empty-fleet rule without production integration?
+4. After those checks, is the explicit MDNS-10 decision go or no-go?
 
 These are execution checks, not blockers to planning MDNS-10 and not permission to plan the remaining requirements.
 
@@ -199,7 +200,7 @@ These are execution checks, not blockers to planning MDNS-10 and not permission 
 
 | # | Claim | Risk if wrong |
 |---|---|---|
-| A1 | Running separate size-one WiFi and Thread cases is the clearest interpretation of D-13's one-device mixed benchmark. | Planner may choose a different documented composition; requirement coverage is unchanged. |
+| — | None. Current closeout guidance is derived from retained repository evidence and amended locked decisions. | — |
 
 ## Sources
 
@@ -213,7 +214,7 @@ These are execution checks, not blockers to planning MDNS-10 and not permission 
 
 ## Metadata
 
-**Confidence breakdown:** Standard stack MEDIUM until live compatibility evidence; repository architecture HIGH from opened source; pitfalls HIGH where grounded in source/RFC and MEDIUM for platform outcomes pending execution.
+**Confidence breakdown:** Standard stack HIGH as a provisional candidate because retained evidence identifies the exact candidate and version; architecture HIGH from opened source and harness entry points; remaining-gate scope HIGH from the amended context and continuation limits. Final suitability remains undecided until MDNS-10 closeout.
 
-**Research date:** 2026-09-22  
-**Valid until:** 2026-10-22; re-check candidate and PyApp releases when executing the spike.
+**Research date:** 2026-09-23
+**Valid until:** the MDNS-10 decision or a candidate/version change, whichever comes first.
