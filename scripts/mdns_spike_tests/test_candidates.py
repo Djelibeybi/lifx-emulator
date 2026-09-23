@@ -843,3 +843,43 @@ def test_closeout_decision_binds_receipt_bytes_not_just_case_labels():
     assert module["_closeout_decision_digest"](ledger) == before
     ledger["platforms"]["local"]["sha256"] = "b" * 64
     assert module["_closeout_decision_digest"](ledger) != before
+
+
+def _closeout_operation_fixture():
+    return {
+        "operation": "update",
+        "family": "wifi",
+        "failed": True,
+        "first_error": "update: OSError: injected update_service operation failure",
+        "thread_admission_rejected": True,
+        "original_owner_closed": True,
+        "retry_succeeded": True,
+        "wifi_same_endpoint": True,
+        "wifi_control_replies": 10,
+        "wifi_control_errors": [],
+        "wifi_values_match": True,
+        "wifi_replies_before_fault": 2,
+        "wifi_replies_after_failure": 5,
+        "wifi_replies_after_retry": 10,
+        "wifi_power_after_failure": 65535,
+        "wifi_power_after_retry": 65535,
+        "all_owners_closed_after_cleanup": True,
+    }
+
+
+@pytest.mark.parametrize(
+    "fault", ["wrong-operation", "no-after-failure", "no-after-retry", "cleanup"]
+)
+def test_closeout_operation_requires_post_failure_progress_and_cleanup(fault):
+    check = run_path(str(HARNESS))["_closeout_operation_passed"]
+    row = _closeout_operation_fixture()
+    assert check(row)
+    if fault == "wrong-operation":
+        row["first_error"] = "unregister: OSError: wrong operation"
+    elif fault == "no-after-failure":
+        row["wifi_replies_after_failure"] = row["wifi_replies_before_fault"]
+    elif fault == "no-after-retry":
+        row["wifi_replies_after_retry"] = row["wifi_replies_after_failure"]
+    else:
+        row["all_owners_closed_after_cleanup"] = False
+    assert not check(row)
