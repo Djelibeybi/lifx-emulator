@@ -5,9 +5,23 @@
 
 **Transcription:** Spelling normalised in quoted user responses; meaning preserved.
 
-**Date:** 2026-09-22
+**Date:** 2026-09-22; runtime failure scope amended 2026-09-23
 **Phase:** 03-mdns-responder
-**Areas discussed:** Library configuration; failure visibility and recovery; spike execution
+**Areas discussed:** Library configuration; failure visibility and recovery; spike execution; supported runtime failure detection
+
+## Runtime failure scope amendment — 2026-09-23
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Upstream failure callback | Preserve direct listener-loss notification by obtaining an upstream public API and release; alternatively maintain a patch/fork/vendor copy. | |
+| Responsiveness watchdog | Treat repeated unanswered discovery probes as failure; requires false-positive and timing policy. | |
+| Narrow the guarantee | Handle failures surfaced by supported operations without guaranteeing silent listener-loss detection. | Yes |
+
+**Discussion:** The user asked what an upstream callback would look like and pointed out that it depends on upstream acceptance or vendoring. The initial callback recommendation understated that dependency. The revised recommendation was to narrow D-08 for the emulator's test-oriented use case.
+
+**User's choice:** “I think that's better for this use-case which is non-production and test-oriented, so well suited for others to report things like this”. This accepts the narrower guarantee. Startup failure, observable runtime errors, owned cleanup and explicit retry remain covered; silent listener loss is an accepted detection limitation. No watchdog, private inspection or library fork/patch is selected.
+
+**Recorded consequence:** D-08 retains fleet-dependent handling of observed failures. `running` is lifecycle status rather than a fresh network-health assertion. The detection decision is resolved; remaining spike evidence and the explicit MDNS-10 go/no-go are not waived.
 
 ## Library configuration
 

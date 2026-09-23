@@ -5,7 +5,9 @@
 **Accepted compatibility exception (2026-09-23):** Zeroconf continuation replies may omit the question section for the tested `lifx-async` client. This does not block candidate selection and requires no client/library patch; it is not a claim of full RFC conformance. All other protocol and evidence requirements remain in force. See [03-ZEROCONF-REEVALUATION.md](03-ZEROCONF-REEVALUATION.md).
 
 **Gathered:** 2026-09-22
-**Status:** Ready for spike planning; detailed responder planning awaits go/no-go
+**Status:** Runtime failure scope revised on 2026-09-23; remaining spike evidence and go/no-go still required
+
+**Accepted runtime failure scope (2026-09-23):** D-08 covers failures surfaced by supported zeroconf operations. Silent listener loss and network unresponsiveness are not guaranteed to be detected. This test-oriented, non-production emulator does not require an upstream callback, vendored or patched zeroconf, private listener access, or a responsiveness watchdog for this purpose. Users can report such limitations when encountered. Startup failure, observable runtime errors, owned cleanup and explicit retry remain covered.
 
 <domain>
 ## Phase Boundary
@@ -56,7 +58,7 @@ Add opt-in core mDNS discovery for emulated WiFi and Thread devices. Plan the im
 - **D-05:** Expose read-only `mdns_status` with `disabled`, `stopped`, `running` and `failed` states, plus `mdns_error`; log failures. No status callback was selected.
 - **D-06:** Provide explicit `await server.retry_mdns()` to recover failed mDNS on a functioning WiFi-only server without interrupting LIFX traffic. Automatic retries were not selected.
 - **D-07:** When enabled mDNS has failed, reject Thread device additions before changing fleet membership, explaining that mDNS must recover first. Intentionally disabled mDNS remains supported.
-- **D-08:** Apply the fleet-dependent failure policy to runtime failure too: WiFi-only continues serving LIFX with failed mDNS status; Thread-only and mixed fleets shut down cleanly and retain the failure details.
+- **D-08 (amended 2026-09-23):** Apply the fleet-dependent failure policy to runtime failures surfaced by supported zeroconf operations: WiFi-only continues serving LIFX with failed mDNS status; Thread-only and mixed fleets shut down cleanly and retain the failure details. Do not promise detection of silent listener loss or network unresponsiveness. `running` means lifecycle startup succeeded and no handled failure has been observed, not independently verified network health. No upstream failure callback, fork, vendoring, monkey-patching, private listener inspection or responsiveness watchdog is required for this scope. Retain startup failure handling, observable runtime error handling, owned cleanup and explicit retry. The user accepts the narrower guarantee for this non-production, test-oriented use case and expects users to report encountered limitations.
 
 ### Spike candidates and evidence
 
@@ -110,6 +112,10 @@ No explicit discretionary decisions were delegated. Routine internal implementat
 
 ### Research starting points
 
+- `.planning/phases/03-mdns-responder/03-LISTENER-HEALTH-INVESTIGATION.md` — measured limits of startup checks; its upstream-callback recommendation is superseded by the amended D-08 above, while the measured observations remain valid.
+- `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md` — partial-startup cleanup and explicit retry evidence; injection does not establish automatic failure detection.
+- `.planning/phases/03-mdns-responder/03-CONTINUATION.md` — candidate-specific platform, membership and packaging evidence, plus outstanding robustness/configuration checks. Silent listener-loss detection is no longer a required gate under amended D-08; other unproved gates remain open.
+
 - https://python-zeroconf.readthedocs.io/en/latest/api.html — public asyncio API; verify the current release during the spike.
 - https://ofek.dev/pyapp/latest/config/distribution/ — packaging distribution configuration.
 - https://ofek.dev/pyapp/latest/build/ — PyApp build guidance.
@@ -136,7 +142,7 @@ Server start/stop and retry, factory/device validation, pre-registration members
 <specifics>
 ## Specific Ideas
 
-The initial spike must remain focused on the required implementation-selection evidence. The separate-machine experiment requires a new development VM and is explicitly reserved for a justified extension.
+The initial spike must remain focused on the required implementation-selection evidence. The separate-machine experiment requires a new development VM and is explicitly reserved for a justified extension. The amended D-08 resolves the detection-policy decision only; it neither marks MDNS-10 complete nor authorises production integration. Remaining candidate-specific robustness, Windows simulation and configuration/interface evidence still need reconciliation before go/no-go.
 </specifics>
 
 <deferred>
