@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
 status: provisional
-stopped_at: Zeroconf discovers 100 devices; question omission accepted; remaining platform/lifecycle/packaging evidence unresolved
-last_updated: "2026-09-22T23:50:35Z"
+stopped_at: Zeroconf continuation demonstrates fleet discovery, membership restoration and Intel packaging; platform and recovery gates remain
+last_updated: "2026-09-23T00:52:05.259990Z"
 last_activity: 2026-09-23
-last_activity_desc: Direct zeroconf run discovered all 100 devices and passed metadata/control checks; user accepted continuation-question omission; remaining gates prevent full go
-state_head: 6b4aa09c9b1ffbbbc612e581d2b9602152d8bef7
+last_activity_desc: Harness restriction lifted; targeted zeroconf continuation demonstrates local and Ubuntu discovery/restoration plus Intel packaging; no full go
+state_head: b8a4607bc00de09ad014a4e9d03b41c9015d7aa9
 progress:
   total_phases: 6
   completed_phases: 0
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 Phase: 03 (mDNS Responder) — PROVISIONAL
 Plan: 1 of 1
-Status: Direct local zeroconf discovery passed for all 100 devices. Question omission is accepted; remaining platform/lifecycle/packaging gates are unresolved; MDNS-10 remains incomplete
-Last activity: 2026-09-23 — Direct zeroconf re-evaluation discovered all 100 devices with correct DNS-SD records and representative WiFi/Thread controls. The user accepted continuation-question omission; remaining gates are unproved. No full go; no harness changes.
+Status: Zeroconf remains preferred and provisional. Local macOS and hosted Ubuntu discovery/restoration plus Intel packaging have evidence; hosted macOS loopback multicast also passed; full recovery and robustness gates remain unresolved. MDNS-10 remains incomplete.
+Last activity: 2026-09-23 — User lifted the harness restriction. Corrected record aggregation checks and public-API restoration probes passed locally and on Ubuntu. Intel PyApp imports pinned zeroconf. Hosted virtual-interface sends fail with EHOSTUNREACH, but the permitted loopback-multicast run passed with the pristine client. No production integration or full go.
 
-Follow-up: The user authorised up to 60 additional minutes with no harness work. The source investigation and unsuccessful IP_PKTINFO socket experiment are recorded in `.planning/phases/03-mdns-responder/03-01-EXTENSION.md`. Work stopped early; no implementation changed and the decision remains provisional.
+Follow-up: The earlier 60-minute allowance used 4 minutes 33 seconds. The user subsequently lifted the harness restriction where it accelerates progress. The remaining allowance funds the targeted continuation in `.planning/phases/03-mdns-responder/03-CONTINUATION.md`; the original direct-prototype investigation remains historical evidence.
 
 Progress: [░░░░░░░░░░] 0% (2/6 phases; 8/9 existing plans complete)
 
@@ -89,7 +89,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 3]: mDNS implementation choice is unresolved until the MDNS-10 spike records a go/no-go; the remaining ten mDNS requirements cannot be planned in detail before it
+- [Phase 3]: Zeroconf is preferred, but MDNS-10 remains provisional pending platform and recovery evidence and the final decision; production integration is not authorised
 - [Phase 3]: Port 5353 is owned by the host mDNS daemon on macOS and Windows; legacy-unicast replies are the load-bearing path for `lifx-async`
 - [Phase 6]: No Windows CI leg — Windows socket-option guards must be covered by simulation tests instead
 - [Maintenance]: The existing Starlette test-client deprecation remains deferred in Phase 02 deferred-items.md.
@@ -104,8 +104,12 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-22T23:50:35Z
-Stopped at: Zeroconf 100-device discovery passed; question omission accepted; remaining gates unresolved
-Resume file: .planning/phases/03-mdns-responder/03-ZEROCONF-REEVALUATION.md
+Last session: 2026-09-23T00:52:05.259990Z
+Stopped at: Targeted zeroconf continuation; local/Ubuntu discovery and membership restoration plus Intel packaging passed; remaining gates unresolved
+Resume file: .planning/phases/03-mdns-responder/03-CONTINUATION.md
 
-Latest direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
+Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
+
+Latest continuation: `03-CONTINUATION.md` and `03-continuation-evidence/manifest.json` retain candidate-specific observations and hashes. The old direct-prototype receipts do not establish current zeroconf compliance. Listener failure/retry, partial startup, production status integration and zeroconf-specific robustness checks remain unproved.
+
+Final tested input head: `b8a4607`; CI run `35803195241` passed all jobs. The continuation is closed within its time allowance. No full go or production implementation is recorded.
