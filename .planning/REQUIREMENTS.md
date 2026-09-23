@@ -30,17 +30,17 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### mDNS Responder
 
-- [ ] **MDNS-01**: An explicitly enabled core responder (mDNS is opt-in for library users) joins `224.0.0.251` on UDP 5353 with `SO_REUSEADDR` (and `SO_REUSEPORT` where available) and receives PTR queries for `_lifx._udp.local` while the host's own mDNS daemon (mDNSResponder, Bonjour, avahi) is running
-- [ ] **MDNS-02**: A query from a source port other than 5353 receives a legacy-unicast reply sent to the query's source address and port, with the query ID echoed and the cache-flush bit clear, so `lifx-async` (which never joins the multicast group) receives it
-- [ ] **MDNS-03**: Each advertised device is discoverable from correctly associated DNS-SD records, including a PTR record `_lifx._udp.local` → `<serial>._lifx._udp.local`, an SRV record (priority 0, weight 0, the emulator's UDP port, a per-device `.local` hostname), a TXT record and one address record; replies may aggregate devices or span multiple packets, provided discovery returns every eligible device without loss or a fleet-size limit imposed by packet capacity
-- [ ] **MDNS-04**: The TXT record carries exactly `id=<12-hex lowercase serial>`, `p=<product id>`, `fw=<major.minor>` and `tm=1` (WiFi) or `tm=2` (Thread), with identical content across repeated replies
-- [ ] **MDNS-05**: A Thread device is advertised with an AAAA record only and a WiFi device with an A record only
-- [ ] **MDNS-06**: Each Thread device can be given its own advertised IPv6 address (ULA or GUA); when none is set the responder advertises a concrete IPv6 bind address. Wildcard binds require an explicit advertised address; loopback is allowed for local tests, and all link-local advertised addresses (scoped or unscoped) are rejected with a clear error
-- [ ] **MDNS-07**: The responder answers direct A and AAAA queries for any hostname it advertises, so a client's follow-up address lookup succeeds
-- [ ] **MDNS-08**: The advertised record set follows runtime device additions and removals via a multi-listener `DeviceManager` event registry that does not displace the existing WebSocket event bridge
-- [ ] **MDNS-09**: The responder starts and stops with the server, tracks its own asyncio tasks, and leaks no sockets across pytest-asyncio function-scoped loops. Enabled mDNS startup failure is fatal only when Thread devices are configured; a WiFi-only server continues serving LIFX traffic with the mDNS failure observable
-- [ ] **MDNS-10**: A time-boxed spike evaluates current python-zeroconf, then extending/adapting existing `lifx-async` mDNS code, then a new responder, against `lifx-async` `discover_mdns()` for legacy-unicast replies, complete-fleet discovery independent of packet grouping, multi-instance TXT and AAAA-only records, port 5353 coexistence and macOS x86_64 PyApp packaging; it records a go/no-go decision before detailed responder planning or construction, following `03-CONTEXT.md` D-09–D-18
-- [ ] **MDNS-11**: The responder is unit-tested by injecting datagrams directly into its protocol and integration-tested with loopback multicast on the CI runners
+- [x] **MDNS-01**: An explicitly enabled core responder (mDNS is opt-in for library users) joins `224.0.0.251` on UDP 5353 with `SO_REUSEADDR` (and `SO_REUSEPORT` where available) and receives PTR queries for `_lifx._udp.local` while the host's own mDNS daemon (mDNSResponder, Bonjour, avahi) is running
+- [x] **MDNS-02**: A query from a source port other than 5353 receives a legacy-unicast reply sent to the query's source address and port, with the query ID echoed and the cache-flush bit clear, so `lifx-async` (which never joins the multicast group) receives it
+- [x] **MDNS-03**: Each advertised device is discoverable from correctly associated DNS-SD records, including a PTR record `_lifx._udp.local` → `<serial>._lifx._udp.local`, an SRV record (priority 0, weight 0, the emulator's UDP port, a per-device `.local` hostname), a TXT record and one address record; replies may aggregate devices or span multiple packets, provided discovery returns every eligible device without loss or a fleet-size limit imposed by packet capacity
+- [x] **MDNS-04**: The TXT record carries exactly `id=<12-hex lowercase serial>`, `p=<product id>`, `fw=<major.minor>` and `tm=1` (WiFi) or `tm=2` (Thread), with identical content across repeated replies
+- [x] **MDNS-05**: A Thread device is advertised with an AAAA record only and a WiFi device with an A record only
+- [x] **MDNS-06**: Each Thread device can be given its own advertised IPv6 address (ULA or GUA); when none is set the responder advertises a concrete IPv6 bind address. Wildcard binds require an explicit advertised address; loopback is allowed for local tests, and all link-local advertised addresses (scoped or unscoped) are rejected with a clear error
+- [x] **MDNS-07**: The responder answers direct A and AAAA queries for any hostname it advertises, so a client's follow-up address lookup succeeds
+- [x] **MDNS-08**: The advertised record set follows runtime device additions and removals via a multi-listener `DeviceManager` event registry that does not displace the existing WebSocket event bridge
+- [x] **MDNS-09**: The responder starts and stops with the server, tracks its own asyncio tasks, and leaks no sockets across pytest-asyncio function-scoped loops. Enabled mDNS startup failure is fatal only when Thread devices are configured; a WiFi-only server continues serving LIFX traffic with the mDNS failure observable
+- [x] **MDNS-10**: A time-boxed spike evaluates current python-zeroconf, then extending/adapting existing `lifx-async` mDNS code, then a new responder, against `lifx-async` `discover_mdns()` for legacy-unicast replies, complete-fleet discovery independent of packet grouping, multi-instance TXT and AAAA-only records, port 5353 coexistence and macOS x86_64 PyApp packaging; it records a go/no-go decision before detailed responder planning or construction, following `03-CONTEXT.md` D-09–D-18
+- [x] **MDNS-11**: The responder is unit-tested by injecting datagrams directly into its protocol and integration-tested with loopback multicast on the CI runners
 
 ### Configuration and Management
 
@@ -127,17 +127,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NET-03 | Phase 2 | Complete |
 | NET-04 | Phase 2 | Complete |
 | NET-05 | Phase 2 | Complete |
-| MDNS-01 | Phase 3 | Pending |
-| MDNS-02 | Phase 3 | Pending |
-| MDNS-03 | Phase 3 | Pending |
-| MDNS-04 | Phase 3 | Pending |
-| MDNS-05 | Phase 3 | Pending |
-| MDNS-06 | Phase 3 | Pending |
-| MDNS-07 | Phase 3 | Pending |
-| MDNS-08 | Phase 3 | Pending |
-| MDNS-09 | Phase 3 | Pending |
+| MDNS-01 | Phase 3 | Complete |
+| MDNS-02 | Phase 3 | Complete |
+| MDNS-03 | Phase 3 | Complete |
+| MDNS-04 | Phase 3 | Complete |
+| MDNS-05 | Phase 3 | Complete |
+| MDNS-06 | Phase 3 | Complete |
+| MDNS-07 | Phase 3 | Complete |
+| MDNS-08 | Phase 3 | Complete |
+| MDNS-09 | Phase 3 | Complete |
 | MDNS-10 | Phase 3 | Complete (03-02; approved zeroconf go) |
-| MDNS-11 | Phase 3 | Pending |
+| MDNS-11 | Phase 3 | Complete |
 | CFG-01 | Phase 4 | Pending |
 | CFG-02 | Phase 4 | Pending |
 | CFG-03 | Phase 4 | Pending |

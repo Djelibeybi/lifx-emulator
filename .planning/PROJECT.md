@@ -32,13 +32,14 @@ A LAN client library can discover and control an emulated Thread device exactly 
 - ✓ A Thread device processes a packet only when it arrives on the emulator's IPv6 socket as exact untagged unicast to its serial; IPv4, tagged, broadcast and mismatched traffic is dropped before side effects — Phase 2
 - ✓ The emulator natively binds separate same-port IPv4 and `AF_INET6`/`IPV6_V6ONLY=1` UDP sockets, defaults IPv6 to `::1`, exposes committed endpoints and preserves existing IPv4 behaviour — Phase 2
 
+- ✓ The emulator runs an mDNS/DNS-SD responder for `_lifx._udp.local` that answers PTR queries received on the IPv4 multicast group 224.0.0.251:5353 (the group `lifx-async` queries) with PTR, SRV, TXT and address records — Phase 3 (core responder explicitly opt-in)
+- ✓ mDNS TXT records carry `id=<serial>`, `p=<product id>`, `fw=<major.minor>` and `tm=1` (WiFi) or `tm=2` (Thread); the SRV record points at the emulator's UDP port — Phase 3 (core responder explicitly opt-in)
+- ✓ Thread devices are advertised with an AAAA record only (the IPv6 bind or a configured advertise address); WiFi devices with an A record — Phase 3 (core responder explicitly opt-in)
+- ✓ mDNS advertisement is on for all devices by default, with an option to disable it for WiFi devices (Thread devices are always advertised, since mDNS is their only discovery path) — Phase 3 (core responder explicitly opt-in)
+
 ### Active
 
 - [ ] `connectivity` is settable per device via the CLI flag, YAML config `DeviceDefinition` and the device-create API (core factories and persistence done in Phase 1)
-- [ ] The emulator runs an mDNS/DNS-SD responder for `_lifx._udp.local` that answers PTR queries received on the IPv4 multicast group 224.0.0.251:5353 (the group `lifx-async` queries) with PTR, SRV, TXT and address records
-- [ ] mDNS TXT records carry `id=<serial>`, `p=<product id>`, `fw=<major.minor>` and `tm=1` (WiFi) or `tm=2` (Thread); the SRV record points at the emulator's UDP port
-- [ ] Thread devices are advertised with an AAAA record only (the IPv6 bind or a configured advertise address); WiFi devices with an A record
-- [ ] mDNS advertisement is on for all devices by default, with an option to disable it for WiFi devices (Thread devices are always advertised, since mDNS is their only discovery path)
 - [ ] The device info API and `export-config` expose `connectivity`; the dashboard shows the field read-only at most (no new UI work)
 - [ ] `lifx-async` can, against the emulator alone: `discover_mdns()` an emulated Thread device with `Device.connectivity == Connectivity.THREAD`, connect to it over IPv6, read and set colour and power, and observe `thread_connection` true on every reply
 
@@ -68,7 +69,7 @@ A LAN client library can discover and control an emulated Thread device exactly 
 
 **Hardware facts (from lifx-async Phase 14 evidence).** Thread bulbs have no IPv4 address and do not answer IPv4 broadcast; they are advertised by the border router over mDNS with ULA/GUA AAAA records (unscoped link-local is rejected by the client). A radio is either WiFi or Thread and cannot change without a firmware crossgrade.
 
-**Emulator gaps today.** `EmulatedLifxServer.start()` (`server.py:515`) binds one IPv4 socket via `create_datagram_endpoint(local_addr=...)`; there is no IPv6 path, no mDNS, no connectivity field on `DeviceState`, and `LifxHeader.pack()` (`protocol/header.py:81`) only emits bits 0–1 of the flags byte. `header.py` is hand-written (not generated), so the bit can be added there. `DeviceState` has a `NetworkState` group (`wifi_signal`) that is the natural home for `connectivity`. `advertised_services` (PR #156) is the closest precedent for a per-device network setting that spans factories, config, API and persistence.
+**Current remaining gaps.** Phases 1–3 provide immutable connectivity, Thread reply identity, same-port IPv4/IPv6 transport and opt-in production mDNS discovery. Phase 4 must expose connectivity and advertisement configuration through CLI/YAML/export; Phase 5 adds management API support; Phase 6 verifies the broader client acceptance suites.
 
 **Platform pitfalls known up front.** macOS `mDNSResponder` and Windows both own UDP 5353, and lifx-async's probe documents an "mDNSResponder unicast-stealing bug" when a client binds 5353; a responder that must receive multicast PTR queries needs `SO_REUSEADDR`/`SO_REUSEPORT` and `IP_ADD_MEMBERSHIP` handled per platform. `IPV6_V6ONLY` must be set before bind (macOS raises `EINVAL` afterwards). Windows defaults `V6ONLY=1`, Linux and macOS default to dual-stack, which is why a separate v6 socket was chosen over `::` dual-stack.
 
@@ -96,9 +97,9 @@ A LAN client library can discover and control an emulated Thread device exactly 
 | GetWifiInfo on Thread returns signal 0.0, not StateUnhandled | Real behaviour undocumented; zero signal is inert for consumers that skip RSSI on Thread (hass integration) | ✓ Phase 1 — `wifi_signal` derived at build time from effective connectivity |
 | Separate `AF_INET6` `V6ONLY` socket, default `::1`, rather than `::` dual-stack | Cross-platform: Windows defaults V6ONLY on, macOS/Linux off; a second socket behaves identically everywhere and keeps IPv4 defaults untouched | ✓ Phase 2 — atomic same-port pair with committed endpoint publication |
 | Bound packet and WebSocket bridge admission under overload | Retain every admitted unit through completion without allowing a remote flood or slow subscriber to grow work without limit | ✓ Phase 2 — excess work is rejected before allocation and counted in public overload metrics |
-| Select zeroconf 0.151.3 through public APIs for the responder | Human-approved MDNS-10 closeout; running is lifecycle status and silent listener loss is accepted | ✓ Selection only — implementation pending |
-| mDNS responder answers IPv4 multicast 224.0.0.251 only | That is the only group lifx-async queries; `ff02::fb` deferred | — Pending |
-| All devices advertised via mDNS, WiFi opt-out | Real WiFi bulbs advertise `tm=1`; Thread bulbs have no other discovery path | — Pending |
+| Select zeroconf 0.151.3 through public APIs for the responder | Human-approved MDNS-10 closeout; running is lifecycle status and silent listener loss is accepted | ✓ Phase 3 — implemented; hosted production integration and full matrix passed |
+| mDNS responder answers IPv4 multicast 224.0.0.251 only | That is the only group lifx-async queries; `ff02::fb` deferred | ✓ Phase 3 |
+| All devices advertised when core mDNS is enabled, WiFi opt-out | Real WiFi bulbs advertise `tm=1`; Thread bulbs have no other discovery path | ✓ Phase 3 core; CLI defaults remain Phase 4 |
 | Backend surfaces only (core, CLI, config, API); dashboard read-only | User scoped UI work out of this milestone | — Pending |
 | Horizontal layers roadmap structure | User preference: finish core library changes, then CLI/config, then API, then assemble | — Pending |
 
@@ -120,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-10 after Phase 2*
+*Last updated: 2026-09-23 after Phase 3*
