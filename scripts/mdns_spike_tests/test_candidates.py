@@ -667,3 +667,62 @@ def test_zeroconf_platform_rejects_unverified_local_oracle(
     assert result.returncode == 1
     assert "differs from the pinned revision/tree" in result.stderr
     assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    "family,override,bind,enabled,result",
+    [
+        ("wifi", None, "127.0.0.1", True, "127.0.0.1"),
+        ("thread", "fd00:0:0::1", "::", True, "fd00::1"),
+        ("wifi", None, "0.0.0.0", False, None),
+        ("thread", None, "::1", False, ValueError),
+        ("wifi", "", "127.0.0.1", True, ValueError),
+        ("thread", "127.0.0.1", "::1", True, ValueError),
+        ("wifi", "169.254.1.1", "127.0.0.1", True, ValueError),
+        ("thread", "fe80::1%lo0", "::1", True, ValueError),
+        ("wifi", None, "0.0.0.0", True, ValueError),
+        ("thread", None, "::", True, ValueError),
+    ],
+)
+def test_closeout_address_fit_precedes_registration(
+    family, override, bind, enabled, result
+):
+    select = run_path(str(HARNESS))["_closeout_address"]
+    if result is ValueError:
+        with pytest.raises(ValueError):
+            select(family, override, bind, enabled)
+    else:
+        assert select(family, override, bind, enabled) == result
+
+
+def test_closeout_malformed_corpus_and_load_are_fixed():
+    module = run_path(str(HARNESS))
+    corpus = module["_closeout_malformed_corpus"]()
+    assert set(corpus) == {
+        "empty",
+        "short-header",
+        "truncated-question",
+        "compression-loop",
+        "large",
+    }
+    assert corpus["empty"] == b""
+    assert len(corpus["large"]) == 60000
+    assert module["CLOSEOUT_QUERY_COUNT"] == 256
+
+
+def test_windows_closeout_uses_candidate_constructor_seam():
+    module = run_path(str(HARNESS))
+    calls = []
+    result = module["_closeout_windows_simulation"](
+        lambda **kwargs: calls.append(kwargs), "v4-only"
+    )
+    assert result["status"] == "simulated"
+    assert calls == [{"interfaces": ["127.0.0.1"], "ip_version": "v4-only"}]
+    assert result["platform"] == "Windows"
+    assert not result["real_windows_network"]
+
+
+def test_closeout_validator_rejects_empty_ledger(tmp_path):
+    ledger = tmp_path / "closeout.json"
+    ledger.write_text("{}")
+    assert _run("validate-zeroconf-closeout", str(ledger)).returncode == 1
