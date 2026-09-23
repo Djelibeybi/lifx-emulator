@@ -2,6 +2,7 @@
 
 import errno
 import json
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -589,3 +590,69 @@ def test_zeroconf_platform_receipt_identifies_actual_candidate(tmp_path: Path) -
     assert receipt["candidate_base_commit"] == inputs["candidate"]["commit"]
     assert receipt["candidate_overlay_digest"] is None
     assert receipt["candidate_status"] == "provisional"
+    validation = _run(
+        "validate-ci-receipt", "--receipt", str(output), "--head-sha", "a" * 40
+    )
+    assert validation.returncode == 0, validation.stderr
+    receipt["candidate_base_commit"] = inputs["fallbacks"]["lifx-direct"][
+        "base_revision"
+    ]
+    output.write_text(json.dumps(receipt))
+    assert (
+        _run(
+            "validate-ci-receipt", "--receipt", str(output), "--head-sha", "a" * 40
+        ).returncode
+        == 1
+    )
+
+
+@pytest.mark.parametrize("platform_name", ["darwin", "linux"])
+@pytest.mark.parametrize("fail_bind", [False, True])
+def test_raw_query_socket_scoping_and_failure_cleanup(
+    monkeypatch: pytest.MonkeyPatch, platform_name: str, fail_bind: bool
+) -> None:
+    calls = []
+    closed = []
+
+    def bind(address: tuple[str, int]) -> None:
+        calls.append(("bind", address))
+        if fail_bind:
+            raise OSError("bind failed")
+
+    fake = SimpleNamespace(
+        setblocking=lambda value: None,
+        setsockopt=lambda *values: calls.append(values),
+        bind=bind,
+        close=lambda: closed.append(True),
+    )
+    factory = run_path(str(HARNESS))["_new_mdns_client"]
+    socket_api = SimpleNamespace(
+        **{
+            name: getattr(socket, name)
+            for name in (
+                "AF_INET",
+                "SOCK_DGRAM",
+                "IPPROTO_UDP",
+                "SOL_SOCKET",
+                "SO_REUSEADDR",
+                "IPPROTO_IP",
+                "IP_MULTICAST_IF",
+                "IP_MULTICAST_TTL",
+                "inet_aton",
+            )
+        },
+        socket=lambda *args: fake,
+    )
+    monkeypatch.setitem(factory.__globals__, "socket", socket_api)
+    monkeypatch.setitem(
+        factory.__globals__, "sys", SimpleNamespace(platform=platform_name)
+    )
+    monkeypatch.setitem(factory.__globals__, "_darwin_interface_index", lambda _: 7)
+    if fail_bind:
+        with pytest.raises(OSError, match="bind failed"):
+            factory("192.0.2.1")
+        assert closed == [True]
+    else:
+        assert factory("192.0.2.1") is fake
+        assert not closed
+    assert ((socket.IPPROTO_IP, 25, 7) in calls) == (platform_name == "darwin")

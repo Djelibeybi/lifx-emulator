@@ -475,13 +475,23 @@ def _reachable_ipv6_addresses() -> list[str]:
 
 def _new_mdns_client(interface: str) -> socket.socket:
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    client.setblocking(False)
-    client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    client.setsockopt(
-        socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(interface)
-    )
-    client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
-    client.bind((interface, 0))
+    try:
+        client.setblocking(False)
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        client.setsockopt(
+            socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(interface)
+        )
+        client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+        if sys.platform == "darwin":
+            client.setsockopt(
+                socket.IPPROTO_IP,
+                DARWIN_IP_BOUND_IF,
+                _darwin_interface_index(interface),
+            )
+        client.bind((interface, 0))
+    except OSError:
+        client.close()
+        raise
     return client
 
 
@@ -2528,6 +2538,7 @@ def _run_zeroconf_platform(args: argparse.Namespace) -> int:
         "contract": "complete-record-sets-with-continuation-question-exception",
         "input_spec_digest": inputs["input_spec_digest"],
         "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "raw_darwin_query_scoped": sys.platform == "darwin",
         "valid": valid,
         "candidate_status": "rejected"
         if candidate["candidate_status"] == "rejected"
@@ -2717,16 +2728,30 @@ def _validate_ci_receipt(args: argparse.Namespace) -> int:
     try:
         receipt = _read_json(Path(args.receipt))
         inputs = resolve_inputs()
-        candidate = inputs["fallbacks"]["lifx-direct"]
-        expected = {
-            "candidate": "lifx-direct",
-            "candidate_head_sha": args.head_sha,
-            "input_spec_digest": inputs["input_spec_digest"],
-            "candidate_base_commit": candidate["base_revision"],
-            "candidate_base_tree": candidate["base_tree"],
-            "candidate_overlay_digest": candidate["overlay_sha256"],
-            "candidate_final_digest": candidate["final_digest"],
-        }
+        if receipt.get("candidate") == "zeroconf":
+            candidate = inputs["candidate"]
+            expected = {
+                "candidate": "zeroconf",
+                "candidate_base_commit": candidate["commit"],
+                "candidate_base_tree": candidate["tree"],
+                "candidate_overlay_digest": candidate["overlay_digest"],
+                "candidate_final_digest": candidate["sdist_sha256"],
+            }
+        else:
+            candidate = inputs["fallbacks"]["lifx-direct"]
+            expected = {
+                "candidate": "lifx-direct",
+                "candidate_base_commit": candidate["base_revision"],
+                "candidate_base_tree": candidate["base_tree"],
+                "candidate_overlay_digest": candidate["overlay_sha256"],
+                "candidate_final_digest": candidate["final_digest"],
+            }
+        expected.update(
+            {
+                "candidate_head_sha": args.head_sha,
+                "input_spec_digest": inputs["input_spec_digest"],
+            }
+        )
         for name, value in expected.items():
             if receipt.get(name) != value:
                 raise ValueError(
