@@ -127,13 +127,12 @@ jobs:
           pgrep -x avahi-daemon
         else
           pgrep -x mDNSResponder
-          mdns_interface=$(route -n get -inet 224.0.0.251 | \
-            awk '/interface:/{print $2}')
-          test -n "$mdns_interface"
+          # AC-13 permits loopback multicast. The hosted virtual interface
+          # returns EHOSTUNREACH even with explicit Darwin socket scoping.
+          mdns_interface=lo0
           sudo ifconfig "$mdns_interface" inet6 fd00:3:1::1 prefixlen 64 alias
-          # The hosted arm64 runner can resolve the general multicast route yet
-          # return ENETUNREACH on the first send.  Install one disposable,
-          # destination-specific route on the interface selected by the kernel.
+          # Route the disposable same-host multicast test explicitly via lo0.
+          # This does not claim cross-machine or physical-interface evidence.
           sudo route -n add -host 224.0.0.251 -interface "$mdns_interface" \
             >/dev/null 2>&1 || \
             sudo route -n change -host 224.0.0.251 -interface "$mdns_interface" \
