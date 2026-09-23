@@ -2,7 +2,7 @@
 
 import inspect
 import ipaddress
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 
 import pytest
 from lifx_emulator.factories import factory
@@ -117,3 +117,12 @@ async def test_mdns_mixed_records():
         assert not any(hidden.state.serial in str(r) for r in records)
     finally:
         await server.stop()
+
+
+@pytest.mark.parametrize(
+    "changes", [{"mdns_enabled": False}, {"mdns_address": "127.0.0.2"}]
+)
+def test_wholesale_network_replacement_is_immutable(changes):
+    device = factory.create_color_light()
+    with pytest.raises(ValueError, match="immutable"):
+        device.state.network = replace(device.state.network, **changes)
