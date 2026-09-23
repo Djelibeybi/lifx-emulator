@@ -153,7 +153,7 @@ jobs:
       run: |
         uv run --frozen pytest scripts/mdns_spike_tests/test_candidates.py -q --no-cov
         uv run --frozen python scripts/spike_mdns_candidates.py \
-          run-direct-platform --output "$EVIDENCE"
+          run-zeroconf-platform --output "$EVIDENCE"
 
     - name: Record exact-head receipt
       if: steps.expensive.outputs.run == 'true'
@@ -279,7 +279,7 @@ jobs:
         core_wheel=$(find "$wheels" -name 'lifx_emulator_core-*.whl' -print -quit)
         candidate_wheel=$(find "$wheels" -name 'lifx_async-*.whl' -print -quit)
         uv run --frozen python -c \
-          'import pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
+          'import pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s=s.replace(marker, marker + "\n    \"zeroconf==0.151.3\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
           "$RUNNER_TEMP/lifx-emulator-app/pyproject.toml" "$core_wheel" "$candidate_wheel"
         uv build --wheel "$RUNNER_TEMP/lifx-emulator-app" --out-dir "$wheels"
         app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)
@@ -302,6 +302,10 @@ jobs:
           "$binary" self python -c \
           'import importlib.metadata,json; print(json.dumps({n:importlib.metadata.version(n) for n in ("lifx-emulator","lifx-emulator-core","lifx-async")},sort_keys=True))' \
           > "$RUNNER_TEMP/installed-identities.json"
+        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
+          "$binary" self python -c \
+          'import importlib.metadata,json; from zeroconf.asyncio import AsyncZeroconf; version=importlib.metadata.version("zeroconf"); assert version == "0.151.3"; print(json.dumps({"candidate":"zeroconf","version":version,"async_api_imported":True}))' \
+          > "$RUNNER_TEMP/zeroconf-packaging.json"
         shasum -a 256 "$wheels"/*.whl "$binary" > "$RUNNER_TEMP/hashes.txt"
         unzip -p "$candidate_wheel" '*/METADATA' > "$RUNNER_TEMP/candidate-METADATA.txt"
         unzip -p "$app_wheel" '*/METADATA' > "$RUNNER_TEMP/app-METADATA.txt"
@@ -341,6 +345,7 @@ jobs:
           ${{ runner.temp }}/hashes.txt
           ${{ runner.temp }}/installed-identities.json
           ${{ runner.temp }}/intel-pyapp-receipt.json
+          ${{ runner.temp }}/zeroconf-packaging.json
           ${{ runner.temp }}/rustc.txt
         retention-days: 7
 

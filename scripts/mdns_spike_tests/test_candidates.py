@@ -5,6 +5,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from runpy import run_path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -114,10 +116,10 @@ def test_default_collection_excludes_spike_directory() -> None:
     assert "scripts/mdns_spike_tests" not in configuration
 
 
-def test_ci_executes_the_eligible_direct_candidate() -> None:
-    """Prevent a green platform job from accidentally rerunning zeroconf."""
+def test_ci_executes_the_eligible_zeroconf_candidate() -> None:
+    """Keep the platform job on the preferred amended-contract candidate."""
     workflow = (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").read_text()
-    assert "run-direct-platform --output" in workflow
+    assert "run-zeroconf-platform --output" in workflow
     evidence_step = workflow.split("name: Exercise exact candidate head", 1)[1]
     evidence_step = evidence_step.split("name: Record exact-head receipt", 1)[0]
     assert "run-candidate" not in evidence_step
@@ -361,7 +363,9 @@ def test_evidence_classification(tmp_path: Path, mutation: str, valid: bool) -> 
     assert (completed.returncode == 0) is valid, completed.stderr
 
 
-def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
+def test_resume_does_not_repeat_completed_tracer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Resume at the first unmet gate without repeating the captured attempt."""
     evidence = _evidence_fixture()
     zeroconf = evidence["candidates"][0]
@@ -387,15 +391,21 @@ def test_resume_does_not_repeat_completed_tracer(tmp_path: Path) -> None:
     )
     path = tmp_path / "evidence.json"
     path.write_text(json.dumps(evidence))
-    completed = _run(
-        "run-sequence",
-        "--resume",
-        "--source-revision",
-        "48b7efbff59656499373b13ef17e3008d125feb5",
-        "--evidence",
-        str(path),
+    harness = run_path(str(HARNESS))
+    resume = harness["run_sequence"]
+    # Freeze time: the original spike start is now historical.
+    monkeypatch.setitem(resume.__globals__, "_active_elapsed", lambda: 100.0)
+    args = harness["_parser"]().parse_args(
+        [
+            "run-sequence",
+            "--resume",
+            "--source-revision",
+            "48b7efbff59656499373b13ef17e3008d125feb5",
+            "--evidence",
+            str(path),
+        ]
     )
-    assert completed.returncode == 0, completed.stderr
+    assert resume(args) == 0
     resumed = json.loads(path.read_text())
     after = sum(
         attempt["gate"] == "legacy-wire"
@@ -488,3 +498,94 @@ def test_ci_receipt_rejects_incomplete_intel_proof(tmp_path: Path) -> None:
         head_sha,
     )
     assert completed.returncode == 1
+
+
+@pytest.mark.parametrize("fault", [None, "ptr", "srv", "txt", "family", "missing"])
+def test_aggregated_record_associations(fault: str | None) -> None:
+    """Complete fleets may aggregate, but cannot borrow another device's records."""
+    check = run_path(str(HARNESS))["_complete_record_sets"]
+    service = "_lifx._udp.local."
+    records = []
+    expected = {}
+    for serial in ("d073d5000001", "d073d5000002"):
+        instance = f"{serial}.{service}"
+        host = f"{serial}.local."
+        txt = {"id": serial, "p": "27", "fw": "4.200", "tm": "1"}
+        expected[serial] = {"port": 56700, "txt": txt, "address": (1, "127.0.0.1")}
+        records.extend(
+            [
+                SimpleNamespace(rtype=12, name=service, parsed_data=instance),
+                SimpleNamespace(
+                    rtype=33,
+                    name=instance,
+                    parsed_data=SimpleNamespace(
+                        target=host, port=56700, priority=0, weight=0
+                    ),
+                ),
+                SimpleNamespace(
+                    rtype=16,
+                    name=instance,
+                    parsed_data=SimpleNamespace(pairs=dict(txt)),
+                ),
+                SimpleNamespace(rtype=1, name=host, parsed_data="127.0.0.1"),
+            ]
+        )
+    if fault == "ptr":
+        records[0].name = "_other._udp.local."
+    elif fault == "srv":
+        records[1].parsed_data.target = "d073d5000002.local."
+    elif fault == "txt":
+        records[2].parsed_data.pairs["tm"] = "2"
+    elif fault == "family":
+        records.append(
+            SimpleNamespace(rtype=28, name="d073d5000001.local.", parsed_data="::1")
+        )
+    elif fault == "missing":
+        records.pop(3)
+    assert check(records, expected) == (
+        set(expected) if fault is None else {"d073d5000002"}
+    )
+    # A first packet containing only PTR/SRV cannot prove complete discovery.
+    assert check(records[:2], expected) == set()
+
+
+def test_zeroconf_platform_receipt_identifies_actual_candidate(tmp_path: Path) -> None:
+    """A zeroconf platform receipt must not inherit the direct overlay identity."""
+    evidence = tmp_path / "platform.json"
+    output = tmp_path / "receipt.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "platform_candidate": "zeroconf",
+                "valid": True,
+                "candidate_status": "provisional",
+                "result": {
+                    "environment": {
+                        "os": "darwin",
+                        "architecture": "arm64",
+                        "python": "3.14",
+                    }
+                },
+            }
+        )
+    )
+    result = _run(
+        "write-ci-receipt",
+        "--evidence",
+        str(evidence),
+        "--output",
+        str(output),
+        "--head-sha",
+        "a" * 40,
+        "--run-url",
+        "https://example.invalid/run",
+        "--platform-leg",
+        "multicast",
+    )
+    assert result.returncode == 0, result.stderr
+    receipt = json.loads(output.read_text())
+    inputs = json.loads(ACTIVE_INPUTS.read_text())
+    assert receipt["candidate"] == "zeroconf"
+    assert receipt["candidate_base_commit"] == inputs["candidate"]["commit"]
+    assert receipt["candidate_overlay_digest"] is None
+    assert receipt["candidate_status"] == "provisional"
