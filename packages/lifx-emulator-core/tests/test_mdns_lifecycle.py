@@ -135,8 +135,7 @@ async def test_reconcile_failure_retained_and_policy(
         await server.remove_device(device.state.serial)
     owner.failure = (operation, stage)
     if operation == "unregister":
-        with pytest.raises(RuntimeError, match=f"{operation}-{stage}"):
-            await asyncio.wait_for(server.remove_device(device.state.serial), 2)
+        assert await asyncio.wait_for(server.remove_device(device.state.serial), 2)
     else:
         server.add_device(device)
         with pytest.raises(RuntimeError, match=f"{operation}-{stage}"):
@@ -195,7 +194,7 @@ async def test_start_cancellation_cleans_owned_resources(monkeypatch):
     await server.stop()
 
 
-async def test_stop_bounds_reconcile_and_expires_tombstones(monkeypatch):
+async def test_stop_bounds_reconcile_and_retains_owned_names(monkeypatch):
     monkeypatch.setattr(mdns, "_OPERATION_TIMEOUT", 0.02)
     owner = MembershipOwner()
     monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kw: owner)
@@ -205,12 +204,9 @@ async def test_stop_bounds_reconcile_and_expires_tombstones(monkeypatch):
     responder = server._mdns
     await server.remove_device(device.state.serial)
     name = f"{device.state.serial}._lifx._udp.local."
-    info, handle = responder._tombstones[name]
+    info = responder._tombstones[name]
     assert info.name == name
-    handle.cancel()
-    responder._expire(name)
-    assert not responder._tombstones
-    owner.held = "register"
+    owner.held = "update"
     server.add_device(device)
     await owner.entered.wait()
     await asyncio.wait_for(server.stop(), 1)

@@ -24,7 +24,12 @@ from lifx_emulator.devices import (
     NullObserver,
     PacketEvent,
 )
-from lifx_emulator.mdns import MdnsResponder, MdnsStatus, resolve_address
+from lifx_emulator.mdns import (
+    MdnsResponder,
+    MdnsStatus,
+    MdnsUpdateError,
+    resolve_address,
+)
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, get_packet_class
 from lifx_emulator.repositories import IScenarioStorageBackend
@@ -677,8 +682,17 @@ class EmulatedLifxServer:
         """
         removed = await self._device_manager.remove_device(serial, self.storage)
         if removed:
-            await self.wait_for_mdns_updates()
+            await self._wait_for_committed_removal()
         return removed
+
+    async def _wait_for_committed_removal(self) -> None:
+        """Finish advertisement work without turning committed deletes into errors."""
+        try:
+            await self.wait_for_mdns_updates()
+        except MdnsUpdateError:
+            # Failure remains available through status/error and the explicit
+            # barrier. API deletion/rollback must retain the committed result.
+            pass
 
     async def remove_all_devices(self, delete_storage: bool = False) -> int:
         """Remove all devices from the server.
@@ -693,7 +707,7 @@ class EmulatedLifxServer:
             delete_storage, self.storage
         )
         if removed:
-            await self.wait_for_mdns_updates()
+            await self._wait_for_committed_removal()
         return removed
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
@@ -909,8 +923,11 @@ class EmulatedLifxServer:
         )
 
     def _record_mdns_failure(self, error: BaseException) -> None:
-        if self._mdns_error is None:
-            self._mdns_error = error
+        if isinstance(error, asyncio.CancelledError):
+            return
+        if isinstance(error, MdnsUpdateError) and error.__cause__ is not None:
+            error = error.__cause__
+        self._mdns_error = error
         self._mdns_status = MdnsStatus.FAILED
         logger.error("mDNS lifecycle failed: %s", error)
 
@@ -939,7 +956,7 @@ class EmulatedLifxServer:
         if responder is None or self._mdns_status == MdnsStatus.FAILED:
             return
         try:
-            responder.schedule(responder.snapshot(self.get_all_devices()))
+            responder.schedule(lambda: responder.snapshot(self.get_all_devices()))
         except Exception as error:
             self._mdns_failed(error)
 
@@ -960,11 +977,28 @@ class EmulatedLifxServer:
         if failure is not None and failure is not asyncio.current_task():
             await asyncio.shield(failure)
         if self._mdns_error is not None:
-            raise self._mdns_error
+            raise MdnsUpdateError(str(self._mdns_error)) from self._mdns_error
 
     async def _start_mdns_locked(self) -> None:
-        if not self._mdns_enabled or self._mdns is not None:
+        if not self._mdns_enabled or self._mdns_status == MdnsStatus.RUNNING:
             return
+        try:
+            # A failed close retains ownership, never permission to skip startup.
+            await self._stop_mdns_locked()
+            await self._open_mdns_locked()
+        except BaseException as error:
+            self._record_mdns_failure(error)
+            try:
+                await self._stop_mdns_locked()
+            except BaseException as cleanup_error:
+                self._record_mdns_failure(cleanup_error)
+            if self._has_thread_devices() or isinstance(error, asyncio.CancelledError):
+                raise
+            return
+        self._mdns_error = None
+        self._mdns_status = MdnsStatus.RUNNING
+
+    async def _open_mdns_locked(self) -> None:
         manager = self._device_manager
         if not isinstance(manager, IDeviceLifecycleSource):
             raise TypeError("Enabled mDNS requires an IDeviceLifecycleSource manager")
@@ -975,26 +1009,12 @@ class EmulatedLifxServer:
             self._mdns_failed,
         )
         self._mdns = responder
-        self._mdns_status = MdnsStatus.STOPPED
         self._mdns_listener = DeviceLifecycleListener(
             self._queue_mdns_update, self._queue_mdns_update
         )
         manager.add_lifecycle_listener(self._mdns_listener)
-        try:
-            await responder.start(self.get_all_devices())
-            await responder.wait_for_updates()
-        except BaseException as error:
-            self._record_mdns_failure(error)
-            try:
-                await self._stop_mdns_locked()
-            except BaseException as cleanup_error:
-                self._record_mdns_failure(cleanup_error)
-            if self._has_thread_devices() or isinstance(error, asyncio.CancelledError):
-                await self._stop_locked()
-                raise
-            return
-        self._mdns_error = None
-        self._mdns_status = MdnsStatus.RUNNING
+        await responder.start(self.get_all_devices())
+        await responder.wait_for_updates()
 
     async def _stop_mdns_locked(self) -> None:
         listener = getattr(self, "_mdns_listener", None)
@@ -1049,7 +1069,12 @@ class EmulatedLifxServer:
             already_running = self._has_complete_endpoint_pair()
             await self._start_locked()
             if not already_running or self._mdns_status != MdnsStatus.FAILED:
-                await self._start_mdns_locked()
+                try:
+                    await self._start_mdns_locked()
+                except BaseException:
+                    if not already_running:
+                        await self._stop_locked()
+                    raise
 
     async def _start_locked(self) -> None:
         """Start one endpoint pair while holding the lifecycle lock."""
@@ -1180,11 +1205,6 @@ class EmulatedLifxServer:
 
     async def _stop_locked(self) -> None:
         """Stop the endpoint pair while holding the lifecycle lock."""
-        mdns_error: BaseException | None = None
-        try:
-            await self._stop_mdns_locked()
-        except BaseException as error:
-            mdns_error = error
         protocols = (
             getattr(self, "_ipv4_protocol", None),
             getattr(self, "_ipv6_protocol", None),
@@ -1194,6 +1214,11 @@ class EmulatedLifxServer:
                 protocol._expected_close = True
                 protocol.stop_accepting()
 
+        mdns_error: BaseException | None = None
+        try:
+            await self._stop_mdns_locked()
+        except BaseException as error:
+            mdns_error = error
         tracker = getattr(self, "_background_tasks", None)
         retired_trackers = tuple(getattr(self, "_retired_background_tasks", set()))
         transports = (
