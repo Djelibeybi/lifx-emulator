@@ -895,3 +895,20 @@ def test_closeout_rejects_substitute_allowance_before_loading_it():
     }
     with pytest.raises(ValueError, match="canonical allowance"):
         module["_closeout_validate_allowance"](ledger)
+
+
+def test_closeout_requires_every_expected_direct_query_result():
+    check = run_path(str(HARNESS))["_closeout_direct_queries"]
+    passed = {"direct_match": True, "wire_checks_passed": True}
+    populations = {
+        "wifi-1": {"direct_a": passed, "direct_aaaa": None},
+        "thread-1": {"direct_a": None, "direct_aaaa": passed},
+        "mixed-10": {"direct_a": passed, "direct_aaaa": passed},
+        "mixed-100": {"direct_a": passed, "direct_aaaa": passed},
+    }
+    assert check(populations)
+    populations["mixed-100"]["direct_aaaa"] = None
+    assert not check(populations)
+    for population in populations.values():
+        population["direct_a"] = population["direct_aaaa"] = None
+    assert not check(populations)
