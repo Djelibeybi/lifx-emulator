@@ -16,12 +16,15 @@ from lifx_emulator.constants import LIFX_HEADER_SIZE, LIFX_UDP_PORT
 from lifx_emulator.devices import (
     ActivityLogger,
     ActivityObserver,
+    Connectivity,
+    DeviceLifecycleListener,
     EmulatedLifxDevice,
+    IDeviceLifecycleSource,
     IDeviceManager,
     NullObserver,
     PacketEvent,
 )
-from lifx_emulator.mdns import MdnsResponder, resolve_address
+from lifx_emulator.mdns import MdnsResponder, MdnsStatus, resolve_address
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, get_packet_class
 from lifx_emulator.repositories import IScenarioStorageBackend
@@ -172,6 +175,10 @@ class EmulatedLifxServer:
         # Device manager (required dependency injection)
         self._mdns_enabled = mdns_enabled
         self._mdns: MdnsResponder | None = None
+        self._mdns_status = MdnsStatus.STOPPED if mdns_enabled else MdnsStatus.DISABLED
+        self._mdns_error: BaseException | None = None
+        self._mdns_listener: DeviceLifecycleListener | None = None
+        self._mdns_failure_task: asyncio.Task[None] | None = None
         self._device_manager = device_manager
         self.bind_address = bind_address
         self.ipv6_bind_address = ipv6_bind_address
@@ -637,7 +644,7 @@ class EmulatedLifxServer:
             )
 
     def add_device(self, device: EmulatedLifxDevice) -> bool:
-        """Add a device to the server.
+        """Add a device; await ``wait_for_mdns_updates`` for advertisement completion.
 
         Args:
             device: The device to add
@@ -646,6 +653,13 @@ class EmulatedLifxServer:
             True if added, False if device with same serial already exists
         """
         if self._mdns_enabled:
+            if (
+                self._mdns_status == MdnsStatus.FAILED
+                and device.state.connectivity == Connectivity.THREAD
+            ):
+                raise RuntimeError(
+                    "Recover mDNS with retry_mdns before adding Thread devices"
+                )
             resolve_address(device, self.bind_address, self.ipv6_bind_address)
         # A live port-zero server advertises the committed endpoint, while an
         # inactive server retains the historical configured-port behaviour.
@@ -661,7 +675,10 @@ class EmulatedLifxServer:
         Returns:
             True if removed, False if device not found
         """
-        return await self._device_manager.remove_device(serial, self.storage)
+        removed = await self._device_manager.remove_device(serial, self.storage)
+        if removed:
+            await self.wait_for_mdns_updates()
+        return removed
 
     async def remove_all_devices(self, delete_storage: bool = False) -> int:
         """Remove all devices from the server.
@@ -672,9 +689,12 @@ class EmulatedLifxServer:
         Returns:
             Number of devices removed
         """
-        return await self._device_manager.remove_all_devices(
+        removed = await self._device_manager.remove_all_devices(
             delete_storage, self.storage
         )
+        if removed:
+            await self.wait_for_mdns_updates()
+        return removed
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
         """Get a device by serial number.
@@ -872,24 +892,164 @@ class EmulatedLifxServer:
             max_pending=self._max_pending_packets,
         )
 
+    @property
+    def mdns_status(self) -> MdnsStatus:
+        """Return lifecycle state, not a live network-health guarantee."""
+        return self._mdns_status
+
+    @property
+    def mdns_error(self) -> BaseException | None:
+        """Return the last supported-operation failure until successful retry."""
+        return self._mdns_error
+
+    def _has_thread_devices(self) -> bool:
+        return any(
+            device.state.connectivity == Connectivity.THREAD
+            for device in self.get_all_devices()
+        )
+
+    def _record_mdns_failure(self, error: BaseException) -> None:
+        if self._mdns_error is None:
+            self._mdns_error = error
+        self._mdns_status = MdnsStatus.FAILED
+        logger.error("mDNS lifecycle failed: %s", error)
+
+    def _mdns_failed(self, error: BaseException) -> None:
+        self._record_mdns_failure(error)
+        if self._mdns_failure_task is None or self._mdns_failure_task.done():
+            self._mdns_failure_task = asyncio.create_task(
+                self._apply_mdns_failure(), name="mdns-failure-policy"
+            )
+
+    async def _apply_mdns_failure(self) -> None:
+        async with self._lifecycle_lock:
+            # A concurrent explicit stop/retry may already have handled this owner.
+            if self._mdns_status != MdnsStatus.FAILED:
+                return
+            try:
+                if self._has_thread_devices():
+                    await self._stop_locked()
+                else:
+                    await self._stop_mdns_locked()
+            except BaseException as error:
+                self._record_mdns_failure(error)
+
+    def _queue_mdns_update(self, _value: object) -> None:
+        responder = self._mdns
+        if responder is None or self._mdns_status == MdnsStatus.FAILED:
+            return
+        try:
+            responder.schedule(responder.snapshot(self.get_all_devices()))
+        except Exception as error:
+            self._mdns_failed(error)
+
+    async def wait_for_mdns_updates(self) -> None:
+        """Wait for admitted membership changes; waiter cancellation is isolated."""
+        responder = self._mdns
+        try:
+            if responder is not None:
+                await responder.wait_for_updates()
+        except asyncio.CancelledError:
+            raise
+        except BaseException:
+            failure = self._mdns_failure_task
+            if failure is not None and failure is not asyncio.current_task():
+                await asyncio.shield(failure)
+            raise
+        failure = self._mdns_failure_task
+        if failure is not None and failure is not asyncio.current_task():
+            await asyncio.shield(failure)
+        if self._mdns_error is not None:
+            raise self._mdns_error
+
+    async def _start_mdns_locked(self) -> None:
+        if not self._mdns_enabled or self._mdns is not None:
+            return
+        manager = self._device_manager
+        if not isinstance(manager, IDeviceLifecycleSource):
+            raise TypeError("Enabled mDNS requires an IDeviceLifecycleSource manager")
+        responder = MdnsResponder(
+            self.bind_address,
+            self._effective_port or self.port,
+            self.ipv6_bind_address,
+            self._mdns_failed,
+        )
+        self._mdns = responder
+        self._mdns_status = MdnsStatus.STOPPED
+        self._mdns_listener = DeviceLifecycleListener(
+            self._queue_mdns_update, self._queue_mdns_update
+        )
+        manager.add_lifecycle_listener(self._mdns_listener)
+        try:
+            await responder.start(self.get_all_devices())
+            await responder.wait_for_updates()
+        except BaseException as error:
+            self._record_mdns_failure(error)
+            try:
+                await self._stop_mdns_locked()
+            except BaseException as cleanup_error:
+                self._record_mdns_failure(cleanup_error)
+            if self._has_thread_devices() or isinstance(error, asyncio.CancelledError):
+                await self._stop_locked()
+                raise
+            return
+        self._mdns_error = None
+        self._mdns_status = MdnsStatus.RUNNING
+
+    async def _stop_mdns_locked(self) -> None:
+        listener = getattr(self, "_mdns_listener", None)
+        manager = getattr(self, "_device_manager", None)
+        if listener is not None and isinstance(manager, IDeviceLifecycleSource):
+            manager.remove_lifecycle_listener(listener)
+        self._mdns_listener = None
+        responder = getattr(self, "_mdns", None)
+        try:
+            if responder is not None:
+                await responder.stop()
+        except BaseException as error:
+            self._record_mdns_failure(error)
+            raise
+        finally:
+            if responder is None or not responder.owns_resources:
+                self._mdns = None
+        if getattr(self, "_mdns_status", None) != MdnsStatus.FAILED:
+            self._mdns_status = (
+                MdnsStatus.STOPPED
+                if getattr(self, "_mdns_enabled", False)
+                else MdnsStatus.DISABLED
+            )
+
+    async def retry_mdns(self) -> bool:
+        """Recover failed WiFi-only discovery without interrupting LIFX endpoints."""
+        async with self._lifecycle_lock:
+            if self._mdns_status == MdnsStatus.RUNNING:
+                return True
+            if (
+                self._mdns_status != MdnsStatus.FAILED
+                or not self._has_complete_endpoint_pair()
+                or self._has_thread_devices()
+            ):
+                raise RuntimeError(
+                    "mDNS retry requires a failed, running WiFi-only server"
+                )
+            await self._stop_mdns_locked()
+            await self._start_mdns_locked()
+            return self._mdns_status == MdnsStatus.RUNNING
+
     async def start(self):
-        """Atomically bind and publish one IPv4/IPv6 endpoint pair."""
+        """Atomically bind endpoints, then apply the fleet-dependent mDNS policy."""
         async with self._lifecycle_lock:
             if self._mdns_enabled:
                 for device in self.get_all_devices():
                     resolve_address(device, self.bind_address, self.ipv6_bind_address)
+                if not isinstance(self._device_manager, IDeviceLifecycleSource):
+                    raise TypeError(
+                        "Enabled mDNS requires an IDeviceLifecycleSource manager"
+                    )
+            already_running = self._has_complete_endpoint_pair()
             await self._start_locked()
-            if self._mdns_enabled and self._mdns is None:
-                self._mdns = MdnsResponder(
-                    self.bind_address,
-                    self._effective_port or self.port,
-                    self.ipv6_bind_address,
-                )
-                try:
-                    await self._mdns.start(self.get_all_devices())
-                except BaseException:
-                    await self._stop_locked()
-                    raise
+            if not already_running or self._mdns_status != MdnsStatus.FAILED:
+                await self._start_mdns_locked()
 
     async def _start_locked(self) -> None:
         """Start one endpoint pair while holding the lifecycle lock."""
@@ -1010,20 +1170,21 @@ class EmulatedLifxServer:
         if lifecycle_lock is None:
             await self._stop_locked()
             return
-        async with lifecycle_lock:
-            await self._stop_locked()
+        try:
+            async with lifecycle_lock:
+                await self._stop_locked()
+        finally:
+            failure = getattr(self, "_mdns_failure_task", None)
+            if failure is not None and failure is not asyncio.current_task():
+                await asyncio.shield(failure)
 
     async def _stop_locked(self) -> None:
         """Stop the endpoint pair while holding the lifecycle lock."""
         mdns_error: BaseException | None = None
-        responder = getattr(self, "_mdns", None)
-        if responder is not None:
-            try:
-                await responder.stop()
-            except BaseException as error:
-                mdns_error = error
-            finally:
-                self._mdns = None
+        try:
+            await self._stop_mdns_locked()
+        except BaseException as error:
+            mdns_error = error
         protocols = (
             getattr(self, "_ipv4_protocol", None),
             getattr(self, "_ipv6_protocol", None),

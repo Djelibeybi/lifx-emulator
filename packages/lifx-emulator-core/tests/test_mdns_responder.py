@@ -162,7 +162,7 @@ async def test_cleanup_operation_failure(monkeypatch, operation, stage):
     owner = FakeOwner()
     owner.failure = (operation, stage)
     monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kwargs: owner)
-    server = make_server([create_color_light()])
+    server = make_server([create_color_light(connectivity="thread")])
     try:
         if operation == "register":
             with pytest.raises(RuntimeError, match=f"{operation}-{stage}"):
