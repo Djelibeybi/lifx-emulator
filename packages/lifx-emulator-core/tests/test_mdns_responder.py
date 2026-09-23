@@ -59,6 +59,26 @@ def dns_name(name):
     )
 
 
+class _QueryReceiver(asyncio.DatagramProtocol):
+    """Capture datagrams through the transport API supported by Python 3.10."""
+
+    def __init__(self):
+        self.results = []
+        self.errors = []
+        self.closed = asyncio.get_running_loop().create_future()
+
+    def datagram_received(self, data, addr):
+        self.results.append((data, addr))
+
+    def error_received(self, exc):
+        self.errors.append(exc)
+
+    def connection_lost(self, exc):
+        if exc is not None:
+            self.errors.append(exc)
+        self.closed.set_result(None)
+
+
 async def raw_query(
     query_id, name="_lifx._udp.local.", qtype=12, duration=0.4, interface="127.0.0.1"
 ):
@@ -68,25 +88,27 @@ async def raw_query(
         + struct.pack("!2H", qtype, 1)
     )
     loop = asyncio.get_running_loop()
-    results = []
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
         sock.setblocking(False)
         sock.bind((interface, 0))
         sock.setsockopt(
             socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(interface)
         )
-        await loop.sock_sendto(sock, packet, ("224.0.0.251", 5353))
-        deadline = loop.time() + duration
-        while loop.time() < deadline:
-            try:
-                results.append(
-                    await asyncio.wait_for(
-                        loop.sock_recvfrom(sock, 65535), deadline - loop.time()
-                    )
-                )
-            except asyncio.TimeoutError:
-                break
-    return results
+        transport, receiver = await loop.create_datagram_endpoint(
+            _QueryReceiver, sock=sock
+        )
+    except BaseException:
+        sock.close()
+        raise
+    try:
+        transport.sendto(packet, ("224.0.0.251", 5353))
+        await asyncio.sleep(duration)
+    finally:
+        transport.close()
+        await asyncio.shield(receiver.closed)
+    assert not receiver.errors
+    return receiver.results
 
 
 def read_name(packet, offset):
