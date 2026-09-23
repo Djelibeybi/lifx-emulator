@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 03 of 6 · 0% · executing"
+    "command": "/gsd:execute-phase 3",
+    "label": "Record MDNS-10 decision",
+    "reason": "Plan 03-02 Task 3 human checkpoint; 2 of 6 phases complete"
   },
-  "updated_at": "2026-09-23T06:28:01.119Z"
+  "updated_at": "2026-09-23T07:01:48.946192Z"
 }

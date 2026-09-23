@@ -1,0 +1,42 @@
+{
+  "evaluated_head": "481c06d41223339df94dfc93e474664c69742103",
+  "decision_evidence_digest": "364381ea54bde91b95afe6ff51117b4309128fa48538d3d74249b7c7a8a9c6b0",
+  "negative_checks": [
+    {
+      "case": "wrong_evaluated_head",
+      "rejected": true,
+      "reason": "Invalid closeout: Command '['git', 'show', 'e6e9dbe8e33125ccbb76d6e7029fa2bc5b44a2e3:.planning/phases/03-mdns-responder/03-02-ALLOWANCE.json']' returned non-zero exit status 128."
+    },
+    {
+      "case": "wrong_candidate_version",
+      "rejected": true,
+      "reason": "Invalid closeout: evaluated version differs from immutable distribution"
+    },
+    {
+      "case": "corrupt_registry_digest",
+      "rejected": true,
+      "reason": "Invalid closeout: input digest mismatch: .planning/phases/03-mdns-responder/03-closeout-evidence/pypi-zeroconf-00.gz.part"
+    },
+    {
+      "case": "overstated_case",
+      "rejected": true,
+      "reason": "Invalid closeout: decision cells overstate or differ from evidence"
+    },
+    {
+      "case": "unsupported_no_go",
+      "rejected": true,
+      "reason": "Invalid closeout: unsupported decision"
+    },
+    {
+      "case": "budget_exceeded",
+      "rejected": true,
+      "reason": "Invalid closeout: active-work budget exceeded or invalid"
+    },
+    {
+      "case": "unbound_go",
+      "rejected": true,
+      "reason": "Invalid closeout: human decision does not bind the measured evidence"
+    }
+  ],
+  "all_rejected": true
+}
