@@ -21,7 +21,7 @@ from lifx_emulator.devices import (
     NullObserver,
     PacketEvent,
 )
-from lifx_emulator.mdns import MdnsResponder
+from lifx_emulator.mdns import MdnsResponder, resolve_address
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, get_packet_class
 from lifx_emulator.repositories import IScenarioStorageBackend
@@ -645,6 +645,8 @@ class EmulatedLifxServer:
         Returns:
             True if added, False if device with same serial already exists
         """
+        if self._mdns_enabled:
+            resolve_address(device, self.bind_address, self.ipv6_bind_address)
         # A live port-zero server advertises the committed endpoint, while an
         # inactive server retains the historical configured-port behaviour.
         device.state.port = self._effective_port or self.port
@@ -873,10 +875,15 @@ class EmulatedLifxServer:
     async def start(self):
         """Atomically bind and publish one IPv4/IPv6 endpoint pair."""
         async with self._lifecycle_lock:
+            if self._mdns_enabled:
+                for device in self.get_all_devices():
+                    resolve_address(device, self.bind_address, self.ipv6_bind_address)
             await self._start_locked()
             if self._mdns_enabled and self._mdns is None:
                 self._mdns = MdnsResponder(
-                    self.bind_address, self._effective_port or self.port
+                    self.bind_address,
+                    self._effective_port or self.port,
+                    self.ipv6_bind_address,
                 )
                 try:
                     await self._mdns.start(self.get_all_devices())
