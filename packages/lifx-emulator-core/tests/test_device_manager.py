@@ -798,3 +798,10 @@ class TestTransportAwareTargetResolution:
                     device.process_packet(accepted, None)
 
         assert process_packet.call_count == 2
+
+
+def test_lifecycle_listener_contract():
+    """The manager must support non-displacing subscriptions."""
+    manager = DeviceManager(DeviceRepository())
+    assert callable(getattr(manager, "add_lifecycle_listener", None))
+    assert callable(getattr(manager, "remove_lifecycle_listener", None))
