@@ -3452,10 +3452,15 @@ def _closeout_provenance():
     ) as response:
         raw = response.read(16 * 1024 * 1024)
     fields = _closeout_provenance_fields(raw)
-    path = CLOSEOUT_PHASE / "03-closeout-evidence/pypi-zeroconf.json.gz"
-    path.parent.mkdir(exist_ok=True)
-    path.write_bytes(gzip.compress(raw, mtime=0))
-    return {**fields, "retrieved_at": _utc_now(), "response": _closeout_ref(path)}
+    directory = CLOSEOUT_PHASE / "03-closeout-evidence"
+    directory.mkdir(exist_ok=True)
+    compressed = gzip.compress(raw, mtime=0)
+    parts = []
+    for offset in range(0, len(compressed), 750000):
+        path = directory / f"pypi-zeroconf-{offset // 750000:02d}.gz.part"
+        path.write_bytes(compressed[offset : offset + 750000])
+        parts.append(_closeout_ref(path))
+    return {**fields, "retrieved_at": _utc_now(), "response_parts": parts}
 
 
 def _closeout_retained():
@@ -3581,6 +3586,23 @@ def _closeout_case(status, evidence, acquisition=None):
     }
 
 
+def _closeout_direct_queries(populations):
+    required = (
+        ("wifi-1", "direct_a"),
+        ("thread-1", "direct_aaaa"),
+        ("mixed-10", "direct_a"),
+        ("mixed-10", "direct_aaaa"),
+        ("mixed-100", "direct_a"),
+        ("mixed-100", "direct_aaaa"),
+    )
+    return all(
+        populations[population][family] is not None
+        and populations[population][family]["direct_match"]
+        and populations[population][family]["wire_checks_passed"]
+        for population, family in required
+    )
+
+
 def _closeout_platform_checks(platform_payload):
     result = platform_payload["result"]
     closeout = result["closeout"]
@@ -3625,12 +3647,7 @@ def _closeout_platform_checks(platform_payload):
         for row in populations.values()
     )
     checks["membership"] = populations["mixed-10"]["membership"]["all_passed"]
-    checks["direct_queries"] = all(
-        row["direct_match"] and row["wire_checks_passed"]
-        for population in populations.values()
-        for row in (population["direct_a"], population["direct_aaaa"])
-        if row is not None
-    )
+    checks["direct_queries"] = _closeout_direct_queries(populations)
     return checks
 
 
@@ -3906,11 +3923,15 @@ def _closeout_validate_identity(ledger):
     if ledger["evaluated_distribution"] != resolve_inputs()["candidate"]:
         raise ValueError("evaluated distribution differs from immutable input")
     provenance = ledger["provenance"]
-    raw = gzip.decompress(_closeout_resolve(provenance["response"]).read_bytes())
+    raw = gzip.decompress(
+        b"".join(
+            _closeout_resolve(ref).read_bytes() for ref in provenance["response_parts"]
+        )
+    )
     if _closeout_provenance_fields(raw) != {
         key: value
         for key, value in provenance.items()
-        if key not in ("retrieved_at", "response")
+        if key not in ("retrieved_at", "response_parts")
     }:
         raise ValueError("provenance fields differ from retained registry response")
     if (
