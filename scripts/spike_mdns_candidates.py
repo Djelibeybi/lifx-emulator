@@ -7,6 +7,7 @@ import argparse
 import asyncio
 import contextlib
 import errno
+import gzip
 import hashlib
 import importlib.metadata
 import importlib.util
@@ -914,6 +915,9 @@ async def _expanded_worker() -> int:
     started = time.monotonic()
     before_threads = sorted(thread.name for thread in threading.enumerate())
     stage = "oracle"
+    oracle = {}
+    benchmarks = {}
+    closeout = None
     try:
         reachable = _reachable_ipv6_addresses()
         oracle = {
@@ -961,6 +965,9 @@ async def _expanded_worker() -> int:
         payload = {
             "execution_status": "completed",
             "failed_stage": stage,
+            "oracle": oracle,
+            "benchmarks": benchmarks,
+            "closeout": closeout,
             "traceback": traceback.format_exc(),
             "error_type": type(error).__name__,
             "error": str(error),
@@ -3253,6 +3260,7 @@ async def _closeout_operation(interface, operation, family):
     powers = []
     errors = []
     control_task = None
+    row = {}
 
     async def control():
         while True:
@@ -3284,6 +3292,7 @@ async def _closeout_operation(interface, operation, family):
         owners[0].fault = fault_map[operation]
         api_operation = "update" if operation == "announcement" else operation
         value = [interface] if operation == "interfaces" else info
+        before_fault = len(powers)
         failed = not await adapter.operate(api_operation, value, server=server)
         first_error = adapter.mdns_error
         blocked = False
@@ -3296,9 +3305,13 @@ async def _closeout_operation(interface, operation, family):
             adapter.admit_thread()
         except RuntimeError:
             thread_rejected = True
-        retried = await adapter.retry_mdns([info]) if family == "wifi" else None
+        power_after_failure = await client.get_power() if client else None
         await asyncio.sleep(0.1)
-        return {
+        after_failure = len(powers)
+        retried = await adapter.retry_mdns([info]) if family == "wifi" else None
+        power_after_retry = await client.get_power() if client else None
+        await asyncio.sleep(0.1)
+        row = {
             "operation": operation,
             "family": family,
             "failed": failed,
@@ -3312,12 +3325,19 @@ async def _closeout_operation(interface, operation, family):
             if family == "wifi"
             else None,
             "wifi_control_replies": len(powers),
+            "wifi_replies_before_fault": before_fault,
+            "wifi_replies_after_failure": after_failure,
+            "wifi_replies_after_retry": len(powers),
+            "wifi_power_after_failure": power_after_failure,
+            "wifi_power_after_retry": power_after_retry,
             "wifi_control_errors": errors,
             "wifi_values_match": all(p == 65535 for p in powers),
             "scope": "injected supported-operation boundary with real responder/server",
         }
     finally:
         await _closeout_cleanup_operation(control_task, client, owners, adapter, server)
+        row["all_owners_closed_after_cleanup"] = all(owner.closed for owner in owners)
+    return row
 
 
 async def _closeout_cleanup_operation(task, client, owners, adapter, server):
@@ -3333,6 +3353,37 @@ async def _closeout_cleanup_operation(task, client, owners, adapter, server):
     await server.stop()
 
 
+async def _closeout_lifecycle_fit(interface):
+    owners = []
+
+    def factory():
+        owner = _closeout_constructor(AsyncZeroconf, IPVersion.V4Only, interface)
+        owners.append(owner)
+        return owner
+
+    disabled = RecoveryPrototype(factory, enabled=False)
+    disabled_started = await disabled.retry_mdns([])
+    disabled.admit_thread()
+    disabled_owners = len(owners)
+    await disabled.stop()
+    empty = RecoveryPrototype(factory)
+    try:
+        empty_started = await empty.retry_mdns([])
+        await owners[-1].zeroconf.async_wait_for_start()
+        interfaces_updated = await empty.operate("interfaces", [interface])
+    finally:
+        await empty.stop()
+    return {
+        "disabled_started": disabled_started,
+        "disabled_status": disabled.mdns_status,
+        "disabled_owners": disabled_owners,
+        "empty_started": empty_started,
+        "empty_status_after_close": empty.mdns_status,
+        "empty_owner_closed": owners[-1].zeroconf.done,
+        "interfaces_updated": interfaces_updated,
+    }
+
+
 async def _closeout_cases():
     interface = _select_ipv4_interface()
     started = time.monotonic()
@@ -3341,6 +3392,7 @@ async def _closeout_cases():
         "fit": _closeout_fit(),
         "before": _closeout_inventory(),
     }
+    result["lifecycle_fit"] = await _closeout_lifecycle_fit(interface)
     result["robustness"] = await asyncio.wait_for(_closeout_robustness(interface), 90)
     result["operations"] = []
     for operation in (
@@ -3381,21 +3433,29 @@ def _closeout_resolve(ref):
     return path
 
 
-def _closeout_provenance():
-    url = "https://pypi.org/pypi/zeroconf/json"
-    with urllib.request.urlopen(url, timeout=30) as response:
-        raw = response.read(16 * 1024 * 1024)
+def _closeout_provenance_fields(raw):
     metadata = json.loads(raw)
     sdist = next(item for item in metadata["urls"] if item["packagetype"] == "sdist")
     return {
-        "url": url,
-        "retrieved_at": _utc_now(),
+        "url": "https://pypi.org/pypi/zeroconf/json",
         "response_sha256": hashlib.sha256(raw).hexdigest(),
         "current_version": metadata["info"]["version"],
         "repository": metadata["info"]["project_urls"]["Repository"],
         "sdist_url": sdist["url"],
         "sdist_sha256": sdist["digests"]["sha256"],
     }
+
+
+def _closeout_provenance():
+    with urllib.request.urlopen(
+        "https://pypi.org/pypi/zeroconf/json", timeout=30
+    ) as response:
+        raw = response.read(16 * 1024 * 1024)
+    fields = _closeout_provenance_fields(raw)
+    path = CLOSEOUT_PHASE / "03-closeout-evidence/pypi-zeroconf.json.gz"
+    path.parent.mkdir(exist_ok=True)
+    path.write_bytes(gzip.compress(raw, mtime=0))
+    return {**fields, "retrieved_at": _utc_now(), "response": _closeout_ref(path)}
 
 
 def _closeout_retained():
@@ -3464,7 +3524,14 @@ def _closeout_resources_passed(result):
 
 def _closeout_operation_passed(row):
     common = (
-        row["failed"] and bool(row["first_error"]) and row["thread_admission_rejected"]
+        row["failed"]
+        and row["first_error"].startswith(
+            "update.announcement:"
+            if row["operation"] == "announcement"
+            else f"{row['operation']}:"
+        )
+        and row["thread_admission_rejected"]
+        and row["all_owners_closed_after_cleanup"]
     )
     if row["operation"] == "close":
         common = common and row["cleanup_blocked_replacement"]
@@ -3476,7 +3543,10 @@ def _closeout_operation_passed(row):
         and row["original_owner_closed"]
         and row["retry_succeeded"]
         and row["wifi_same_endpoint"]
-        and row["wifi_control_replies"] > 0
+        and row["wifi_replies_before_fault"]
+        < row["wifi_replies_after_failure"]
+        < row["wifi_replies_after_retry"]
+        and row["wifi_power_after_failure"] == row["wifi_power_after_retry"] == 65535
         and not row["wifi_control_errors"]
         and row["wifi_values_match"]
     )
@@ -3527,6 +3597,16 @@ def _closeout_platform_checks(platform_payload):
         and not simulation["real_windows_network"]
         and simulation["constructor_observed"],
         "supported_operations": _closeout_operations_passed(closeout["operations"]),
+        "opt_in_empty_interface": closeout["lifecycle_fit"]
+        == {
+            "disabled_started": False,
+            "disabled_status": "disabled",
+            "disabled_owners": 0,
+            "empty_started": True,
+            "empty_status_after_close": "stopped",
+            "empty_owner_closed": True,
+            "interfaces_updated": True,
+        },
         "pristine_client": all(
             result["oracle"][family] and result["oracle"][family]["matched"]
             for family in ("wifi", "thread")
@@ -3557,13 +3637,14 @@ def _closeout_platform_checks(platform_payload):
 def _closeout_verify_platform(ref, ledger, receipt_ref=None):
     path = _closeout_resolve(ref)
     payload = _read_json(path)
-    if payload["platform_candidate"] != "zeroconf" or not payload["valid"]:
-        raise ValueError("platform evidence is not valid zeroconf evidence")
+    if payload["platform_candidate"] != "zeroconf":
+        raise ValueError("platform evidence is not zeroconf evidence")
     if payload["runner_sha256"] != ledger["inputs"][0]["sha256"]:
         raise ValueError("platform runner differs from evaluated input")
     if payload["adapter_sha256"] != ledger["inputs"][1]["sha256"]:
         raise ValueError("platform adapter differs from evaluated input")
-    if payload["result"]["closeout"]["version"] != ledger["evaluated_version"]:
+    measured = payload["result"].get("closeout")
+    if measured and measured["version"] != ledger["evaluated_version"]:
         raise ValueError("platform version differs from evaluated version")
     if payload["input_spec_digest"] != resolve_inputs()["input_spec_digest"]:
         raise ValueError("platform input identity mismatch")
@@ -3603,6 +3684,16 @@ def _closeout_derive_cases(ledger):
             "receipt" not in entry or payload["result"]["environment"]["os"] != name
         ):
             raise ValueError("CI receipt or platform mismatch")
+        if not payload["valid"]:
+            cases[f"platform_{name}"] = _closeout_case(
+                "failed",
+                entry["evidence"]["path"],
+                (
+                    f"Resolve {payload['result'].get('error_type', 'probe failure')} "
+                    f"and rerun {name}"
+                ),
+            )
+            continue
         for check, passed in _closeout_platform_checks(payload).items():
             status = (
                 "simulated"
@@ -3752,6 +3843,35 @@ def _closeout_routes(cases):
     return ["go", "provisional"] if complete else ["provisional"]
 
 
+def _closeout_validate_allowance(ledger):
+    path = CLOSEOUT_PHASE / "03-02-ALLOWANCE.json"
+    if ledger["allowance"] != _closeout_ref(path):
+        raise ValueError("closeout must bind the canonical allowance")
+    allowance = _read_json(path)
+    expected_scope = [
+        "zeroconf malformed/flood/resource cases",
+        "identified Windows simulation",
+        "configuration/interface candidate fit",
+        "supported-operation failures and recovery",
+        "exact-head CI receipts and evidence validation",
+    ]
+    if (
+        allowance["plan"] != "03-02"
+        or allowance["scope"] != expected_scope
+        or allowance["automatic_extension"]
+        or allowance["production_implementation_authorised"]
+        or allowance["active_budget_seconds"] != 7200
+        or not allowance["authority"]
+    ):
+        raise ValueError("allowance scope differs from the human approval")
+    original = subprocess.check_output(
+        ["git", "show", f"{ledger['evaluated_head']}:{ledger['allowance']['path']}"]
+    )
+    if hashlib.sha256(original).hexdigest() != ledger["allowance"]["sha256"]:
+        raise ValueError("allowance changed after evaluated commit")
+    return allowance
+
+
 def _closeout_validate_budget(ledger, allowance):
     budget = ledger["budget"]
     if (
@@ -3781,7 +3901,18 @@ def _closeout_validate_identity(ledger):
     }
     if any(ledger[key] != value for key, value in expected.items()):
         raise ValueError("closeout identity, scope or status contract mismatch")
+    if ledger["evaluated_version"] != resolve_inputs()["candidate"]["version"]:
+        raise ValueError("evaluated version differs from immutable distribution")
+    if ledger["evaluated_distribution"] != resolve_inputs()["candidate"]:
+        raise ValueError("evaluated distribution differs from immutable input")
     provenance = ledger["provenance"]
+    raw = gzip.decompress(_closeout_resolve(provenance["response"]).read_bytes())
+    if _closeout_provenance_fields(raw) != {
+        key: value
+        for key, value in provenance.items()
+        if key not in ("retrieved_at", "response")
+    }:
+        raise ValueError("provenance fields differ from retained registry response")
     if (
         provenance["repository"] != "https://github.com/python-zeroconf/python-zeroconf"
         or provenance["url"] != "https://pypi.org/pypi/zeroconf/json"
@@ -3822,7 +3953,7 @@ def _closeout_validate_decision(ledger):
 def validate_zeroconf_closeout(path):
     try:
         ledger = _read_json(path)
-        allowance = _read_json(_closeout_resolve(ledger["allowance"]))
+        allowance = _closeout_validate_allowance(ledger)
         _closeout_validate_budget(ledger, allowance)
         _closeout_validate_identity(ledger)
         _closeout_validate_retained(ledger, allowance)
@@ -3867,12 +3998,14 @@ def _run_zeroconf_closeout(args):
         else evidence_dir / "local.json"
     )
     if not args.local_evidence:
-        if _run_zeroconf_platform(argparse.Namespace(output=str(local_path))):
-            raise ValueError("local platform probe failed; inspect retained output")
+        result = _run_zeroconf_platform(argparse.Namespace(output=str(local_path)))
+        if result and not local_path.exists():
+            raise ValueError("local probe produced no evidence")
     ledger = {
         "schema_version": 1,
         "candidate": "zeroconf",
         "evaluated_version": args.candidate_version,
+        "evaluated_distribution": resolve_inputs()["candidate"],
         "source_revision": args.source_revision,
         "evaluated_head": subprocess.check_output(
             ["git", "rev-parse", args.evaluated_head], text=True
