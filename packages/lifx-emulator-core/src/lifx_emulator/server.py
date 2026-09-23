@@ -1028,10 +1028,10 @@ class EmulatedLifxServer:
                 await responder.stop()
         except BaseException as error:
             self._record_mdns_failure(error)
-            raise
-        finally:
-            if responder is None or not responder.owns_resources:
+            if responder is not None and not responder.owns_resources:
                 self._mdns = None
+            raise
+        self._mdns = None
         if getattr(self, "_mdns_status", None) != MdnsStatus.FAILED:
             self._mdns_status = (
                 MdnsStatus.STOPPED
