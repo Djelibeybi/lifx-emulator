@@ -50,7 +50,7 @@ Ordered isolated lifecycle listeners and independent WebSocket consumers.
 
 ## Commits
 
-71f (see git history for RED); 0c75998 (registry); 1edf6ac (WebSocket wiring).
+e76b6e8 (RED); 0c75998 (registry); 1edf6ac (WebSocket wiring).
 
 ## Deviations from Plan
 
