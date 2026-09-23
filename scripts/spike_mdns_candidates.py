@@ -751,7 +751,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
             with _new_mdns_client(interface) as membership_client:
                 after_remove = await _collect_query(
                     membership_client,
-                    bytes(query),
+                    _dns_query(SERVICE_TYPE, DNS_TYPE_PTR, 0xCA01),
                     timeout=2.0,
                     expected_serials=remaining,
                     observe_until_timeout=True,
@@ -765,10 +765,8 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                     )
                 except NonUniqueNameException:
                     readd_retried = True
-                    await asyncio.sleep(11.0)
-                    announcement = await azc.async_register_service(
-                        removed, ttl=10, strict=False
-                    )
+                    # Only restore this responder's previously registered identity.
+                    announcement = await azc.async_update_service(removed)
                 infos.append(removed)
                 await announcement
             except NonUniqueNameException as error:
@@ -776,14 +774,14 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
             with _new_mdns_client(interface) as membership_client:
                 after_readd = await _collect_query(
                     membership_client,
-                    bytes(query),
+                    _dns_query(SERVICE_TYPE, DNS_TYPE_PTR, 0xCA02),
                     timeout=2.0,
                     expected_serials={device.state.serial for device in devices},
                     observe_until_timeout=True,
                 )
             membership = {
                 "readd_error": readd_error,
-                "readd_retried_after_name_conflict": readd_retried,
+                "readd_via_public_update_after_name_conflict": readd_retried,
                 "remaining_after_remove": after_remove["discovered"],
                 "removed_absent": devices[-1].state.serial
                 not in after_remove["observed_serials"],
@@ -879,26 +877,7 @@ async def _expanded_worker() -> int:
             "wifi": await _run_public_oracle(),
             "thread": await _run_public_oracle(reachable[0]) if reachable else None,
         }
-        oracle_failed = not oracle["wifi"]["matched"] or (
-            oracle["thread"] is not None and not oracle["thread"]["matched"]
-        )
-        if oracle_failed:
-            payload = {
-                "execution_status": "completed",
-                "oracle": oracle,
-                "benchmarks": {},
-                "daemon_processes": _host_daemon_identity(),
-                "reachable_ula_gua_count": len(reachable),
-                "threads_before": before_threads,
-                "threads_after": sorted(
-                    thread.name for thread in threading.enumerate()
-                ),
-                "pending_owned_tasks": [],
-                "environment": _environment(),
-                "elapsed_seconds": time.monotonic() - started,
-            }
-            print(json.dumps(payload, sort_keys=True))
-            return 0
+        # Retain raw diagnostic evidence even when the consumer cannot discover.
         benchmarks = {}
         for stage, wifi, thread_count in (
             ("wifi-1", 1, 0),
