@@ -24,6 +24,7 @@ jobs:
     outputs:
       source: ${{ steps.filter.outputs.source }}
       mdns_spike: ${{ steps.filter.outputs.mdns_spike }}
+      mdns_production: ${{ steps.filter.outputs.mdns_production }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
     - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -34,12 +35,70 @@ jobs:
             - 'packages/**'
             - 'pyproject.toml'
             - 'uv.lock'
+          mdns_production:
+            - '.github/workflows/ci.yml'
+            - 'packages/lifx-emulator-core/**'
+            - 'packages/lifx-emulator/src/lifx_emulator_app/api/services/event_bridge.py'
+            - 'scripts/prepare_mdns_oracle.py'
+            - 'scripts/mdns_spike_inputs/active.json'
+            - 'uv.lock'
           mdns_spike:
             - '.github/workflows/ci.yml'
             - 'scripts/spike_mdns_candidates.py'
             - 'scripts/spike_mdns_recovery.py'
             - 'scripts/mdns_spike_tests/**'
             - 'scripts/mdns_spike_inputs/**'
+
+  mdns-production-integration:
+    name: mDNS production integration (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.mdns_production == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+      with:
+        version: ${{ env.UV_VERSION }}
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Configure disposable same-host network and verify host daemon
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          sudo apt-get update
+          sudo apt-get install -y avahi-daemon
+          sudo systemctl start avahi-daemon
+          pgrep -x avahi-daemon
+          sudo ip -6 addr add fd00:3:1::1/128 dev lo
+          mdns_interface=$(ip -4 route get 224.0.0.251 | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')
+        else
+          pgrep -x mDNSResponder
+          sudo ifconfig lo0 inet6 fd00:3:1::1 prefixlen 64 alias
+          sudo route -n add -host 224.0.0.251 -interface lo0 >/dev/null 2>&1 || \
+            sudo route -n change -host 224.0.0.251 -interface lo0 >/dev/null 2>&1
+          test "$(route -n get -inet 224.0.0.251 | awk '/interface:/{print $2}')" = lo0
+          mdns_interface=127.0.0.1
+        fi
+        test -n "$mdns_interface"
+        echo "MDNS_TEST_INTERFACE=$mdns_interface" >> "$GITHUB_ENV"
+        echo "MDNS_TEST_THREAD_ADDRESS=fd00:3:1::1" >> "$GITHUB_ENV"
+    - name: Acquire verified pristine client
+      run: uv run scripts/prepare_mdns_oracle.py --destination "${{ runner.temp }}/production-oracle"
+    - name: Exercise shipped responder with required real-stack evidence
+      env:
+        MDNS_INTEGRATION_REQUIRED: '1'
+        LIFX_ASYNC_PATH: ${{ runner.temp }}/production-oracle/src
+        PYTHONPATH: ${{ runner.temp }}/production-oracle/src
+      run: |
+        uv run --with "${{ runner.temp }}/production-oracle" pytest \
+          packages/lifx-emulator-core/tests/test_mdns_integration.py \
+          -q --no-cov -rs --junitxml=mdns-production.xml
+        uv run python -c 'import xml.etree.ElementTree as E; r=E.parse("mdns-production.xml"); assert sum(int(s.get("tests", 0)) for s in r.iter("testsuite")) > 0; assert not r.findall(".//skipped")'
 
   mdns-spike-evidence:
     name: mDNS spike evidence (${{ matrix.os }})
