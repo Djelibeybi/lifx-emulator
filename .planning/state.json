@@ -36,8 +36,8 @@
   ],
   "next": {
     "command": "/gsd:progress",
-    "label": "Review the targeted zeroconf continuation and remaining decision gate",
-    "reason": "Local macOS, hosted Ubuntu and hosted macOS loopback discovery/restoration plus Intel packaging have evidence. Listener failure/retry, partial startup and candidate-specific robustness still need proof before a full go."
+    "label": "Review recovery prototype and resolve runtime listener-failure detection",
+    "reason": "Local partial-registration cleanup, explicit retry and injected failure policy passed with uninterrupted WiFi control. Real listener-loss detection and remaining robustness gates are unproved; MDNS-10 stays provisional."
   },
-  "updated_at": "2026-09-23T00:48:32.895640Z"
+  "updated_at": "2026-09-23T01:04:55.221667+00:00"
 }

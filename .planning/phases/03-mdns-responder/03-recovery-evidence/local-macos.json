@@ -1,0 +1,55 @@
+{
+  "recorded_at": "2026-09-23T01:03:36.555028+00:00",
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "python": "3.14.7",
+  "zeroconf": "0.151.3",
+  "lifx_async": "7.3.0",
+  "fault_scope": "Injected adapter-boundary failures; no actual listener-loss detection proof",
+  "sha256": {
+    "scripts/spike_mdns_recovery.py": "00066ef309cbde45b4fd827c0e55b8d1d110ec25adee252f90423793aede9395",
+    "scripts/mdns_spike_inputs/zeroconf_recovery.py": "41886de35fca148cc49a009f835f95288bb2ab1c9bd7fb2081c8b8ea50de70cb"
+  },
+  "results": {
+    "wifi": {
+      "startup_failed": true,
+      "partial_failed": true,
+      "partial_owner_closed": true,
+      "after_partial_discovered": [],
+      "restored": true,
+      "expected": [
+        "d073d503f001",
+        "d073d503f002"
+      ],
+      "discovered": [
+        "d073d503f001",
+        "d073d503f002"
+      ],
+      "runtime_failure_status": "failed",
+      "explicit_retry": true,
+      "same_lifx_endpoint": true,
+      "control_during_partial_failure": 95,
+      "power_after_failure": 65535,
+      "power_after_retry": 65535,
+      "control_replies": 245,
+      "control_errors": [],
+      "all_control_values_match": true
+    },
+    "thread": {
+      "ipv4_closed": true,
+      "ipv6_closed": true,
+      "status": "failed",
+      "error_retained": true
+    },
+    "mixed": {
+      "ipv4_closed": true,
+      "ipv6_closed": true,
+      "status": "failed",
+      "error_retained": true
+    },
+    "pending_tasks": [],
+    "threads": [
+      "MainThread"
+    ],
+    "passed": true
+  }
+}
