@@ -96,6 +96,7 @@ A LAN client library can discover and control an emulated Thread device exactly 
 | GetWifiInfo on Thread returns signal 0.0, not StateUnhandled | Real behaviour undocumented; zero signal is inert for consumers that skip RSSI on Thread (hass integration) | ✓ Phase 1 — `wifi_signal` derived at build time from effective connectivity |
 | Separate `AF_INET6` `V6ONLY` socket, default `::1`, rather than `::` dual-stack | Cross-platform: Windows defaults V6ONLY on, macOS/Linux off; a second socket behaves identically everywhere and keeps IPv4 defaults untouched | ✓ Phase 2 — atomic same-port pair with committed endpoint publication |
 | Bound packet and WebSocket bridge admission under overload | Retain every admitted unit through completion without allowing a remote flood or slow subscriber to grow work without limit | ✓ Phase 2 — excess work is rejected before allocation and counted in public overload metrics |
+| Select zeroconf 0.151.3 through public APIs for the responder | Human-approved MDNS-10 closeout; running is lifecycle status and silent listener loss is accepted | ✓ Selection only — implementation pending |
 | mDNS responder answers IPv4 multicast 224.0.0.251 only | That is the only group lifx-async queries; `ff02::fb` deferred | — Pending |
 | All devices advertised via mDNS, WiFi opt-out | Real WiFi bulbs advertise `tm=1`; Thread bulbs have no other discovery path | — Pending |
 | Backend surfaces only (core, CLI, config, API); dashboard read-only | User scoped UI work out of this milestone | — Pending |

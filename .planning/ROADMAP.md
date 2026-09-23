@@ -101,12 +101,12 @@ Plans:
   4. A direct A or AAAA query for any advertised hostname is answered, and adding or removing a device at runtime changes the next reply's record set while the existing WebSocket device events keep firing unchanged.
   5. The core responder is opt-in and starts and stops with the server. If enabled mDNS startup fails, startup is fatal only when Thread devices are configured; WiFi-only operation continues with an observable mDNS failure. The responder leaves no sockets or tasks behind across pytest-asyncio function-scoped loops and is covered by both datagram-injection unit tests and loopback-multicast integration tests that pass on the Ubuntu and macOS CI legs.
 
-**Plans**: 2 spike plans: 03-01 is historically halted; 03-02 closes the remaining zeroconf evidence under amended D-08. Remaining implementation plans stay gated on go/no-go.
+**Plans**: 2 spike plans: 03-01 is historically halted; 03-02 closes the remaining zeroconf evidence under amended D-08. MDNS-10 is complete with a human-approved zeroconf go; implementation planning is now unlocked.
 
 **Wave 1 — implementation-selection spike**
 
 - [ ] 03-01-PLAN.md — Historical halted spike; retained evidence is input to 03-02, not an execution dependency.
-- [ ] 03-02-PLAN.md — Fresh bounded allowance, remaining zeroconf evidence, and human MDNS-10 decision; silent listener loss is an accepted limitation.
+- [x] 03-02-PLAN.md — Validated zeroconf closeout and human-approved go (2026-09-23); silent listener loss remains accepted.
 
 **Pending planning:** MDNS-01–09 and MDNS-11 remain in Phase 3. They are evaluation inputs to the spike, not implementation requirements covered by 03-01 or 03-02.
 
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Thread Device Identity | 4/4 | Complete    | 2026-09-09 |
 | 2. IPv6 Transport and Thread Isolation | 4/4 | Complete    | 2026-09-10 |
-| 3. mDNS Responder | 0/2 (spike; remaining plans TBD) | Closeout planned; MDNS-10 provisional | - |
+| 3. mDNS Responder | 1/2 (03-01 historically halted; implementation plans TBD) | Zeroconf go approved; ready to plan MDNS-01–09/11 | - |
 | 4. CLI and Configuration | 0/TBD | Not started | - |
 | 5. Management API | 0/TBD | Not started | - |
 | 6. Verification Against lifx-async | 0/TBD | Not started | - |

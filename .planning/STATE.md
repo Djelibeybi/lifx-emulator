@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
-status: paused
-stopped_at: Plan 03-02 Task 3: awaiting human MDNS-10 decision from validated closeout evidence
-last_updated: "2026-09-23T07:01:48.946192Z"
+status: planning
+stopped_at: Plan 03-02 complete; zeroconf go approved; ready for implementation planning
+last_updated: "2026-09-23T07:12:22.232764Z"
 last_activity: 2026-09-23
-last_activity_desc: Plan 03-02 closeout measured; human MDNS-10 decision pending
-state_head: 481c06d41223339df94dfc93e474664c69742103
+last_activity_desc: MDNS-10 complete; human approved zeroconf go
+state_head: 0af17c8
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -27,12 +27,12 @@ See: .planning/PROJECT.md (updated 2026-09-10)
 
 ## Current Position
 
-Phase: 03 (mDNS Responder) — AWAITING DECISION
-Plan: 2 of 2, Task 3
-Status: Awaiting human MDNS-10 decision
-Last activity: 2026-09-23 — Plan 03-02 closeout measured; human MDNS-10 decision pending
+Phase: 03 (mDNS Responder) — READY FOR IMPLEMENTATION PLANNING
+Plan: 03-02 complete; remaining implementation plans to be created
+Status: Ready to plan MDNS-01–09/11
+Last activity: 2026-09-23 — MDNS-10 complete; human approved zeroconf go
 
-Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Silent listener loss is accepted outside D-08; supported-operation failure checks remain in the closeout. No production integration is authorised.
+Follow-up: The earlier 60-minute allowance is exhausted. The user approved the subsequent bounded recovery prototype; see `.planning/phases/03-mdns-responder/03-RECOVERY-PROTOTYPE.md`. Local partial-startup cleanup, explicit retry and injected runtime-failure policy passed with uninterrupted WiFi control. Silent listener loss is accepted outside D-08; supported-operation failure checks passed in the closeout. No production integration is authorised.
 
 Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 
@@ -40,7 +40,7 @@ Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 
 **Velocity:**
 
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: —
 - Total execution time: —
 
@@ -77,6 +77,8 @@ Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- [Phase 03]: User approved zeroconf 0.151.3 on 2026-09-23 against the validated closeout digest; MDNS-10 complete, return to planning.
+
 - Roadmap: Horizontal layers — core identity → IPv6 transport → mDNS → CLI/config → API → verification.
 - [Phase 02]: Thread devices accept only exact untagged IPv6 unicast; rejection happens before counters, activity, acknowledgements or processing.
 - [Phase 02]: The server atomically publishes a same-port IPv4 plus `AF_INET6`/`V6ONLY` pair, with protocol-owned immutable reply routing and bounded generation-aware shutdown.
@@ -89,7 +91,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 3]: MDNS-10 awaits the human decision on 03-ZEROCONF-CLOSEOUT.json; MDNS-01–09/11 remain pending and production integration is not authorised
+- [Phase 3]: MDNS-10 complete with approved zeroconf go; MDNS-01–09/11 remain pending implementation and require new plans
 - [Phase 3]: Port 5353 is owned by the host mDNS daemon on macOS and Windows; legacy-unicast replies are the load-bearing path for `lifx-async`
 - [Phase 6]: No Windows CI leg — Windows socket-option guards must be covered by simulation tests instead
 - [Maintenance]: The existing Starlette test-client deprecation remains deferred in Phase 02 deferred-items.md.
@@ -105,7 +107,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-23T07:01:48.946192Z
-Stopped at: Plan 03-02 Task 3: awaiting human MDNS-10 decision from validated closeout evidence
+Stopped at: Plan 03-02 complete; zeroconf go approved; ready for implementation planning
 Resume file: .planning/phases/03-mdns-responder/03-02-PLAN.md
 
 Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in 0.538357 seconds, complete DNS-SD records across 12 datagrams, and successful WiFi/Thread power reads. Only the first datagram repeats the question; this is an accepted compatibility exception, not full RFC compliance. No harness changes.
@@ -116,4 +118,4 @@ Historical continuation tested input head: `b8a4607`; CI run `35803195241` passe
 
 Listener-health follow-up (2026-09-23): `03-LISTENER-HEALTH-INVESTIGATION.md` and `03-recovery-evidence/listener-health-local-macos.json` record real transport-close injection. Both socket descriptors closed, while `started` and the adapter stayed running; startup wait and same-interface refresh returned normally with zero open readers. No supported direct failure callback was found. Superseded by the subsequent D-08 amendment: silent loss is accepted, with no callback or responsiveness guarantee required. MDNS-10 remains provisional pending the other closeout cases.
 
-Current closeout: `03-02-CHECKPOINT.md` and `03-ZEROCONF-CLOSEOUT.json` bind the approved 120-minute allowance, evaluated head, official distribution, retained historical inputs and current platform receipts. Plan 03-02 has no completion summary until the user records the Task 3 decision. A go returns to planning; Phase 3 remains incomplete.
+Current closeout: `03-02-CHECKPOINT.md` and `03-ZEROCONF-CLOSEOUT.json` bind the approved 120-minute allowance, evaluated head, official distribution, retained historical inputs and current platform receipts. The user approved go; 03-02-SUMMARY.md records completion of MDNS-10. Next: $gsd-plan-phase 3. Phase 3 remains incomplete.
