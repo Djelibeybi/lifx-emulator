@@ -23,6 +23,7 @@ import sys
 import threading
 import time
 import traceback
+import urllib.request
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -30,6 +31,7 @@ from typing import Any, Literal
 
 if os.environ.get("MDNS_SPIKE_WORKER") == "1":
     from lifx.api import discover_mdns
+    from lifx.devices import Light
     from lifx.network.discovery.mdns.dns import (
         DNS_TYPE_A,
         DNS_TYPE_AAAA,
@@ -48,6 +50,7 @@ if os.environ.get("MDNS_SPIKE_WORKER") == "1":
         Advertisement,
         build_legacy_unicast_responses,
     )
+    from mdns_spike_inputs.zeroconf_recovery import RecoveryPrototype
     from zeroconf import IPVersion, NonUniqueNameException, ServiceInfo
     from zeroconf.asyncio import AsyncZeroconf
 
@@ -580,6 +583,27 @@ def _complete_record_sets(
     return complete
 
 
+def _owned_query_records(records, serials):
+    names = {f"{serial}.{SERVICE_TYPE}".rstrip(".").lower() for serial in serials}
+    names.update(f"{serial}.local" for serial in serials)
+    return [
+        record
+        for record in records
+        if record.name.rstrip(".").lower() in names
+        or (record.rtype == 12 and str(record.parsed_data).rstrip(".").lower() in names)
+    ]
+
+
+def _query_serials(records):
+    return {
+        record.parsed_data.pairs["id"]
+        for record in records
+        if record.rtype == DNS_TYPE_TXT
+        and isinstance(record.parsed_data, TxtData)
+        and record.parsed_data.pairs.get("id")
+    }
+
+
 async def _collect_query(
     client: socket.socket,
     query: bytes,
@@ -589,6 +613,7 @@ async def _collect_query(
     direct_record: tuple[str, int] | None = None,
     expected_records: dict[str, dict[str, Any]] | None = None,
     observe_until_timeout: bool = False,
+    owned_serials: set[str] | None = None,
 ) -> dict[str, Any]:
     loop = asyncio.get_running_loop()
     started = time.monotonic()
@@ -620,35 +645,38 @@ async def _collect_query(
             break
         except (OSError, ValueError):
             continue
+        packet_records = (
+            packet.records
+            if owned_serials is None
+            else _owned_query_records(packet.records, owned_serials)
+        )
+        if not packet_records:
+            continue
         wire_checks.append(
             peer[1] == 5353
             and packet.header.id == struct.unpack("!H", query[:2])[0]
             and packet.header.qd_count in ((1,) if not records else (0, 1))
-            and all(not r.cache_flush and 0 < r.ttl <= 10 for r in packet.records)
+            and all(not r.cache_flush and 0 < r.ttl <= 10 for r in packet_records)
         )
-        records.extend(packet.records)
+        records.extend(packet_records)
         datagram_sizes.append(len(raw))
-        record_counts.append(len(packet.records))
-        observed_types.update(record.type_name for record in packet.records)
+        record_counts.append(len(packet_records))
+        observed_types.update(record.type_name for record in packet_records)
         if direct_record is not None:
             wanted_name, wanted_type = direct_record
             direct_match = direct_match or any(
                 record.rtype == wanted_type
                 and record.name.rstrip(".").lower() == wanted_name.rstrip(".").lower()
-                for record in packet.records
+                for record in packet_records
             )
-        types = {record.rtype for record in packet.records}
+        types = {record.rtype for record in packet_records}
         if {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(types) and (
             DNS_TYPE_A in types or DNS_TYPE_AAAA in types
         ):
             complete_datagrams += 1
         if expected_records is not None:
             complete_serials = _complete_record_sets(records, expected_records)
-        for record in packet.records:
-            if record.rtype == DNS_TYPE_TXT and isinstance(record.parsed_data, TxtData):
-                serial = record.parsed_data.pairs.get("id")
-                if serial:
-                    serials.add(serial)
+        serials.update(_query_serials(packet_records))
     usage = resource.getrusage(resource.RUSAGE_SELF)
     matched_serials = serials & expected_serials
     return {
@@ -718,6 +746,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
             bytes(query),
             timeout=min(15.0, 4.0 + total / 10),
             expected_serials={device.state.serial for device in devices},
+            owned_serials={device.state.serial for device in devices},
             expected_records={
                 device.state.serial: {
                     "port": port,
@@ -740,6 +769,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                 _dns_query(wifi_name, DNS_TYPE_A, 0xA001),
                 timeout=2.0,
                 expected_serials=set(),
+                owned_serials={device.state.serial for device in devices},
                 direct_record=(wifi_name, DNS_TYPE_A),
             )
         direct_aaaa: dict[str, Any] | None = None
@@ -750,6 +780,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                 _dns_query(thread_name, DNS_TYPE_AAAA, 0xA002),
                 timeout=2.0,
                 expected_serials=set(),
+                owned_serials={device.state.serial for device in devices},
                 direct_record=(thread_name, DNS_TYPE_AAAA),
             )
         membership = None
@@ -765,6 +796,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                     timeout=2.0,
                     expected_serials=remaining,
                     observe_until_timeout=True,
+                    owned_serials={device.state.serial for device in devices},
                 )
             readd_retried = False
             readd_error = None
@@ -788,6 +820,7 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                     timeout=2.0,
                     expected_serials={device.state.serial for device in devices},
                     observe_until_timeout=True,
+                    owned_serials={device.state.serial for device in devices},
                 )
             membership = {
                 "readd_error": readd_error,
@@ -909,8 +942,11 @@ async def _expanded_worker() -> int:
             for task in asyncio.all_tasks()
             if task is not current and not task.done()
         ]
+        stage = "closeout"
+        closeout = await _closeout_cases()
         payload = {
             "execution_status": "completed",
+            "closeout": closeout,
             "oracle": oracle,
             "benchmarks": benchmarks,
             "daemon_processes": _host_daemon_identity(),
@@ -2551,6 +2587,9 @@ def _run_zeroconf_platform(args: argparse.Namespace) -> int:
         "contract": "complete-record-sets-with-continuation-question-exception",
         "input_spec_digest": inputs["input_spec_digest"],
         "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "adapter_sha256": _closeout_hash(
+            REPOSITORY_ROOT / "scripts/mdns_spike_inputs/zeroconf_recovery.py"
+        ),
         "raw_darwin_query_scoped": sys.platform == "darwin",
         "valid": valid,
         "candidate_status": "rejected"
@@ -2921,9 +2960,981 @@ def render_evidence(path: Path) -> Path:
     return output
 
 
+CLOSEOUT_QUERY_COUNT = 256
+CLOSEOUT_PHASE = REPOSITORY_ROOT / ".planning/phases/03-mdns-responder"
+CLOSEOUT_FILES = (
+    "scripts/spike_mdns_candidates.py",
+    "scripts/mdns_spike_inputs/zeroconf_recovery.py",
+    "scripts/mdns_spike_tests/test_candidates.py",
+    "scripts/mdns_spike_tests/test_recovery.py",
+    "scripts/mdns_spike_inputs/active.json",
+)
+
+
+def _closeout_address(family, override, bind, enabled=True):
+    if family not in ("wifi", "thread"):
+        raise ValueError("unknown family")
+    if not enabled:
+        if family == "thread":
+            raise ValueError("Thread cannot opt out")
+        return None
+    value = ipaddress.ip_address(bind if override is None else override)
+    expected = 6 if family == "thread" else 4
+    if value.version != expected or value.is_unspecified or value.is_link_local:
+        raise ValueError("advertisement requires a concrete matching-family address")
+    if value.is_multicast or getattr(value, "scope_id", None):
+        raise ValueError("advertisement must be unicast and unscoped")
+    return str(value)
+
+
+def _closeout_constructor(factory, ip_version, interface):
+    address = _closeout_address("wifi", interface, interface)
+    return factory(interfaces=[address], ip_version=ip_version)
+
+
+def _closeout_windows_simulation(factory, ip_version):
+    _closeout_constructor(factory, ip_version, "127.0.0.1")
+    return {
+        "status": "simulated",
+        "platform": "Windows",
+        "real_windows_network": False,
+        "scope": "injected public constructor seam; no Windows sockets exercised",
+        "interfaces": ["127.0.0.1"],
+        "ip_version": "V4Only",
+    }
+
+
+def _closeout_malformed_corpus():
+    header = struct.pack("!HHHHHH", 0xF001, 0, 1, 0, 0, 0)
+    return {
+        "empty": b"",
+        "short-header": b"\x01\x02",
+        "truncated-question": header + b"\x05ab",
+        "compression-loop": header + b"\xc0\x0c\x00\x0c\x00\x01",
+        "large": header + bytes(8192 - len(header)),
+    }
+
+
+def _closeout_inventory():
+    current = asyncio.current_task()
+    fd_dir = Path("/proc/self/fd") if sys.platform == "linux" else Path("/dev/fd")
+    return {
+        "pending_tasks": sorted(
+            t.get_name()
+            for t in asyncio.all_tasks()
+            if t is not current and not t.done()
+        ),
+        "threads": sorted(t.name for t in threading.enumerate()),
+        "descriptor_count": len(list(fd_dir.iterdir())),
+    }
+
+
+def _closeout_info(serial, family, address, port):
+    return ServiceInfo(
+        SERVICE_TYPE,
+        f"{serial}.{SERVICE_TYPE}",
+        addresses=[ipaddress.ip_address(address).packed],
+        port=port,
+        properties={
+            "id": serial,
+            "p": "27",
+            "fw": "4.200",
+            "tm": "2" if family == "thread" else "1",
+        },
+        server=f"{serial}.local.",
+    )
+
+
+def _closeout_fit():
+    rows = []
+    cases = [
+        ("wifi-fallback", "wifi", None, "127.0.0.1", True, "127.0.0.1"),
+        ("thread-fallback", "thread", None, "::1", True, "::1"),
+        ("thread-override", "thread", "fd00::1", "::", True, "fd00::1"),
+        ("equivalent-ipv6", "thread", "fd00:0:0:0::1", "::", True, "fd00::1"),
+        ("wifi-override", "wifi", "127.0.0.2", "0.0.0.0", True, "127.0.0.2"),
+        ("wifi-opt-out", "wifi", None, "0.0.0.0", False, None),
+        ("thread-opt-out", "thread", None, "::1", False, "reject"),
+        ("blank", "wifi", "", "127.0.0.1", True, "reject"),
+        ("malformed", "wifi", "invalid", "127.0.0.1", True, "reject"),
+        ("wrong-family-v4", "thread", "127.0.0.1", "::1", True, "reject"),
+        ("wrong-family-v6", "wifi", "::1", "127.0.0.1", True, "reject"),
+        ("wildcard-v4", "wifi", None, "0.0.0.0", True, "reject"),
+        ("wildcard-v6", "thread", None, "::", True, "reject"),
+        ("link-local-v4", "wifi", "169.254.1.1", "127.0.0.1", True, "reject"),
+        ("link-local-v6", "thread", "fe80::1", "::1", True, "reject"),
+        ("scoped-link-local", "thread", "fe80::1%1", "::1", True, "reject"),
+    ]
+    for name, family, override, bind, enabled, expected in cases:
+        try:
+            selected = _closeout_address(family, override, bind, enabled)
+        except ValueError:
+            selected = "reject"
+        addresses = None
+        if selected not in (None, "reject"):
+            info = _closeout_info("d073d503c001", family, selected, 56700)
+            addresses = info.parsed_addresses(IPVersion.All)
+        rows.append(
+            {
+                "case": name,
+                "selected": selected,
+                "expected": expected,
+                "public_addresses": addresses,
+                "passed": selected == expected
+                and (addresses is None or addresses == [selected]),
+            }
+        )
+    calls = []
+    simulation = _closeout_windows_simulation(
+        lambda **kw: calls.append(kw), IPVersion.V4Only
+    )
+    simulation["constructor_observed"] = calls == [
+        {"interfaces": ["127.0.0.1"], "ip_version": IPVersion.V4Only}
+    ]
+    return {
+        "rows": rows,
+        "windows": simulation,
+        "validation_owner": "small spike adapter before ServiceInfo/registration",
+        "record_owner": "public ServiceInfo; native A/AAAA representation",
+        "production_integration": False,
+    }
+
+
+async def _closeout_discover(serial):
+    found = False
+    async for device in discover_mdns(timeout=2, max_response_time=0.2):
+        try:
+            found = found or str(device.serial) == serial
+        finally:
+            await device.close()
+    return found
+
+
+async def _closeout_query(interface, info, query_id, direct=False):
+    with _new_mdns_client(interface) as client:
+        local_port = client.getsockname()[1]
+        metrics = await _collect_query(
+            client,
+            _dns_query(
+                info.server if direct else SERVICE_TYPE,
+                DNS_TYPE_A if direct else DNS_TYPE_PTR,
+                query_id,
+            ),
+            timeout=2.0,
+            owned_serials={"d073d503c001"},
+            expected_serials=set() if direct else {"d073d503c001"},
+            direct_record=(info.server, DNS_TYPE_A) if direct else None,
+            expected_records=None
+            if direct
+            else {
+                "d073d503c001": {
+                    "port": info.port,
+                    "txt": {"id": "d073d503c001", "p": "27", "fw": "4.200", "tm": "1"},
+                    "address": (1, interface),
+                }
+            },
+        )
+        return {
+            "query_id": query_id,
+            "source_port": local_port,
+            "direct": direct,
+            "passed": metrics["discovered"] == 1
+            and metrics["wire_checks_passed"]
+            and (direct or metrics["complete_devices"] == 1),
+            "metrics": metrics,
+        }
+
+
+async def _closeout_robustness(interface):
+    before = _closeout_inventory()
+    owner = _closeout_constructor(AsyncZeroconf, IPVersion.V4Only, interface)
+    info = _closeout_info("d073d503c001", "wifi", interface, 56700)
+    payload = {"before": before, "corpus": {}, "queries": []}
+    try:
+        await owner.zeroconf.async_wait_for_start()
+        await owner.async_update_interfaces([interface])
+        announcement = await owner.async_register_service(info, ttl=10)
+        await announcement
+        with _new_mdns_client(interface) as sender:
+            for name, datagram in _closeout_malformed_corpus().items():
+                await asyncio.get_running_loop().sock_sendto(
+                    sender, datagram, (MDNS_IPV4_GROUP, 5353)
+                )
+                payload["corpus"][name] = {
+                    "bytes_sent": len(datagram),
+                    "sha256": hashlib.sha256(datagram).hexdigest(),
+                }
+        payload["after_malformed"] = await _closeout_query(interface, info, 0xD001)
+        started = time.monotonic()
+        inventories = []
+        for offset in range(0, CLOSEOUT_QUERY_COUNT, 16):
+            payload["queries"].extend(
+                await asyncio.gather(
+                    *(
+                        _closeout_query(interface, info, 0xE000 + i, bool(i % 2))
+                        for i in range(offset, offset + 16)
+                    )
+                )
+            )
+            await asyncio.sleep(0.05)
+            inventories.append(len(_closeout_inventory()["pending_tasks"]))
+        payload["flood_seconds"] = time.monotonic() - started
+        payload["batch_pending_tasks"] = inventories
+        payload["pristine_discovery_after_flood"] = await _closeout_discover(
+            "d073d503c001"
+        )
+    finally:
+        await owner.async_close()
+    await asyncio.sleep(0.1)
+    payload["after"] = _closeout_inventory()
+    payload["public_done"] = owner.zeroconf.done
+    return payload
+
+
+class _CloseoutFaultOwner:
+    """Inject only at public calls, owning a real unmodified zeroconf instance."""
+
+    def __init__(self, interface):
+        self.responder = _closeout_constructor(
+            AsyncZeroconf, IPVersion.V4Only, interface
+        )
+        self.fault = None
+        self.closed = False
+
+    async def _call(self, operation, *args, **kwargs):
+        if self.fault == operation:
+            raise OSError(f"injected {operation} operation failure")
+        value = await getattr(self.responder, f"async_{operation}")(*args, **kwargs)
+        if self.fault == f"{operation}.announcement":
+
+            async def failing_announcement():
+                await value
+                raise OSError(f"injected {operation} announcement failure")
+
+            return failing_announcement()
+        return value
+
+    async def async_register_service(self, info, **kwargs):
+        return await self._call("register_service", info, **kwargs)
+
+    async def async_update_service(self, info):
+        return await self._call("update_service", info)
+
+    async def async_unregister_service(self, info):
+        return await self._call("unregister_service", info)
+
+    async def async_update_interfaces(self, interfaces):
+        return await self._call("update_interfaces", interfaces)
+
+    async def async_close(self):
+        await self._call("close")
+        self.closed = True
+
+
+async def _closeout_operation(interface, operation, family):
+    serial = "d073d503c101"
+    families = ["wifi", "thread"] if family == "mixed" else [family]
+    devices = [
+        create_color_light(f"d073d503c10{i + 1}", connectivity=f)
+        for i, f in enumerate(families)
+    ]
+    server = EmulatedLifxServer(
+        devices, DeviceManager(DeviceRepository()), bind_address=interface, port=0
+    )
+    owners = []
+
+    def factory():
+        owner = _CloseoutFaultOwner(interface)
+        owners.append(owner)
+        return owner
+
+    adapter = RecoveryPrototype(factory)
+    client = None
+    powers = []
+    errors = []
+    control_task = None
+
+    async def control():
+        while True:
+            try:
+                powers.append(await client.get_power())
+            except Exception as error:
+                errors.append(type(error).__name__)
+            await asyncio.sleep(0.02)
+
+    try:
+        await server.start()
+        endpoint = server.ipv4_endpoint
+        info = _closeout_info(serial, "wifi", interface, endpoint[1])
+        assert await adapter.retry_mdns([info])
+        if family == "wifi":
+            client = Light(
+                serial, interface, port=endpoint[1], timeout=1, max_retries=0
+            )
+            control_task = asyncio.create_task(control())
+            await asyncio.sleep(0.1)
+        fault_map = {
+            "register": "register_service",
+            "announcement": "update_service.announcement",
+            "update": "update_service",
+            "unregister": "unregister_service",
+            "interfaces": "update_interfaces",
+            "close": "close",
+        }
+        owners[0].fault = fault_map[operation]
+        api_operation = "update" if operation == "announcement" else operation
+        value = [interface] if operation == "interfaces" else info
+        failed = not await adapter.operate(api_operation, value, server=server)
+        first_error = adapter.mdns_error
+        blocked = False
+        if operation == "close":
+            blocked = not await adapter.retry_mdns([info]) and len(owners) == 1
+            owners[0].fault = None
+        endpoints_closed = server.ipv4_endpoint is None and server.ipv6_endpoint is None
+        thread_rejected = False
+        try:
+            adapter.admit_thread()
+        except RuntimeError:
+            thread_rejected = True
+        retried = await adapter.retry_mdns([info]) if family == "wifi" else None
+        await asyncio.sleep(0.1)
+        return {
+            "operation": operation,
+            "family": family,
+            "failed": failed,
+            "first_error": first_error,
+            "thread_admission_rejected": thread_rejected,
+            "cleanup_blocked_replacement": blocked if operation == "close" else None,
+            "original_owner_closed": owners[0].closed,
+            "retry_succeeded": retried,
+            "endpoints_closed": endpoints_closed,
+            "wifi_same_endpoint": server.ipv4_endpoint == endpoint
+            if family == "wifi"
+            else None,
+            "wifi_control_replies": len(powers),
+            "wifi_control_errors": errors,
+            "wifi_values_match": all(p == 65535 for p in powers),
+            "scope": "injected supported-operation boundary with real responder/server",
+        }
+    finally:
+        await _closeout_cleanup_operation(control_task, client, owners, adapter, server)
+
+
+async def _closeout_cleanup_operation(task, client, owners, adapter, server):
+    if task:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+    if client:
+        await client.close()
+    for owner in owners:
+        owner.fault = None
+    await adapter.stop()
+    await server.stop()
+
+
+async def _closeout_cases():
+    interface = _select_ipv4_interface()
+    started = time.monotonic()
+    result = {
+        "version": importlib.metadata.version("zeroconf"),
+        "fit": _closeout_fit(),
+        "before": _closeout_inventory(),
+    }
+    result["robustness"] = await asyncio.wait_for(_closeout_robustness(interface), 90)
+    result["operations"] = []
+    for operation in (
+        "register",
+        "announcement",
+        "update",
+        "unregister",
+        "interfaces",
+        "close",
+    ):
+        for family in ("wifi", "thread", "mixed"):
+            result["operations"].append(
+                await _closeout_operation(interface, operation, family)
+            )
+    await asyncio.sleep(0.1)
+    result["after"] = _closeout_inventory()
+    result["elapsed_seconds"] = time.monotonic() - started
+    return result
+
+
+def _closeout_hash(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _closeout_ref(path):
+    path = Path(path).resolve()
+    return {
+        "path": str(path.relative_to(REPOSITORY_ROOT.resolve())),
+        "sha256": _closeout_hash(path),
+    }
+
+
+def _closeout_resolve(ref):
+    path = (REPOSITORY_ROOT / ref["path"]).resolve()
+    path.relative_to(REPOSITORY_ROOT.resolve())
+    if _closeout_hash(path) != ref["sha256"]:
+        raise ValueError(f"input digest mismatch: {ref['path']}")
+    return path
+
+
+def _closeout_provenance():
+    url = "https://pypi.org/pypi/zeroconf/json"
+    with urllib.request.urlopen(url, timeout=30) as response:
+        raw = response.read(16 * 1024 * 1024)
+    metadata = json.loads(raw)
+    sdist = next(item for item in metadata["urls"] if item["packagetype"] == "sdist")
+    return {
+        "url": url,
+        "retrieved_at": _utc_now(),
+        "response_sha256": hashlib.sha256(raw).hexdigest(),
+        "current_version": metadata["info"]["version"],
+        "repository": metadata["info"]["project_urls"]["Repository"],
+        "sdist_url": sdist["url"],
+        "sdist_sha256": sdist["digests"]["sha256"],
+    }
+
+
+def _closeout_retained():
+    manifest_path = CLOSEOUT_PHASE / "03-continuation-evidence/manifest.json"
+    manifest = _read_json(manifest_path)
+    refs = [_closeout_ref(manifest_path)]
+    for item in manifest["artifacts"]:
+        path = manifest_path.parent / item["file"]
+        ref = _closeout_ref(path)
+        if ref["sha256"] != item["sha256"]:
+            raise ValueError(f"retained manifest mismatch: {item['file']}")
+        refs.append(ref)
+    for name in (
+        "03-01-EVIDENCE.json",
+        "03-01-SUMMARY.md",
+        "03-ZEROCONF-REEVALUATION.json",
+        "03-ZEROCONF-REEVALUATION.md",
+        "03-recovery-evidence/local-macos.json",
+        "03-recovery-evidence/listener-health-local-macos.json",
+    ):
+        refs.append(_closeout_ref(CLOSEOUT_PHASE / name))
+    return refs
+
+
+def _closeout_robustness_passed(result):
+    corpus = result["corpus"]
+    if set(corpus) != set(_closeout_malformed_corpus()):
+        return False
+    if any(
+        corpus[name]
+        != {"bytes_sent": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+        for name, raw in _closeout_malformed_corpus().items()
+    ):
+        return False
+    queries = result["queries"]
+    if len(queries) != CLOSEOUT_QUERY_COUNT or {q["query_id"] for q in queries} != set(
+        range(0xE000, 0xE100)
+    ):
+        return False
+    return (
+        all(
+            q["passed"]
+            and q["metrics"]["wire_checks_passed"]
+            and q["metrics"]["discovered"] == 1
+            and q["source_port"] not in (0, 5353)
+            for q in queries
+        )
+        and result["after_malformed"]["passed"]
+        and result["pristine_discovery_after_flood"]
+    )
+
+
+def _closeout_resources_passed(result):
+    before, after = result["before"], result["after"]
+    batches = result["batch_pending_tasks"]
+    return (
+        result["public_done"]
+        and after["pending_tasks"] == before["pending_tasks"]
+        and after["threads"] == before["threads"]
+        and after["descriptor_count"] <= before["descriptor_count"]
+        and len(batches) == 16
+        and max(batches) <= batches[0]
+        and result["flood_seconds"] < 45
+    )
+
+
+def _closeout_operation_passed(row):
+    common = (
+        row["failed"] and bool(row["first_error"]) and row["thread_admission_rejected"]
+    )
+    if row["operation"] == "close":
+        common = common and row["cleanup_blocked_replacement"]
+    if row["family"] != "wifi":
+        # Close faults intentionally retain ownership until explicit cleanup.
+        return common and row["endpoints_closed"]
+    return (
+        common
+        and row["original_owner_closed"]
+        and row["retry_succeeded"]
+        and row["wifi_same_endpoint"]
+        and row["wifi_control_replies"] > 0
+        and not row["wifi_control_errors"]
+        and row["wifi_values_match"]
+    )
+
+
+def _closeout_operations_passed(rows):
+    expected = {
+        (op, family)
+        for op in (
+            "register",
+            "announcement",
+            "update",
+            "unregister",
+            "interfaces",
+            "close",
+        )
+        for family in ("wifi", "thread", "mixed")
+    }
+    return (
+        len(rows) == len(expected)
+        and {(r["operation"], r["family"]) for r in rows} == expected
+        and all(_closeout_operation_passed(r) for r in rows)
+    )
+
+
+def _closeout_case(status, evidence, acquisition=None):
+    return {
+        "candidate": "zeroconf",
+        "status": status,
+        "evidence": evidence,
+        "acquisition_step": acquisition,
+    }
+
+
+def _closeout_platform_checks(platform_payload):
+    result = platform_payload["result"]
+    closeout = result["closeout"]
+    fit = closeout["fit"]
+    simulation = fit["windows"]
+    checks = {
+        "malformed_flood": _closeout_robustness_passed(closeout["robustness"]),
+        "resources": _closeout_resources_passed(closeout["robustness"])
+        and closeout["before"] == closeout["after"],
+        "configuration": len(fit["rows"]) == 16
+        and all(row["passed"] for row in fit["rows"]),
+        "windows": simulation["status"] == "simulated"
+        and simulation["platform"] == "Windows"
+        and not simulation["real_windows_network"]
+        and simulation["constructor_observed"],
+        "supported_operations": _closeout_operations_passed(closeout["operations"]),
+        "pristine_client": all(
+            result["oracle"][family] and result["oracle"][family]["matched"]
+            for family in ("wifi", "thread")
+        ),
+        "daemon_coexistence": bool(result["daemon_processes"]),
+    }
+    populations = result["benchmarks"]
+    checks["complete_records"] = set(populations) == {
+        "wifi-1",
+        "thread-1",
+        "mixed-10",
+        "mixed-100",
+    } and all(
+        row["discovered"] == row["expected"] == row["complete_devices"]
+        and row["wire_checks_passed"]
+        for row in populations.values()
+    )
+    checks["membership"] = populations["mixed-10"]["membership"]["all_passed"]
+    checks["direct_queries"] = all(
+        row["direct_match"] and row["wire_checks_passed"]
+        for population in populations.values()
+        for row in (population["direct_a"], population["direct_aaaa"])
+        if row is not None
+    )
+    return checks
+
+
+def _closeout_verify_platform(ref, ledger, receipt_ref=None):
+    path = _closeout_resolve(ref)
+    payload = _read_json(path)
+    if payload["platform_candidate"] != "zeroconf" or not payload["valid"]:
+        raise ValueError("platform evidence is not valid zeroconf evidence")
+    if payload["runner_sha256"] != ledger["inputs"][0]["sha256"]:
+        raise ValueError("platform runner differs from evaluated input")
+    if payload["adapter_sha256"] != ledger["inputs"][1]["sha256"]:
+        raise ValueError("platform adapter differs from evaluated input")
+    if payload["result"]["closeout"]["version"] != ledger["evaluated_version"]:
+        raise ValueError("platform version differs from evaluated version")
+    if payload["input_spec_digest"] != resolve_inputs()["input_spec_digest"]:
+        raise ValueError("platform input identity mismatch")
+    if receipt_ref is not None:
+        receipt = _read_json(_closeout_resolve(receipt_ref))
+        args = argparse.Namespace(
+            receipt=str(_closeout_resolve(receipt_ref)),
+            head_sha=ledger["evaluated_head"],
+        )
+        if _validate_ci_receipt(args) != 0 or receipt["candidate"] != "zeroconf":
+            raise ValueError("invalid exact-head CI receipt")
+        if receipt["evidence_sha256"] != ref["sha256"]:
+            raise ValueError("CI receipt is for different evidence")
+        if receipt["environments"]["platform"] != payload["result"]["environment"]:
+            raise ValueError("CI receipt environment mismatch")
+    return payload
+
+
+def _closeout_derive_cases(ledger):
+    cases = {}
+    for name in ("local", "linux", "darwin"):
+        entry = ledger["platforms"].get(name)
+        if entry is None:
+            cases[f"platform_{name}"] = _closeout_case(
+                "untested",
+                "No exact-input receipt",
+                (
+                    f"Run run-zeroconf-platform for {ledger['evaluated_head']} "
+                    f"on {name} and retain its matching receipt"
+                ),
+            )
+            continue
+        payload = _closeout_verify_platform(
+            entry["evidence"], ledger, entry.get("receipt")
+        )
+        if name != "local" and (
+            "receipt" not in entry or payload["result"]["environment"]["os"] != name
+        ):
+            raise ValueError("CI receipt or platform mismatch")
+        for check, passed in _closeout_platform_checks(payload).items():
+            status = (
+                "simulated"
+                if check == "windows" and passed
+                else "demonstrated"
+                if passed
+                else "failed"
+            )
+            cases[f"{name}_{check}"] = _closeout_case(
+                status,
+                entry["evidence"]["path"],
+                None
+                if passed
+                else f"Remeasure {check} on {name} at the evaluated head",
+            )
+    provenance = ledger["provenance"]
+    unchanged = (
+        provenance["current_version"] == ledger["evaluated_version"]
+        and provenance["sdist_sha256"] == resolve_inputs()["candidate"]["sdist_sha256"]
+    )
+    cases["current_version"] = _closeout_case(
+        "demonstrated" if unchanged else "untested",
+        provenance["url"],
+        None
+        if unchanged
+        else (
+            "Run all closeout and platform/packaging cases in an isolated uv "
+            "environment for the current registry version before selecting it"
+        ),
+    )
+    retained = {Path(r["path"]).name: _closeout_resolve(r) for r in ledger["retained"]}
+    packaging = _read_json(retained["intel-b8a4607-zeroconf-packaging.json"])
+    packaged = packaging == {
+        "candidate": "zeroconf",
+        "version": ledger["evaluated_version"],
+        "async_api_imported": True,
+    }
+    cases["retained_packaging"] = _closeout_case(
+        "demonstrated" if packaged else "untested",
+        str(
+            retained["intel-b8a4607-zeroconf-packaging.json"].relative_to(
+                REPOSITORY_ROOT
+            )
+        ),
+        None if packaged else "Acquire version-matching Intel PyApp evidence",
+    )
+    # Re-evaluation is historical public-client evidence, not a raw timing proxy.
+    reevaluation = _read_json(retained["03-ZEROCONF-REEVALUATION.json"])
+    ledger_benchmarks = _closeout_public_benchmarks(reevaluation, retained)
+    cases["retained_fleet_evidence"] = _closeout_case(
+        "demonstrated" if ledger_benchmarks else "untested",
+        (
+            "public-client 100-device local observation plus labelled raw 1/10/100 "
+            "record timing/CPU/RSS in hash-verified continuation records"
+        ),
+        None
+        if ledger_benchmarks
+        else (
+            "Acquire candidate-specific public-client 1/10/100 discovery "
+            "timings with CPU/RSS metrics"
+        ),
+    )
+    return cases
+
+
+def _closeout_public_benchmarks(reevaluation, retained):
+    public_passed = (
+        reevaluation["zeroconf"] == "0.151.3"
+        and reevaluation["expected"] == reevaluation["discovered"] == 100
+        and not reevaluation["missing"]
+        and not reevaluation["endpoint_or_connectivity_failures"]
+        and all(row["passed"] for row in reevaluation["control"].values())
+    )
+    for name in ("linux-b8a4607.json", "macos-b8a4607.json"):
+        payload = _read_json(retained[name])
+        result = payload["result"]
+        for population in ("wifi-1", "thread-1", "mixed-10", "mixed-100"):
+            row = result["benchmarks"][population]
+            if not (
+                row["complete_devices"] == row["expected"]
+                and row["wire_checks_passed"]
+                and row["cpu_seconds"] >= 0
+                and row["peak_rss"] > 0
+            ):
+                return False
+    return public_passed
+
+
+def _closeout_decision_digest(ledger):
+    return _digest({key: value for key, value in ledger.items() if key != "decision"})
+
+
+def _closeout_validate_retained(ledger, allowance):
+    for ref in ledger["retained"]:
+        original = subprocess.check_output(
+            ["git", "show", f"{allowance['base_revision']}:{ref['path']}"]
+        )
+        if hashlib.sha256(original).hexdigest() != ref["sha256"]:
+            raise ValueError("historical input changed since allowance baseline")
+    retained = {
+        Path(ref["path"]).name: _closeout_resolve(ref) for ref in ledger["retained"]
+    }
+    manifest = _read_json(retained["manifest.json"])
+    entries = {row["file"]: row for row in manifest["artifacts"]}
+    for name in ("linux-b8a4607.json", "macos-b8a4607.json"):
+        entry = entries[name]
+        payload = _read_json(retained[name])
+        receipt = _read_json(retained[name.replace(".json", "-receipt.json")])
+        runner = subprocess.check_output(
+            ["git", "show", f"{entry['source_head']}:scripts/spike_mdns_candidates.py"]
+        )
+        if payload["runner_sha256"] != hashlib.sha256(runner).hexdigest():
+            raise ValueError("retained runner identity mismatch")
+        if (
+            receipt["candidate"] != "zeroconf"
+            or receipt["candidate_head_sha"] != entry["source_head"]
+            or receipt["evidence_sha256"] != entry["sha256"]
+            or receipt["candidate_final_digest"]
+            != resolve_inputs()["candidate"]["sdist_sha256"]
+        ):
+            raise ValueError("retained zeroconf receipt mismatch")
+    receipt = _read_json(retained["intel-b8a4607-intel-pyapp-receipt.json"])
+    for field, filename in (
+        ("app_metadata_sha256", "intel-b8a4607-app-METADATA.txt"),
+        ("first_run_sha256", "intel-b8a4607-first-run.txt"),
+        ("hashes_sha256", "intel-b8a4607-hashes.txt"),
+    ):
+        if receipt[field] != _closeout_hash(retained[filename]):
+            raise ValueError("composite Intel packaging receipt mismatch")
+    metadata = retained["intel-b8a4607-app-METADATA.txt"].read_text()
+    if f"Requires-Dist: zeroconf=={ledger['evaluated_version']}" not in metadata:
+        raise ValueError("packaged candidate differs from evaluated version")
+    if (
+        receipt["candidate"] != "lifx-direct"
+        or receipt["platform_leg"] != "intel-pyapp"
+    ):
+        raise ValueError("historical packaging receipt was relabelled")
+
+
+def _closeout_routes(cases):
+    complete = all(
+        row["candidate"] == "zeroconf"
+        and row["status"]
+        == ("simulated" if name.endswith("_windows") else "demonstrated")
+        for name, row in cases.items()
+    )
+    return ["go", "provisional"] if complete else ["provisional"]
+
+
+def _closeout_validate_budget(ledger, allowance):
+    budget = ledger["budget"]
+    if (
+        allowance["decision"] != "approve-120"
+        or budget["active_budget_seconds"] != 7200
+    ):
+        raise ValueError("fresh allowance missing")
+    if (
+        not 0 <= budget["active_elapsed_seconds"] <= 7200
+        or budget["ci_queue_seconds"] < 0
+    ):
+        raise ValueError("active-work budget exceeded or invalid")
+    started = datetime.fromisoformat(allowance["started_at"].replace("Z", "+00:00"))
+    recorded = datetime.fromisoformat(ledger["recorded_at"].replace("Z", "+00:00"))
+    if abs((recorded - started).total_seconds() - budget["active_elapsed_seconds"]) > 1:
+        raise ValueError("budget elapsed time differs from recorded interval")
+
+
+def _closeout_validate_identity(ledger):
+    expected = {
+        "schema_version": 1,
+        "candidate": "zeroconf",
+        "source_revision": ORACLE_REVISION,
+        "runtime_status_contract": "lifecycle only; silent listener loss accepted",
+        "pending_requirements": [f"MDNS-{i:02d}" for i in (*range(1, 10), 11)],
+        "production_implementation_authorised": False,
+    }
+    if any(ledger[key] != value for key, value in expected.items()):
+        raise ValueError("closeout identity, scope or status contract mismatch")
+    provenance = ledger["provenance"]
+    if (
+        provenance["repository"] != "https://github.com/python-zeroconf/python-zeroconf"
+        or provenance["url"] != "https://pypi.org/pypi/zeroconf/json"
+    ):
+        raise ValueError("unrecognised candidate provenance")
+    if [ref["path"] for ref in ledger["inputs"]] != list(CLOSEOUT_FILES):
+        raise ValueError("input inventory incomplete")
+    for ref in ledger["inputs"]:
+        _closeout_resolve(ref)
+        committed = subprocess.check_output(
+            ["git", "show", f"{ledger['evaluated_head']}:{ref['path']}"]
+        )
+        if hashlib.sha256(committed).hexdigest() != ref["sha256"]:
+            raise ValueError("input does not match evaluated git head")
+    if ledger["retained"] != _closeout_retained():
+        raise ValueError("historical evidence inventory mismatch")
+
+
+def _closeout_validate_decision(ledger):
+    cases = _closeout_derive_cases(ledger)
+    routes = _closeout_routes(cases)
+    if (
+        ledger["cases"] != cases
+        or ledger["decision_support"]["allowed"] != routes
+        or ledger["decision_support"]["cases_digest"] != _digest(cases)
+    ):
+        raise ValueError("decision cells overstate or differ from evidence")
+    decision = ledger["decision"]
+    if decision["status"] not in routes + ["pending-human"]:
+        raise ValueError("unsupported decision")
+    if decision["status"] != "pending-human":
+        if decision["evidence_digest"] != _closeout_decision_digest(ledger):
+            raise ValueError("human decision does not bind the measured evidence")
+        if not decision["rationale"] or not decision["authority"]:
+            raise ValueError("human decision rationale/authority is missing")
+
+
+def validate_zeroconf_closeout(path):
+    try:
+        ledger = _read_json(path)
+        allowance = _read_json(_closeout_resolve(ledger["allowance"]))
+        _closeout_validate_budget(ledger, allowance)
+        _closeout_validate_identity(ledger)
+        _closeout_validate_retained(ledger, allowance)
+        _closeout_validate_decision(ledger)
+    except (
+        KeyError,
+        ValueError,
+        TypeError,
+        OSError,
+        subprocess.SubprocessError,
+    ) as error:
+        print(f"Invalid closeout: {error}", file=sys.stderr)
+        return 1
+    print(
+        json.dumps(
+            {
+                "valid": True,
+                "allowed": ledger["decision_support"]["allowed"],
+                "decision": ledger["decision"]["status"],
+            }
+        )
+    )
+    return 0
+
+
+def _run_zeroconf_closeout(args):
+    allowance_path = CLOSEOUT_PHASE / "03-02-ALLOWANCE.json"
+    allowance = _read_json(allowance_path)
+    if args.active_budget_seconds != 7200 or allowance["decision"] != "approve-120":
+        raise ValueError("fresh case-bounded allowance is required")
+    started = datetime.fromisoformat(allowance["started_at"].replace("Z", "+00:00"))
+    if (datetime.now(UTC) - started).total_seconds() >= 7200:
+        raise ValueError("active allowance exhausted")
+    provenance = _closeout_provenance()
+    if args.candidate_version != resolve_inputs()["candidate"]["version"]:
+        raise ValueError("isolated candidate version does not match the retained pin")
+    evidence_dir = CLOSEOUT_PHASE / "03-closeout-evidence"
+    evidence_dir.mkdir(exist_ok=True)
+    local_path = (
+        Path(args.local_evidence)
+        if args.local_evidence
+        else evidence_dir / "local.json"
+    )
+    if not args.local_evidence:
+        if _run_zeroconf_platform(argparse.Namespace(output=str(local_path))):
+            raise ValueError("local platform probe failed; inspect retained output")
+    ledger = {
+        "schema_version": 1,
+        "candidate": "zeroconf",
+        "evaluated_version": args.candidate_version,
+        "source_revision": args.source_revision,
+        "evaluated_head": subprocess.check_output(
+            ["git", "rev-parse", args.evaluated_head], text=True
+        ).strip(),
+        "recorded_at": _utc_now(),
+        "allowance": _closeout_ref(allowance_path),
+        "budget": {
+            "active_budget_seconds": 7200,
+            "active_elapsed_seconds": round(
+                (datetime.now(UTC) - started).total_seconds(), 3
+            ),
+            "ci_queue_seconds": args.ci_queue_seconds,
+            "accounting": (
+                "conservative wall time including concurrent CI; no idle time excluded"
+            ),
+        },
+        "provenance": provenance,
+        "inputs": [_closeout_ref(REPOSITORY_ROOT / p) for p in CLOSEOUT_FILES],
+        "retained": _closeout_retained(),
+        "platforms": {"local": {"evidence": _closeout_ref(local_path)}},
+        "historical_direct_candidate": (
+            "03-01-EVIDENCE.json retained by digest; no result transferred to zeroconf"
+        ),
+        "runtime_status_contract": "lifecycle only; silent listener loss accepted",
+        "production_implementation_authorised": False,
+        "pending_requirements": [f"MDNS-{i:02d}" for i in (*range(1, 10), 11)],
+        "decision": {"status": "pending-human"},
+    }
+    for name in ("linux", "darwin"):
+        platform_path = evidence_dir / f"{name}.json"
+        receipt_path = evidence_dir / f"{name}-receipt.json"
+        if platform_path.exists() and receipt_path.exists():
+            ledger["platforms"][name] = {
+                "evidence": _closeout_ref(platform_path),
+                "receipt": _closeout_ref(receipt_path),
+            }
+    ledger["cases"] = _closeout_derive_cases(ledger)
+    ledger["decision_support"] = {
+        "allowed": _closeout_routes(ledger["cases"]),
+        "cases_digest": _digest(ledger["cases"]),
+    }
+    _write_json(Path(args.evidence), ledger)
+    return validate_zeroconf_closeout(Path(args.evidence))
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+    closeout = subparsers.add_parser("run-zeroconf-closeout")
+    closeout.add_argument("--evidence", required=True)
+    closeout.add_argument("--candidate-version", required=True)
+    closeout.add_argument("--source-revision", required=True)
+    closeout.add_argument("--active-budget-seconds", type=int, required=True)
+    closeout.add_argument("--evaluated-head", default="HEAD")
+    closeout.add_argument("--local-evidence")
+    closeout.add_argument("--ci-queue-seconds", type=float, default=0)
+    closeout.set_defaults(handler=_run_zeroconf_closeout)
+    validate_closeout = subparsers.add_parser("validate-zeroconf-closeout")
+    validate_closeout.add_argument("evidence")
+    validate_closeout.set_defaults(
+        handler=lambda args: validate_zeroconf_closeout(Path(args.evidence))
+    )
     worker = subparsers.add_parser("candidate-worker")
     worker.add_argument("--expanded", action="store_true")
     worker.add_argument("--direct", action="store_true")
