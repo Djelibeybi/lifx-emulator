@@ -17,3 +17,11 @@ The existing runner rejected aggregation by requiring one device per packet. Its
 5. Record passed, failed and untested gates before the time limit. Do not mark Phase 3 complete or begin production integration on incomplete evidence.
 
 The original plan remains halted at its decision gate. This continuation supersedes only its obsolete execution constraints; it does not turn its historical summary into a completed implementation.
+
+## Intermediate findings
+
+The first revised run (`da6053b`) passed local and hosted Ubuntu raw fleet discovery but exposed same-name re-registration failure. Source inspection and a local diagnostic found the cached PTR TTL was 1,125 seconds despite a ten-second advertisement. The bounded eleven-second retry therefore could not clear it. This is retained as evidence about fresh registration of a previously removed identity, not erased.
+
+A targeted local follow-up restored that previously owned identity using the public `async_update_service` API: nine remaining devices were observed after removal, the removed identity was absent, and all ten returned after restoration. Independent query IDs avoid zeroconf's duplicate-payload suppression; the original repeated query undercounted the remaining fleet. No private cache mutation, identity renaming or library patch is used. This is candidate-fit evidence; production conflict policy, listener failure recovery and status integration remain unproved.
+
+The first hosted macOS public oracle found neither WiFi nor Thread. The next revision retains raw-query diagnostic measurements even when public discovery fails, to identify which path is failing instead of dropping later evidence. No macOS success is inferred from Ubuntu or local macOS results.
