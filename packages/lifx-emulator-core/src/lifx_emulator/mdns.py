@@ -18,6 +18,10 @@ SERVICE_TYPE = "_lifx._udp.local."
 _OPERATION_TIMEOUT = 5.0
 
 
+class MdnsUpdateError(RuntimeError):
+    """An advertisement barrier failed without cancelling its caller."""
+
+
 class MdnsStatus(str, Enum):
     """Lifecycle state, not an independently verified network-health signal."""
 
@@ -61,7 +65,10 @@ class MdnsResponder:
         self.ipv6_address = ipv6_address
         self._owner: AsyncZeroconf | None = None
         self._services: dict[str, ServiceInfo] = {}
-        self._tombstones: dict[str, tuple[ServiceInfo, asyncio.TimerHandle]] = {}
+        # Keep successful identities for this owner lifetime: zeroconf may
+        # self-cache delayed PTR answers much longer than our wire TTL.
+        self._tombstones: dict[str, ServiceInfo] = {}
+        self._pending: Callable[[], dict[str, ServiceInfo]] | None = None
         self._lock = asyncio.Lock()
         self._tasks = BackgroundTaskTracker("mdns-reconcile")
         self._tail: asyncio.Task[None] | None = None
@@ -114,6 +121,10 @@ class MdnsResponder:
             announcement = await owner.async_update_service(info)
         else:
             announcement = await owner.async_unregister_service(info)
+        if operation in {"register", "update"}:
+            # The first public stage owns the registry entry; a failed probe
+            # never reaches this point and must never receive our goodbyes.
+            self._services[info.name] = info
         await announcement
 
     async def start(self, devices: Iterable[EmulatedLifxDevice]) -> None:
@@ -131,21 +142,23 @@ class MdnsResponder:
             await self.stop()
             raise
 
-    def schedule(self, infos: dict[str, ServiceInfo]) -> None:
-        """Queue one committed fleet generation, retaining every admitted update."""
+    def schedule(self, snapshot: Callable[[], dict[str, ServiceInfo]]) -> None:
+        """Coalesce committed changes into one owned latest-snapshot worker."""
         if self._error is not None or not self._tasks.accepting:
             return
-        task = self._tasks.schedule(self._run_reconcile(infos), "mdns-membership")
-        if task is not None:
-            self._tail = task
+        self._pending = snapshot
+        if self._tail is None or self._tail.done():
+            self._tail = self._tasks.schedule(self._run_reconcile(), "mdns-membership")
 
-    async def _run_reconcile(self, infos: dict[str, ServiceInfo]) -> None:
+    async def _run_reconcile(self) -> None:
         try:
-            async with self._lock:
-                if self._error is not None:
-                    raise self._error
-                await self._reconcile(infos)
-        except BaseException as error:
+            while self._pending is not None:
+                snapshot, self._pending = self._pending, None
+                async with self._lock:
+                    await self._reconcile(snapshot())
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
             self._error = error
             # Notify only after releasing the reconcile lock.
             if self._tasks.accepting and self._on_error is not None:
@@ -168,24 +181,19 @@ class MdnsResponder:
         )
         for name in removed:
             info = self._services.pop(name)
-            handle = asyncio.get_running_loop().call_later(10, self._expire, name)
-            self._tombstones[name] = (info, handle)
+            self._tombstones[name] = info
         operations: list[Awaitable[None]] = []
         for name, info in infos.items():
             previous = self._services.get(name)
             if previous is not None:
                 if self._same_records(previous, info):
                     continue
-                self._services[name] = info
                 operations.append(self._operation("update", info))
                 continue
             tombstone = self._tombstones.pop(name, None)
             if tombstone is not None:
-                owned, handle = tombstone
-                handle.cancel()
-                if self._same_records(owned, info):
-                    info = owned
-            self._services[name] = info
+                if self._same_records(tombstone, info):
+                    info = tombstone
             operations.append(
                 self._operation("update" if tombstone else "register", info)
             )
@@ -207,17 +215,18 @@ class MdnsResponder:
             second.addresses_by_version(IPVersion.All),
         )
 
-    def _expire(self, name: str) -> None:
-        self._tombstones.pop(name, None)
-
     async def wait_for_updates(self) -> None:
-        """Shield shared work from waiter cancellation; observe a stable tail."""
+        """Observe a stable worker without propagating its task cancellation."""
         while True:
             tail = self._tail
             if tail is not None:
-                await asyncio.shield(tail)
+                # asyncio.wait does not cancel the shared task when this caller
+                # is cancelled, nor re-raise and mutate its retained exception.
+                await asyncio.wait({tail})
+                if tail.cancelled():
+                    raise MdnsUpdateError("mDNS update interrupted by shutdown")
             if self._error is not None:
-                raise self._error
+                raise MdnsUpdateError(str(self._error)) from self._error
             if tail is self._tail:
                 return
 
@@ -225,9 +234,7 @@ class MdnsResponder:
         """Bound draining and goodbye work, then close the owned responder once."""
         self._tasks.stop_accepting()
         await self._tasks.shutdown(timeout=_OPERATION_TIMEOUT)
-        for _, handle in self._tombstones.values():
-            handle.cancel()
-        self._tombstones.clear()
+        self._pending = None
         owner = self._owner
         if owner is None:
             return
@@ -251,5 +258,8 @@ class MdnsResponder:
             await asyncio.wait_for(owner.async_close(), _OPERATION_TIMEOUT)
             self._owner = None
             self._services.clear()
+            self._tombstones.clear()
         if error is not None:
-            raise error
+            if isinstance(error, asyncio.CancelledError):
+                raise error
+            raise MdnsUpdateError(str(error)) from error
