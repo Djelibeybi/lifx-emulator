@@ -1040,3 +1040,20 @@ async def test_event_bridge_listener_coexistence():
     assert calls == [device]
     assert device.on_state_changed == observer.get_callback()
     ws.broadcast_device_added.assert_awaited_once()
+
+
+async def test_app_lifespans_release_membership_listeners(server):
+    original_observer = server.activity_observer
+    for _ in range(3):
+        app = create_api_app(server)
+        async with app.router.lifespan_context(app):
+            assert len(server._device_manager._lifecycle_listeners) == 2
+        assert server._device_manager._lifecycle_listeners == []
+        assert server.activity_observer is original_observer
+    app = create_api_app(server)
+    async with app.router.lifespan_context(app):
+        for i in range(5):
+            server.add_device(create_color_light(serial=f"d073d599{i:04x}"))
+        await asyncio.sleep(0)
+        assert server.websocket_events_dropped == 0
+    assert all(device.on_state_changed is None for device in server.get_all_devices())

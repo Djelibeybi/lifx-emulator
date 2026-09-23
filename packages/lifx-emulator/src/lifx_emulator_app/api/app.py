@@ -76,11 +76,16 @@ def create_api_app(server: EmulatedLifxServer) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         """Manage application lifecycle - start/stop background tasks."""
+        nonlocal disconnect_bridge
+        if disconnect_bridge is None:
+            disconnect_bridge = attach_bridge()
         background_task_tracker.start()
         try:
             stats_broadcaster.start()
             yield
         finally:
+            disconnect_bridge()
+            disconnect_bridge = None
             try:
                 await stats_broadcaster.stop()
             finally:
@@ -216,26 +221,32 @@ All server messages follow this format:
     app.state.ws_manager = ws_manager
     app.state.background_task_tracker = background_task_tracker
 
-    # Wire device lifecycle events to WebSocket broadcasts
-    wire_device_events(
-        server._device_manager,
-        ws_manager,
-        task_tracker=background_task_tracker,
-    )
+    def attach_bridge():
+        """Return cleanup for the callbacks owned by this application lifespan."""
+        disconnect_events = wire_device_events(
+            server._device_manager, ws_manager, task_tracker=background_task_tracker
+        )
+        state_observer = WebSocketStateChangeObserver(
+            ws_manager, task_tracker=background_task_tracker
+        )
+        disconnect_state = wire_device_state_events(
+            server._device_manager, state_observer
+        )
+        previous_activity = server.activity_observer
+        activity = WebSocketActivityObserver(
+            ws_manager, previous_activity, task_tracker=background_task_tracker
+        )
+        server.activity_observer = activity
 
-    # Wire device state change events to WebSocket broadcasts
-    state_observer = WebSocketStateChangeObserver(
-        ws_manager, task_tracker=background_task_tracker
-    )
-    wire_device_state_events(server._device_manager, state_observer)
+        def disconnect() -> None:
+            disconnect_events()
+            disconnect_state()
+            if server.activity_observer is activity:
+                server.activity_observer = previous_activity
 
-    # Wrap the activity observer with WebSocket broadcasting
-    # This preserves activity logging while adding real-time WebSocket updates
-    server.activity_observer = WebSocketActivityObserver(
-        ws_manager,
-        server.activity_observer,
-        task_tracker=background_task_tracker,
-    )
+        return disconnect
+
+    disconnect_bridge = attach_bridge()
 
     # Include routers with server dependency injection
     monitoring_router = create_monitoring_router(server)

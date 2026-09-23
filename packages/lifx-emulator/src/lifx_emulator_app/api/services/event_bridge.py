@@ -202,7 +202,7 @@ def wire_device_events(
     ws_manager: WebSocketManager,
     *,
     task_tracker: BackgroundTaskTracker | WebSocketEventQueue | None = None,
-) -> None:
+) -> Callable[[], None]:
     """Wire device lifecycle callbacks to WebSocket broadcasts.
 
     This sets up the DeviceManager callbacks to broadcast events to
@@ -219,7 +219,7 @@ def wire_device_events(
         logger.warning(
             "Device manager is not a DeviceManager instance, skipping event wiring"
         )
-        return
+        return lambda: None
 
     tracker = _task_tracker_or_fallback(task_tracker, "websocket-device-events")
 
@@ -242,11 +242,14 @@ def wire_device_events(
         )
         logger.debug("Scheduled device_removed broadcast for %s", serial)
 
-    device_manager.add_lifecycle_listener(
-        DeviceLifecycleListener(on_added=on_device_added, on_removed=on_device_removed)
+    listener = DeviceLifecycleListener(
+        on_added=on_device_added, on_removed=on_device_removed
     )
+    device_manager.add_lifecycle_listener(listener)
 
     logger.info("Device event callbacks wired to WebSocket manager")
+
+    return lambda: device_manager.remove_lifecycle_listener(listener)
 
 
 class WebSocketActivityObserver:
@@ -539,7 +542,7 @@ class WebSocketStateChangeObserver:
 def wire_device_state_events(
     device_manager: IDeviceManager,
     state_observer: WebSocketStateChangeObserver,
-) -> None:
+) -> Callable[[], None]:
     """Wire state change callbacks to all devices.
 
     Sets up the on_state_changed callback on all existing devices
@@ -555,24 +558,35 @@ def wire_device_state_events(
             "Device manager is not a DeviceManager instance, "
             "skipping state event wiring"
         )
-        return
+        return lambda: None
 
     callback = state_observer.get_callback()
+
+    previous: dict[str, tuple[EmulatedLifxDevice, StateChangeCallback | None]] = {}
+
+    def on_device_added(device: EmulatedLifxDevice) -> None:
+        """Attach state observation and retain the callback it replaces."""
+        previous[device.state.serial] = (device, device.on_state_changed)
+        device.on_state_changed = callback
 
     # Wire existing devices
     existing_devices = list(device_manager.get_all_devices())
     for device in existing_devices:
-        device.on_state_changed = callback
+        on_device_added(device)
         logger.debug("Wired state callback for device %s", device.state.serial)
 
     logger.info("Wired state callbacks for %d existing devices", len(existing_devices))
 
-    def on_device_added(device: EmulatedLifxDevice) -> None:
-        """Attach state observation without displacing other consumers."""
-        device.on_state_changed = callback
+    listener = DeviceLifecycleListener(on_added=on_device_added)
+    device_manager.add_lifecycle_listener(listener)
 
-    device_manager.add_lifecycle_listener(
-        DeviceLifecycleListener(on_added=on_device_added)
-    )
+    def disconnect() -> None:
+        device_manager.remove_lifecycle_listener(listener)
+        for device, original in previous.values():
+            if device.on_state_changed == callback:
+                device.on_state_changed = original
+        previous.clear()
 
     logger.info("Device state change callbacks wired to WebSocket manager")
+
+    return disconnect
