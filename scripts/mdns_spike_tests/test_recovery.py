@@ -161,3 +161,56 @@ async def test_concurrent_retries_create_only_one_responder():
     with pytest.raises(AttributeError):
         adapter.mdns_error = "hidden"
     await adapter.stop()
+
+
+@pytest.mark.parametrize(
+    "operation", ["register", "update", "unregister", "interfaces", "close"]
+)
+@pytest.mark.parametrize("family", ["wifi", "thread"])
+async def test_supported_operation_failures_keep_identity_and_retry(operation, family):
+    responder = FakeResponder()
+    second = FakeResponder()
+    owners = iter([responder, second])
+    adapter = RecoveryPrototype(lambda: next(owners))
+    assert await adapter.retry_mdns([1])
+    server = SimpleNamespace(
+        get_all_devices=lambda: [
+            SimpleNamespace(state=SimpleNamespace(connectivity=family))
+        ],
+        stop=AsyncMock(),
+    )
+    methods = {
+        "register": "async_register_service",
+        "update": "async_update_service",
+        "unregister": "async_unregister_service",
+        "interfaces": "async_update_interfaces",
+        "close": "async_close",
+    }
+    original_close = responder.async_close
+    setattr(
+        responder, methods[operation], AsyncMock(side_effect=OSError("operation fault"))
+    )
+    assert not await adapter.operate(operation, 1, server=server)
+    assert adapter.mdns_status == "failed"
+    assert operation in adapter.mdns_error and "operation fault" in adapter.mdns_error
+    assert server.stop.await_count == (family == "thread")
+    if operation == "close":
+        assert not await adapter.retry_mdns([1])
+        assert "operation fault" in adapter.mdns_error
+        responder.async_close = original_close
+    else:
+        assert responder.closed
+    assert not second.registered
+    assert await adapter.retry_mdns([1])
+    await adapter.stop()
+
+
+async def test_update_announcement_failure_is_awaited():
+    responder = FakeResponder()
+    adapter = RecoveryPrototype(lambda: responder)
+    assert await adapter.retry_mdns([1])
+    responder.announcement_failure = True
+    responder.async_update_service = responder.async_register_service
+    assert not await adapter.operate("update", 2)
+    assert "update.announcement" in adapter.mdns_error
+    assert responder.closed
