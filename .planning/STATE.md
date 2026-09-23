@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 4
-current_phase_name: CLI and Configuration
-status: planning
-stopped_at: Phase 3 complete, ready to plan Phase 4
+current_phase: 03
+current_phase_name: mDNS Responder
+status: verification_pending
+stopped_at: Phase 3 reopened for inline review; Linux receive-scope decision pending
 last_updated: "2026-09-23T10:12:08.039Z"
 last_activity: 2026-09-23
-last_activity_desc: Phase 3 complete, transitioned to Phase 4
+last_activity_desc: Phase 3 review fixes locally verified; hosted validation pending
 state_head: f8d9f86501385fcf57999d2094eff4d6b72ec52d
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 2
   total_plans: 15
   completed_plans: 15
-  percent: 50
+  percent: 33
 ---
 
 # Project State
@@ -23,18 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** A LAN client library can discover and control an emulated Thread device exactly as it would a real one: found only over mDNS with an AAAA record, reachable only by IPv6 unicast, every reply carrying the Thread connection bit.
-**Current focus:** Phase 4 — CLI and Configuration
+**Current focus:** Phase 3 — review follow-up
 
 ## Current Position
 
-Phase: 4 — CLI and Configuration
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-23 — Phase 3 complete, transitioned to Phase 4
+Phase: 3 — mDNS Responder
+Plan: All seven implemented; review follow-up open
+Status: Awaiting receive-scope decision and hosted verification
+Last activity: 2026-09-23 — Phase 3 review fixes locally verified; hosted validation pending
 
-Follow-up: Phase 3 verification passed 5/5. Hosted CI run 35846599552 passed all ten Python/OS jobs and both production integration jobs; the security audit has zero blocking threats. PR #224 remains open and unmerged. Next: $gsd-discuss-phase 4.
+Follow-up: See `.planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md`. Twelve review comments have fixes with 1,486 local tests passing. Linux receive-interface leakage is confirmed and needs a decision about the public-API-only constraint. The dependency now uses the user-approved `>=0.151.3`.
 
-Progress: [█████░░░░░] 50% (3 of 6 phases complete)
+Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 
 ## Performance Metrics
 
@@ -103,7 +103,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-09-23
-Stopped at: Phase 3 complete, ready to discuss and plan Phase 4
-Resume file: None
-
-Current evidence: `.planning/phases/03-mdns-responder/03-VERIFICATION.md` (5/5), `03-SECURITY.md` (zero blocking threats), and `03-EXECUTION-CHECKPOINT.md` (resolved checkpoint). Historical selection evidence remains in the Phase 3 directory. PR #224 is open; phase completion does not imply merge or release.
+Stopped at: Phase 3 review follow-up; receive-scope decision pending
+Resume file: .planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md

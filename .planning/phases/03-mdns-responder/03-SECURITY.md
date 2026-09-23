@@ -1,14 +1,16 @@
 ---
 phase: "03"
 slug: mdns-responder
-status: verified
-threats_open: 0
+status: blocked
+threats_open: 1
 asvs_level: 1
 block_on: high
 created: "2026-09-23"
 ---
 
 # Phase 3 — Security
+
+**Reopened 2026-09-23:** Current T-03-21 receive-interface isolation is OPEN (high). A Linux reproduction confirms that zeroconf can answer through a non-selected interface. The prior L1 presence check did not establish that boundary. See `03-REVIEW-FOLLOWUP.md`. No new risk acceptance or private socket modification has been authorised. The earlier audit below is retained as historical evidence.
 
 L1 presence audit by the gsd-security-auditor subagent at implementation head `721601a`. All 32 plan-scoped rows resolved: 27 mitigations present and five previously documented accepted dispositions. Five rows belong to halted/superseded 03-01 and are historical controls, not a current direct-responder requirement. No new risk acceptance is introduced here.
 
@@ -34,7 +36,7 @@ Production short paths below resolve under `packages/lifx-emulator-core/src/lifx
 | 03-01/T-03-04 | Denial of Service | Lifecycle/thread ownership | medium | mitigate | Repeat open/close with socket, task and thread inventories before/during/after. | closed (historical) | scripts/mdns_spike_tests/test_candidates.py:611-657; scripts/spike_mdns_candidates.py:1280-1324 |
 | 03-01/T-03-SC | Tampering | Candidate package and PyApp payload | high | mitigate | Official provenance, immutable commits, uv isolation, local-wheel hash/METADATA proof and non-publishing CI artefacts. | closed (historical) | scripts/spike_mdns_candidates.py:2405-2422,2708-2835; .github/workflows/ci.yml:235-241,312-409 |
 | 03-02/T-03-20 | Denial of Service | zeroconf datagram ingestion | high | mitigate | Fixed malformed/truncated corpus and 256-query pressure case must preserve a fresh valid query path, bounded completion and unchanged pending-task/thread inventory. | closed | scripts/spike_mdns_candidates.py:3014-3036,3155-3197,3488-3527 |
-| 03-02/T-03-21 | Spoofing / Information Disclosure | interface and legacy-unicast routing | high | mitigate | Exact-head receipts retain explicit IPv4 interface, source/destination/query correlation and exact public TXT/address records. | closed | scripts/spike_mdns_candidates.py:2997-3000,3039-3052,3120-3151 |
+| 03-02/T-03-21 | Spoofing / Information Disclosure | interface and legacy-unicast routing | high | mitigate | Exact-head receipts retain explicit IPv4 interface, source/destination/query correlation and exact public TXT/address records. | OPEN — blocking | scripts/spike_mdns_candidates.py:2997-3000,3039-3052,3120-3151 |
 | 03-02/T-03-22 | Tampering | candidate/version and historical evidence | high | mitigate | Validator checks official provenance, exact version/revision, SHA-256 inputs and candidate labels; direct-responder passes cannot fill zeroconf rows. | closed | scripts/spike_mdns_candidates.py:3654-3679,3802-3952 |
 | 03-02/T-03-23 | Denial of Service | lifecycle operation failures | high | mitigate | Public-operation boundary tests require retained error identity, owned cleanup, blocked replacement after cleanup failure and explicit retry only. | closed | scripts/mdns_spike_inputs/zeroconf_recovery.py:40-138; scripts/mdns_spike_tests/test_recovery.py:134-216 |
 | 03-02/T-03-24 | Denial of Service | silent listener loss | medium | accept | D-08 explicitly accepts nondetection for this test-oriented emulator; status text and the decision must avoid a network-health guarantee. | closed | 03-CONTEXT.md:58-61; 03-02-SUMMARY.md:88-90 |
@@ -85,7 +87,7 @@ No SUMMARY Threat Flags or unregistered flags were found. This is a presence aud
 
 - [x] All threats have a declared disposition.
 - [x] Previously accepted risks recorded.
-- [x] Zero blocking threats.
-- [x] Verified at configured ASVS L1 depth.
+- [ ] Zero blocking threats (Linux receive scope remains open).
+- [ ] Revised implementation and receive boundary verified.
 
-**Approval:** verified 2026-09-23.
+**Approval:** blocked pending T-03-21 resolution.

@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Thread Device Identity** - `connectivity`, firmware 4.200, zero WiFi signal and the header Thread bit, entirely in-memory (completed 2026-09-09)
 - [x] **Phase 2: IPv6 Transport and Thread Isolation** - Native `AF_INET6` socket, family-aware routing, Thread devices unreachable over IPv4, plus the server hygiene fixes (completed 2026-09-10)
-- [x] **Phase 3: mDNS Responder** - Spike-gated `_lifx._udp.local` responder answering legacy-unicast queries with AAAA-only Thread and A-only WiFi instances (completed 2026-09-23)
+- [ ] **Phase 3: mDNS Responder** - Spike-gated `_lifx._udp.local` responder answering legacy-unicast queries with AAAA-only Thread and A-only WiFi instances (completed 2026-09-23)
 - [ ] **Phase 4: CLI and Configuration** - `run()` decomposed, then flags, YAML and `export-config` for connectivity, IPv6 bind and mDNS
 - [ ] **Phase 5: Management API** - Create and report Thread devices over HTTP, with 422s for impossible combinations
 - [ ] **Phase 6: Verification Against lifx-async** - The acceptance oracle's own suites pass against the stock emulator on CI
@@ -101,7 +101,7 @@ Plans:
   4. A direct A or AAAA query for any advertised hostname is answered, and adding or removing a device at runtime changes the next reply's record set while the existing WebSocket device events keep firing unchanged.
   5. The core responder is opt-in and starts and stops with the server. If enabled mDNS startup fails, startup is fatal only when Thread devices are configured; WiFi-only operation continues with an observable mDNS failure. The responder leaves no sockets or tasks behind across pytest-asyncio function-scoped loops and is covered by both datagram-injection unit tests and loopback-multicast integration tests that pass on the Ubuntu and macOS CI legs.
 
-**Plans**: 7/7 plans closed, including historical halted 03-01. MDNS-01–11 verified; hosted Ubuntu/macOS production integration and the full Python matrix passed in run 35846599552. Security audit: zero blocking threats.
+**Plans**: 7/7 plans closed, including historical halted 03-01. MDNS-01–11 verified; hosted Ubuntu/macOS production integration and the full Python matrix passed in run 35846599552. Reopened after inline review: Linux receive-scope threat T-03-21 remains open; revised code awaits hosted verification.
 
 **Wave 1 — implementation-selection spike**
 
@@ -185,7 +185,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Thread Device Identity | 4/4 | Complete    | 2026-09-09 |
 | 2. IPv6 Transport and Thread Isolation | 4/4 | Complete    | 2026-09-10 |
-| 3. mDNS Responder | 7/7 | Complete    | 2026-09-23 |
+| 3. mDNS Responder | 7/7 implemented | Review follow-up; receive-scope decision pending | - |
 | 4. CLI and Configuration | 0/TBD | Not started | - |
 | 5. Management API | 0/TBD | Not started | - |
 | 6. Verification Against lifx-async | 0/TBD | Not started | - |

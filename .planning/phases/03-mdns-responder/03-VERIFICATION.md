@@ -1,8 +1,8 @@
 ---
 phase: 03-mdns-responder
 verified: 2026-09-23T10:09:30Z
-status: passed
-score: 5/5 must-haves verified
+status: gaps_found
+score: pending review follow-up verification
 covered_files:
   - .github/workflows/ci.yml
   - .planning/REQUIREMENTS.md
@@ -24,10 +24,12 @@ covered_files:
   - .planning/phases/03-mdns-responder/03-07-PLAN.md
   - .planning/phases/03-mdns-responder/03-07-SUMMARY.md
   - .planning/phases/03-mdns-responder/03-CONTEXT.md
+  - .planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md
   - .planning/phases/03-mdns-responder/03-REVIEW.md
   - .planning/phases/03-mdns-responder/03-SECURITY.md
   - .planning/phases/03-mdns-responder/03-SPEC.md
   - .planning/phases/03-mdns-responder/03-ZEROCONF-CLOSEOUT.json
+  - .planning/phases/03-mdns-responder/03-review-evidence/linux-interface-scope.py
   - packages/lifx-emulator-core/pyproject.toml
   - packages/lifx-emulator-core/src/lifx_emulator/__init__.py
   - packages/lifx-emulator-core/src/lifx_emulator/devices/__init__.py
@@ -43,6 +45,8 @@ covered_files:
   - packages/lifx-emulator-core/tests/test_mdns_lifecycle.py
   - packages/lifx-emulator-core/tests/test_mdns_platform.py
   - packages/lifx-emulator-core/tests/test_mdns_responder.py
+  - packages/lifx-emulator-core/tests/test_mdns_review.py
+  - packages/lifx-emulator/src/lifx_emulator_app/api/app.py
   - packages/lifx-emulator/src/lifx_emulator_app/api/services/event_bridge.py
   - packages/lifx-emulator/tests/test_websocket.py
   - scripts/mdns_spike_inputs/active.json
@@ -52,7 +56,7 @@ covered_files:
   - scripts/prepare_mdns_oracle.py
   - scripts/spike_mdns_candidates.py
   - uv.lock
-covered_digest: "v1:sha256:dfd0fd1a47f2149760a2dcbd32103a1b44a3b26f16ef257f0a67653588d3a503"
+covered_digest: "v1:sha256:d584c3291b0471ca3cdb62636a4c697c7b4bf325d7a8e36c122bd5420e48cc1e"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -65,6 +69,10 @@ re_verification:
 ---
 
 # Phase 3: mDNS Responder Verification Report
+
+**Reopened 2026-09-23:** PR review revealed a confirmed Linux receive-interface isolation gap and lifecycle defects. Twelve comments have local fixes and 1,486 tests pass; hosted verification of the changed code remains pending. The Linux scope decision is unresolved. See `03-REVIEW-FOLLOWUP.md`. The report below is historical evidence for f8d9f86, not approval of the revised implementation.
+
+## Historical verification
 
 **Phase Goal:** `lifx-async` can find emulated devices over mDNS the way it actually queries — legacy-unicast from an ephemeral port — with Thread devices advertised AAAA-only and WiFi devices A-only.
 **Verified:** 2026-09-23T10:09:30Z
