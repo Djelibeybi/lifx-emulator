@@ -120,11 +120,8 @@ class NetworkState:
     Advertisement settings ``mdns_enabled`` and ``mdns_address`` are also
     immutable and are supplied through factories or ``with_mdns()``.
 
-    Wholesale replacement of the whole ``NetworkState`` object via
-    ``dataclasses.replace(state.network, ...)`` followed by reassigning
-    ``state.network`` is a builder-internal construction/restore mechanism
-    used to compose and restore devices, not a supported way to change
-    values after construction.
+    Wholesale replacement of ``DeviceState.network`` is also rejected after
+    initial construction. Recreate the device to change advertisement intent.
     """
 
     wifi_signal: float = -45.0
@@ -506,12 +503,13 @@ class DeviceState:
         Note:
             Dataclass fields and private attributes bypass delegation.
         """
+        if name == "network" and "network" in self.__dict__:
+            raise ValueError(
+                "Network and mDNS settings are immutable; recreate the device"
+            )
         # Dataclass fields and private attributes use normal assignment
         if name in {
             "core",
-            # dataclasses.replace(state.network, ...)-then-assign is a
-            # construction/restore route retained for the builder; it is
-            # builder-internal, not part of the published API.
             "network",
             "location",
             "group",

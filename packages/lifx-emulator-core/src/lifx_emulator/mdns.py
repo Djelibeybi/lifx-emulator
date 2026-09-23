@@ -231,7 +231,9 @@ class MdnsResponder:
         owner = self._owner
         if owner is None:
             return
-        error: BaseException | None = None
+        error = (
+            self._error if not isinstance(self._error, asyncio.CancelledError) else None
+        )
         try:
             try:
                 await asyncio.wait_for(

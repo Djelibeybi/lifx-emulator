@@ -250,3 +250,32 @@ async def test_disabled_status_and_retry_rejected():
         await server.retry_mdns()
     await server.stop()
     assert server.mdns_status == "disabled"
+
+
+async def test_stop_retains_admitted_operation_failure(monkeypatch):
+    owner = MembershipOwner()
+    owner.held = "register"
+    monkeypatch.setattr(mdns, "AsyncZeroconf", lambda **kw: owner)
+    server = make_server([])
+    await server.start()
+    responder = server._mdns
+    admission_closed = asyncio.Event()
+    original_stop = responder._tasks.stop_accepting
+
+    def stop_accepting():
+        original_stop()
+        admission_closed.set()
+
+    monkeypatch.setattr(responder._tasks, "stop_accepting", stop_accepting)
+    server.add_device(create_color_light())
+    await owner.entered.wait()
+    stop = asyncio.create_task(server.stop())
+    await admission_closed.wait()
+    owner.failure = ("register", "inner")
+    owner.release.set()
+    with pytest.raises(RuntimeError, match="register-inner"):
+        await stop
+    assert server.mdns_status == "failed"
+    assert str(server.mdns_error) == "register-inner"
+    assert server.ipv4_endpoint is None
+    assert owner.closes == 1
