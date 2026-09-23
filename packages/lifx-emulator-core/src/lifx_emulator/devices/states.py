@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import ipaddress
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -87,6 +88,21 @@ def coerce_connectivity(value: Connectivity | str) -> Connectivity:
         ) from e
 
 
+def validate_mdns_address(value: str, connectivity: Connectivity) -> str:
+    """Return a canonical, usable address in the device radio's family."""
+    if "%" in value:
+        raise ValueError("Scoped mDNS addresses are unsupported")
+    address = ipaddress.ip_address(value)
+    expected = 6 if connectivity == Connectivity.THREAD else 4
+    if address.version != expected:
+        raise ValueError(f"{connectivity} mDNS requires IPv{expected}")
+    if address.is_unspecified or address.is_link_local or address.is_multicast:
+        raise ValueError(f"Unusable mDNS address: {value}")
+    if str(address) == "255.255.255.255":
+        raise ValueError("Broadcast mDNS address is unsupported")
+    return str(address)
+
+
 @dataclass(frozen=True)
 class NetworkState:
     """Network and connectivity state.
@@ -101,6 +117,9 @@ class NetworkState:
     way to set either value is the ``connectivity`` argument on the
     factories or ``DeviceBuilder.with_connectivity()`` at construction time.
 
+    Advertisement settings ``mdns_enabled`` and ``mdns_address`` are also
+    immutable and are supplied through factories or ``with_mdns()``.
+
     Wholesale replacement of the whole ``NetworkState`` object via
     ``dataclasses.replace(state.network, ...)`` followed by reassigning
     ``state.network`` is a builder-internal construction/restore mechanism
@@ -110,6 +129,16 @@ class NetworkState:
 
     wifi_signal: float = -45.0
     connectivity: Connectivity = Connectivity.WIFI
+    mdns_enabled: bool = True
+    mdns_address: str | None = None
+
+    def __post_init__(self) -> None:
+        """Reject unusable advertisement intent before composing a device."""
+        if self.connectivity == Connectivity.THREAD and not self.mdns_enabled:
+            raise ValueError("Thread devices cannot disable mDNS advertisement")
+        if self.mdns_address is not None:
+            address = validate_mdns_address(self.mdns_address, self.connectivity)
+            object.__setattr__(self, "mdns_address", address)
 
 
 @dataclass
@@ -347,6 +376,8 @@ class DeviceState:
         # Network properties
         "wifi_signal": "network",
         "connectivity": "network",
+        "mdns_enabled": "network",
+        "mdns_address": "network",
         # Location properties
         "location_id": "location",
         "location_label": "location",
