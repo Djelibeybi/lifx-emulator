@@ -38,4 +38,4 @@ Enforcing receive isolation requires relaxing the approved public-API-only depen
 - Combined lifecycle, responder and WebSocket suite: 99 passed.
 - Expanded deterministic review suite: 10 passed; delayed-cache wire regression passed separately in 13.13 seconds.
 - Configured Pyright: zero errors.
-- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted results remain pending; earlier hosted green results do not cover these changes.
+- Full Python 3.10 suite: 1,486 passed, four environment-gated integration skips, 95% coverage. Hosted CI [35862702391](https://github.com/Djelibeybi/lifx-emulator/actions/runs/35862702391) passed at a1308f9: all ten Python/OS jobs, both required production integrations, code quality, spike evidence and Intel PyApp packaging. This closes the validation gate for the twelve fixes; the Linux receive-scope decision remains open.

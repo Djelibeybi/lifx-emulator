@@ -6,7 +6,7 @@ status: verification_pending
 stopped_at: Phase 3 reopened for inline review; Linux receive-scope decision pending
 last_updated: "2026-09-23T10:12:08.039Z"
 last_activity: 2026-09-23
-last_activity_desc: Phase 3 review fixes locally verified; hosted validation pending
+last_activity_desc: Phase 3 review fixes locally verified; hosted CI passed; receive-scope decision pending
 state_head: f8d9f86501385fcf57999d2094eff4d6b72ec52d
 progress:
   total_phases: 6
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 Phase: 3 — mDNS Responder
 Plan: All seven implemented; review follow-up open
-Status: Awaiting receive-scope decision and hosted verification
-Last activity: 2026-09-23 — Phase 3 review fixes locally verified; hosted validation pending
+Status: Awaiting receive-scope decision (hosted CI passed)
+Last activity: 2026-09-23 — Phase 3 review fixes locally verified; hosted CI passed; receive-scope decision pending
 
-Follow-up: See `.planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md`. Twelve review comments have fixes with 1,486 local tests passing. Linux receive-interface leakage is confirmed and needs a decision about the public-API-only constraint. The dependency now uses the user-approved `>=0.151.3`.
+Follow-up: See `.planning/phases/03-mdns-responder/03-REVIEW-FOLLOWUP.md`. Twelve review comments have fixes with 1,486 local tests and all jobs in hosted run 35862702391 passing. Linux receive-interface leakage is confirmed and needs a decision about the public-API-only constraint. The dependency now uses the user-approved `>=0.151.3`.
 
 Progress: [███░░░░░░░] 33% (2 of 6 phases complete)
 

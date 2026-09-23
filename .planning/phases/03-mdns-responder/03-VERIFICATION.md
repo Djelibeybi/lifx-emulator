@@ -56,7 +56,7 @@ covered_files:
   - scripts/prepare_mdns_oracle.py
   - scripts/spike_mdns_candidates.py
   - uv.lock
-covered_digest: "v1:sha256:d584c3291b0471ca3cdb62636a4c697c7b4bf325d7a8e36c122bd5420e48cc1e"
+covered_digest: "v1:sha256:fd178945358032d8719252de0dd4f0b459d8144336622ade919d4d645ef62ca7"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -70,7 +70,7 @@ re_verification:
 
 # Phase 3: mDNS Responder Verification Report
 
-**Reopened 2026-09-23:** PR review revealed a confirmed Linux receive-interface isolation gap and lifecycle defects. Twelve comments have local fixes and 1,486 tests pass; hosted verification of the changed code remains pending. The Linux scope decision is unresolved. See `03-REVIEW-FOLLOWUP.md`. The report below is historical evidence for f8d9f86, not approval of the revised implementation.
+**Reopened 2026-09-23:** PR review revealed a confirmed Linux receive-interface isolation gap and lifecycle defects. Twelve comments have local fixes and 1,486 tests pass; hosted run 35862702391 passed all jobs at a1308f9. The Linux scope decision is unresolved. See `03-REVIEW-FOLLOWUP.md`. The report below is historical evidence for f8d9f86, not approval of the revised implementation.
 
 ## Historical verification
 
