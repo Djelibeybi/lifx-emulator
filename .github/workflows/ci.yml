@@ -338,7 +338,7 @@ jobs:
         core_wheel=$(find "$wheels" -name 'lifx_emulator_core-*.whl' -print -quit)
         candidate_wheel=$(find "$wheels" -name 'lifx_async-*.whl' -print -quit)
         uv run --frozen python -c \
-          'import pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s=s.replace(marker, marker + "\n    \"zeroconf==0.151.3\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
+          'import importlib.metadata,pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s=s.replace(marker, marker + "\n    \"zeroconf==" + importlib.metadata.version("zeroconf") + "\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
           "$RUNNER_TEMP/lifx-emulator-app/pyproject.toml" "$core_wheel" "$candidate_wheel"
         uv build --wheel "$RUNNER_TEMP/lifx-emulator-app" --out-dir "$wheels"
         app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)
@@ -355,6 +355,7 @@ jobs:
         rustc -Vv | tee "$RUNNER_TEMP/rustc.txt"
         cargo build --release --target "$CARGO_BUILD_TARGET"
         binary="target/$CARGO_BUILD_TARGET/release/pyapp"
+        zeroconf_version=$(uv run --project "$GITHUB_WORKSPACE" --frozen python -c 'import importlib.metadata; print(importlib.metadata.version("zeroconf"))')
         env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
           "$binary" --help > "$RUNNER_TEMP/first-run.txt"
         env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
@@ -363,7 +364,7 @@ jobs:
           > "$RUNNER_TEMP/installed-identities.json"
         env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
           "$binary" self python -c \
-          'import importlib.metadata,json; from zeroconf.asyncio import AsyncZeroconf; version=importlib.metadata.version("zeroconf"); assert version == "0.151.3"; print(json.dumps({"candidate":"zeroconf","version":version,"async_api_imported":True}))' \
+          'import importlib.metadata,json,sys; from zeroconf.asyncio import AsyncZeroconf; version=importlib.metadata.version("zeroconf"); assert version == sys.argv[1]; print(json.dumps({"candidate":"zeroconf","version":version,"async_api_imported":True}))' "$zeroconf_version" \
           > "$RUNNER_TEMP/zeroconf-packaging.json"
         shasum -a 256 "$wheels"/*.whl "$binary" > "$RUNNER_TEMP/hashes.txt"
         unzip -p "$candidate_wheel" '*/METADATA' > "$RUNNER_TEMP/candidate-METADATA.txt"

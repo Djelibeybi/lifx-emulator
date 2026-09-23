@@ -457,7 +457,7 @@ dependencies = [
 requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "zeroconf", specifier = "==0.151.3" },
+    { name = "zeroconf", specifier = ">=0.151.3" },
 ]
 
 [[package]]
