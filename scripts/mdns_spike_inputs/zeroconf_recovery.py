@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -42,9 +43,10 @@ class RecoveryPrototype:
             await self._responder.async_close()
             self._responder = None
 
-    async def _fail(self, error: BaseException) -> None:
+    async def _fail(self, error: BaseException, operation: str = "startup") -> None:
         self._status = "failed"
-        self._error = f"{type(error).__name__}: {error}"
+        if self._error is None:
+            self._error = f"{operation}: {type(error).__name__}: {error}"
         _LOGGER.warning("mDNS failed: %s", self._error)
         try:
             await self._close()
@@ -77,15 +79,53 @@ class RecoveryPrototype:
             self._error = None
             return True
 
-    async def runtime_failure(self, error: Exception, server: Any) -> None:
-        """Injected failure notification; real listener detection remains unproved."""
+    async def operate(
+        self, operation: str, value: Any = None, *, server: Any = None
+    ) -> bool:
+        """Handle supported-operation errors; running is lifecycle state only."""
+        methods = {
+            "register": "async_register_service",
+            "update": "async_update_service",
+            "unregister": "async_unregister_service",
+            "interfaces": "async_update_interfaces",
+            "close": "async_close",
+        }
+        method_name = methods[operation]
         async with self._lock:
-            await self._fail(error)
-            if any(
-                str(device.state.connectivity) == "thread"
-                for device in server.get_all_devices()
-            ):
-                await server.stop()
+            if self._status != "running":
+                return False
+            boundary = operation
+            try:
+                method = getattr(self._responder, method_name)
+                result = await method() if operation == "close" else await method(value)
+                if inspect.isawaitable(result):
+                    boundary = f"{operation}.announcement"
+                    await result
+                if operation == "close":
+                    self._responder = None
+                    self._status = "stopped"
+            except asyncio.CancelledError as error:
+                await self._fail(error, boundary)
+                await self._apply_policy(server)
+                raise
+            except Exception as error:
+                await self._fail(error, boundary)
+                await self._apply_policy(server)
+                return False
+            return True
+
+    async def _apply_policy(self, server: Any) -> None:
+        if server is not None and any(
+            str(device.state.connectivity) == "thread"
+            for device in server.get_all_devices()
+        ):
+            await server.stop()
+
+    async def runtime_failure(self, error: Exception, server: Any) -> None:
+        """Injected notification; silent listener loss is outside the guarantee."""
+        async with self._lock:
+            await self._fail(error, "injected")
+            await self._apply_policy(server)
 
     async def stop(self) -> None:
         async with self._lock:
