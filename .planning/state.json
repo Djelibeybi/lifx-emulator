@@ -35,9 +35,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:execute-phase 3",
-    "label": "Execute the reviewed zeroconf closeout plan",
-    "reason": "03-02 is ready at its fresh 120-minute allowance checkpoint. MDNS-10 remains provisional and implementation remains gated on the human go decision."
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 03 of 6 · 0% · executing"
   },
-  "updated_at": "2026-09-23T06:22:02.102Z"
+  "updated_at": "2026-09-23T06:28:01.119Z"
 }
