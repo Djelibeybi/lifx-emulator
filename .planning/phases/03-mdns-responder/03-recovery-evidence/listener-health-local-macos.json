@@ -1,0 +1,46 @@
+{
+  "recorded_at": "2026-09-23T01:21:31.351267+00:00",
+  "python": "3.14.7",
+  "platform": "Darwin",
+  "zeroconf": "0.151.3",
+  "scope": "local loopback; transport-close injection, not an OS outage",
+  "sha256": {
+    "_listener.py": "32b067bf3131cd96e0ed91534bf418ea21d38f59d3bea74e13836f9d6223966f",
+    "_core.py": "f9a1ecf110433b4b137912acea4d332c4ac28c02e8b0c3832630a2c26da3657b",
+    "_engine.py": "2930d0336aab0cb5d9f274696b7af46f9b604fecf7dc1833f8c65e0929e963fd",
+    "asyncio.py": "075f42210cf09a5197426707f6594ee9da02b11407f054e29794056defd25b29"
+  },
+  "runner_sha256": "4db12b9c5f8b84eb35aabbc296e39f76b55dbf846005abe055bfd0f893bc764e",
+  "adapter_sha256": "41886de35fca148cc49a009f835f95288bb2ab1c9bd7fb2081c8b8ea50de70cb",
+  "observations": {
+    "before": {
+      "started": true,
+      "done": false,
+      "adapter_status": "running",
+      "transport_count": 2
+    },
+    "after_transport_close": {
+      "all_transports_closing": true,
+      "all_socket_fds_closed": true,
+      "started": true,
+      "done": false,
+      "wait_for_start": "returned normally",
+      "adapter_status": "running",
+      "adapter_error": null,
+      "loop_errors": []
+    },
+    "same_interface_refresh": {
+      "result": "returned normally",
+      "original_transports_still_closed": true,
+      "open_reader_count": 0,
+      "started": true
+    },
+    "cleanup": {
+      "adapter_status": "stopped",
+      "pending_tasks": 0,
+      "threads": [
+        "MainThread"
+      ]
+    }
+  }
+}
