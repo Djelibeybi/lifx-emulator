@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: mDNS Responder
 status: provisional
-stopped_at: Zeroconf recovery prototype passes; supported listener-failure detection and robustness gates remain
-last_updated: "2026-09-23T01:04:55.219663+00:00"
+stopped_at: Listener-health investigation confirms startup checks miss transport loss; D-08 decision remains
+last_updated: "2026-09-23T01:22:47.743481+00:00"
 last_activity: 2026-09-23
-last_activity_desc: Bounded recovery prototype passes locally; actual listener-failure detection remains unproved
-state_head: a057365fb08b1582cc76d9cf819bfed637b38955
+last_activity_desc: Real transport closure is invisible to zeroconf startup checks; supported failure notification remains unavailable
+state_head: 1766cb6
 progress:
   total_phases: 6
   completed_phases: 0
@@ -113,3 +113,5 @@ Earlier direct check: `03-ZEROCONF-REEVALUATION.md` records 100/100 discovery in
 Latest continuation: `03-CONTINUATION.md` and `03-continuation-evidence/manifest.json` retain candidate-specific observations and hashes. The old direct-prototype receipts do not establish current zeroconf compliance. Listener failure/retry, partial startup, production status integration and zeroconf-specific robustness checks remain unproved.
 
 Final tested input head: `b8a4607`; CI run `35803195241` passed all jobs. The continuation is closed within its time allowance. No full go or production implementation is recorded.
+
+Listener-health follow-up (2026-09-23): `03-LISTENER-HEALTH-INVESTIGATION.md` and `03-recovery-evidence/listener-health-local-macos.json` record real transport-close injection. Both socket descriptors closed, while `started` and the adapter stayed running; startup wait and same-interface refresh returned normally with zero open readers. No supported direct failure callback was found. Choose an upstream supported callback or explicitly agree a responsiveness contract before further integration; MDNS-10 remains provisional.
