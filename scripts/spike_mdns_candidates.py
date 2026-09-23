@@ -22,6 +22,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -47,7 +48,7 @@ if os.environ.get("MDNS_SPIKE_WORKER") == "1":
         Advertisement,
         build_legacy_unicast_responses,
     )
-    from zeroconf import IPVersion, ServiceInfo
+    from zeroconf import IPVersion, NonUniqueNameException, ServiceInfo
     from zeroconf.asyncio import AsyncZeroconf
 
 
@@ -531,6 +532,44 @@ def _evaluate_windows_socket_simulation() -> dict[str, Any]:
     return {"plans": plans, "checks": checks, "all_passed": all(checks.values())}
 
 
+def _complete_record_sets(
+    records: list[Any], expected: dict[str, dict[str, Any]]
+) -> set[str]:
+    """Validate exact DNS-SD associations across all response datagrams."""
+    complete = set()
+    for serial, wanted in expected.items():
+        instance = f"{serial}.{SERVICE_TYPE}".rstrip(".").lower()
+        host = f"{serial}.local"
+        ptr = any(
+            r.rtype == 12
+            and r.name.rstrip(".").lower() == SERVICE_TYPE.rstrip(".")
+            and str(r.parsed_data).rstrip(".").lower() == instance
+            for r in records
+        )
+        srv = any(
+            r.rtype == 33
+            and r.name.rstrip(".").lower() == instance
+            and r.parsed_data.target.rstrip(".").lower() == host
+            and r.parsed_data.port == wanted["port"]
+            and r.parsed_data.priority == r.parsed_data.weight == 0
+            for r in records
+        )
+        txt = any(
+            r.rtype == 16
+            and r.name.rstrip(".").lower() == instance
+            and r.parsed_data.pairs == wanted["txt"]
+            for r in records
+        )
+        addresses = {
+            (r.rtype, str(ipaddress.ip_address(r.parsed_data)))
+            for r in records
+            if r.rtype in (1, 28) and r.name.rstrip(".").lower() == host
+        }
+        if ptr and srv and txt and addresses == {wanted["address"]}:
+            complete.add(serial)
+    return complete
+
+
 async def _collect_query(
     client: socket.socket,
     query: bytes,
@@ -538,6 +577,8 @@ async def _collect_query(
     timeout: float,
     expected_serials: set[str],
     direct_record: tuple[str, int] | None = None,
+    expected_records: dict[str, dict[str, Any]] | None = None,
+    observe_until_timeout: bool = False,
 ) -> dict[str, Any]:
     loop = asyncio.get_running_loop()
     started = time.monotonic()
@@ -550,19 +591,32 @@ async def _collect_query(
     record_counts: list[int] = []
     complete_datagrams = 0
     complete_serials: set[str] = set()
+    records: list[Any] = []
+    wire_checks: list[bool] = []
     while time.monotonic() - started < timeout:
-        if expected_serials and expected_serials.issubset(serials):
+        if (
+            not observe_until_timeout
+            and expected_serials
+            and expected_serials.issubset(complete_serials)
+        ):
             break
         if direct_record is not None and direct_match:
             break
         remaining = max(0.01, timeout - (time.monotonic() - started))
         try:
-            raw, _ = await _receive_one(client, remaining)
+            raw, peer = await _receive_one(client, remaining)
             packet = parse_dns_response(raw)
         except TimeoutError:
             break
         except (OSError, ValueError):
             continue
+        wire_checks.append(
+            peer[1] == 5353
+            and packet.header.id == struct.unpack("!H", query[:2])[0]
+            and packet.header.qd_count in ((1,) if not records else (0, 1))
+            and all(not r.cache_flush and 0 < r.ttl <= 10 for r in packet.records)
+        )
+        records.extend(packet.records)
         datagram_sizes.append(len(raw))
         record_counts.append(len(packet.records))
         observed_types.update(record.type_name for record in packet.records)
@@ -574,30 +628,12 @@ async def _collect_query(
                 for record in packet.records
             )
         types = {record.rtype for record in packet.records}
-        packet_types_by_serial: dict[str, set[int]] = {
-            serial: set() for serial in expected_serials
-        }
-        for record in packet.records:
-            identity_text = f"{record.name} {record.parsed_data}".lower()
-            for serial in expected_serials:
-                if serial in identity_text:
-                    packet_types_by_serial[serial].add(record.rtype)
         if {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(types) and (
             DNS_TYPE_A in types or DNS_TYPE_AAAA in types
         ):
             complete_datagrams += 1
-            present_synthetic = {
-                serial
-                for serial, serial_types in packet_types_by_serial.items()
-                if serial_types
-            }
-            for serial, serial_types in packet_types_by_serial.items():
-                if (
-                    {DNS_TYPE_PTR, DNS_TYPE_SRV, DNS_TYPE_TXT}.issubset(serial_types)
-                    and (DNS_TYPE_A in serial_types or DNS_TYPE_AAAA in serial_types)
-                    and len(present_synthetic) == 1
-                ):
-                    complete_serials.add(serial)
+        if expected_records is not None:
+            complete_serials = _complete_record_sets(records, expected_records)
         for record in packet.records:
             if record.rtype == DNS_TYPE_TXT and isinstance(record.parsed_data, TxtData):
                 serial = record.parsed_data.pairs.get("id")
@@ -609,6 +645,7 @@ async def _collect_query(
         "expected": len(expected_serials) if expected_serials else 1,
         "discovered": len(matched_serials) if expected_serials else int(direct_match),
         "serials": sorted(matched_serials),
+        "observed_serials": sorted(serials),
         "direct_match": direct_match,
         "complete_discovery_seconds": round(time.monotonic() - started, 6),
         "cpu_seconds": round(time.process_time() - cpu_started, 6),
@@ -618,6 +655,7 @@ async def _collect_query(
         "record_counts": record_counts,
         "complete_datagrams": complete_datagrams,
         "complete_devices": len(complete_serials),
+        "wire_checks_passed": bool(wire_checks) and all(wire_checks),
         "record_types": sorted(observed_types),
     }
 
@@ -670,6 +708,19 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
             bytes(query),
             timeout=min(15.0, 4.0 + total / 10),
             expected_serials={device.state.serial for device in devices},
+            expected_records={
+                device.state.serial: {
+                    "port": port,
+                    "txt": {
+                        "id": device.state.serial,
+                        "p": "27",
+                        "fw": "4.200",
+                        "tm": "1" if number < wifi else "2",
+                    },
+                    "address": (1, "127.0.0.1") if number < wifi else (28, "::1"),
+                }
+                for number, device in enumerate(devices)
+            },
         )
         direct_a: dict[str, Any] | None = None
         if wifi:
@@ -691,8 +742,63 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
                 expected_serials=set(),
                 direct_record=(thread_name, DNS_TYPE_AAAA),
             )
+        membership = None
+        if total == 10:
+            removed = infos.pop()
+            goodbye = await azc.async_unregister_service(removed)
+            await goodbye
+            remaining = {device.state.serial for device in devices[:-1]}
+            with _new_mdns_client(interface) as membership_client:
+                after_remove = await _collect_query(
+                    membership_client,
+                    bytes(query),
+                    timeout=2.0,
+                    expected_serials=remaining,
+                    observe_until_timeout=True,
+                )
+            readd_retried = False
+            readd_error = None
+            try:
+                try:
+                    announcement = await azc.async_register_service(
+                        removed, ttl=10, strict=False
+                    )
+                except NonUniqueNameException:
+                    readd_retried = True
+                    await asyncio.sleep(11.0)
+                    announcement = await azc.async_register_service(
+                        removed, ttl=10, strict=False
+                    )
+                infos.append(removed)
+                await announcement
+            except NonUniqueNameException as error:
+                readd_error = type(error).__name__
+            with _new_mdns_client(interface) as membership_client:
+                after_readd = await _collect_query(
+                    membership_client,
+                    bytes(query),
+                    timeout=2.0,
+                    expected_serials={device.state.serial for device in devices},
+                    observe_until_timeout=True,
+                )
+            membership = {
+                "readd_error": readd_error,
+                "readd_retried_after_name_conflict": readd_retried,
+                "remaining_after_remove": after_remove["discovered"],
+                "removed_absent": devices[-1].state.serial
+                not in after_remove["observed_serials"],
+                "after_readd": after_readd["discovered"],
+                "all_passed": after_remove["discovered"] == total - 1
+                and devices[-1].state.serial not in after_remove["observed_serials"]
+                and after_readd["discovered"] == total,
+                "scope": (
+                    "public registration removal/re-add; "
+                    "not listener failure or production status integration"
+                ),
+            }
         metrics.update(
             {
+                "membership": membership,
                 "wifi": wifi,
                 "thread": thread_count,
                 "raw_thread_address": "::1" if thread_count else None,
@@ -715,7 +821,9 @@ async def run_discovery_benchmark(wifi: int, thread_count: int) -> dict[str, Any
 async def _run_public_oracle(thread_address: str | None = None) -> dict[str, Any]:
     interface = _select_ipv4_interface()
     serial = "d073d5000002" if thread_address else SERIAL
-    device = create_color_light(serial)
+    device = create_color_light(
+        serial, connectivity="thread" if thread_address else "wifi"
+    )
     server = EmulatedLifxServer([device], DeviceManager(DeviceRepository()), port=0)
     azc = AsyncZeroconf(interfaces=[interface], ip_version=IPVersion.V4Only)
     info: ServiceInfo | None = None
@@ -764,6 +872,7 @@ async def _run_public_oracle(thread_address: str | None = None) -> dict[str, Any
 async def _expanded_worker() -> int:
     started = time.monotonic()
     before_threads = sorted(thread.name for thread in threading.enumerate())
+    stage = "oracle"
     try:
         reachable = _reachable_ipv6_addresses()
         oracle = {
@@ -790,16 +899,19 @@ async def _expanded_worker() -> int:
             }
             print(json.dumps(payload, sort_keys=True))
             return 0
-        benchmarks = {
-            "wifi-1": await run_discovery_benchmark(1, 0),
-            "thread-1": await run_discovery_benchmark(0, 1),
-            "mixed-10": await run_discovery_benchmark(5, 5),
-        }
+        benchmarks = {}
+        for stage, wifi, thread_count in (
+            ("wifi-1", 1, 0),
+            ("thread-1", 0, 1),
+            ("mixed-10", 5, 5),
+        ):
+            benchmarks[stage] = await run_discovery_benchmark(wifi, thread_count)
         mixed_10 = benchmarks["mixed-10"]
         if (
             mixed_10["discovered"] == mixed_10["expected"]
             and mixed_10["complete_devices"] == mixed_10["expected"]
         ):
+            stage = "mixed-100"
             benchmarks["mixed-100"] = await run_discovery_benchmark(50, 50)
         await asyncio.sleep(0)
         current = asyncio.current_task()
@@ -823,6 +935,8 @@ async def _expanded_worker() -> int:
     except Exception as error:
         payload = {
             "execution_status": "completed",
+            "failed_stage": stage,
+            "traceback": traceback.format_exc(),
             "error_type": type(error).__name__,
             "error": str(error),
             "environment": _environment(),
@@ -1868,7 +1982,7 @@ def _merge_expanded_result(candidate: dict[str, Any], result: dict[str, Any]) ->
             criteria[criterion] = asdict(
                 CriterionResult(
                     "not-run-with-reason",
-                    "The mixed-10 complete-datagram gate rejected this candidate.",
+                    "The mixed-10 complete-record-set gate rejected this candidate.",
                 )
             )
             continue
@@ -1876,6 +1990,7 @@ def _merge_expanded_result(candidate: dict[str, Any], result: dict[str, Any]) ->
         passed = (
             metrics["discovered"] == metrics["expected"]
             and metrics["complete_devices"] == metrics["expected"]
+            and metrics.get("wire_checks_passed", False)
         )
         criteria[criterion] = asdict(
             CriterionResult(
@@ -1884,6 +1999,18 @@ def _merge_expanded_result(candidate: dict[str, Any], result: dict[str, Any]) ->
             )
         )
         if not passed:
+            candidate["candidate_status"] = "rejected"
+    membership = benchmarks["mixed-10"].get("membership")
+    if membership is not None:
+        criteria["dynamic_lifecycle_recovery_fit"] = asdict(
+            CriterionResult(
+                "untested" if membership["all_passed"] else "failed",
+                json.dumps(membership, sort_keys=True),
+                "Prove listener failure/retry and production status integration; "
+                "resolve any observed service re-add failure first.",
+            )
+        )
+        if not membership["all_passed"]:
             candidate["candidate_status"] = "rejected"
     mixed_10 = benchmarks["mixed-10"]
     mixed_10_passed = (
@@ -2394,6 +2521,49 @@ def _classify_direct_result(result: dict[str, Any]) -> tuple[bool, CandidateStat
     return True, "provisional"
 
 
+def _run_zeroconf_platform(args: argparse.Namespace) -> int:
+    """Collect revised-contract evidence without rewriting the historical ledger."""
+    inputs = resolve_inputs()
+    command = _expanded_worker_command(inputs)
+    completed = subprocess.run(
+        command,
+        cwd=REPOSITORY_ROOT,
+        env={**os.environ, "MDNS_SPIKE_WORKER": "1"},
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    if completed.returncode:
+        print(completed.stderr, file=sys.stderr)
+        return 1
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    candidate = _initial_evidence(inputs)["candidates"][0]
+    _merge_expanded_result(candidate, result)
+    valid = result.get("execution_status") == "completed" and not result.get(
+        "error_type"
+    )
+    payload = {
+        "schema_version": 1,
+        "platform_candidate": "zeroconf",
+        "contract": "complete-record-sets-with-continuation-question-exception",
+        "input_spec_digest": inputs["input_spec_digest"],
+        "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "valid": valid,
+        "candidate_status": "rejected"
+        if candidate["candidate_status"] == "rejected"
+        else "provisional",
+        "criteria": candidate["criteria"],
+        "result": result,
+        "command": command,
+        "thread_address_origin": os.environ.get(
+            "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN", "host-existing"
+        ),
+    }
+    _write_json(Path(args.output), payload)
+    return 0 if valid else 1
+
+
 def _run_direct_platform(args: argparse.Namespace) -> int:
     inputs = resolve_inputs()
     oracle_path = os.environ.get("MDNS_SPIKE_ORACLE_PATH")
@@ -2466,6 +2636,15 @@ def _write_ci_receipt(args: argparse.Namespace) -> int:
         base_tree = candidate["base_tree"]
         overlay_digest = candidate["overlay_sha256"]
         final_digest = candidate["final_digest"]
+    elif platform_candidate == "zeroconf":
+        if not evidence.get("valid"):
+            return 1
+        candidate = inputs["candidate"]
+        environments = {"platform": evidence["result"]["environment"]}
+        base_commit = candidate["commit"]
+        base_tree = candidate["tree"]
+        overlay_digest = candidate["overlay_digest"]
+        final_digest = candidate["sdist_sha256"]
     else:
         if validate_evidence(evidence_path) != 0:
             return 1
@@ -2740,6 +2919,9 @@ def _parser() -> argparse.ArgumentParser:
     sequence.add_argument("--source-revision", required=True)
     sequence.add_argument("--evidence", default=str(DEFAULT_EVIDENCE))
     sequence.set_defaults(handler=run_sequence, candidate="zeroconf")
+    zeroconf_probe = subparsers.add_parser("run-zeroconf-platform")
+    zeroconf_probe.add_argument("--output", required=True)
+    zeroconf_probe.set_defaults(handler=_run_zeroconf_platform)
     platform_probe = subparsers.add_parser("run-direct-platform")
     platform_probe.add_argument("--output", required=True)
     platform_probe.set_defaults(handler=_run_direct_platform)
