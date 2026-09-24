@@ -141,7 +141,28 @@ Plans:
   4. mDNS advertisement lifecycle events (registered, updated, withdrawn, started, stopped, failed) appear in `/api/activity` and on the WebSocket activity topic alongside LIFX packets.
   5. A library user constructing `EmulatedLifxServer` without the new options sees no behaviour change, and `run()` is decomposed into device-construction, storage, server-start and shutdown helpers that each pass the complexity budget with CLI behaviour unchanged.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Commit a golden run() snapshot and shutdown-order proof, then decompose run() into a startup package with a frozen RunSettings (HYG-03)
+- [ ] 04-02-PLAN.md — Core server-level advertised mDNS address defaults, read-only properties, barrel-exported validators and unchanged library defaults
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-03-PLAN.md — Core mDNS lifecycle activity events through an optional on_mdns_event observer hook
+- [ ] 04-04-PLAN.md — --thread/--thread-product, --mdns/--no-mdns and the Thread and per-device YAML keys, with the auto-enable and refuse-to-start preflight
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 04-05-PLAN.md — --ipv6-bind and per-family advertised address flags and keys, wildcard-bind preflight and the ignored-address warning
+- [ ] 04-06-PLAN.md — mDNS lifecycle events in /api/activity and the WebSocket activity topic, frontend type and API docs
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 04-07-PLAN.md — Document every new flag and key with the AR-06 note, update the example config and lock docs to the CLI with a test
+
 **UI hint**: no
 **Note**: HYG-03 (the `run()` decomposition) is the first plan of this phase and lands before any new flag is added. CFG-03 (`export-config` round-trip) was dropped in `04-SPEC.md`.
 
@@ -186,6 +207,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Thread Device Identity | 4/4 | Complete    | 2026-09-09 |
 | 2. IPv6 Transport and Thread Isolation | 4/4 | Complete    | 2026-09-10 |
 | 3. mDNS Responder | 7/7 | Complete with accepted AR-06 | 2026-09-23 |
-| 4. CLI and Configuration | 0/TBD | Not started | - |
+| 4. CLI and Configuration | 0/7 | Planned | - |
 | 5. Management API | 0/TBD | Not started | - |
 | 6. Verification Against lifx-async | 0/TBD | Not started | - |
