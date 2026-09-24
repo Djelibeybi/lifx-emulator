@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.6.1 (2026-09-24)
+
+### Bug Fixes
+
+- **api**: Release event bridge listeners after lifespan
+  ([`d8cfac2`](https://github.com/Djelibeybi/lifx-emulator/commit/d8cfac2de23e71f249a7e73360aeeb02aa605003))
+
+
 ## v4.6.0 (2026-09-10)
 
 ### Features
