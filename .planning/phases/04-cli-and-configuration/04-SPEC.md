@@ -189,7 +189,7 @@ Canon referral: YAML deserialisation safety is canon — owned by `/gsd-secure-p
 
 ## Follow-ups for planning artifacts
 
-REQUIREMENTS.md and ROADMAP.md still reflect the pre-spec wording and should be aligned: drop CFG-03 and roadmap success criterion 3; rename `advertise_address` → `mdns_address`; narrow CFG-05 to lifecycle events; replace CFG-04's "on for every device by default" with the Thread-triggered auto-enable rule; narrow CFG-06 and roadmap success criterion 5 to "app auto-enables mDNS when a Thread device is configured; IPv6 is always on (Phase 2)".
+**Done 2026-09-24.** REQUIREMENTS.md and ROADMAP.md were aligned with this spec: drop CFG-03 and roadmap success criterion 3; rename `advertise_address` → `mdns_address`; narrow CFG-05 to lifecycle events; replace CFG-04's "on for every device by default" with the Thread-triggered auto-enable rule; narrow CFG-06 and roadmap success criterion 5 to "app auto-enables mDNS when a Thread device is configured; IPv6 is always on (Phase 2)". Phase 5's API-01 and success criteria were also renamed to `mdns_address`.
 
 ---
 

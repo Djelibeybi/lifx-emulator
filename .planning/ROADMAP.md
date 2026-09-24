@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Thread Device Identity** - `connectivity`, firmware 4.200, zero WiFi signal and the header Thread bit, entirely in-memory (completed 2026-09-09)
 - [x] **Phase 2: IPv6 Transport and Thread Isolation** - Native `AF_INET6` socket, family-aware routing, Thread devices unreachable over IPv4, plus the server hygiene fixes (completed 2026-09-10)
 - [x] **Phase 3: mDNS Responder** - Spike-gated `_lifx._udp.local` responder answering legacy-unicast queries with AAAA-only Thread and A-only WiFi instances (completed 2026-09-23)
-- [ ] **Phase 4: CLI and Configuration** - `run()` decomposed, then flags, YAML and `export-config` for connectivity, IPv6 bind and mDNS
+- [ ] **Phase 4: CLI and Configuration** - `run()` decomposed, then flags and YAML for connectivity, IPv6 bind and mDNS, plus mDNS lifecycle activity
 - [ ] **Phase 5: Management API** - Create and report Thread devices over HTTP, with 422s for impossible combinations
 - [ ] **Phase 6: Verification Against lifx-async** - The acceptance oracle's own suites pass against the stock emulator on CI
 
@@ -130,20 +130,20 @@ Plans:
 
 ### Phase 4: CLI and Configuration
 
-**Goal**: Someone running the standalone emulator can create and configure Thread devices, the IPv6 bind and mDNS advertisement entirely from CLI flags and YAML, and see mDNS traffic in the activity stream.
+**Goal**: Someone running the standalone emulator can create and configure Thread devices, the IPv6 bind and mDNS advertisement entirely from CLI flags and YAML, and see mDNS advertisement lifecycle events in the activity stream.
 **Depends on**: Phase 3 (and, through it, Phases 1 and 2 — the full core surface must exist to be exposed)
-**Requirements**: HYG-03, CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, CFG-06
+**Requirements**: HYG-03, CFG-01, CFG-02, CFG-04, CFG-05, CFG-06
 **Success Criteria** (what must be TRUE):
 
-  1. `lifx-emulator` starts a Thread device and configures the IPv6 bind address, mDNS enable/disable and the advertised mDNS address from documented flags that appear in `--help`.
-  2. A YAML config carrying `connectivity`, a per-device `advertise_address` and an `mdns` opt-out loads and runs; an unknown key, or a Thread device with `mdns: false`, fails validation with a message naming the offending field.
-  3. `export-config` against a running emulator writes a file that, fed back in, reproduces the same devices with the same connectivity, advertised addresses and mDNS settings.
-  4. mDNS queries received and replies sent appear in `/api/activity` and on the WebSocket activity topic alongside LIFX packets.
-  5. The standalone app has IPv6 and mDNS on by default while a library user constructing `EmulatedLifxServer` without the new options sees no behaviour change, and `run()` is decomposed into device-construction, storage, server-start and shutdown helpers that each pass the complexity budget with CLI behaviour unchanged.
+  1. `lifx-emulator` starts Thread devices (`--thread`, `--thread-product`) and configures the IPv6 bind address, mDNS enable/disable and the per-family advertised mDNS addresses from documented flags that appear in `--help`.
+  2. A YAML config carrying `connectivity`, a per-device `mdns_address` and an `mdns` opt-out loads and runs; an unknown key, or a Thread device with `mdns: false`, fails validation with a message naming the offending field.
+  3. mDNS turns on automatically when a Thread device is configured and is otherwise off unless `--mdns` is given; `--no-mdns` with a Thread device configured exits non-zero before binding any socket, naming the Thread devices.
+  4. mDNS advertisement lifecycle events (registered, updated, withdrawn, started, stopped, failed) appear in `/api/activity` and on the WebSocket activity topic alongside LIFX packets.
+  5. A library user constructing `EmulatedLifxServer` without the new options sees no behaviour change, and `run()` is decomposed into device-construction, storage, server-start and shutdown helpers that each pass the complexity budget with CLI behaviour unchanged.
 
 **Plans**: TBD
 **UI hint**: no
-**Note**: HYG-03 (the `run()` decomposition) is the first plan of this phase and lands before any new flag is added.
+**Note**: HYG-03 (the `run()` decomposition) is the first plan of this phase and lands before any new flag is added. CFG-03 (`export-config` round-trip) was dropped in `04-SPEC.md`.
 
 ### Phase 5: Management API
 
@@ -152,9 +152,9 @@ Plans:
 **Requirements**: API-01, API-02, API-03
 **Success Criteria** (what must be TRUE):
 
-  1. `POST /api/devices` with `connectivity: "thread"`, an `advertise_address` and an `mdns` flag creates a Thread device that the next mDNS query discovers.
+  1. `POST /api/devices` with `connectivity: "thread"`, an `mdns_address` and an `mdns` flag creates a Thread device that the next mDNS query discovers.
   2. `GET /api/devices` and `GET /api/devices/{serial}` report `connectivity`, the advertised address and whether the device is currently advertised over mDNS.
-  3. A Thread device with `mdns: false`, a non-IPv6 advertise address, and an unscoped link-local advertise address each return 422 with a message describing what is wrong.
+  3. A Thread device with `mdns: false`, a non-IPv6 `mdns_address`, and an unscoped link-local `mdns_address` each return 422 with a message describing what is wrong.
   4. An existing API client that omits the new fields gets `connectivity: "wifi"` and otherwise unchanged request and response shapes.
 
 **Plans**: TBD

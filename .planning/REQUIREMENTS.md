@@ -44,16 +44,16 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Configuration and Management
 
-- [ ] **CFG-01**: The CLI can create Thread devices and configure the IPv6 bind address, enable or disable mDNS, and set the advertised mDNS address, each with a documented flag
-- [ ] **CFG-02**: YAML `DeviceDefinition` accepts `connectivity`, an optional per-device `advertise_address` and an `mdns` opt-out; `EmulatorConfig` accepts the server-level IPv6 bind, mDNS enable and advertised address settings, all validated with `extra="forbid"`
-- [ ] **CFG-03**: `export-config` emits the new fields so an exported file reproduces the running setup
-- [ ] **CFG-04**: mDNS advertisement is on for every device by default in the standalone app; a WiFi device can opt out, and opting a Thread device out is a validation error because mDNS is its only discovery path
-- [ ] **CFG-05**: mDNS queries received and replies sent appear in the activity log and the WebSocket activity stream through the existing activity observer
-- [ ] **CFG-06**: Library users constructing `EmulatedLifxServer` directly see no behaviour change unless they pass the new IPv6 or mDNS options; the standalone app enables them by default
+- [ ] **CFG-01**: The CLI can create Thread devices (`--thread N`, `--thread-product PID`) and configure the IPv6 bind address (`--ipv6-bind`), enable or disable mDNS (`--mdns`/`--no-mdns`), and set the server-level advertised mDNS addresses per family (`--mdns-ipv4-address`, `--mdns-ipv6-address`), each with a documented flag
+- [ ] **CFG-02**: YAML `DeviceDefinition` accepts `connectivity`, an optional per-device `mdns_address` and an `mdns` opt-out; `EmulatorConfig` accepts `ipv6_bind`, `mdns`, `mdns_ipv4_address`, `mdns_ipv6_address`, `thread` and `thread_product`, all validated with `extra="forbid"`
+- ~~**CFG-03**: `export-config` emits the new fields so an exported file reproduces the running setup~~ — **Dropped** in the Phase 4 spec: `export-config` is a one-way migration tool for deprecated `--persistent` storage, and Thread devices are defined in YAML
+- [ ] **CFG-04**: In the standalone app, mDNS turns on automatically when at least one Thread device is configured and is otherwise off unless `--mdns` / `mdns: true` is given; when on, every device is advertised unless a WiFi device opts out; opting a Thread device out is a validation error, and disabling mDNS server-wide with a Thread device configured refuses to start, because mDNS is its only discovery path
+- [ ] **CFG-05**: mDNS advertisement lifecycle events (device record registered, updated, withdrawn; responder started, stopped, failed) appear in the activity log and the WebSocket activity stream through the existing activity observer; individual mDNS queries and replies are not logged because zeroconf answers them internally
+- [ ] **CFG-06**: Library users constructing `EmulatedLifxServer` directly see no behaviour change unless they pass the new mDNS options (`mdns_enabled` stays `False`; the IPv6 transport stays always on, as shipped in Phase 2); the standalone app applies the CFG-04 enablement rule
 
 ### API
 
-- [ ] **API-01**: `DeviceCreateRequest` accepts `connectivity` (default `wifi`), an optional `advertise_address` and an `mdns` flag
+- [ ] **API-01**: `DeviceCreateRequest` accepts `connectivity` (default `wifi`), an optional `mdns_address` and an `mdns` flag
 - [ ] **API-02**: `DeviceInfo` exposes `connectivity`, the advertised address and whether the device is currently advertised over mDNS
 - [ ] **API-03**: Invalid combinations (Thread with `mdns=false`, a non-IPv6 or unscoped link-local advertise address) return a 422 with a descriptive message
 
@@ -107,6 +107,8 @@ Explicitly excluded. Documented to prevent scope creep.
 | StateUnhandled for WiFi packets on Thread devices | Rejected in favour of zero signal, matching the Home Assistant integration's expectation |
 | New Thread-specific packet types | The public protocol.yml defines none; only the header bit and mDNS metadata differ |
 | Multi-mesh or multi-border-router topologies | No consumer need; one responder advertising all devices already matches the border-router reply shape |
+| `export-config` round-trip of Thread and mDNS settings (CFG-03) | Dropped in the Phase 4 spec; `export-config` only migrates deprecated persistence |
+| Per-query mDNS activity events | zeroconf answers queries internally; CFG-05 covers advertisement lifecycle events only |
 | Relying on the mDNS cache-flush bit | `lifx-async` ignores it on legacy-unicast replies; set for realism only, never gate on it |
 
 ## Traceability
@@ -140,7 +142,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MDNS-11 | Phase 3 | Complete |
 | CFG-01 | Phase 4 | Pending |
 | CFG-02 | Phase 4 | Pending |
-| CFG-03 | Phase 4 | Pending |
+| CFG-03 | Phase 4 | Dropped |
 | CFG-04 | Phase 4 | Pending |
 | CFG-05 | Phase 4 | Pending |
 | CFG-06 | Phase 4 | Pending |
@@ -158,7 +160,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 
-- v1 requirements: 40 total
+- v1 requirements: 40 total (1 dropped: CFG-03)
 - Mapped to phases: 40
 - Unmapped: 0 ✓
 
@@ -169,10 +171,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | 1 | Thread Device Identity | 7 |
 | 2 | IPv6 Transport and Thread Isolation | 7 |
 | 3 | mDNS Responder | 11 |
-| 4 | CLI and Configuration | 7 |
+| 4 | CLI and Configuration | 7 (6 active, CFG-03 dropped) |
 | 5 | Management API | 3 |
 | 6 | Verification Against lifx-async | 5 |
 
 ---
 *Requirements defined: 2026-09-09*
-*Last updated: 2026-09-09 after roadmap creation*
+*Last updated: 2026-09-24 after Phase 4 spec (CFG-03 dropped; CFG-01/02/04/05/06 and API-01 aligned with 04-SPEC.md)*
