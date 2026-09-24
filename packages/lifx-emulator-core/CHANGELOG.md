@@ -2,6 +2,42 @@
 
 <!-- version list -->
 
+## v3.11.0 (2026-09-24)
+
+### Bug Fixes
+
+- **deps**: Allow compatible zeroconf installations
+  ([`da4f302`](https://github.com/Djelibeybi/lifx-emulator/commit/da4f302c68bebf6ca4b66c3d04e4bd21e301170c))
+
+- **mdns**: Preserve ownership and cancellation boundaries
+  ([`f532e98`](https://github.com/Djelibeybi/lifx-emulator/commit/f532e9878c3d01341862e32e4084b007a038c541))
+
+- **mdns**: Retain shutdown failures and enforce network immutability
+  ([`d2b940f`](https://github.com/Djelibeybi/lifx-emulator/commit/d2b940f9a146f11a5284a287c68934850c602fb8))
+
+### Documentation
+
+- **mdns**: Accept and document Linux receive-scope limitation
+  ([`29f5197`](https://github.com/Djelibeybi/lifx-emulator/commit/29f51975a5b746d86afee360190ce14a89d876a3))
+
+### Features
+
+- **devices**: Add isolated ordered lifecycle listeners
+  ([`41396ef`](https://github.com/Djelibeybi/lifx-emulator/commit/41396ef1baf136de9cd54f7c5fc920706000ab0b))
+
+- **mdns**: Add opt-in zeroconf responder and raw discovery tests
+  ([`6fe2cbb`](https://github.com/Djelibeybi/lifx-emulator/commit/6fe2cbb2b207c9d7552c95fa356f6110fc28188e))
+
+- **mdns**: Reconcile membership with explicit recovery and owned cleanup
+  ([`6dff9c6`](https://github.com/Djelibeybi/lifx-emulator/commit/6dff9c6b5080449054ce9c7708f4e3ebc3c0fd50))
+
+- **mdns**: Resolve validated mixed-family advertisements
+  ([`ed2938a`](https://github.com/Djelibeybi/lifx-emulator/commit/ed2938ab8c0cb5b8e649b8aef7c8a357858e91ac))
+
+- **mdns**: Validate immutable device advertisement settings
+  ([`0ec41a8`](https://github.com/Djelibeybi/lifx-emulator/commit/0ec41a87ba9bab71dd14dde561f68cf483e1f340))
+
+
 ## v3.10.0 (2026-09-10)
 
 ### Features
