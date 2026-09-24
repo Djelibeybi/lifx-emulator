@@ -122,7 +122,7 @@ Downstream agents MUST read `04-SPEC.md` before planning or implementing. Requir
 ### Integration Points
 - `EmulatedLifxServer(...)` construction in `run()`: add `mdns_enabled`, `ipv6_bind_address`, `mdns_ipv4_address`, `mdns_ipv6_address`.
 - The count-flag device loop in `run()`: add `--thread` after the existing kinds so serials don't shift.
-- Shutdown sequence (API task, then server/mDNS, then storage flush): order must stay unchanged and be asserted by a test.
+- Shutdown sequence (storage flush, then `server.stop()` including mDNS, then API task cancel): order must stay unchanged and be asserted by a test.
 
 </code_context>
 

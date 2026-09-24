@@ -374,6 +374,7 @@ def _preflight(settings: RunSettings, devices: list[EmulatedLifxDevice]) -> list
    - What we know: the code today runs storage -> server/mDNS -> API task (`__main__.py:1132-1144`); CONTEXT.md's R1 acceptance criterion names the order as "(API task, server/mDNS, storage flush)".
    - What's unclear: whether CONTEXT's ordering is a drafting slip (just naming the three participants) or reflects an intent to reorder shutdown as part of this phase.
    - Recommendation: planner/discuss-phase should surface this discrepancy to the user explicitly rather than picking silently; default to "unchanged" (current code order) per R1's literal text if no answer is available before planning must proceed.
+   - **RESOLVED (2026-09-24):** drafting slip. The user accepted "asserts the *existing* shutdown order"; SPEC.md and CONTEXT.md now list the code's order (storage flush → `server.stop()` incl. mDNS → API task cancel). The shutdown-order test asserts that sequence; no reorder.
 
 2. **`resolve_address()` signature shape for D-01**
    - What we know: three call sites need the new server-level defaults threaded through, plus a `MdnsResponder` constructor change.

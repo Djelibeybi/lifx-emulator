@@ -98,7 +98,7 @@ Phases 1–3 delivered the full core surface; the standalone app exposes none of
 - [ ] Existing app and core test suites pass unchanged
 - [ ] Identical legacy flags produce identical devices (serials, products, order) before and after the `run()` refactor
 - [ ] A run with no devices still logs the existing "no devices" warning and starts
-- [ ] Shutdown order (API task, server/mDNS, storage flush) is unchanged, asserted by a test
+- [ ] Shutdown order (storage flush, then `server.stop()` including mDNS, then API task cancel; `__main__.py:1134-1144`) is unchanged, asserted by a test
 - [ ] `lifx-emulator --help` lists `--ipv6-bind`, `--mdns`/`--no-mdns`, `--mdns-ipv4-address`, `--mdns-ipv6-address`, `--thread`, `--thread-product`
 - [ ] Each new flag overrides its YAML key; `--no-mdns` overrides `mdns: true` and `--mdns` overrides `mdns: false`
 - [ ] An empty or non-IPv6 `--ipv6-bind`, or a wrong-family advertised-address flag, fails with an error naming the flag
@@ -129,7 +129,7 @@ Phases 1–3 delivered the full core surface; the standalone app exposes none of
 |----------|-------------|--------|---------------------|
 | adjacency | R1 | 🧪 backstop | Legacy-flag equivalence test (same devices, serials, order) plus the existing CLI suite |
 | empty | R1 | ✅ covered | AC: no devices still warns and starts |
-| ordering | R1 | 🧪 backstop | Shutdown-order test (API task, server/mDNS, storage flush) |
+| ordering | R1 | 🧪 backstop | Shutdown-order test (storage flush, then `server.stop()` including mDNS, then API task cancel; `__main__.py:1134-1144`) |
 | adjacency | R2 | ✅ covered | AC: each flag overrides YAML; `--mdns`/`--no-mdns` both directions |
 | empty | R2 | ✅ covered | AC: empty/non-IPv6/wrong-family address flags fail naming the flag |
 | ordering | R2 | ⛔ dismissed | Flag order has no meaning in cyclopts parsing |
