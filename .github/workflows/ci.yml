@@ -247,7 +247,7 @@ jobs:
       github.event_name == 'pull_request' &&
       contains(fromJSON('["opened", "reopened", "ready_for_review", "synchronize"]'),
       github.event.action)
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
     permissions:
       contents: read
     concurrency:
