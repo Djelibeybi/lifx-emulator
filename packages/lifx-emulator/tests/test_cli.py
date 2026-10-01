@@ -774,8 +774,9 @@ class TestRunCommand:
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
 
-        await run(product=[9999])
+        result = await run(product=[9999])
 
+        assert result is False
         assert any(
             "Failed to create device" in str(call)
             for call in mock_logger.error.call_args_list
@@ -1840,12 +1841,42 @@ class TestRunWithConfigDevices:
 
     @pytest.mark.asyncio
     @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_run_config_multi_tile_mirror_fails_startup(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """A config device the build rejects (a 2-tile Mirror) must fail the
+        run like the CLI path does, without pointing at list-products: the
+        product exists, its tile count is what is wrong."""
+        from lifx_emulator_app.config import DeviceDefinition
+
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[DeviceDefinition(product_id=267, tile_count=2)]
+        )
+
+        result = await run()
+
+        assert result is False
+        mock_server_class.assert_not_called()
+        assert any(
+            "exactly 1 tile" in str(call) for call in mock_logger.error.call_args_list
+        )
+        assert not any(
+            "list-products" in str(call) for call in mock_logger.info.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__._setup_logging")
     @patch("lifx_emulator_app.__main__._load_merged_config")
     async def test_run_config_device_invalid_product(
         self, mock_load_cfg, mock_setup_logging, mock_resolve
     ):
-        """run() returns early when config device has invalid product_id."""
+        """run() fails when a config device has an unknown product_id."""
         from lifx_emulator_app.config import DeviceDefinition
 
         mock_logger = MagicMock()
@@ -1855,10 +1886,13 @@ class TestRunWithConfigDevices:
         )
 
         result = await run()
-        assert result is None
+        assert result is False
         assert any(
             "Failed to create device from config" in str(call)
             for call in mock_logger.error.call_args_list
+        )
+        assert any(
+            "list-products" in str(call) for call in mock_logger.info.call_args_list
         )
 
     @pytest.mark.asyncio

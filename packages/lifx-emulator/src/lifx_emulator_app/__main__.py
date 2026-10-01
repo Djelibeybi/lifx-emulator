@@ -65,6 +65,26 @@ tile_group = cyclopts.Group.create_ordered("Tile/Matrix Options")
 serial_group = cyclopts.Group.create_ordered("Serial Number Options")
 
 
+def _report_device_error(
+    logger: logging.Logger, message: str, error: ValueError, product_id: int
+) -> None:
+    """Log why a device could not be created.
+
+    The list-products hint is shown only for an unknown product ID; for a
+    known product (a bad tile count, say) it would point the user the wrong
+    way.
+
+    Args:
+        logger: Logger to report through
+        message: What failed, e.g. "Failed to create device from config"
+        error: The ValueError the factory raised
+        product_id: The product ID the device was requested as
+    """
+    logger.error("%s: %s", message, error)
+    if get_registry().get_product(product_id) is None:
+        logger.info("Run 'lifx-emulator list-products' to see available products")
+
+
 def _setup_logging(verbose: bool) -> logging.Logger:
     """Configure logging based on verbosity level."""
     log_format = "%(message)s"
@@ -899,11 +919,8 @@ async def run(
                         create_device(pid, serial=get_serial(), storage=storage)
                     )
                 except ValueError as e:
-                    logger.error("Failed to create device: %s", e)
-                    logger.info(
-                        "Run 'lifx-emulator list-products' to see available products"
-                    )
-                    return
+                    _report_device_error(logger, "Failed to create device", e, pid)
+                    return False
 
         # Create color lights
         for _ in range(f_color):
@@ -1024,11 +1041,13 @@ async def run(
                         device.state.hev_indication = dev_def.hev_indication
                     devices.append(device)
                 except ValueError as e:
-                    logger.error("Failed to create device from config: %s", e)
-                    logger.info(
-                        "Run 'lifx-emulator list-products' to see available products"
+                    _report_device_error(
+                        logger,
+                        "Failed to create device from config",
+                        e,
+                        dev_def.product_id,
                     )
-                    return
+                    return False
 
     if not devices:
         if f_persistent:
