@@ -486,7 +486,7 @@ Every LIFX packet consists of:
 Bytes 0-1:   Size (uint16, little-endian)
 Bytes 2-3:   Protocol/Origin/Tagged/Addressable (bitfield)
 Bytes 4-7:   Source (uint32, little-endian)
-Bytes 8-15:  Target (6-byte MAC + 2 reserved bytes)
+Bytes 8-15:  Target (6-byte serial number + 2 reserved bytes)
 Bytes 16-21: Reserved
 Byte  22:    Ack/Res flags + reserved bits
 Byte  23:    Sequence (uint8)

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_STORAGE_DIR = Path.home() / ".lifx-emulator"
 _SHUTDOWN_FLUSH_ATTEMPTS = 2
 
-# Device serials are 12-char hex strings (6-byte MAC). Validating against this
+# Device serials are 12-char hex strings (6 bytes). Validating against this
 # pattern before using a serial in a filesystem path prevents path traversal.
 _SERIAL_RE = re.compile(r"^[0-9a-fA-F]{12}$")
 
