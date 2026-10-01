@@ -484,22 +484,39 @@ with open("lifx-export.json", "w") as f:
 
 ### Importing Device State
 
-Saved state files are plain JSON, so importing is a matter of writing each state back to the storage directory. The next time a device with that serial is created with the same storage, its state is restored:
+Saved state files are plain JSON, so importing is a matter of writing each state back to the storage directory. The next time a device with that serial is created with the same storage, its state is restored.
+
+The serials come from an untrusted file, so validate every one and check that each destination stays inside the storage directory (resolving symlinks) before writing anything:
 
 ```python
 import json
+import os
+import re
 
 from lifx_emulator.devices import DevicePersistenceAsyncFile
 from lifx_emulator.factories import create_device
 
+SERIAL_RE = re.compile(r"[0-9a-fA-F]{12}")
+
 storage = DevicePersistenceAsyncFile()
+root = os.path.realpath(storage.storage_dir)
 
 # Import from exported file
 with open("lifx-export.json") as f:
     all_states = json.load(f)
 
+# Validate every serial and destination before writing any files
+destinations = {}
+for serial in all_states:
+    if not SERIAL_RE.fullmatch(serial):
+        raise ValueError(f"Invalid device serial: {serial!r}")
+    path = os.path.realpath(os.path.join(root, f"{serial}.json"))
+    if not path.startswith(root + os.sep):
+        raise ValueError(f"State path for {serial} escapes the storage directory")
+    destinations[serial] = path
+
 for serial, state_dict in all_states.items():
-    with open(storage.storage_dir / f"{serial}.json", "w") as f:
+    with open(destinations[serial], "w") as f:
         json.dump(state_dict, f, indent=2)
 
 print(f"Imported {len(all_states)} devices")

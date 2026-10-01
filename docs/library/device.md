@@ -287,10 +287,10 @@ Capability flags are set by the factory functions from the product registry, so 
 
 **Example:**
 ```python
-from lifx_emulator.factories import create_device, create_multizone_light
+from lifx_emulator.factories import create_device
 
 # Create a multizone device (LIFX Z, product 32) with 16 zones
-strip = create_multizone_light("d073d5000002", zone_count=16)
+strip = create_device(32, serial="d073d5000002", zone_count=16)
 print(strip.state.has_multizone, strip.state.zone_count)  # True 16
 
 # Create a matrix device (LIFX Tile, product 55) with a chain of 5 tiles.
