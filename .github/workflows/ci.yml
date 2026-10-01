@@ -23,7 +23,6 @@ jobs:
       pull-requests: read
     outputs:
       source: ${{ steps.filter.outputs.source }}
-      mdns_spike: ${{ steps.filter.outputs.mdns_spike }}
       mdns_production: ${{ steps.filter.outputs.mdns_production }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
@@ -42,12 +41,6 @@ jobs:
             - 'scripts/prepare_mdns_oracle.py'
             - 'scripts/mdns_spike_inputs/active.json'
             - 'uv.lock'
-          mdns_spike:
-            - '.github/workflows/ci.yml'
-            - 'scripts/spike_mdns_candidates.py'
-            - 'scripts/spike_mdns_recovery.py'
-            - 'scripts/mdns_spike_tests/**'
-            - 'scripts/mdns_spike_inputs/**'
 
   mdns-production-integration:
     name: mDNS production integration (${{ matrix.os }})
@@ -99,315 +92,6 @@ jobs:
           packages/lifx-emulator-core/tests/test_mdns_integration.py \
           -q --no-cov -rs --junitxml=mdns-production.xml
         uv run python -c 'import xml.etree.ElementTree as E; r=E.parse("mdns-production.xml"); assert sum(int(s.get("tests", 0)) for s in r.iter("testsuite")) > 0; assert not r.findall(".//skipped")'
-
-  mdns-spike-evidence:
-    name: mDNS spike evidence (${{ matrix.os }})
-    needs: changes
-    if: >-
-      github.event_name == 'pull_request' &&
-      contains(fromJSON('["opened", "reopened", "ready_for_review", "synchronize"]'),
-      github.event.action)
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: read
-    concurrency:
-      group: mdns-spike-${{ github.event.pull_request.number }}-${{ matrix.os }}
-      cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
-      with:
-        fetch-depth: 0
-
-    - name: Decide whether exact synchronize inputs changed
-      id: expensive
-      env:
-        ACTION: ${{ github.event.action }}
-        BEFORE: ${{ github.event.before }}
-        AFTER: ${{ github.event.after }}
-        FULL_PR_FILTER: ${{ needs.changes.outputs.mdns_spike }}
-      shell: bash
-      run: |
-        run=false
-        reason=full-pr-filter
-        if [[ "$ACTION" == "synchronize" ]]; then
-          run=true
-          reason=conservative-missing-sha-or-diff
-          if [[ -n "$BEFORE" && -n "$AFTER" ]] \
-            && git fetch --no-tags origin "$BEFORE" "$AFTER" \
-            && changed=$(git diff --name-only "$BEFORE" "$AFTER"); then
-            if grep -Eq '^(\.github/workflows/ci\.yml|scripts/spike_mdns_candidates\.py|scripts/mdns_spike_tests/|scripts/mdns_spike_inputs/)' <<<"$changed"; then
-              run=true
-              reason=synchronize-input-change
-            else
-              run=false
-              reason=synchronize-receipt-only
-            fi
-          fi
-        elif [[ "$FULL_PR_FILTER" == "true" ]]; then
-          run=true
-        fi
-        echo "run=$run" >> "$GITHUB_OUTPUT"
-        echo "reason=$reason" >> "$GITHUB_OUTPUT"
-
-    - name: Set up Python
-      if: steps.expensive.outputs.run == 'true'
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97   # v7
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Install uv
-      if: steps.expensive.outputs.run == 'true'
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7   # v10.2.0
-      with:
-        version: ${{ env.UV_VERSION }}
-        python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Prepare host daemon, synthetic ULA and exact oracle
-      if: steps.expensive.outputs.run == 'true'
-      env:
-        SOURCE_REVISION: 48b7efbff59656499373b13ef17e3008d125feb5
-      shell: bash
-      run: |
-        set -euo pipefail
-        git init "$RUNNER_TEMP/lifx-async"
-        git -C "$RUNNER_TEMP/lifx-async" remote add origin \
-          https://github.com/Djelibeybi/lifx-async.git
-        git -C "$RUNNER_TEMP/lifx-async" fetch --depth 1 origin "$SOURCE_REVISION"
-        git -C "$RUNNER_TEMP/lifx-async" checkout --detach FETCH_HEAD
-        test "$(git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD)" = "$SOURCE_REVISION"
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
-          sudo apt-get update
-          sudo apt-get install -y avahi-daemon
-          sudo systemctl start avahi-daemon
-          sudo ip -6 addr add fd00:3:1::1/128 dev lo
-          pgrep -x avahi-daemon
-        else
-          pgrep -x mDNSResponder
-          # AC-13 permits loopback multicast. The hosted virtual interface
-          # returns EHOSTUNREACH even with explicit Darwin socket scoping.
-          mdns_interface=lo0
-          sudo ifconfig "$mdns_interface" inet6 fd00:3:1::1 prefixlen 64 alias
-          # Route the disposable same-host multicast test explicitly via lo0.
-          # This does not claim cross-machine or physical-interface evidence.
-          sudo route -n add -host 224.0.0.251 -interface "$mdns_interface" \
-            >/dev/null 2>&1 || \
-            sudo route -n change -host 224.0.0.251 -interface "$mdns_interface" \
-              >/dev/null 2>&1
-          test "$(route -n get -inet 224.0.0.251 | \
-            awk '/interface:/{print $2}')" = "$mdns_interface"
-          echo "MDNS_SPIKE_ROUTE_INTERFACE_PRESENT=true" >> "$GITHUB_ENV"
-        fi
-        echo "MDNS_SPIKE_THREAD_ADDRESS_ORIGIN=runner-configured-synthetic-ula" \
-          >> "$GITHUB_ENV"
-
-    - name: Exercise exact candidate head
-      if: steps.expensive.outputs.run == 'true'
-      env:
-        EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
-        MDNS_SPIKE_ORACLE_PATH: ${{ runner.temp }}/lifx-async
-      run: |
-        uv run --frozen pytest scripts/mdns_spike_tests -q --no-cov
-        uv run --frozen python scripts/spike_mdns_candidates.py \
-          run-zeroconf-platform --output "$EVIDENCE"
-
-    - name: Record exact-head receipt
-      if: steps.expensive.outputs.run == 'true'
-      env:
-        EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
-        RECEIPT: mdns-spike-${{ runner.os }}-${{ runner.arch }}-receipt.json
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      run: >-
-        uv run --frozen python scripts/spike_mdns_candidates.py write-ci-receipt
-        --evidence "$EVIDENCE" --output "$RECEIPT" --head-sha "$HEAD_SHA"
-        --run-url "$RUN_URL" --platform-leg multicast
-
-    - name: Show provisional or failed evidence
-      if: failure() && steps.expensive.outputs.run == 'true'
-      env:
-        EVIDENCE: mdns-spike-${{ runner.os }}-${{ runner.arch }}.json
-      run: cat "$EVIDENCE"
-
-    - name: Upload non-publishing evidence
-      if: always() && steps.expensive.outputs.run == 'true'
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a   # v7
-      with:
-        name: mdns-spike-${{ runner.os }}-${{ runner.arch }}
-        path: mdns-spike-${{ runner.os }}-${{ runner.arch }}*.json
-        retention-days: 7
-
-  mdns-spike-intel-pyapp:
-    name: mDNS spike Intel PyApp evidence
-    needs: changes
-    if: >-
-      github.event_name == 'pull_request' &&
-      contains(fromJSON('["opened", "reopened", "ready_for_review", "synchronize"]'),
-      github.event.action)
-    runs-on: macos-26-intel
-    permissions:
-      contents: read
-    concurrency:
-      group: mdns-spike-${{ github.event.pull_request.number }}-intel-pyapp
-      cancel-in-progress: true
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7
-      with:
-        fetch-depth: 0
-
-    - name: Decide whether exact synchronize inputs changed
-      id: expensive
-      env:
-        ACTION: ${{ github.event.action }}
-        BEFORE: ${{ github.event.before }}
-        AFTER: ${{ github.event.after }}
-        FULL_PR_FILTER: ${{ needs.changes.outputs.mdns_spike }}
-      shell: bash
-      run: |
-        run=false
-        reason=full-pr-filter
-        if [[ "$ACTION" == "synchronize" ]]; then
-          run=true
-          reason=conservative-missing-sha-or-diff
-          if [[ -n "$BEFORE" && -n "$AFTER" ]] \
-            && git fetch --no-tags origin "$BEFORE" "$AFTER" \
-            && changed=$(git diff --name-only "$BEFORE" "$AFTER"); then
-            if grep -Eq '^(\.github/workflows/ci\.yml|scripts/spike_mdns_candidates\.py|scripts/mdns_spike_tests/|scripts/mdns_spike_inputs/)' <<<"$changed"; then
-              run=true
-              reason=synchronize-input-change
-            else
-              run=false
-              reason=synchronize-receipt-only
-            fi
-          fi
-        elif [[ "$FULL_PR_FILTER" == "true" ]]; then
-          run=true
-        fi
-        echo "run=$run" >> "$GITHUB_OUTPUT"
-        echo "reason=$reason" >> "$GITHUB_OUTPUT"
-
-    - name: Set up Python 3.14
-      if: steps.expensive.outputs.run == 'true'
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97   # v7
-      with:
-        python-version: '3.14'
-
-    - name: Install uv
-      if: steps.expensive.outputs.run == 'true'
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7   # v10.2.0
-      with:
-        version: ${{ env.UV_VERSION }}
-        python-version: '3.14'
-
-    - name: Install pinned Rust toolchain action
-      if: steps.expensive.outputs.run == 'true'
-      uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
-      with:
-        toolchain: stable
-        targets: x86_64-apple-darwin
-
-    - name: Build exact local wheels and PyApp
-      if: steps.expensive.outputs.run == 'true'
-      env:
-        SOURCE_REVISION: 48b7efbff59656499373b13ef17e3008d125feb5
-        PYAPP_PYTHON_VERSION: '3.14'
-        PYAPP_EXEC_SPEC: lifx_emulator_app.__main__:main
-        PYAPP_UV_ENABLED: 'true'
-        PYAPP_UV_VERSION: ${{ env.UV_VERSION }}
-        PYAPP_EXPOSE_PYTHON: 'true'
-        CARGO_BUILD_TARGET: x86_64-apple-darwin
-      shell: bash
-      run: |
-        set -euo pipefail
-        wheels="$RUNNER_TEMP/wheels"
-        mkdir -p "$wheels"
-        uv build --wheel packages/lifx-emulator-core --out-dir "$wheels"
-        git init "$RUNNER_TEMP/lifx-async"
-        git -C "$RUNNER_TEMP/lifx-async" remote add origin \
-          https://github.com/Djelibeybi/lifx-async.git
-        git -C "$RUNNER_TEMP/lifx-async" fetch --depth 1 origin "$SOURCE_REVISION"
-        git -C "$RUNNER_TEMP/lifx-async" checkout --detach FETCH_HEAD
-        test "$(git -C "$RUNNER_TEMP/lifx-async" rev-parse HEAD)" = "$SOURCE_REVISION"
-        cp scripts/mdns_spike_inputs/lifx_direct.py \
-          "$RUNNER_TEMP/lifx-async/src/lifx/network/discovery/mdns/responder.py"
-        uv build --wheel "$RUNNER_TEMP/lifx-async" --out-dir "$wheels"
-        cp -R packages/lifx-emulator "$RUNNER_TEMP/lifx-emulator-app"
-        core_wheel=$(find "$wheels" -name 'lifx_emulator_core-*.whl' -print -quit)
-        candidate_wheel=$(find "$wheels" -name 'lifx_async-*.whl' -print -quit)
-        uv run --frozen python -c \
-          'import importlib.metadata,pathlib,sys; p=pathlib.Path(sys.argv[1]); s=p.read_text(); s=s.replace("lifx-emulator-core>=2.4.0", "lifx-emulator-core @ file://" + sys.argv[2]); marker="dependencies = ["; s=s.replace(marker, marker + "\n    \"lifx-async @ file://" + sys.argv[3] + "\","); s=s.replace(marker, marker + "\n    \"zeroconf==" + importlib.metadata.version("zeroconf") + "\","); s += "\n[tool.hatch.metadata]\nallow-direct-references = true\n"; p.write_text(s)' \
-          "$RUNNER_TEMP/lifx-emulator-app/pyproject.toml" "$core_wheel" "$candidate_wheel"
-        uv build --wheel "$RUNNER_TEMP/lifx-emulator-app" --out-dir "$wheels"
-        app_wheel=$(find "$wheels" -name 'lifx_emulator-[0-9]*.whl' -print -quit)
-        git clone --depth 1 --branch v0.26.0 https://github.com/ofek/pyapp.git \
-          "$RUNNER_TEMP/pyapp"
-        test "$(git -C "$RUNNER_TEMP/pyapp" rev-parse HEAD)" = \
-          "a419de7c068cbd0e083194bbe11c741b0497d28c"
-        test "$(git -C "$RUNNER_TEMP/pyapp" rev-parse 'HEAD^{tree}')" = \
-          "d87b89829042147f7b23c5fe4b5b14034d8164d4"
-        project_wheel=$(basename "$app_wheel")
-        cp "$app_wheel" "$RUNNER_TEMP/pyapp/$project_wheel"
-        cd "$RUNNER_TEMP/pyapp"
-        export PYAPP_PROJECT_PATH="$project_wheel"
-        rustc -Vv | tee "$RUNNER_TEMP/rustc.txt"
-        cargo build --release --target "$CARGO_BUILD_TARGET"
-        binary="target/$CARGO_BUILD_TARGET/release/pyapp"
-        zeroconf_version=$(uv run --project "$GITHUB_WORKSPACE" --frozen python -c 'import importlib.metadata; print(importlib.metadata.version("zeroconf"))')
-        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
-          "$binary" --help > "$RUNNER_TEMP/first-run.txt"
-        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
-          "$binary" self python -c \
-          'import importlib.metadata,json; print(json.dumps({n:importlib.metadata.version(n) for n in ("lifx-emulator","lifx-emulator-core","lifx-async")},sort_keys=True))' \
-          > "$RUNNER_TEMP/installed-identities.json"
-        env "PYAPP_INSTALL_DIR_LIFX-EMULATOR=$RUNNER_TEMP/pyapp-install" \
-          "$binary" self python -c \
-          'import importlib.metadata,json,sys; from zeroconf.asyncio import AsyncZeroconf; version=importlib.metadata.version("zeroconf"); assert version == sys.argv[1]; print(json.dumps({"candidate":"zeroconf","version":version,"async_api_imported":True}))' "$zeroconf_version" \
-          > "$RUNNER_TEMP/zeroconf-packaging.json"
-        shasum -a 256 "$wheels"/*.whl "$binary" > "$RUNNER_TEMP/hashes.txt"
-        unzip -p "$candidate_wheel" '*/METADATA' > "$RUNNER_TEMP/candidate-METADATA.txt"
-        unzip -p "$app_wheel" '*/METADATA' > "$RUNNER_TEMP/app-METADATA.txt"
-        cp "$GITHUB_WORKSPACE/scripts/mdns_spike_inputs/active.json" \
-          "$RUNNER_TEMP/active-input.json"
-
-    - name: Record Intel PyApp receipt
-      if: steps.expensive.outputs.run == 'true'
-      env:
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      run: |
-        uv run --frozen python scripts/spike_mdns_candidates.py \
-          write-intel-pyapp-receipt \
-          --output "$RUNNER_TEMP/intel-pyapp-receipt.json" \
-          --head-sha "$HEAD_SHA" --run-url "$RUN_URL" \
-          --hashes "$RUNNER_TEMP/hashes.txt" \
-          --identities "$RUNNER_TEMP/installed-identities.json" \
-          --rustc "$RUNNER_TEMP/rustc.txt" \
-          --first-run "$RUNNER_TEMP/first-run.txt" \
-          --candidate-metadata "$RUNNER_TEMP/candidate-METADATA.txt" \
-          --app-metadata "$RUNNER_TEMP/app-METADATA.txt"
-        uv run --frozen python scripts/spike_mdns_candidates.py \
-          validate-ci-receipt \
-          --receipt "$RUNNER_TEMP/intel-pyapp-receipt.json" \
-          --head-sha "$HEAD_SHA"
-
-    - name: Upload non-publishing Intel PyApp evidence
-      if: always() && steps.expensive.outputs.run == 'true'
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a   # v7
-      with:
-        name: mdns-spike-intel-pyapp
-        path: |
-          ${{ runner.temp }}/active-input.json
-          ${{ runner.temp }}/*METADATA.txt
-          ${{ runner.temp }}/first-run.txt
-          ${{ runner.temp }}/hashes.txt
-          ${{ runner.temp }}/installed-identities.json
-          ${{ runner.temp }}/intel-pyapp-receipt.json
-          ${{ runner.temp }}/zeroconf-packaging.json
-          ${{ runner.temp }}/rustc.txt
-        retention-days: 7
 
   # Code quality checks
   quality:
@@ -576,11 +260,11 @@ jobs:
 
         # Check if a release was made (no "No release will be made" message)
         if echo "$output" | grep -q "No release will be made"; then
-          echo "release-lifx-emulator-core=false" >> $GITHUB_OUTPUT
+          echo "release-lifx-emulator-core=false" >> "$GITHUB_OUTPUT"
         else
           # Publish distribution artifacts to release
           uv run --with python-semantic-release semantic-release publish
-          echo "release-lifx-emulator-core=true" >> $GITHUB_OUTPUT
+          echo "release-lifx-emulator-core=true" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Release lifx-emulator
@@ -598,11 +282,11 @@ jobs:
 
         # Check if a release was made (no "No release will be made" message)
         if echo "$output" | grep -q "No release will be made"; then
-          echo "release-lifx-emulator=false" >> $GITHUB_OUTPUT
+          echo "release-lifx-emulator=false" >> "$GITHUB_OUTPUT"
         else
           # Publish distribution artifacts to release
           uv run --with python-semantic-release semantic-release publish
-          echo "release-lifx-emulator=true" >> $GITHUB_OUTPUT
+          echo "release-lifx-emulator=true" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Upload Core Library Artifacts
