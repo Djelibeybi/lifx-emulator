@@ -488,13 +488,17 @@ class DeviceBuilder:
             state: The composed (and possibly restored) device state
 
         Returns:
-            The zone map when its length matches the tile's buffer size,
+            The zone map when the tile has the product's own dimensions,
             None otherwise
         """
         zone_map = get_zone_map(self._product_info.pid)
         if zone_map is None:
             return None
-        if len(zone_map) != state.tile_width * state.tile_height:
+        # The map is row-major over the product's width, so a tile with the
+        # same buffer size but other dimensions (13x4 for a 4x13 Mirror) would
+        # read every zone from the wrong position.
+        product_dims = get_tile_dimensions(self._product_info.pid)
+        if (state.tile_width, state.tile_height) != product_dims:
             logger.warning(
                 "Zone map for product %s does not fit a %sx%s matrix, ignoring it",
                 self._product_info.pid,

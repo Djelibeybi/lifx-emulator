@@ -371,3 +371,26 @@ def test_restoring_mirror_tile_colours_saved_without_a_tile_count():
     st = builder.with_storage(_SavedStateStorage(saved)).build().state
 
     assert st.tile_devices[0]["colors"][0]["saturation"] == 65535
+
+
+def test_a_transposed_mirror_restore_drops_the_zone_map():
+    """13x4 holds 52 positions too, but the map is laid out 4 wide: applied
+    to a 13-wide buffer every zone would read the wrong position.
+    """
+    from lifx_emulator.factories.builder import DeviceBuilder
+    from lifx_emulator.products.registry import get_product
+
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": 1,
+        "tile_width": 13,
+        "tile_height": 4,
+        "tile_devices": [{"width": 13, "height": 4, "colors": [black] * 52}],
+    }
+    builder = DeviceBuilder(get_product(267)).with_serial("d073d5000267")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_width, st.tile_height) == (13, 4)
+    assert st.zone_map is None
