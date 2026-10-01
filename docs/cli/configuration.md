@@ -171,15 +171,17 @@ multizone_extended: true
 ### Tile/Matrix Options
 
 ```yaml
-# Number of tiles per tile device
+# Number of tiles on each LIFX Tile chain (1 to 5)
 # Default: uses product defaults (5 for LIFX Tile)
 tile_count: 5
-
-# Tile dimensions in zones
-# Defaults: 8x8 for LIFX Tile, 5x6 for Candle
-tile_width: 8
-tile_height: 8
 ```
+
+!!! warning "Deprecated: `tile_width` and `tile_height`"
+    Every matrix product has a fixed tile size (the LIFX Tile is always 8x8),
+    so the top-level and per-device `tile_width`/`tile_height` keys are
+    accepted but ignored, and log a deprecation warning. They will be removed
+    in the next major release. Pick a product with the tile size you need
+    instead, such as `product_id: 201` (LIFX Ceiling 13x26", one 16x8 tile).
 
 ### Serial Number Options
 
@@ -261,9 +263,9 @@ devices:
 | `infrared_brightness` | No | Initial IR brightness 0–65535 (infrared devices only) |
 | `hev_cycle_duration` | No | HEV cycle duration in seconds (HEV devices only) |
 | `hev_indication` | No | HEV indication enabled (HEV devices only) |
-| `tile_count` | No | Number of tiles (matrix devices only) |
-| `tile_width` | No | Tile width in zones (matrix devices only) |
-| `tile_height` | No | Tile height in zones (matrix devices only) |
+| `tile_count` | No | Number of tiles (1 to 5 for the LIFX Tile; other matrix products have exactly 1) |
+| `tile_width` | No | **Deprecated and ignored**: tile size is fixed per product |
+| `tile_height` | No | **Deprecated and ignored**: tile size is fixed per product |
 
 #### HSBK Color Format
 

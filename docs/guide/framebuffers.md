@@ -91,17 +91,12 @@ packet = Tile.CopyFrameBuffer(
 ## Complete Example: Updating a 16×8 Tile
 
 ```python
-from lifx_emulator import create_tile_device
+from lifx_emulator.factories import create_device
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import TileBufferRect, LightHsbk
 
-# Create 16×8 tile (128 zones)
-device = create_tile_device(
-    serial="d073dc000001",
-    tile_count=1,
-    tile_width=16,
-    tile_height=8
-)
+# LIFX Ceiling 13x26": a single 16×8 tile (128 zones)
+device = create_device(201, serial="d073dc000001")
 
 # Prepare colors for all 128 zones
 red = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)

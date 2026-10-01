@@ -110,16 +110,16 @@ products:
     notes: "LIFX Candle, 5x6 zone matrix, single unit"
 ```
 
-**Example - LIFX Ceiling:**
+**Example - LIFX Ceiling 13x26":**
 ```yaml
 products:
-  176:
+  201:
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
-    tile_width: 22
-    tile_height: 22
-    notes: "LIFX Ceiling, 22x22 zone matrix"
+    tile_width: 16
+    tile_height: 8
+    notes: "LIFX Ceiling 13x26\", one 16x8 tile (128 zones)"
 ```
 
 ## How Specifications Are Used
@@ -145,8 +145,11 @@ device = create_device(38, zone_count=40)
 
 When creating a matrix device:
 
-1. **Tile dimensions**: Always from `specs.yml` (required for accuracy)
-2. **Tile count**: From `specs.yml` if not specified by user
+1. **Tile dimensions**: Always from `specs.yml`. Tile size is fixed per
+   product and cannot be overridden: the deprecated `tile_width`/`tile_height`
+   options (CLI, config, API and factory arguments) are ignored with a warning.
+2. **Tile count**: From `specs.yml` if not specified by user. Only the LIFX
+   Tile chains (1 to 5 tiles); every other matrix product has exactly 1.
 
 ```python
 # Uses specification: 5 tiles of 8x8 zones
@@ -155,11 +158,14 @@ device = create_device(55)
 # Custom tile count, specification dimensions
 device = create_device(55, tile_count=3)  # 3 tiles of 8x8 zones
 
-# Candle: 1 tile of 5x5 zones (from specification)
+# Candle: 1 tile of 5x6 zones (from specification)
 device = create_device(57)
 
-# Ceiling: 1 tile of 22x22 zones (from specification)
+# Ceiling: 1 tile of 8x8 zones (from specification)
 device = create_device(176)
+
+# Ceiling 13x26": 1 tile of 16x8 zones (from specification)
+device = create_device(201)
 ```
 
 
