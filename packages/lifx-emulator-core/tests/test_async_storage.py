@@ -84,7 +84,7 @@ class TestDevicePersistenceAsyncFile:
     async def test_device_storage_multizone(self, temp_storage):
         """Test saving and loading multizone device state."""
         device = create_multizone_light(
-            "d073d8111111", zone_count=8, storage=temp_storage
+            "d073d5111111", zone_count=8, storage=temp_storage
         )
         state = device.state
         state.label = "Test Strip"
@@ -103,7 +103,7 @@ class TestDevicePersistenceAsyncFile:
 
     async def test_device_storage_tile(self, temp_storage):
         """Test saving and loading tile device state."""
-        device = create_tile_device("d073d9222222", tile_count=2, storage=temp_storage)
+        device = create_tile_device("d073d5222222", tile_count=2, storage=temp_storage)
         state = device.state
         state.label = "Test Tile"
         await temp_storage.save_device_state(state)

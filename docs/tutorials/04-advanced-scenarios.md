@@ -31,7 +31,7 @@ from lifx_emulator.repositories import DeviceRepository
 
 async def main():
     # Create a LIFX Z strip (product ID 32) with 16 zones
-    device = create_device(32, serial="d073d8000001", zone_count=16)
+    device = create_device(32, serial="d073d5800001", zone_count=16)
 
     # Set a different colour for each zone
     for i in range(16):
@@ -73,7 +73,7 @@ from lifx_emulator.repositories import DeviceRepository
 async def main():
     # Create a LIFX Beam with 80 zones and extended multizone support
     device = create_multizone_light(
-        serial="d073d8000001",
+        serial="d073d5800001",
         zone_count=80,
         extended_multizone=True,
     )
@@ -113,7 +113,7 @@ from lifx_emulator.repositories import DeviceRepository
 
 async def main():
     # Create a LIFX Tile with 5 tiles in the chain
-    device = create_tile_device("d073d9000001", tile_count=5)
+    device = create_tile_device("d073d5900001", tile_count=5)
 
     # Each LIFX Tile is 8x8 zones (64 zones)
     print("Tile device configuration:")
@@ -336,12 +336,12 @@ from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 async def main():
     manager = HierarchicalScenarioManager()
     manager.set_device_scenario(
-        "d073d8000001", ScenarioConfig(partial_responses=[506])
+        "d073d5800001", ScenarioConfig(partial_responses=[506])
     )
 
     # LIFX Z with 16 zones: a full reply is two StateMultiZone packets
     device = create_device(
-        32, serial="d073d8000001", zone_count=16, scenario_manager=manager
+        32, serial="d073d5800001", zone_count=16, scenario_manager=manager
     )
     server = EmulatedLifxServer(
         [device],
@@ -437,13 +437,13 @@ async def main():
         create_color_light("d073d5000002", scenario_manager=manager),
         # Multizone devices: a LIFX Z and a LIFX Beam
         create_device(
-            32, serial="d073d8000001", zone_count=16, scenario_manager=manager
+            32, serial="d073d5800001", zone_count=16, scenario_manager=manager
         ),
         create_multizone_light(
-            "d073d8000002", zone_count=80, scenario_manager=manager
+            "d073d5800002", zone_count=80, scenario_manager=manager
         ),
         # Matrix device
-        create_tile_device("d073d9000001", tile_count=5, scenario_manager=manager),
+        create_tile_device("d073d5900001", tile_count=5, scenario_manager=manager),
     ]
 
     # Configure different scenarios for different devices

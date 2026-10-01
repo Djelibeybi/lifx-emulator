@@ -146,7 +146,7 @@ async def basic_device():
 @pytest_asyncio.fixture
 async def multizone_device():
     """Multizone strip fixture."""
-    device = create_multizone_light("d073d8000001", zone_count=16)
+    device = create_multizone_light("d073d5800001", zone_count=16)
     server = EmulatedLifxServer(
         [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
     )
@@ -193,9 +193,9 @@ from lifx_emulator.repositories import DeviceRepository
         (
             "multizone",
             lambda s: create_multizone_light(s, zone_count=16),
-            "d073d8000001",
+            "d073d5800001",
         ),
-        ("tile", lambda s: create_tile_device(s, tile_count=5), "d073d9000001"),
+        ("tile", lambda s: create_tile_device(s, tile_count=5), "d073d5900001"),
     ]
 )
 async def any_device(request):
@@ -462,7 +462,7 @@ async def multiple_devices():
     devices = [
         create_color_light("d073d5000001"),
         create_color_light("d073d5000002"),
-        create_multizone_light("d073d8000001", zone_count=16),
+        create_multizone_light("d073d5800001", zone_count=16),
     ]
     server = EmulatedLifxServer(
         devices, DeviceManager(DeviceRepository()), "127.0.0.1", 0
@@ -696,7 +696,7 @@ async def test_devices():
     """Module-level fixture with multiple devices."""
     devices = [
         create_color_light("d073d5000001"),
-        create_multizone_light("d073d8000001", zone_count=16),
+        create_multizone_light("d073d5800001", zone_count=16),
     ]
 
     devices[0].state.label = "Color Light"
@@ -727,7 +727,7 @@ async def test_color_light_capabilities(test_devices):
 @pytest.mark.asyncio(loop_scope="module")
 async def test_multizone_capabilities(test_devices):
     """Verify multizone capabilities."""
-    device = test_devices.get_device("d073d8000001")
+    device = test_devices.get_device("d073d5800001")
     assert device.state.has_multizone
     assert len(device.state.zone_colors) == 16
 

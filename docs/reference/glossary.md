@@ -51,7 +51,7 @@ A set of tiles connected together on a single device. Most modern matrix devices
 ## Device Identification
 
 ### Serial
-A 12-character hexadecimal string representing a unique device identifier. Examples: `d073d5000001`, `d073d8123456`.
+A 12-character hexadecimal string representing a unique device identifier. Examples: `d073d5000001`, `d073d5123456`.
 
 ### Serial Bytes
 The 6-byte binary representation of a serial. The LIFX protocol uses these 6 bytes to identify a device in the packet header `target` field.

@@ -27,7 +27,7 @@ def test_switch_answers_ambient_light_not_unhandled():
     Switches route Light/MultiZone/Tile packets to StateUnhandled (223), but the
     Sensor namespace (401/402) must still reach the registered handler.
     """
-    switch = create_switch("d073d7000099")
+    switch = create_switch("d073d5700099")
 
     header = LifxHeader(
         source=12345,

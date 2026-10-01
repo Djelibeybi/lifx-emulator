@@ -88,16 +88,16 @@ def lifx_devices(scenario_manager):
         create_color_light("d073d5000001", scenario_manager=scenario_manager),
         create_color_light("d073d5000002", scenario_manager=scenario_manager),
         create_multizone_light(
-            "d073d8000001", zone_count=16, scenario_manager=scenario_manager
+            "d073d5800001", zone_count=16, scenario_manager=scenario_manager
         ),
         create_multizone_light(
-            "d073d8000002",
+            "d073d5800002",
             zone_count=82,
             extended_multizone=True,
             scenario_manager=scenario_manager,
         ),
         create_tile_device(
-            "d073d9000001", tile_count=5, scenario_manager=scenario_manager
+            "d073d5900001", tile_count=5, scenario_manager=scenario_manager
         ),
     ]
 

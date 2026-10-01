@@ -367,7 +367,7 @@ server = EmulatedLifxServer(
 from lifx_emulator import create_multizone_light
 
 strip = create_multizone_light(
-    "d073d8000001", zone_count=16, extended_multizone=True
+    "d073d5800001", zone_count=16, extended_multizone=True
 )
 
 # Device responds to:
@@ -394,13 +394,13 @@ strip = create_multizone_light(
 from lifx_emulator import create_tile_device
 from lifx_emulator.factories import create_device
 
-tiles = create_tile_device("d073d9000001", tile_count=5)
+tiles = create_tile_device("d073d5900001", tile_count=5)
 
 # Each tile has 64 zones (8x8)
 # Responds to Get64 (707) -> State64 (711) and Set64 (715)
 
 # Other matrix products take their dimensions from the product ID
-candle = create_device(57, serial="d073d9000002")  # LIFX Candle: one 5x6 tile
+candle = create_device(57, serial="d073d5900002")  # LIFX Candle: one 5x6 tile
 ```
 
 ## Troubleshooting Questions

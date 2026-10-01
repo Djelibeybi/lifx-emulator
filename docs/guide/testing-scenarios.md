@@ -431,12 +431,12 @@ async def main():
 
     # Send only some of the StateMultiZone (506) packets
     manager.set_device_scenario(
-        "d073d8000001", ScenarioConfig(partial_responses=[506])
+        "d073d5800001", ScenarioConfig(partial_responses=[506])
     )
 
     # LIFX Z with 16 zones: a full reply is two StateMultiZone packets
     device = create_device(
-        32, serial="d073d8000001", zone_count=16, scenario_manager=manager
+        32, serial="d073d5800001", zone_count=16, scenario_manager=manager
     )
     server = EmulatedLifxServer(
         [device],
@@ -689,11 +689,11 @@ async def main():
 
     # Device 3: Unreliable device (drops some packets)
     device3 = create_multizone_light(
-        "d073d8000001", zone_count=16, scenario_manager=manager
+        "d073d5800001", zone_count=16, scenario_manager=manager
     )
     device3.state.label = "Flaky Strip"
     manager.set_device_scenario(
-        "d073d8000001",
+        "d073d5800001",
         ScenarioConfig(
             drop_packets={502: 0.4},  # Drop 40% of GetColorZones
             response_delays={506: 0.8},  # Slow StateMultiZone replies
