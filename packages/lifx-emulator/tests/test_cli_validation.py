@@ -7,10 +7,12 @@ import sys
 from contextlib import contextmanager
 
 import pytest
+from fastapi.testclient import TestClient
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
+    create_device,
     create_hev_light,
     create_infrared_light,
     create_multizone_light,
@@ -131,7 +133,6 @@ class TestServerConfiguration:
     @pytest.fixture
     def client(self, api_app):
         """Create test client."""
-        from fastapi.testclient import TestClient
 
         app, _server = api_app
         with TestClient(app) as client:
@@ -158,8 +159,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -178,8 +177,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -196,8 +193,6 @@ class TestServerConfiguration:
             [device], device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -218,8 +213,6 @@ class TestServerConfiguration:
             devices, device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -249,8 +242,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -268,8 +259,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -285,8 +274,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -301,8 +288,6 @@ class TestServerConfiguration:
             [device], device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -320,8 +305,6 @@ class TestServerConfiguration:
             [device], device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -342,8 +325,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             response = client.get("/api/devices")
             assert response.status_code == 200
@@ -359,8 +340,6 @@ class TestServerConfiguration:
             [device], device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -384,8 +363,6 @@ class TestServerConfiguration:
         )
         app = create_api_app(server)
 
-        from fastapi.testclient import TestClient
-
         with TestClient(app) as client:
             # API should be responding
             response = client.get("/api/devices")
@@ -393,7 +370,6 @@ class TestServerConfiguration:
 
     def test_product_id_creation(self):
         """Test device creation by product ID."""
-        from lifx_emulator.factories import create_device
 
         # Product 27 is LIFX A19
         device = create_device(product_id=27)
@@ -402,8 +378,6 @@ class TestServerConfiguration:
             [device], device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
@@ -414,7 +388,6 @@ class TestServerConfiguration:
 
     def test_multiple_product_ids(self):
         """Test creating multiple devices by product ID."""
-        from lifx_emulator.factories import create_device
 
         devices = [
             create_device(product_id=27),  # A19
@@ -426,8 +399,6 @@ class TestServerConfiguration:
             devices, device_manager, "127.0.0.1", find_free_port()
         )
         app = create_api_app(server)
-
-        from fastapi.testclient import TestClient
 
         with TestClient(app) as client:
             response = client.get("/api/devices")
