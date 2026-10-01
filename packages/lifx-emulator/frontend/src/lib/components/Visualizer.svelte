@@ -2,6 +2,8 @@
 	import type { Device, HsbkColor, TileDevice } from '$lib/types';
 	import { devices, ui } from '$lib/stores';
 	import { hsbkToCss, directionalGlow } from '$lib/utils/color';
+	import { addressableZoneCount, mirrorRings, type MirrorRings as Rings } from '$lib/utils/mirror';
+	import MirrorRings from './MirrorRings.svelte';
 
 	// Track which devices have seamless tile mode enabled
 	let seamlessDevices = $state<Set<string>>(new Set());
@@ -21,6 +23,7 @@
 	const CARD_PADDING = 42;      // 20px padding + 1px border, each side
 	const MIN_CARD_WIDTH = 200;
 	const DEFAULT_TILE_DIM = 8;    // fallback if tile width/height is missing
+	const MIRROR_WIDTH = 200;      // rendered width of the Mirror's capsule rings
 
 	function tileW(tile: TileDevice): number { return tile.width ?? DEFAULT_TILE_DIM; }
 	function tileH(tile: TileDevice): number { return tile.height ?? DEFAULT_TILE_DIM; }
@@ -30,6 +33,9 @@
 	}
 
 	function getCardWidthStyle(device: Device): string {
+		if (device.zone_map) {
+			return `--card-width: ${MIRROR_WIDTH + CARD_PADDING}px;`;
+		}
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
 			const tileWidths = device.tile_devices.reduce(
 				(sum, tile) => sum + tileW(tile) * PX_PER_TILE_COL, 0
@@ -41,6 +47,7 @@
 	}
 
 	function getDeviceSortKey(device: Device): number {
+		if (device.zone_map) return MIRROR_WIDTH;
 		if (device.has_matrix && device.tile_devices && device.tile_devices.length > 0) {
 			return device.tile_devices.reduce((sum, tile) => sum + tileW(tile) * PX_PER_TILE_COL, 0);
 		}
@@ -81,6 +88,8 @@
 	}
 
 	function getTotalZones(device: Device): number {
+		const addressable = addressableZoneCount(device);
+		if (addressable !== null) return addressable;
 		if (device.has_matrix && device.tile_devices) {
 			return device.tile_devices.reduce(
 				(sum, tile) => sum + tile.width * tile.height,
@@ -90,8 +99,23 @@
 		return device.zone_count;
 	}
 
-	function getDeviceGlow(device: Device): string {
+	// The Mirror's back ring washes the wall, so it alone casts the glow: each
+	// edge takes the back zones on that side of the capsule's centre.
+	function getMirrorGlow(rings: Rings): string {
+		const cx = rings.width / 2;
+		const cy = rings.height / 2;
+		const back = rings.back;
+		return directionalGlow({
+			top: back.filter((z) => z.y < cy).map((z) => z.color),
+			right: back.filter((z) => z.x > cx).map((z) => z.color),
+			bottom: back.filter((z) => z.y > cy).map((z) => z.color),
+			left: back.filter((z) => z.x < cx).map((z) => z.color)
+		});
+	}
+
+	function getDeviceGlow(device: Device, rings: Rings | null): string {
 		if (device.power_level === 0) return 'none';
+		if (rings) return getMirrorGlow(rings);
 
 		if (device.has_multizone && device.zone_colors && device.zone_colors.length > 0) {
 			// Horizontal strip: left/right edges from zone ends, top/bottom from all
@@ -171,7 +195,8 @@
 		<div class="device-grid" class:compact={ui.autoCompact}>
 			{#each sortedDevices as device (device.serial)}
 				{@const duration = getTransitionDuration(device.serial)}
-				{@const glow = getDeviceGlow(device)}
+				{@const rings = mirrorRings(device)}
+				{@const glow = getDeviceGlow(device, rings)}
 				{@const collapsed = ui.isVizCollapsed(device.serial)}
 				<div
 					class="viz-device"
@@ -223,7 +248,12 @@
 
 					<!-- Visualization area -->
 					<div class="viz-display">
-						{#if device.has_matrix && device.tile_devices && device.tile_devices.length > 0}
+						{#if rings}
+							<!-- Mirror: front ring inside back ring, zones in zone order -->
+							<div class="viz-mirror" style="max-width: {MIRROR_WIDTH}px;">
+								<MirrorRings {rings} {duration} showLabels={!collapsed} />
+							</div>
+						{:else if device.has_matrix && device.tile_devices && device.tile_devices.length > 0}
 							<!-- Matrix/Tile display -->
 							<div class="viz-tiles" class:seamless={seamlessDevices.has(device.serial)}>
 								{#each device.tile_devices as tile, i}
@@ -518,6 +548,11 @@
 		border-radius: 0;
 		padding: 0;
 		background: transparent;
+	}
+
+	/* Mirror capsule rings */
+	.viz-mirror {
+		margin: 0 auto;
 	}
 
 	/* Single color swatch */

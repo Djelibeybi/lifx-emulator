@@ -33,6 +33,11 @@ export interface Device {
 	color?: HsbkColor;
 	zone_colors?: HsbkColor[];
 	tile_devices?: TileDevice[];
+	// Zone at each matrix buffer position (-1 where unused); null when zones
+	// follow buffer order
+	zone_map?: number[] | null;
+	// Trailing zones forming the uplight or back ring, if any
+	uplight_zone_count?: number | null;
 	group_label: string;
 	location_label: string;
 	wifi_signal: number;

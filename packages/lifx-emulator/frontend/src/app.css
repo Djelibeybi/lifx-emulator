@@ -377,6 +377,11 @@ h2 {
 	display: inline-block;
 }
 
+.mirror-container {
+	width: 110px;
+	margin-top: 4px;
+}
+
 .tile-label {
 	font-size: 0.7em;
 	color: var(--text-dimmed);
