@@ -52,7 +52,7 @@ The attributes below are read and written directly on `DeviceState`; each one is
 #### Identity
 
 - **`serial`** (`str`) - 12-character hexadecimal device serial number
-- **`mac_address`** (`bytes`) - 6-byte MAC address (derived from serial)
+- **`mac_address`** (`bytes`) - 6-byte network MAC address. This is a distinct value from the serial number; the factories currently initialise it from the serial bytes
 - **`vendor`** (`int` = `1`) - LIFX vendor ID (always 1)
 - **`product`** (`int`) - Product ID (e.g., 27 for A19, 32 for Z strip)
 - **`version_major`** (`int`) - Firmware major version

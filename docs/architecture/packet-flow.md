@@ -51,7 +51,7 @@ When a scenario does target acks (e.g., delaying, dropping, or corrupting type 4
 
 ### 4. Device Routing
 
-The header's `target` field (6-byte MAC + 2 null bytes) determines which device(s) receive the packet:
+The header's `target` field (6-byte serial number + 2 null bytes) determines which device(s) receive the packet:
 
 - **Broadcast** (`tagged=True` or target is all zeros): packet forwarded to every device
 - **Unicast** (`tagged=False` with specific target): routed to the device matching the serial encoded in the target field
