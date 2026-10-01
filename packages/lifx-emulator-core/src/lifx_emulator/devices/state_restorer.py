@@ -252,11 +252,12 @@ class StateRestorer:
             saved_state: Dictionary with saved state values
 
         Returns:
-            True if there is no saved tile count or it is within range
+            True if no tile count was saved or the saved one is valid
         """
-        saved_count = saved_state.get("tile_count")
-        if saved_count is None:
+        # A missing key means "nothing saved"; an explicit null is a bad value
+        if "tile_count" not in saved_state:
             return True
+        saved_count = saved_state["tile_count"]
         if is_valid_tile_count(saved_count, state.has_chain):
             return True
         logger.warning(

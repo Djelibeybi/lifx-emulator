@@ -337,7 +337,7 @@ def test_the_lifx_tile_chains_one_to_five_tiles(tile_count):
     assert create_device(55, tile_count=tile_count).state.tile_count == tile_count
 
 
-@pytest.mark.parametrize("saved_count", [0, 3, "1", True])
+@pytest.mark.parametrize("saved_count", [0, 3, "1", True, None])
 def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
     """Saved state can carry a tile count no Mirror can have (written by an
     older build, or edited by hand); restore must not bring it back.
@@ -350,7 +350,7 @@ def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
         "tile_count": saved_count,
         "tile_width": 4,
         "tile_height": 13,
-        "tile_devices": [dict(tile) for _ in range(int(saved_count))],
+        "tile_devices": [dict(tile) for _ in range(int(saved_count or 0))],
     }
     st = _restore_mirror(saved)
 
@@ -388,3 +388,10 @@ def test_a_transposed_mirror_restore_drops_the_zone_map():
 
     assert (st.tile_width, st.tile_height) == (13, 4)
     assert st.zone_map is None
+
+
+def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
+    """A config or API value of "1" must not read as the integer 1 in the
+    error, or "exactly 1 tile, got tile_count=1" contradicts itself."""
+    with pytest.raises(ValueError, match="got tile_count='1'"):
+        create_device(267, tile_count="1")
