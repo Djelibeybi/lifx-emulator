@@ -934,17 +934,21 @@ async def run(
                 )
             )
 
-        # Create tile devices
-        for _ in range(f_tile):
-            devices.append(
-                create_tile_device(
-                    get_serial(),
-                    tile_count=f_tile_count,
-                    tile_width=f_tile_width,
-                    tile_height=f_tile_height,
-                    storage=storage,
+        # Create tile devices (a bad --tile-count is a user error, not a crash)
+        try:
+            for _ in range(f_tile):
+                devices.append(
+                    create_tile_device(
+                        get_serial(),
+                        tile_count=f_tile_count,
+                        tile_width=f_tile_width,
+                        tile_height=f_tile_height,
+                        storage=storage,
+                    )
                 )
-            )
+        except ValueError as e:
+            logger.error("Failed to create tile devices: %s", e)
+            return False
 
         # Create switch devices
         for _ in range(f_switch):
