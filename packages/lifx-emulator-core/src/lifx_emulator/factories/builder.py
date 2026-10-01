@@ -7,6 +7,7 @@ import re
 import time
 from typing import TYPE_CHECKING
 
+from lifx_emulator.constants import max_tile_count
 from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.devices.states import (
@@ -43,9 +44,6 @@ if TYPE_CHECKING:
     from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 logger = logging.getLogger(__name__)
-
-# Longest chain a chain-capable matrix product (the original LIFX Tile) drives
-MAX_CHAIN_TILES = 5
 
 # Device.StateLabel packs a 32-byte label; longer product names would otherwise
 # be truncated on the wire, dropping the serial suffix that keeps labels unique.
@@ -546,16 +544,11 @@ class DeviceBuilder:
         Raises:
             ValueError: If tile_count is outside the product's range
         """
-        if self._product_info.has_chain:
-            if not 1 <= tile_count <= MAX_CHAIN_TILES:
-                raise ValueError(
-                    f"{self._product_info.name} has 1 to {MAX_CHAIN_TILES} tiles, "
-                    f"got tile_count={tile_count}"
-                )
-        elif tile_count != 1:
+        most = max_tile_count(self._product_info.has_chain)
+        if not 1 <= tile_count <= most:
+            allowed = f"1 to {most} tiles" if most > 1 else "exactly 1 tile"
             raise ValueError(
-                f"{self._product_info.name} has exactly 1 tile, "
-                f"got tile_count={tile_count}"
+                f"{self._product_info.name} has {allowed}, got tile_count={tile_count}"
             )
 
     def _create_core_state(

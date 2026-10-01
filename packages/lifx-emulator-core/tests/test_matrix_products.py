@@ -329,3 +329,45 @@ def test_a_chain_device_has_one_to_five_tiles(tile_count):
 @pytest.mark.parametrize("tile_count", [1, 5])
 def test_the_lifx_tile_chains_one_to_five_tiles(tile_count):
     assert create_device(55, tile_count=tile_count).state.tile_count == tile_count
+
+
+@pytest.mark.parametrize("saved_count", [0, 3])
+def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
+    """Saved state can carry a tile count no Mirror can have (written by an
+    older build, or edited by hand); restore must not bring it back.
+    """
+    from lifx_emulator.factories.builder import DeviceBuilder
+    from lifx_emulator.products.registry import get_product
+
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    tile = {"width": 4, "height": 13, "colors": [black] * 52}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": saved_count,
+        "tile_width": 4,
+        "tile_height": 13,
+        "tile_devices": [dict(tile) for _ in range(saved_count)],
+    }
+    builder = DeviceBuilder(get_product(267)).with_serial("d073d5000267")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert st.tile_count == 1
+    assert len(st.tile_devices) == 1
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_restoring_mirror_tile_colours_saved_without_a_tile_count():
+    from lifx_emulator.factories.builder import DeviceBuilder
+    from lifx_emulator.products.registry import get_product
+
+    red = {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_devices": [{"width": 4, "height": 13, "colors": [red] * 52}],
+    }
+    builder = DeviceBuilder(get_product(267)).with_serial("d073d5000267")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert st.tile_devices[0]["colors"][0]["saturation"] == 65535
