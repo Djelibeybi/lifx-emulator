@@ -250,6 +250,7 @@ class TestDeviceStateToYamlDict:
             (57, 2),  # LIFX Candle: one tile, no chain
             (9999, 2),  # unknown product: no chain capability to rely on
             (55, "3"),  # hand-edited saved state: not an integer
+            ("tile", 2),  # hand-edited product ID that is not a number
         ],
     )
     def test_matrix_tile_count_the_product_cannot_have_is_not_exported(
@@ -272,6 +273,24 @@ class TestDeviceStateToYamlDict:
         }
         result = _device_state_to_yaml_dict(state)
         assert "tile_count" not in result
+
+    def test_matrix_tile_count_kept_when_saved_product_id_is_a_string(self):
+        """Config loading coerces product_id "55" to the LIFX Tile, so export
+        must too, or a 3-tile chain is dropped and comes back as 5 tiles."""
+        state = {
+            "product": "55",
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 3,
+            "tile_width": 8,
+            "tile_height": 8,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result.get("tile_count") == 3
 
 
 class TestCleanScenario:
