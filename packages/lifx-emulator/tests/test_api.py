@@ -197,6 +197,15 @@ class TestAPIEndpoints:
         ]
         assert device["uplight_zone_count"] == 25
 
+    def test_creating_a_multi_tile_mirror_is_rejected(self, api_client):
+        """Only the LIFX Tile chains; a Mirror is always a single tile."""
+        response = api_client.post(
+            "/api/devices", json={"product_id": 267, "tile_count": 2}
+        )
+
+        assert response.status_code == 400
+        assert "exactly 1 tile" in response.json()["detail"]
+
     def test_device_info_omits_zone_map_for_buffer_ordered_devices(self, api_client):
         response = api_client.post("/api/devices", json={"product_id": 27})
         device = response.json()
