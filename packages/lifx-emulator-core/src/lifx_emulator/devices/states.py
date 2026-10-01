@@ -21,6 +21,13 @@ from lifx_emulator.protocol.protocol_types import (
     LightHsbk,
 )
 
+# Firmware 3.70 up to (but not including) 4.0 reports a MAC address that is the
+# serial with its final octet incremented; every other firmware reports a MAC
+# identical to the serial. No firmware was released between 3.50 and 3.70.
+# Matches lifx-async's MAC_OFFSET_FIRMWARE_MAJOR / MAC_OFFSET_FIRMWARE_MIN_MINOR.
+_MAC_OFFSET_FIRMWARE_MAJOR = 3
+_MAC_OFFSET_FIRMWARE_MIN_MINOR = 70
+
 
 @dataclass
 class CoreDeviceState:
@@ -36,7 +43,6 @@ class CoreDeviceState:
     version_minor: int
     build_timestamp: int
     uptime_ns: int = 0
-    mac_address: bytes = field(default_factory=lambda: bytes.fromhex("d073d5123456"))
     port: int = LIFX_UDP_PORT
     # Optional multi-service discovery advertisement: a list of
     # (service_id, port) tuples emitted as one StateService reply each, in
@@ -45,6 +51,24 @@ class CoreDeviceState:
     # reserved/embedded services). None means "advertise UDP on this device's
     # port", preserving the historical single-reply behaviour.
     advertised_services: list[tuple[int, int]] | None = None
+
+    @property
+    def mac_address(self) -> bytes:
+        """The device's 6-byte network MAC address.
+
+        A LIFX serial looks like a MAC address but is a distinct value. Most
+        firmware reports a MAC identical to the serial; firmware 3.70 to 3.x
+        increments the final octet, wrapping from 0xff to 0x00 without carrying
+        into the octet before it. Derived on each read so it follows firmware
+        changes.
+        """
+        serial = bytes.fromhex(self.serial[:12])
+        if (
+            self.version_major == _MAC_OFFSET_FIRMWARE_MAJOR
+            and self.version_minor >= _MAC_OFFSET_FIRMWARE_MIN_MINOR
+        ):
+            return serial[:-1] + bytes(((serial[-1] + 1) % 256,))
+        return serial
 
 
 class Connectivity(str, Enum):
