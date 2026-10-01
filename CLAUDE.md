@@ -65,7 +65,7 @@ All layers depend on Protocol interfaces, not concrete implementations. `Emulate
 - **Handlers return packets, not (header, packet) tuples** -- `process_packet()` constructs response headers
 - **Handlers can return lists** for multi-packet responses (multizone/tile)
 - **res_required flag** passed to handlers to decide whether to return state
-- **Serial format**: 12-char hex string (e.g., "d073d5000001") → 6-byte MAC + 2 null bytes
+- **Serial format**: 12-char hex string (e.g., "d073d5000001") → 6-byte serial + 2 null bytes in the header `target` field. A serial looks like a MAC address but is not one
 - **Switches** return `StateUnhandled` (type 223) for Light/MultiZone/Tile packets; handle Device.\* packets normally
 
 ### Core Library Modules (`packages/lifx-emulator-core/src/lifx_emulator/`)
