@@ -314,6 +314,22 @@ class TestDeviceStateToYamlDict:
         assert "tile_width" not in result
         assert "tile_height" not in result
 
+    def test_chain_without_saved_dimensions_exports_only_its_tile_count(self):
+        state = {
+            "product": 55,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 3,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result["tile_count"] == 3
+        assert "tile_width" not in result
+        assert "tile_height" not in result
+
 
 class TestCleanScenario:
     """Test _clean_scenario helper."""

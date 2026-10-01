@@ -417,3 +417,27 @@ def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
 
     assert (st.tile_count, st.tile_width, st.tile_height) == (2, 16, 8)
     assert all(t["colors"][0]["saturation"] == 65535 for t in st.tile_devices)
+
+
+def test_ceiling_downlight_is_every_zone_but_the_uplight():
+    """Without a zone map every buffer position drives a light: an 8x8
+    Ceiling's 64 zones are 63 downlight plus its single uplight."""
+    st = create_device(176).state
+    assert st.uplight_zone_count == 1
+    assert st.downlight_zone_count == 63
+
+
+def test_a_chain_restored_without_saved_dimensions_keeps_its_tile_size():
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000055",
+        "product": 55,
+        "tile_count": 3,
+        "tile_devices": [
+            {"width": 8, "height": 8, "colors": [black] * 64} for _ in range(3)
+        ],
+    }
+    builder = DeviceBuilder(get_product(55)).with_serial("d073d5000055")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_count, st.tile_width, st.tile_height) == (3, 8, 8)
