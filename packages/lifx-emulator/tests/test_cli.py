@@ -24,6 +24,7 @@ from lifx_emulator_app.__main__ import (
     run,
 )
 from lifx_emulator_app.config import (
+    DeviceDefinition,
     HsbkConfig,
     ScenarioDefinition,
     ScenariosConfig,
@@ -1850,8 +1851,6 @@ class TestRunWithConfigDevices:
         """A config device the build rejects (a 2-tile Mirror) must fail the
         run like the CLI path does, without pointing at list-products: the
         product exists, its tile count is what is wrong."""
-        from lifx_emulator_app.config import DeviceDefinition
-
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
         mock_load_cfg.return_value = _make_cfg(
