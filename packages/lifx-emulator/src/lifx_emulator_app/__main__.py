@@ -12,7 +12,7 @@ from typing import Annotated
 
 import cyclopts
 import yaml
-from lifx_emulator.constants import max_tile_count
+from lifx_emulator.constants import is_valid_tile_count
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
@@ -355,14 +355,11 @@ def _tile_count_fits_product(state_dict: dict) -> bool:
         state_dict: Saved device state
 
     Returns:
-        True if the saved tile count is set and within the product's range
+        True if the saved tile count is an integer within the product's range
     """
-    tile_count = state_dict.get("tile_count")
-    if not tile_count:
-        return False
     product = get_registry().get_product(state_dict.get("product", 0))
     has_chain = product.has_chain if product else False
-    return 1 <= tile_count <= max_tile_count(has_chain)
+    return is_valid_tile_count(state_dict.get("tile_count"), has_chain)
 
 
 def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:

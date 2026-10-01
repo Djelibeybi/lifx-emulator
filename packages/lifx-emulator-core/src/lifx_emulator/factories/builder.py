@@ -7,7 +7,7 @@ import re
 import time
 from typing import TYPE_CHECKING
 
-from lifx_emulator.constants import max_tile_count
+from lifx_emulator.constants import is_valid_tile_count, max_tile_count
 from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.devices.states import (
@@ -549,7 +549,7 @@ class DeviceBuilder:
             ValueError: If tile_count is outside the product's range
         """
         most = max_tile_count(self._product_info.has_chain)
-        if not 1 <= tile_count <= most:
+        if not is_valid_tile_count(tile_count, self._product_info.has_chain):
             allowed = f"1 to {most} tiles" if most > 1 else "exactly 1 tile"
             raise ValueError(
                 f"{self._product_info.name} has {allowed}, got tile_count={tile_count}"

@@ -317,7 +317,7 @@ def test_mirror_unused_buffer_positions_echo_what_set64_writes():
     assert [reply.colors[i].hue for i in unused] == [1000, 3000]
 
 
-@pytest.mark.parametrize("tile_count", [0, 2, 3])
+@pytest.mark.parametrize("tile_count", [0, 2, 3, True])
 def test_a_non_chain_matrix_device_has_exactly_one_tile(tile_count):
     """has_matrix without has_chain (the Mirror and every matrix product
     except the original LIFX Tile) means a single tile, never a chain.
@@ -337,7 +337,7 @@ def test_the_lifx_tile_chains_one_to_five_tiles(tile_count):
     assert create_device(55, tile_count=tile_count).state.tile_count == tile_count
 
 
-@pytest.mark.parametrize("saved_count", [0, 3])
+@pytest.mark.parametrize("saved_count", [0, 3, "1", True])
 def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
     """Saved state can carry a tile count no Mirror can have (written by an
     older build, or edited by hand); restore must not bring it back.
@@ -350,11 +350,11 @@ def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
         "tile_count": saved_count,
         "tile_width": 4,
         "tile_height": 13,
-        "tile_devices": [dict(tile) for _ in range(saved_count)],
+        "tile_devices": [dict(tile) for _ in range(int(saved_count))],
     }
     st = _restore_mirror(saved)
 
-    assert st.tile_count == 1
+    assert st.tile_count == 1 and type(st.tile_count) is int
     assert len(st.tile_devices) == 1
     assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
 

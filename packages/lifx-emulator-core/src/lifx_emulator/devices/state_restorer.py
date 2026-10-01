@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from lifx_emulator.constants import max_tile_count
+from lifx_emulator.constants import is_valid_tile_count
 from lifx_emulator.devices.device import DeviceState
 from lifx_emulator.devices.states import MatrixState
 
@@ -257,7 +257,7 @@ class StateRestorer:
         saved_count = saved_state.get("tile_count")
         if saved_count is None:
             return True
-        if 1 <= saved_count <= max_tile_count(state.has_chain):
+        if is_valid_tile_count(saved_count, state.has_chain):
             return True
         logger.warning(
             "Saved state for %s has %s tiles, which product %s cannot have; "
