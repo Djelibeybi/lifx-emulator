@@ -8,19 +8,32 @@ Testing scenarios modify how emulated devices respond to protocol packets, allow
 
 === "Python Library"
 
-    Configure scenarios via the `scenarios` dictionary on an `EmulatedLifxDevice`:
+    Configure scenarios by passing a `ScenarioConfig` to the server's shared
+    `HierarchicalScenarioManager` (`server.scenario_manager`). Scenarios can be
+    set per device, device type, location, group or globally. When you change
+    scenarios on a running server, call `server.invalidate_all_scenario_caches()`
+    so devices pick up the new configuration:
 
     ```python
-    from lifx_emulator import create_color_light
+    from lifx_emulator import EmulatedLifxServer, create_color_light
+    from lifx_emulator.devices import DeviceManager
+    from lifx_emulator.repositories import DeviceRepository
+    from lifx_emulator.scenarios import ScenarioConfig
 
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Configure scenarios
-    device.scenarios = {
-        'drop_packets': {101: 1.0},  # Drop GetColor requests
-        'response_delays': {102: 0.5},  # Delay SetColor by 500ms
-        'malformed_packets': [107],  # Corrupt StateColor responses
-    }
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(
+            drop_packets={101: 1.0},  # Drop GetColor requests
+            response_delays={102: 0.5},  # Delay SetColor by 500ms
+            malformed_packets=[107],  # Corrupt StateColor responses
+        ),
+    )
+    server.invalidate_all_scenario_caches()
     ```
 
 === "REST API"
@@ -74,16 +87,20 @@ Silently ignore specific packet types to simulate network packet loss or device 
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Always drop GetColor (101) and GetPower (20) requests
-    device.scenarios = {
-        'drop_packets': {101: 1.0, 20: 1.0}
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(drop_packets={101: 1.0, 20: 1.0}),
+    )
 
     async with server:
         print("Device will drop 100% of GetColor and GetPower packets")
@@ -99,20 +116,26 @@ if __name__ == "__main__":
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Drop packets probabilistically (simulating flaky network)
-    device.scenarios = {
-        'drop_packets': {
-            101: 0.3,   # Drop 30% of GetColor requests
-            102: 0.2,   # Drop 20% of SetColor requests
-            20: 0.4,    # Drop 40% of GetLabel requests
-        }
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(
+            drop_packets={
+                101: 0.3,   # Drop 30% of GetColor requests
+                102: 0.2,   # Drop 20% of SetColor requests
+                23: 0.4,    # Drop 40% of GetLabel requests
+            }
+        ),
+    )
 
     async with server:
         print("Device will drop packets probabilistically")
@@ -124,9 +147,9 @@ if __name__ == "__main__":
 ```
 
 **Common Packet Types to Drop:**
-- `20` - GetLabel
+- `23` - GetLabel
 - `101` - GetColor (Light.GetColor)
-- `116` - GetPower (Light.GetPower)
+- `116` - GetLightPower (Light.GetPower)
 - `502` - GetColorZones (MultiZone.GetColorZones)
 - `707` - Get64 (Tile.Get64)
 
@@ -162,21 +185,27 @@ Add artificial delays to specific packet responses to simulate slow devices or n
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Add various delays
-    device.scenarios = {
-        'response_delays': {
-            101: 0.5,   # GetColor: 500ms delay
-            102: 1.0,   # SetColor: 1 second delay
-            20: 0.2,    # GetLabel: 200ms delay
-            117: 2.0,   # SetPower: 2 second delay (very slow)
-        }
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(
+            response_delays={
+                101: 0.5,   # GetColor: 500ms delay
+                102: 1.0,   # SetColor: 1 second delay
+                23: 0.2,    # GetLabel: 200ms delay
+                117: 2.0,   # SetPower: 2 second delay (very slow)
+            }
+        ),
+    )
 
     async with server:
         print("Device configured with response delays")
@@ -217,16 +246,20 @@ Send truncated or corrupted packet responses to test client parsing robustness.
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Corrupt StateColor and StateLabel responses
-    device.scenarios = {
-        'malformed_packets': [107, 25]  # StateColor, StateLabel
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(malformed_packets=[107, 25])  # StateColor, StateLabel,
+    )
 
     async with server:
         print("Device will send malformed StateColor and StateLabel packets")
@@ -266,16 +299,20 @@ Send packets with all fields set to invalid values (0xFF bytes).
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Send StateColor with invalid field values
-    device.scenarios = {
-        'invalid_field_values': [107]  # StateColor
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(invalid_field_values=[107])  # StateColor,
+    )
 
     async with server:
         print("Device will send StateColor with all 0xFF bytes")
@@ -302,11 +339,13 @@ if __name__ == "__main__":
 
 Send incomplete packet payloads to test client's handling of truncated data.
 
-**Configuration:** List of packet types to truncate
+**Configuration:** List of response packet types to truncate. This only affects
+replies made up of several packets (such as `StateMultiZone` (506) or `State64`
+(711)): the device sends a random subset of them instead of the full set.
 
 **Use Cases:**
-- Test buffer handling
-- Verify client doesn't read past buffer
+- Test handling of missing response packets
+- Verify client doesn't wait forever for the rest of a reply
 - Test partial data handling
 - Simulate network truncation
 
@@ -314,20 +353,24 @@ Send incomplete packet payloads to test client's handling of truncated data.
 
 ```python
 import asyncio
-from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator import EmulatedLifxServer, create_multizone_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
-    device = create_color_light("d073d5000001")
+    device = create_multizone_light("d073d8000001", zone_count=16)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
-    # Send partial StateColor responses
-    device.scenarios = {
-        'partial_responses': [107]  # StateColor
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    # Send only some of the StateMultiZone packets for each GetColorZones
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(partial_responses=[506]),  # StateMultiZone
+    )
 
     async with server:
-        print("Device will send truncated StateColor packets")
+        print("Device will send incomplete StateMultiZone responses")
         await asyncio.sleep(60)
 
 if __name__ == "__main__":
@@ -358,16 +401,20 @@ Override the reported firmware version to test version compatibility.
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Pretend to be an older firmware version
-    device.scenarios = {
-        'firmware_version': (2, 50)  # Version 2.50 (old)
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(firmware_version=(2, 50))  # Version 2.50 (old),
+    )
 
     async with server:
         print(f"Device reports firmware version: 2.50")
@@ -391,22 +438,28 @@ You can combine multiple scenarios to create complex test conditions:
 ```python
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     device = create_color_light("d073d5000001")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Realistic "problem device" scenario
-    device.scenarios = {
-        'drop_packets': {101: 0.4},  # Drops 40% of GetColor requests
-        'response_delays': {
-            102: 0.8,  # Color changes are slow
-            20: 0.3,   # Label queries are slow
-        },
-        'malformed_packets': [25],  # StateLabel occasionally corrupted
-        'firmware_version': (2, 77),  # Older firmware
-    }
-
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        device.state.serial,
+        ScenarioConfig(
+            drop_packets={101: 0.4},  # Drops 40% of GetColor requests
+            response_delays={
+                102: 0.8,  # Color changes are slow
+                23: 0.3,   # Label queries are slow
+            },
+            malformed_packets=[25],  # StateLabel corrupted
+            firmware_version=(2, 77),  # Older firmware
+        ),
+    )
 
     async with server:
         print("Simulating a problematic device:")
@@ -427,17 +480,18 @@ if __name__ == "__main__":
 Simulate a device on an unreliable network:
 
 ```python
-device.scenarios = {
-    'drop_packets': {
+flaky_wifi = ScenarioConfig(
+    drop_packets={
         101: 0.3,  # Drop 30% of GetColor requests
-        20: 0.3,   # Drop 30% of GetLabel requests
+        23: 0.3,   # Drop 30% of GetLabel requests
         116: 0.2,  # Drop 20% of GetPower requests
     },
-    'response_delays': {
+    response_delays={
         102: 1.5,  # Very slow commands
         117: 2.0,  # Very slow power changes
     },
-}
+)
+server.scenario_manager.set_device_scenario(device.state.serial, flaky_wifi)
 ```
 
 **What to Test:**
@@ -451,11 +505,12 @@ device.scenarios = {
 Simulate a device with firmware issues:
 
 ```python
-device.scenarios = {
-    'malformed_packets': [107],  # Corrupted color state
-    'invalid_field_values': [25],  # Invalid label data
-    'firmware_version': (2, 50),  # Old firmware with known bugs
-}
+firmware_bugs = ScenarioConfig(
+    malformed_packets=[107],  # Corrupted color state
+    invalid_field_values=[25],  # Invalid label data
+    firmware_version=(2, 50),  # Old firmware with known bugs
+)
+server.scenario_manager.set_device_scenario(device.state.serial, firmware_bugs)
 ```
 
 **What to Test:**
@@ -468,15 +523,16 @@ device.scenarios = {
 Simulate a busy device with limited resources:
 
 ```python
-device.scenarios = {
-    'response_delays': {
+overloaded = ScenarioConfig(
+    response_delays={
         101: 0.5,
         102: 1.0,
-        20: 0.4,
+        23: 0.4,
         117: 1.2,
         116: 0.6,
     },
-}
+)
+server.scenario_manager.set_device_scenario(device.state.serial, overloaded)
 ```
 
 **What to Test:**
@@ -489,10 +545,11 @@ device.scenarios = {
 Test unusual but valid conditions:
 
 ```python
-device.scenarios = {
-    'firmware_version': (0, 1),  # Very old firmware
-    'response_delays': {102: 5.0},  # Extremely slow (but valid)
-}
+edge_cases = ScenarioConfig(
+    firmware_version=(0, 1),  # Very old firmware
+    response_delays={102: 5.0},  # Extremely slow (but valid)
+)
+server.scenario_manager.set_device_scenario(device.state.serial, edge_cases)
 ```
 
 **What to Test:**
@@ -511,6 +568,9 @@ from lifx_emulator import (
     create_color_light,
     create_multizone_light,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 async def main():
     # Device 1: Perfect device (no scenarios)
@@ -520,19 +580,27 @@ async def main():
     # Device 2: Slow device
     device2 = create_color_light("d073d5000002")
     device2.state.label = "Slow Light"
-    device2.scenarios = {
-        'response_delays': {102: 1.0, 117: 1.5}
-    }
 
     # Device 3: Unreliable device (drops some packets)
     device3 = create_multizone_light("d073d8000001", zone_count=16)
     device3.state.label = "Flaky Strip"
-    device3.scenarios = {
-        'drop_packets': {502: 0.4},  # Drop 40% of GetColorZones
-        'response_delays': {503: 0.8},  # Slow SetColorZones
-    }
 
-    server = EmulatedLifxServer([device1, device2, device3], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer(
+        [device1, device2, device3], device_manager, "127.0.0.1", 56700
+    )
+
+    server.scenario_manager.set_device_scenario(
+        device2.state.serial,
+        ScenarioConfig(response_delays={102: 1.0, 117: 1.5}),
+    )
+    server.scenario_manager.set_device_scenario(
+        device3.state.serial,
+        ScenarioConfig(
+            drop_packets={502: 0.4},  # Drop 40% of GetColorZones
+            response_delays={501: 0.8},  # Slow SetColorZones
+        ),
+    )
 
     async with server:
         print("Testing with mixed device reliability:")
@@ -579,17 +647,26 @@ print(f"GetPower: {Light.GetPower.PKT_TYPE}")  # 116
 Test one scenario at a time to isolate issues:
 
 ```python
+scenarios = server.scenario_manager
+serial = device.state.serial
+
 # Test drop_packets alone (always drop)
-device.scenarios = {'drop_packets': {101: 1.0}}
+scenarios.set_device_scenario(serial, ScenarioConfig(drop_packets={101: 1.0}))
 
 # Then test response_delays alone
-device.scenarios = {'response_delays': {102: 0.5}}
+scenarios.set_device_scenario(serial, ScenarioConfig(response_delays={102: 0.5}))
 
 # Then combine them
-device.scenarios = {
-    'drop_packets': {101: 0.5},  # Drop 50% probabilistically
-    'response_delays': {102: 0.5},
-}
+scenarios.set_device_scenario(
+    serial,
+    ScenarioConfig(
+        drop_packets={101: 0.5},  # Drop 50% probabilistically
+        response_delays={102: 0.5},
+    ),
+)
+
+# Make running devices pick up each change
+server.invalidate_all_scenario_caches()
 ```
 
 ## Common Packet Types Reference
@@ -597,24 +674,26 @@ device.scenarios = {
 | Type | Name | Description |
 |------|------|-------------|
 | 2 | GetService | Device discovery |
-| 12 | GetHostInfo | Get host firmware info |
 | 14 | GetHostFirmware | Get host firmware version |
 | 16 | GetWifiInfo | Get WiFi info |
 | 18 | GetWifiFirmware | Get WiFi firmware |
-| 20 | GetLabel | Get device label |
-| 23 | SetLabel | Set device label |
-| 32 | GetLocation | Get location |
-| 35 | SetLocation | Set location |
-| 48 | GetGroup | Get group |
-| 51 | SetGroup | Set group |
-| 101 | GetColor | Get light color |
-| 102 | SetColor | Set light color |
-| 116 | GetLightPower | Get light power |
-| 117 | SetLightPower | Set light power |
-| 502 | GetColorZones | Get multizone colors |
-| 503 | SetColorZones | Set multizone colors |
-| 510 | GetMultiZoneEffect | Get multizone effect |
-| 511 | SetMultiZoneEffect | Set multizone effect |
+| 20 | GetPower | Get device power |
+| 21 | SetPower | Set device power |
+| 23 | GetLabel | Get device label |
+| 24 | SetLabel | Set device label |
+| 32 | GetVersion | Get product and vendor |
+| 48 | GetLocation | Get location |
+| 49 | SetLocation | Set location |
+| 51 | GetGroup | Get group |
+| 52 | SetGroup | Set group |
+| 101 | GetColor | Get light colour |
+| 102 | SetColor | Set light colour |
+| 116 | GetLightPower (Light.GetPower) | Get light power |
+| 117 | SetLightPower (Light.SetPower) | Set light power |
+| 501 | SetColorZones | Set multizone colours |
+| 502 | GetColorZones | Get multizone colours |
+| 507 | GetMultiZoneEffect (MultiZone.GetEffect) | Get multizone effect |
+| 508 | SetMultiZoneEffect (MultiZone.SetEffect) | Set multizone effect |
 | 701 | GetDeviceChain | Get tile chain |
 | 707 | Get64 | Get tile 64 zones |
 | 715 | Set64 | Set tile 64 zones |
@@ -627,23 +706,27 @@ Begin with one scenario type, verify it works, then add more:
 
 ```python
 # Step 1: Test drops (always drop)
-device.scenarios = {'drop_packets': {101: 1.0}}
+step1 = ScenarioConfig(drop_packets={101: 1.0})
 
 # Step 2: Test probabilistic drops
-device.scenarios = {'drop_packets': {101: 0.5}}
+step2 = ScenarioConfig(drop_packets={101: 0.5})
 
 # Step 3: Add delays
-device.scenarios = {
-    'drop_packets': {101: 0.5},
-    'response_delays': {102: 0.5},
-}
+step3 = ScenarioConfig(
+    drop_packets={101: 0.5},
+    response_delays={102: 0.5},
+)
 
 # Step 4: Add more complexity
-device.scenarios = {
-    'drop_packets': {101: 0.5},
-    'response_delays': {102: 0.5},
-    'malformed_packets': [107],
-}
+step4 = ScenarioConfig(
+    drop_packets={101: 0.5},
+    response_delays={102: 0.5},
+    malformed_packets=[107],
+)
+
+# Apply one step at a time
+server.scenario_manager.set_device_scenario(device.state.serial, step1)
+server.invalidate_all_scenario_caches()
 ```
 
 ### 2. Use Realistic Values
@@ -667,28 +750,30 @@ Create named scenario configurations for common tests:
 
 ```python
 SCENARIOS = {
-    'flaky_network': {
-        'drop_packets': {101: 0.3, 20: 0.3},  # 30% drop rate
-        'response_delays': {102: 1.0},
-    },
-    'firmware_bug': {
-        'malformed_packets': [107],
-        'firmware_version': (2, 50),
-    },
-    'slow_device': {
-        'response_delays': {
+    'flaky_network': ScenarioConfig(
+        drop_packets={101: 0.3, 23: 0.3},  # 30% drop rate
+        response_delays={102: 1.0},
+    ),
+    'firmware_bug': ScenarioConfig(
+        malformed_packets=[107],
+        firmware_version=(2, 50),
+    ),
+    'slow_device': ScenarioConfig(
+        response_delays={
             101: 0.5,
             102: 1.0,
-            20: 0.3,
+            23: 0.3,
         },
-    },
-    'intermittent_failures': {
-        'drop_packets': {101: 0.5, 116: 0.4},  # 50% and 40% drop rates
-    },
+    ),
+    'intermittent_failures': ScenarioConfig(
+        drop_packets={101: 0.5, 116: 0.4},  # 50% and 40% drop rates
+    ),
 }
 
 # Use in tests
-device.scenarios = SCENARIOS['flaky_network']
+server.scenario_manager.set_device_scenario(
+    device.state.serial, SCENARIOS['flaky_network']
+)
 ```
 
 ## Next Steps

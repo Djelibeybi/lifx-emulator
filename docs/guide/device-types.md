@@ -95,7 +95,7 @@ White lights with variable color temperature (warm to cool white).
 - Color temperature adjustment (1500K-9000K)
 - Brightness control (0-100%)
 - Power on/off
-- **No RGB color** (saturation locked to 0)
+- **No RGB colour** (reported as `has_color=False`)
 
 ### Creating Color Temperature Lights
 
@@ -130,7 +130,8 @@ White lights with variable color temperature (warm to cool white).
 These devices:
 
 - Always report `has_color=False`
-- Reject color commands (SetColor with saturation > 0)
+- Still accept `SetColor`: the emulator stores the colour as sent and does not
+  force saturation to 0, so clients must avoid sending saturated colours
 - Accept color temperature changes via kelvin value
 - Only vary brightness and temperature
 
@@ -190,15 +191,15 @@ print(f"Has IR: {device.state.has_infrared}")  # True
 # Default IR brightness (set to 25%)
 print(f"IR brightness: {device.state.infrared_brightness}")  # 16384
 
-# After receiving LightSetInfrared command
+# After receiving a Light.SetInfrared command
 # device.state.infrared_brightness will be updated
 ```
 
 ### Packet Types
 
-- `LightGetInfrared` (120)
-- `LightStateInfrared` (121)
-- `LightSetInfrared` (122)
+- `Light.GetInfrared` (120)
+- `Light.StateInfrared` (121)
+- `Light.SetInfrared` (122)
 
 ## HEV Lights
 
@@ -260,13 +261,14 @@ print(f"Indication: {device.state.hev_indication}")  # True
 
 ### HEV Packet Types
 
-- `HevGet` (143)
-- `HevStateResult` (144)
-- `HevGetResult` (145)
-- `HevStateResult` (146)
-- `HevSetConfig` (147)
-- `HevGetConfig` (148)
-- `HevStateConfig` (149)
+- `Light.GetHevCycle` (142)
+- `Light.SetHevCycle` (143)
+- `Light.StateHevCycle` (144)
+- `Light.GetHevCycleConfiguration` (145)
+- `Light.SetHevCycleConfiguration` (146)
+- `Light.StateHevCycleConfiguration` (147)
+- `Light.GetLastHevCycleResult` (148)
+- `Light.StateLastHevCycleResult` (149)
 
 ## Multizone Devices
 
@@ -292,14 +294,11 @@ Linear light strips with independently controllable zones.
 === "CLI"
 
     ```bash
-    # Standard LIFX Z with default 16 zones
+    # Extended multizone (LIFX Beam, product 38) with default 80 zones
     lifx-emulator --multizone 1
 
     # Multiple multizone devices with custom zone count
     lifx-emulator --multizone 2 --multizone-zones 24
-
-    # Extended multizone (LIFX Beam) with default 80 zones
-    lifx-emulator --multizone 1 --multizone-extended
 
     # Non-extended multizone
     lifx-emulator --multizone 1 --no-multizone-extended
@@ -313,18 +312,20 @@ Linear light strips with independently controllable zones.
 
     ```python
     from lifx_emulator import create_multizone_light
+    from lifx_emulator.factories import create_device
 
-    # Standard LIFX Z with default 16 zones
-    strip = create_multizone_light("d073d8000001")
+    # Standard LIFX Z (product 32) with default 16 zones
+    strip = create_device(32, serial="d073d8000001")
+
+    # create_multizone_light() creates a LIFX Beam (product 38):
+    # extended multizone with default 80 zones
+    beam = create_multizone_light("d073d8000002")
 
     # Custom zone count
-    strip = create_multizone_light("d073d8000002", zone_count=24)
+    beam = create_multizone_light("d073d8000003", zone_count=24)
 
-    # Extended multizone (LIFX Beam) with default 80 zones
-    beam = create_multizone_light("d073d8000003", extended_multizone=True)
-
-    # Extended with custom zone count
-    beam = create_multizone_light("d073d8000004", zone_count=60, extended_multizone=True)
+    # Non-extended multizone
+    beam = create_multizone_light("d073d8000004", extended_multizone=False)
     ```
 
 === "REST API"
@@ -344,15 +345,15 @@ Linear light strips with independently controllable zones.
 ### Zone Management
 
 ```python
-strip = create_multizone_light("d073d8000001", zone_count=16)
+strip = create_device(32, serial="d073d8000001", zone_count=16)
 
 # Check configuration
-print(f"Has multizone: {device.state.has_multizone}")  # True
-print(f"Zone count: {device.state.zone_count}")  # 16
-print(f"Product: {device.state.product}")  # 32 (LIFX Z)
+print(f"Has multizone: {strip.state.has_multizone}")  # True
+print(f"Zone count: {strip.state.zone_count}")  # 16
+print(f"Product: {strip.state.product}")  # 32 (LIFX Z)
 
 # Access zone colors
-for i, color in enumerate(device.state.zone_colors):
+for i, color in enumerate(strip.state.zone_colors):
     print(f"Zone {i}: {color}")
 ```
 
@@ -365,14 +366,14 @@ for i, color in enumerate(device.state.zone_colors):
 - `StateMultiZone` (506)
 
 **Extended (extended multizone only):**
-- `SetExtendedColorZones` (510)
-- `GetExtendedColorZones` (511)
-- `StateExtendedColorZones` (512)
+- `ExtendedSetColorZones` (510)
+- `ExtendedGetColorZones` (511)
+- `ExtendedStateMultiZone` (512)
 
 **Effects:**
-- `SetMultiZoneEffect` (509)
-- `GetMultiZoneEffect` (507)
-- `StateMultiZoneEffect` (508)
+- `GetEffect` (507)
+- `SetEffect` (508)
+- `StateEffect` (509)
 
 ## Matrix Devices
 
@@ -477,16 +478,16 @@ info, and the dashboard draws the Mirror as its two rings instead of a grid.
 ### Matrix Configuration
 
 ```python
-device = create_tile_device("d073d9000001", tile_count=5)
+tiles = create_tile_device("d073d9000001", tile_count=5)
 
 # Check configuration
-print(f"Has matrix: {device.state.has_matrix}")  # True
-print(f"Tile count: {device.state.tile_count}")  # 5
-print(f"Tile width: {device.state.tile_width}")  # 8
-print(f"Tile height: {device.state.tile_height}")  # 8
+print(f"Has matrix: {tiles.state.has_matrix}")  # True
+print(f"Tile count: {tiles.state.tile_count}")  # 5
+print(f"Tile width: {tiles.state.tile_width}")  # 8
+print(f"Tile height: {tiles.state.tile_height}")  # 8
 
-# Access tile devices
-for i, tile in enumerate(device.state.tile_devices):
+# Access tile devices (each one is a dict)
+for i, tile in enumerate(tiles.state.tile_devices):
     print(f"Tile {i}: {tile['width']}x{tile['height']} zones")
 ```
 
@@ -495,11 +496,13 @@ for i, tile in enumerate(device.state.tile_devices):
 - `GetDeviceChain` (701)
 - `StateDeviceChain` (702)
 - `SetUserPosition` (703)
-- `GetTileState64` (707)
-- `StateTileState64` (711)
-- `SetTileState64` (715)
-- `GetTileEffect` (718)
-- `StateTileEffect` (719)
+- `Get64` (707)
+- `State64` (711)
+- `Set64` (715)
+- `CopyFrameBuffer` (716)
+- `GetEffect` (718)
+- `SetEffect` (719)
+- `StateEffect` (720)
 
 ### Zone Access
 
@@ -562,7 +565,7 @@ LIFX Switch devices are relay-based switches with no lighting capabilities. They
 === "Python Library"
 
     ```python
-    from lifx_emulator import create_switch
+    from lifx_emulator.factories import create_switch
 
     # Create LIFX Switch (default product 70)
     switch = create_switch("d073d7000001")
@@ -603,7 +606,7 @@ print(f"Has multizone: {switch.state.has_multizone}")  # False
 **Rejected with StateUnhandled (223):**
 - **Light.* packets (101-149)**: GetColor, SetColor, GetPower, SetPower, etc.
 - **MultiZone.* packets (501-512)**: GetColorZones, SetColorZones, etc.
-- **Tile.* packets (701-720)**: Get64, Set64, GetTileEffect, etc.
+- **Tile.* packets (701-720)**: Get64, Set64, GetEffect, etc.
 
 ### StateUnhandled Response
 
@@ -620,7 +623,7 @@ The `StateUnhandled` packet includes the rejected packet type in the `unhandled_
 
 ### Limitations
 
-**Note**: Button and relay control protocol packets are not currently implemented in the emulator.
+**Note**: Button packets (`Button.Get`, `Button.Set`, `Button.GetConfig`, `Button.SetConfig`, 905-911) are handled, but relay control protocol packets are not currently implemented in the emulator.
 
 The switch emulation is primarily for testing client libraries' handling of:
 - Device capability detection

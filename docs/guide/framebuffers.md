@@ -36,22 +36,26 @@ The `rect.fb_index` field specifies which framebuffer to update:
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import TileBufferRect, LightHsbk
 
+colors = [LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)] * 64
+
 # Update visible framebuffer (immediate display)
 rect = TileBufferRect(fb_index=0, x=0, y=0, width=8)
 packet = Tile.Set64(
     tile_index=0,
+    length=1,
     rect=rect,
     duration=0,
-    colors=[...64 colors...]
+    colors=colors,
 )
 
 # Update non-visible framebuffer 1 (off-screen)
 rect = TileBufferRect(fb_index=1, x=0, y=0, width=8)
 packet = Tile.Set64(
     tile_index=0,
+    length=1,
     rect=rect,
     duration=0,
-    colors=[...64 colors...]
+    colors=colors,
 )
 ```
 
@@ -62,7 +66,7 @@ Get64 **always returns framebuffer 0** (the visible buffer), regardless of the `
 ```python
 # Request can specify any fb_index
 rect = TileBufferRect(fb_index=1, x=0, y=0, width=8)
-packet = Tile.Get64(tile_index=0, rect=rect)
+packet = Tile.Get64(tile_index=0, length=1, rect=rect)
 
 # Response will contain framebuffer 0 content
 # Response rect.fb_index is always 0
@@ -76,6 +80,7 @@ Copy zones between framebuffers to make prepared content visible:
 # Copy entire framebuffer 1 to framebuffer 0 (make visible)
 packet = Tile.CopyFrameBuffer(
     tile_index=0,
+    length=1,
     src_fb_index=1,
     dst_fb_index=0,
     src_x=0,
@@ -92,11 +97,21 @@ packet = Tile.CopyFrameBuffer(
 
 ```python
 from lifx_emulator.factories import create_device
+from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import TileBufferRect, LightHsbk
 
-# LIFX Ceiling 13x26": a single 16×8 tile (128 zones)
+# Create a LIFX Ceiling 13"x26" (product 201): one 16×8 tile (128 zones).
+# Matrix dimensions come from the product specs.
 device = create_device(201, serial="d073dc000001")
+
+
+def header_for(packet):
+    """Build a request header targeting the device."""
+    return LifxHeader(
+        target=device.state.get_target_bytes(), pkt_type=packet.PKT_TYPE
+    )
+
 
 # Prepare colors for all 128 zones
 red = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
@@ -106,25 +121,28 @@ green = LightHsbk(hue=21845, saturation=65535, brightness=65535, kelvin=3500)
 rect1 = TileBufferRect(fb_index=1, x=0, y=0, width=16)
 set1 = Tile.Set64(
     tile_index=0,
+    length=1,
     rect=rect1,
     duration=0,
     colors=[red] * 64
 )
-device.process_packet(header, set1)
+device.process_packet(header_for(set1), set1)
 
 # Step 2: Update next 64 zones in framebuffer 1 (rows 4-7)
 rect2 = TileBufferRect(fb_index=1, x=0, y=4, width=16)
 set2 = Tile.Set64(
     tile_index=0,
+    length=1,
     rect=rect2,
     duration=0,
     colors=[green] * 64
 )
-device.process_packet(header, set2)
+device.process_packet(header_for(set2), set2)
 
 # Step 3: Atomically display all 128 zones
 copy = Tile.CopyFrameBuffer(
     tile_index=0,
+    length=1,
     src_fb_index=1,
     dst_fb_index=0,
     src_x=0,
@@ -135,7 +153,7 @@ copy = Tile.CopyFrameBuffer(
     height=8,
     duration=0
 )
-device.process_packet(header, copy)
+device.process_packet(header_for(copy), copy)
 
 # All 128 zones now visible without flicker
 ```
@@ -178,6 +196,8 @@ Use CopyFrameBuffer with specific rectangles:
 ```python
 # Copy only top-left 4×4 area
 copy = Tile.CopyFrameBuffer(
+    tile_index=0,
+    length=1,
     src_fb_index=1,
     dst_fb_index=0,
     src_x=0,
