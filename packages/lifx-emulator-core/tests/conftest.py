@@ -26,6 +26,26 @@ from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.scenarios.manager import HierarchicalScenarioManager, ScenarioConfig
 from lifx_emulator.server import EmulatedLifxServer
+from test_mdns_responder import foreign_serial
+
+
+@pytest.fixture
+async def foreign_responder():
+    """Run another mDNS-advertising emulator on this host during a wire test.
+
+    Concurrent test runs and other emulators share 224.0.0.251:5353, so a wire
+    test must only judge the records owned by its own server. The serial lies
+    outside this process's wire-test range.
+    """
+    device = create_color_light(serial=foreign_serial())
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), port=0, mdns_enabled=True
+    )
+    await server.start()
+    try:
+        yield server
+    finally:
+        await server.stop()
 
 
 @pytest.fixture
