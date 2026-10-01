@@ -8,3 +8,4 @@ export { default as ActivityLog } from './ActivityLog.svelte';
 export { default as ScenarioPanel } from './ScenarioPanel.svelte';
 export { default as Pagination } from './Pagination.svelte';
 export { default as Visualizer } from './Visualizer.svelte';
+export { default as MirrorRings } from './MirrorRings.svelte';

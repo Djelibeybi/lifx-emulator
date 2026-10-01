@@ -3,6 +3,8 @@
 	import { ui } from '$lib/stores';
 	import { hsbkToCss } from '$lib/utils/color';
 	import { deleteDevice } from '$lib/utils/api';
+	import { mirrorRings } from '$lib/utils/mirror';
+	import MirrorRings from './MirrorRings.svelte';
 
 	let { device }: { device: Device } = $props();
 
@@ -40,6 +42,7 @@
 	}
 
 	let zonesExpanded = $derived(ui.isZonesExpanded(device.serial));
+	let rings = $derived(mirrorRings(device));
 	let metadataExpanded = $derived(ui.isMetadataExpanded(device.serial));
 </script>
 
@@ -131,6 +134,15 @@
 				{#each device.zone_colors as color}
 					<div class="zone-segment" style="background: {hsbkToCss(color)};"></div>
 				{/each}
+			</div>
+		{/if}
+	{:else if rings}
+		<button type="button" class="toggle-link" onclick={() => ui.toggleZonesExpanded(device.serial)}>
+			{zonesExpanded ? '▾' : '▸'} {zonesExpanded ? 'Hide' : 'Show'} rings ({rings.front.length} front, {rings.back.length} back)
+		</button>
+		{#if zonesExpanded}
+			<div class="mirror-container">
+				<MirrorRings {rings} />
 			</div>
 		{/if}
 	{:else if device.has_matrix && device.tile_devices && device.tile_devices.length > 0}
