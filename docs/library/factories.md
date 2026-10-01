@@ -340,7 +340,7 @@ manager.set_device_scenario(
     device.state.serial,
     ScenarioConfig(
         drop_packets={101: 0.3},  # Drop 30% of GetColor packets
-        response_delays={102: 0.5},  # Add 500ms delay to SetColor
+        response_delays={107: 0.5},  # Delay StateColor (107) replies by 500ms
     )
 )
 ```
