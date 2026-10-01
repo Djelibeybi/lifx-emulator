@@ -12,6 +12,7 @@ from typing import Annotated
 
 import cyclopts
 import yaml
+from lifx_emulator.constants import max_tile_count
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
@@ -333,7 +334,7 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
 
     # Matrix/tile
     if state_dict.get("has_matrix"):
-        if state_dict.get("tile_count"):
+        if _tile_count_fits_product(state_dict):
             entry["tile_count"] = state_dict["tile_count"]
         if state_dict.get("tile_width"):
             entry["tile_width"] = state_dict["tile_width"]
@@ -341,6 +342,27 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
             entry["tile_height"] = state_dict["tile_height"]
 
     return entry
+
+
+def _tile_count_fits_product(state_dict: dict) -> bool:
+    """Whether a saved tile count is one its product can have.
+
+    Restore ignores an out-of-range tile count (a chain on a product without
+    the chain capability), so export must not write it into a config the
+    next startup would reject.
+
+    Args:
+        state_dict: Saved device state
+
+    Returns:
+        True if the saved tile count is set and within the product's range
+    """
+    tile_count = state_dict.get("tile_count")
+    if not tile_count:
+        return False
+    product = get_registry().get_product(state_dict.get("product", 0))
+    has_chain = product.has_chain if product else False
+    return 1 <= tile_count <= max_tile_count(has_chain)
 
 
 def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:

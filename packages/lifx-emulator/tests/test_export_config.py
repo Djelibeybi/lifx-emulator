@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 import yaml
 from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator_app.__main__ import (
@@ -242,6 +243,34 @@ class TestDeviceStateToYamlDict:
         assert result["tile_count"] == 5
         assert result["tile_width"] == 8
         assert result["tile_height"] == 8
+
+    @pytest.mark.parametrize(
+        ("product", "tile_count"),
+        [
+            (57, 2),  # LIFX Candle: one tile, no chain
+            (9999, 2),  # unknown product: no chain capability to rely on
+        ],
+    )
+    def test_matrix_tile_count_the_product_cannot_have_is_not_exported(
+        self, product, tile_count
+    ):
+        """State saved by an older build can hold a chain a non-chain product
+        cannot have (a 2-tile Candle). Restore already ignores it; exporting
+        it would write a config the next startup rejects."""
+        state = {
+            "product": product,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": tile_count,
+            "tile_width": 5,
+            "tile_height": 6,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "tile_count" not in result
 
 
 class TestCleanScenario:
