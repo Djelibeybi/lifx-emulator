@@ -1,5 +1,3 @@
-<!-- GSD:project-start source:PROJECT.md -->
-
 ## Project
 
 **LIFX Emulator**
@@ -19,10 +17,6 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - **Generated files**: `protocol/packets.py` and `products/registry.py` are not edited by hand; no Thread changes belong there
 - **Backwards compatibility**: default behaviour (IPv4, WiFi, existing CLI/config/API) must be unchanged for existing users; `connectivity` defaults to `wifi`
 
-<!-- GSD:project-end -->
-
-<!-- GSD:stack-start source:codebase/STACK.md -->
-
 ## Technology Stack
 
 ## Languages
@@ -31,7 +25,6 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - TypeScript 6.0.x (strict mode) - Web dashboard frontend in `packages/lifx-emulator/frontend/src/` (Svelte 5 runes-based stores `*.svelte.ts`, utilities, types)
 - Svelte 5.57.x - UI components in `packages/lifx-emulator/frontend/src/lib/components/*.svelte`
 - YAML - Product specs (`packages/lifx-emulator-core/src/lifx_emulator/products/specs.yml`), emulator config files (`lifx-emulator.example.yaml`), CI and docs config
-- Rust - Not present in the repository source. The `stable` Rust toolchain is used only in CI (`.github/workflows/release-binaries.yml`) to compile PyApp (`ofek/pyapp` v0.26.0) into self-contained platform binaries. There is no `Cargo.toml` in this repo.
 
 ## Runtime
 
@@ -110,10 +103,6 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Standalone PyApp binaries attached to GitHub releases tagged `app-v*` (Linux x86_64, macOS x86_64, macOS arm64, Windows x86_64)
 - Runs locally on the developer's machine; binds UDP 56700 and HTTP 8080 on loopback by default; no container or cloud deployment target
 - OS independent (classifier `Operating System :: OS Independent`); CI tests Linux and macOS
-
-<!-- GSD:stack-end -->
-
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 
 ## Conventions
 
@@ -214,10 +203,6 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - The Svelte build writes into `packages/lifx-emulator/src/lifx_emulator_app/api/static/` (`frontend/svelte.config.js`); treat that directory as a build artefact and edit only `frontend/src/`.
 - Core I/O is `asyncio` (DatagramProtocol server, async file persistence with debouncing). Services that persist are `async def` and `await server.scenario_persistence.save(...)`; pure getters stay synchronous (`api/services/scenario_service.py`).
 - Fire-and-forget save tasks are tracked (`_track_save_task()` in `devices/device.py`) so they can be awaited on shutdown.
-
-<!-- GSD:conventions-end -->
-
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
 
 ## Architecture
 
