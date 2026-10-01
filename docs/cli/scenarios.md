@@ -22,15 +22,19 @@ Configure a simple scenario via Python API:
 
 ```python
 from lifx_emulator import create_color_light
-from lifx_emulator.scenarios.manager import ScenarioConfig
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
-device = create_color_light("d073d5000001")
+manager = HierarchicalScenarioManager()
+device = create_color_light("d073d5000001", scenario_manager=manager)
 
 # Drop 30% of GetColor packets
-device.scenarios = ScenarioConfig(
-    drop_packets={"101": 0.3}
+manager.set_device_scenario(
+    "d073d5000001",
+    ScenarioConfig(drop_packets={"101": 0.3}),
 )
 ```
+
+String packet-type keys (as used in JSON) are converted to integers, so `{101: 0.3}` and `{"101": 0.3}` are equivalent.
 
 Or via REST API:
 
@@ -56,7 +60,7 @@ curl -X PUT http://localhost:8080/api/scenarios/global \
 Simulate packet loss by dropping incoming packets:
 
 ```python
-from lifx_emulator.scenarios.manager import ScenarioConfig
+from lifx_emulator.scenarios import ScenarioConfig
 
 # Drop 100% of GetColor packets
 config = ScenarioConfig(drop_packets={"101": 1.0})
@@ -92,8 +96,8 @@ Send corrupted/truncated packets to test error handling:
 # Send truncated StateColor packets
 config = ScenarioConfig(malformed_packets=[107])
 
-# Multiple packet types
-config = ScenarioConfig(malformed_packets=[107, 108, 110])
+# Multiple packet types (StateColor, StatePower, StateInfrared)
+config = ScenarioConfig(malformed_packets=[107, 118, 121])
 ```
 
 ### Invalid Field Values
@@ -133,7 +137,7 @@ config = ScenarioConfig(firmware_version=(3, 90))
 Apply to all devices:
 
 ```python
-from lifx_emulator.scenarios.manager import HierarchicalScenarioManager
+from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 manager = HierarchicalScenarioManager()
 
@@ -398,7 +402,7 @@ For complete API documentation, see:
 | StatePower | 118 | Power state response |
 | StateMultiZone | 506 | Multizone state |
 | ExtendedStateMultiZone | 512 | Extended multizone state |
-| Get64 | 514 | Get tile 64 |
+| Get64 | 707 | Get tile 64 |
 | Set64 | 715 | Set tile 64 |
 
 See [Protocol Documentation](../architecture/protocol.md) for complete list.

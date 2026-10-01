@@ -33,19 +33,24 @@ The LIFX protocol header is a 36-byte structure that precedes every packet paylo
 ```python
 @dataclass
 class LifxHeader:
+    # Class constants
+    HEADER_SIZE: ClassVar[int] = 36
+    PROTOCOL_NUMBER: ClassVar[int] = 1024
+    ORIGIN: ClassVar[int] = 0        # Message origin (always 0)
+    ADDRESSABLE: ClassVar[int] = 1   # Addressable flag (always 1)
+
     # Frame
     size: int = 0                # Total packet size (header + payload)
-    origin: int = 0              # Message origin (always 0)
-    tagged: bool = False         # Broadcast flag (True = all devices)
-    addressable: bool = True     # Addressable flag (always True)
-    protocol: int = 1024         # Protocol number (always 1024)
+    protocol: int = 1024         # Protocol number (must be 1024)
     source: int = 0              # Unique client identifier
+    tagged: bool = False         # Broadcast flag (True = all devices)
 
     # Frame Address
     target: bytes = b'\x00' * 8  # 6-byte serial + 2 null bytes
     ack_required: bool = False   # Request acknowledgment
     res_required: bool = False   # Request response
     sequence: int = 0            # Message sequence number (0-255)
+    thread_connection: bool = False  # Flags bit 3: set by Thread devices on replies
 
     # Protocol Header
     pkt_type: int = 0            # Packet type number (e.g., 2, 101, 116)
@@ -71,7 +76,7 @@ class LifxHeader:
 
 #### `res_required` (bool)
 
-- **`True`**: Device must send response packet (e.g., `State` for `Get`)
+- **`True`**: Device must send response packet (e.g., `Light.StateColor` for `Light.GetColor`)
 - **`False`**: No response packet expected
 
 #### `source` (int)
@@ -89,7 +94,7 @@ class LifxHeader:
 #### `pkt_type` (int)
 
 - Identifies the packet payload type
-- Common types: 2 (`GetService`), 101 (`Get`), 102 (`SetColor`), 107 (`State`), etc.
+- Common types: 2 (`GetService`), 101 (`GetColor`), 102 (`SetColor`), 107 (`StateColor`), etc.
 
 ### Methods
 
@@ -109,7 +114,7 @@ header = LifxHeader(
     target=bytes.fromhex("d073d5000001") + b'\x00\x00',
     res_required=True,
     sequence=1,
-    pkt_type=101,  # Light.Get
+    pkt_type=101,  # Light.GetColor
 )
 raw_header = header.pack()
 # Returns: 36 bytes
@@ -126,6 +131,8 @@ Parse 36 bytes into a LifxHeader object.
 
 **Example:**
 ```python
+from lifx_emulator.protocol.header import LifxHeader
+
 raw_header = sock.recv(36)
 header = LifxHeader.unpack(raw_header)
 print(f"Packet type: {header.pkt_type}")
@@ -142,13 +149,13 @@ The protocol module provides classes for all LIFX protocol packets, organized in
 ### Packet Organization
 
 ```python
-from lifx_emulator.protocol.packets import Device, Light, MultiZone, Tile, Relay, Hev
+from lifx_emulator.protocol.packets import Button, Device, Light, MultiZone, Sensor, Tile
 
 # Device discovery and information
 Device.GetService             # Type 2
 Device.StateService           # Type 3
-Device.GetHostInfo            # Type 12
-Device.StateHostInfo          # Type 13
+Device.GetHostFirmware        # Type 14
+Device.StateHostFirmware      # Type 15
 Device.GetVersion             # Type 32
 Device.StateVersion           # Type 33
 Device.GetLocation            # Type 48
@@ -158,55 +165,73 @@ Device.StateGroup             # Type 53
 Device.Acknowledgement        # Type 45
 Device.EchoRequest            # Type 58
 Device.EchoResponse           # Type 59
+Device.StateUnhandled         # Type 223
 
 # Light control (all color-capable devices)
-Light.Get                     # Type 101
+Light.GetColor                # Type 101
 Light.SetColor                # Type 102
 Light.SetWaveform             # Type 103
-Light.State                   # Type 107
+Light.StateColor              # Type 107
 Light.GetPower                # Type 116
 Light.SetPower                # Type 117
 Light.StatePower              # Type 118
+Light.SetWaveformOptional     # Type 119
 Light.GetInfrared             # Type 120 (infrared devices only)
-Light.SetInfrared             # Type 122
 Light.StateInfrared           # Type 121
+Light.SetInfrared             # Type 122
+
+# HEV (germicidal light)
+Light.GetHevCycle                     # Type 142
+Light.SetHevCycle                     # Type 143
+Light.StateHevCycle                   # Type 144
+Light.GetHevCycleConfiguration        # Type 145
+Light.SetHevCycleConfiguration        # Type 146
+Light.StateHevCycleConfiguration      # Type 147
+Light.GetLastHevCycleResult           # Type 148
+Light.StateLastHevCycleResult         # Type 149
 
 # Multizone control (strips/beams)
 MultiZone.SetColorZones       # Type 501
 MultiZone.GetColorZones       # Type 502
 MultiZone.StateZone           # Type 503
 MultiZone.StateMultiZone      # Type 506
-MultiZone.SetMultiZoneEffect  # Type 508
-MultiZone.GetMultiZoneEffect  # Type 509
-MultiZone.StateMultiZoneEffect # Type 510
+MultiZone.GetEffect           # Type 507
+MultiZone.SetEffect           # Type 508
+MultiZone.StateEffect         # Type 509
 
-# Extended multizone (>16 zones)
-MultiZone.SetExtendedColorZones       # Type 510
-MultiZone.GetExtendedColorZones       # Type 511
-MultiZone.StateExtendedColorZones     # Type 512
+# Extended multizone
+MultiZone.ExtendedSetColorZones       # Type 510
+MultiZone.ExtendedGetColorZones       # Type 511
+MultiZone.ExtendedStateMultiZone      # Type 512
 
 # Tile/Matrix control (2D arrangements)
 Tile.GetDeviceChain           # Type 701
 Tile.StateDeviceChain         # Type 702
+Tile.SetUserPosition          # Type 703
 Tile.Get64                    # Type 707
 Tile.State64                  # Type 711
 Tile.Set64                    # Type 715
-Tile.SetUserPosition          # Type 703
-Tile.GetTileEffect            # Type 718
-Tile.SetTileEffect            # Type 719
-Tile.StateTileEffect          # Type 720
+Tile.CopyFrameBuffer          # Type 716
+Tile.GetEffect                # Type 718
+Tile.SetEffect                # Type 719
+Tile.StateEffect              # Type 720
 
-# HEV (germicidal light)
-Hev.GetCycle                  # Type 142
-Hev.SetCycle                  # Type 143
-Hev.StateCycle                # Type 144
-Hev.GetConfiguration          # Type 145
-Hev.StateConfiguration        # Type 146
+# Ambient light sensor
+Sensor.GetAmbientLight        # Type 401
+Sensor.StateAmbientLight      # Type 402
+
+# Buttons (switches)
+Button.Get                    # Type 905
+Button.Set                    # Type 906
+Button.State                  # Type 907
+Button.GetConfig              # Type 909
+Button.SetConfig              # Type 910
+Button.StateConfig            # Type 911
 ```
 
 ### Packet Class Structure
 
-Each packet class has:
+Each packet class is a dataclass with no field defaults, so every field must be passed to the constructor. Each class has:
 
 - **`PKT_TYPE`**: Class constant with packet type number
 - **`pack()`**: Serialize to binary format
@@ -220,9 +245,8 @@ from lifx_emulator.protocol.protocol_types import LightHsbk
 
 # Create SetColor packet
 packet = Light.SetColor(
-    reserved=0,
     color=LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500),
-    duration_ms=1000,
+    duration=1000,  # Transition time in milliseconds
 )
 
 # Serialize to bytes
@@ -231,7 +255,7 @@ raw_payload = packet.pack()
 # Parse from bytes
 received_packet = Light.SetColor.unpack(raw_payload)
 print(f"Color: H={received_packet.color.hue} S={received_packet.color.saturation}")
-print(f"Duration: {received_packet.duration_ms}ms")
+print(f"Duration: {received_packet.duration}ms")
 ```
 
 ### Example: MultiZone.GetColorZones
@@ -252,14 +276,13 @@ raw_payload = packet.pack()
 
 ```python
 from lifx_emulator.protocol.packets import Tile
+from lifx_emulator.protocol.protocol_types import TileBufferRect
 
 # Request 8x8 rectangle starting at (0,0) from tile 0
 packet = Tile.Get64(
     tile_index=0,
-    length=1,      # Not used for Get64
-    rect_x=0,
-    rect_y=0,
-    rect_width=8,
+    length=1,      # Number of tiles to read, starting at tile_index
+    rect=TileBufferRect(fb_index=0, x=0, y=0, width=8),
 )
 
 raw_payload = packet.pack()
@@ -317,19 +340,13 @@ Tile position and metadata in a matrix chain.
 ```python
 @dataclass
 class TileStateDevice:
-    accel_meas_x: int
-    accel_meas_y: int
-    accel_meas_z: int
-    user_x: float         # User-configured X position
-    user_y: float         # User-configured Y position
-    width: int            # Tile width in zones (e.g., 8)
-    height: int           # Tile height in zones (e.g., 8)
-    device_version_vendor: int
-    device_version_product: int
-    device_version_version: int
-    firmware_build: int
-    firmware_version_minor: int
-    firmware_version_major: int
+    accel_meas: TileAccelMeas               # Accelerometer reading (x, y, z)
+    user_x: float                           # User-configured X position
+    user_y: float                           # User-configured Y position
+    width: int                              # Tile width in zones (e.g., 8)
+    height: int                             # Tile height in zones (e.g., 8)
+    device_version: DeviceStateVersion      # vendor, product
+    firmware: DeviceStateHostFirmware       # build, version_minor, version_major
 ```
 
 ### Enums
@@ -364,6 +381,7 @@ MultiZoneEffectType.MOVE                   # 1
 TileEffectType.OFF                         # 0
 TileEffectType.MORPH                       # 2
 TileEffectType.FLAME                       # 3
+TileEffectType.SKY                         # 5
 ```
 
 ---
@@ -375,6 +393,7 @@ The `PACKET_REGISTRY` maps packet type numbers to packet classes.
 ### Usage
 
 ```python
+from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import PACKET_REGISTRY, get_packet_class
 
 # Get packet class by type number
@@ -385,7 +404,9 @@ print(packet_class.PKT_TYPE)  # 102
 packet_class = get_packet_class(102)
 
 # Parse unknown packet type
-raw_payload = receive_payload()
+data = sock.recv(1024)
+header = LifxHeader.unpack(data[:36])
+raw_payload = data[36:]
 packet_class = get_packet_class(header.pkt_type)
 if packet_class:
     packet = packet_class.unpack(raw_payload)
@@ -399,8 +420,6 @@ else:
 |------|--------|-------------|
 | 2 | `Device.GetService` | Device discovery request |
 | 3 | `Device.StateService` | Device discovery response |
-| 12 | `Device.GetHostInfo` | Get host MCU info |
-| 13 | `Device.StateHostInfo` | Host MCU info response |
 | 14 | `Device.GetHostFirmware` | Get host firmware |
 | 15 | `Device.StateHostFirmware` | Host firmware response |
 | 16 | `Device.GetWifiInfo` | Get WiFi info |
@@ -417,45 +436,64 @@ else:
 | 33 | `Device.StateVersion` | Firmware version response |
 | 34 | `Device.GetInfo` | Get device info |
 | 35 | `Device.StateInfo` | Device info response |
+| 38 | `Device.SetReboot` | Reboot device |
 | 45 | `Device.Acknowledgement` | Acknowledgment response |
 | 48 | `Device.GetLocation` | Get location |
+| 49 | `Device.SetLocation` | Set location |
 | 50 | `Device.StateLocation` | Location response |
 | 51 | `Device.GetGroup` | Get group |
+| 52 | `Device.SetGroup` | Set group |
 | 53 | `Device.StateGroup` | Group response |
 | 58 | `Device.EchoRequest` | Echo request |
 | 59 | `Device.EchoResponse` | Echo response |
-| 101 | `Light.Get` | Get light state |
+| 101 | `Light.GetColor` | Get light state |
 | 102 | `Light.SetColor` | Set color |
 | 103 | `Light.SetWaveform` | Set waveform effect |
-| 107 | `Light.State` | Light state response |
+| 107 | `Light.StateColor` | Light state response (color, power, label) |
 | 116 | `Light.GetPower` | Get light power |
 | 117 | `Light.SetPower` | Set light power |
 | 118 | `Light.StatePower` | Light power response |
+| 119 | `Light.SetWaveformOptional` | Set waveform effect (optional components) |
 | 120 | `Light.GetInfrared` | Get IR brightness |
 | 121 | `Light.StateInfrared` | IR brightness response |
 | 122 | `Light.SetInfrared` | Set IR brightness |
-| 142 | `Hev.GetCycle` | Get HEV cycle |
-| 143 | `Hev.SetCycle` | Set HEV cycle |
-| 144 | `Hev.StateCycle` | HEV cycle response |
+| 142 | `Light.GetHevCycle` | Get HEV cycle |
+| 143 | `Light.SetHevCycle` | Set HEV cycle |
+| 144 | `Light.StateHevCycle` | HEV cycle response |
+| 145 | `Light.GetHevCycleConfiguration` | Get HEV cycle configuration |
+| 146 | `Light.SetHevCycleConfiguration` | Set HEV cycle configuration |
+| 147 | `Light.StateHevCycleConfiguration` | HEV cycle configuration response |
+| 148 | `Light.GetLastHevCycleResult` | Get last HEV cycle result |
+| 149 | `Light.StateLastHevCycleResult` | Last HEV cycle result response |
+| 223 | `Device.StateUnhandled` | Unsupported packet response |
+| 401 | `Sensor.GetAmbientLight` | Get ambient light level |
+| 402 | `Sensor.StateAmbientLight` | Ambient light level response |
 | 501 | `MultiZone.SetColorZones` | Set zone colors |
 | 502 | `MultiZone.GetColorZones` | Get zone colors |
 | 503 | `MultiZone.StateZone` | Single zone response |
 | 506 | `MultiZone.StateMultiZone` | Multiple zones response |
-| 508 | `MultiZone.SetMultiZoneEffect` | Set zone effect |
-| 509 | `MultiZone.GetMultiZoneEffect` | Get zone effect |
-| 510 | `MultiZone.StateMultiZoneEffect` | Zone effect response |
-| 511 | `MultiZone.GetExtendedColorZones` | Get extended zones |
-| 512 | `MultiZone.StateExtendedColorZones` | Extended zones response |
-| 513 | `MultiZone.SetExtendedColorZones` | Set extended zones |
+| 507 | `MultiZone.GetEffect` | Get zone effect |
+| 508 | `MultiZone.SetEffect` | Set zone effect |
+| 509 | `MultiZone.StateEffect` | Zone effect response |
+| 510 | `MultiZone.ExtendedSetColorZones` | Set extended zones |
+| 511 | `MultiZone.ExtendedGetColorZones` | Get extended zones |
+| 512 | `MultiZone.ExtendedStateMultiZone` | Extended zones response |
 | 701 | `Tile.GetDeviceChain` | Get tile chain info |
 | 702 | `Tile.StateDeviceChain` | Tile chain response |
 | 703 | `Tile.SetUserPosition` | Set tile position |
 | 707 | `Tile.Get64` | Get tile colors (64 zones) |
 | 711 | `Tile.State64` | Tile colors response |
 | 715 | `Tile.Set64` | Set tile colors |
-| 718 | `Tile.GetTileEffect` | Get tile effect |
-| 719 | `Tile.SetTileEffect` | Set tile effect |
-| 720 | `Tile.StateTileEffect` | Tile effect response |
+| 716 | `Tile.CopyFrameBuffer` | Copy between frame buffers |
+| 718 | `Tile.GetEffect` | Get tile effect |
+| 719 | `Tile.SetEffect` | Set tile effect |
+| 720 | `Tile.StateEffect` | Tile effect response |
+| 905 | `Button.Get` | Get button state |
+| 906 | `Button.Set` | Set button state |
+| 907 | `Button.State` | Button state response |
+| 909 | `Button.GetConfig` | Get button configuration |
+| 910 | `Button.SetConfig` | Set button configuration |
+| 911 | `Button.StateConfig` | Button configuration response |
 
 ---
 
@@ -488,7 +526,7 @@ Bytes 2-3:   Protocol/Origin/Tagged/Addressable (bitfield)
 Bytes 4-7:   Source (uint32, little-endian)
 Bytes 8-15:  Target (6-byte serial + 2 reserved bytes)
 Bytes 16-21: Reserved
-Byte  22:    Ack/Res flags + reserved bits
+Byte  22:    Flags: bit 0 res_required, bit 1 ack_required, bit 3 thread_connection
 Byte  23:    Sequence (uint8)
 Bytes 24-31: Reserved
 Bytes 32-33: Packet type (uint16, little-endian)
@@ -530,9 +568,8 @@ header = LifxHeader(
 
 # Create packet
 packet = Light.SetColor(
-    reserved=0,
     color=LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500),
-    duration_ms=1000,
+    duration=1000,  # Transition time in milliseconds
 )
 
 # Pack to binary
@@ -609,14 +646,14 @@ header = LifxHeader(
     target=resp_header.target,
     res_required=True,
     sequence=2,
-    pkt_type=101,  # Light.Get
+    pkt_type=101,  # Light.GetColor
 )
 sock.sendto(header.pack(), addr)
 
-# Receive Light.State response
+# Receive Light.StateColor (107) response
 data, addr = sock.recvfrom(1024)
 resp_header = LifxHeader.unpack(data[:36])
-state = Light.State.unpack(data[36:])
+state = Light.StateColor.unpack(data[36:])
 print(f"Color: H={state.color.hue} S={state.color.saturation} B={state.color.brightness}")
 print(f"Power: {state.power}")
 print(f"Label: {state.label}")
@@ -627,6 +664,11 @@ sock.close()
 ### Handling Acknowledgments
 
 ```python
+from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Light
+
+payload = Light.SetPower(level=65535, duration=0).pack()
+
 # Request acknowledgment
 header = LifxHeader(
     size=36 + len(payload),
@@ -656,6 +698,8 @@ if ack_header.pkt_type == 45:
 ```python
 import colorsys
 
+from lifx_emulator.protocol.protocol_types import LightHsbk
+
 def hsbk_to_rgb(hsbk: LightHsbk) -> tuple[int, int, int]:
     """Convert HSBK to RGB (0-255 range)."""
     h = hsbk.hue / 65535.0  # 0-1
@@ -670,6 +714,8 @@ def hsbk_to_rgb(hsbk: LightHsbk) -> tuple[int, int, int]:
 
 ```python
 import colorsys
+
+from lifx_emulator.protocol.protocol_types import LightHsbk
 
 def rgb_to_hsbk(r: int, g: int, b: int, kelvin: int = 3500) -> LightHsbk:
     """Convert RGB (0-255) to HSBK."""
@@ -700,11 +746,11 @@ def uint16_to_percent(value: int) -> float:
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/protocol/header.py` - Header implementation
-- `src/lifx_emulator/protocol/packets.py` - Packet definitions (auto-generated)
-- `src/lifx_emulator/protocol/protocol_types.py` - Type definitions (auto-generated)
-- `src/lifx_emulator/protocol/serializer.py` - Serialization utilities
-- `src/lifx_emulator/protocol/generator.py` - Code generator from YAML spec
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/header.py` - Header implementation
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py` - Packet definitions (auto-generated)
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/protocol_types.py` - Type definitions (auto-generated)
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/serializer.py` - Serialization utilities
+- `packages/lifx-emulator-core/src/lifx_emulator/protocol/generator.py` - Code generator from YAML spec
 
 **Related Documentation:**
 - [Device API](device.md) - Device state and packet processing
@@ -714,5 +760,5 @@ def uint16_to_percent(value: int) -> float:
 
 **Protocol Specification:**
 - Auto-generated from [LIFX public-protocol](https://github.com/LIFX/public-protocol)
-- Generator: `src/lifx_emulator/protocol/generator.py`
+- Generator: `packages/lifx-emulator-core/src/lifx_emulator/protocol/generator.py`
 - Source: `protocol.yml` from LIFX/public-protocol repository

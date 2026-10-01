@@ -31,7 +31,7 @@ Dataclass containing complete information about a LIFX product.
 @dataclass
 class ProductInfo:
     pid: int                              # Product ID
-    name: str                             # Product name (e.g., "LIFX A19")
+    name: str                             # Product name (e.g., "LIFX (A19)")
     vendor: int                           # Vendor ID (always 1 for LIFX)
     capabilities: int                     # Bitfield of capabilities
     temperature_range: TemperatureRange | None  # Min/max Kelvin
@@ -43,14 +43,14 @@ class ProductInfo:
 #### `pid` (int)
 Product ID number. Common examples:
 
-- `27`: LIFX A19
+- `27`: LIFX (A19)
 - `32`: LIFX Z (multizone strip)
 - `38`: LIFX Beam (extended multizone)
 - `55`: LIFX Tile
-- `90`: LIFX Clean (HEV)
+- `90`: LIFX Clean A19 1100lm (HEV)
 
 #### `name` (str)
-Human-readable product name (e.g., "LIFX A19", "LIFX Z", "LIFX Tile").
+Human-readable product name (e.g., "LIFX (A19)", "LIFX Z", "LIFX Tile").
 
 #### `vendor` (int)
 Vendor ID. Always `1` for LIFX products.
@@ -66,7 +66,7 @@ Supported color temperature range in Kelvin.
 - `None` for non-color-temperature devices (relays, switches)
 
 #### `min_ext_mz_firmware` (int | None)
-Minimum firmware version required for extended multizone support (>16 zones).
+Minimum firmware version required for extended multizone support, encoded as `(major << 16) | minor`.
 
 - `None` if not applicable or always supported
 
@@ -102,10 +102,12 @@ Convenience properties for common capability checks:
 - **`has_relays`** → `bool` - Relay switches
 - **`has_buttons`** → `bool` - Physical buttons
 - **`has_hev`** → `bool` - HEV (germicidal light) support
-- **`has_extended_multizone`** → `bool` - Extended multizone (>16 zones)
+- **`has_extended_multizone`** → `bool` - Extended multizone protocol support
 
 **Example:**
 ```python
+from lifx_emulator.products import get_product
+
 product = get_product(55)  # LIFX Tile
 print(f"Color: {product.has_color}")         # True
 print(f"Matrix: {product.has_matrix}")       # True
@@ -123,9 +125,11 @@ Check if extended multizone is supported for a given firmware version.
 
 **Example:**
 ```python
+from lifx_emulator.products import get_product
+
 product = get_product(38)  # LIFX Beam
 if product.supports_extended_multizone():
-    print("Supports 80 zones!")
+    print("Supports extended multizone messages")
 ```
 
 ---
@@ -144,7 +148,7 @@ class ProductCapability(IntEnum):
     RELAYS = 32             # Relay switches
     BUTTONS = 64            # Physical buttons
     HEV = 128               # Germicidal light
-    EXTENDED_MULTIZONE = 256  # >16 zones
+    EXTENDED_MULTIZONE = 256  # Extended multizone protocol
 ```
 
 ### Usage
@@ -162,7 +166,7 @@ has_multizone = bool(capabilities & ProductCapability.MULTIZONE) # False
 
 ## Product Registry
 
-The `PRODUCTS` dictionary and helper functions provide access to the product database.
+The `PRODUCTS` dictionary (in `lifx_emulator.products.registry`) and helper functions provide access to the product database.
 
 ### `get_product(pid: int) -> ProductInfo | None`
 
@@ -177,47 +181,49 @@ Retrieve product information by product ID.
 ```python
 from lifx_emulator.products import get_product
 
-product = get_product(27)  # LIFX A19
-if product:
+product = get_product(27)  # LIFX (A19)
+if product and product.temperature_range:
     print(f"Product: {product.name}")
     print(f"Capabilities: {product.capabilities}")
     print(f"Temperature range: {product.temperature_range.min}-{product.temperature_range.max}K")
 ```
 
-### `get_registry() -> dict[int, ProductInfo]`
+### `get_registry() -> ProductRegistry`
 
-Get the complete product registry.
+Get the global product registry. `ProductRegistry` supports `get_product(pid)`, `len()` and `in`; to iterate over every product, use the `PRODUCTS` dictionary.
 
-**Returns:** `dict[int, ProductInfo]` - Mapping of product ID to ProductInfo
+**Returns:** `ProductRegistry` - The global registry instance
 
 **Example:**
 ```python
 from lifx_emulator.products import get_registry
+from lifx_emulator.products.registry import PRODUCTS
 
 registry = get_registry()
 print(f"Total products: {len(registry)}")
+print(f"Has LIFX Z: {32 in registry}")
 
-for pid, product in registry.items():
+for pid, product in PRODUCTS.items():
     if product.has_multizone:
         print(f"{pid}: {product.name}")
 ```
 
-### `get_device_class_name(product: ProductInfo) -> str`
+### `get_device_class_name(pid: int, firmware_version: int | None = None) -> str`
 
-Get the device class name based on capabilities.
+Get the device class name based on a product's capabilities.
 
 **Parameters:**
-- **`product`** (`ProductInfo`) - Product to classify
+- **`pid`** (`int`) - Product ID to classify
+- **`firmware_version`** (`int | None`) - Firmware version (optional)
 
-**Returns:** `str` - Device class name ("color", "multizone", "matrix", "hev", etc.)
+**Returns:** `str` - Device class name (`"TileDevice"`, `"MultiZoneLight"`, `"HevLight"`, `"InfraredLight"`, `"Light"` or `"Device"`)
 
 **Example:**
 ```python
-from lifx_emulator.products import get_product, get_device_class_name
+from lifx_emulator.products import get_device_class_name
 
-product = get_product(32)
-class_name = get_device_class_name(product)
-print(f"Device class: {class_name}")  # "multizone"
+class_name = get_device_class_name(32)
+print(f"Device class: {class_name}")  # "MultiZoneLight"
 ```
 
 ---
@@ -226,39 +232,41 @@ print(f"Device class: {class_name}")  # "multizone"
 
 Device-specific specifications (zone counts, tile dimensions, etc.) are stored in the specs system.
 
-### `get_product_specs(product_id: int) -> dict | None`
+### `get_specs(product_id: int) -> ProductSpecs | None`
 
-Get detailed specifications for a product.
+Get detailed specifications for a product (from `lifx_emulator.products.specs`, loaded from `specs.yml`).
 
 **Parameters:**
 - **`product_id`** (`int`) - Product ID
 
-**Returns:** `dict | None` - Specifications dictionary or `None`
+**Returns:** `ProductSpecs | None` - Specifications dataclass or `None` if the product has no specs
 
-**Spec Fields:**
-- `zone_count`: Number of zones (multizone devices)
-- `extended_multizone`: Extended multizone support flag
-- `tile_count`: Default number of tiles (matrix devices)
-- `tile_width`: Tile width in zones (matrix devices)
-- `tile_height`: Tile height in zones (matrix devices)
+**Spec Fields** (all optional, `None` when not set):
+- `default_zone_count`, `min_zone_count`, `max_zone_count`: Zone counts (multizone devices)
+- `default_tile_count`, `min_tile_count`, `max_tile_count`: Tile counts (matrix devices)
+- `tile_width`, `tile_height`: Tile dimensions in zones (matrix devices)
+- `default_firmware_major`, `default_firmware_minor`: Default firmware version
+- `max_firmware_major`, `max_firmware_minor`: Terminal firmware version for discontinued products
+- `uplight_zone_count`, `zone_map`, `button_count`, `notes`
+
+Extended multizone support comes from the product registry (`ProductInfo.has_extended_multizone`), not from specs.
 
 **Example:**
 ```python
-from lifx_emulator.specs import get_product_specs
+from lifx_emulator.products.specs import get_specs
 
-# LIFX Z (standard multizone)
-specs = get_product_specs(32)
-print(f"Zones: {specs['zone_count']}")  # 16
+# LIFX Z
+specs = get_specs(32)
+print(f"Zones: {specs.default_zone_count}")  # 16
 
-# LIFX Beam (extended multizone)
-specs = get_product_specs(38)
-print(f"Zones: {specs['zone_count']}")           # 80
-print(f"Extended: {specs['extended_multizone']}") # True
+# LIFX Beam
+specs = get_specs(38)
+print(f"Zones: {specs.default_zone_count}")  # 80
 
 # LIFX Tile
-specs = get_product_specs(55)
-print(f"Tiles: {specs['tile_count']}")     # 5
-print(f"Dimensions: {specs['tile_width']}x{specs['tile_height']}")  # 8x8
+specs = get_specs(55)
+print(f"Tiles: {specs.default_tile_count}")  # 5
+print(f"Dimensions: {specs.tile_width}x{specs.tile_height}")  # 8x8
 ```
 
 ---
@@ -269,27 +277,27 @@ Complete capability matrix for major LIFX products:
 
 | Product ID | Name | Color | Infrared | Multizone | Extended MZ | Matrix | HEV | Temp Range (K) |
 |------------|------|-------|----------|-----------|-------------|--------|-----|----------------|
-| 1 | LIFX Original 1000 | ✓ | | | | | | 2500-9000 |
-| 27 | LIFX A19 | ✓ | | | | | | 2500-9000 |
-| 29 | LIFX A19 Night Vision | ✓ | ✓ | | | | | 2500-9000 |
-| 32 | LIFX Z | ✓ | | ✓ | | | | 2500-9000 |
-| 36 | LIFX Downlight | ✓ | | | | | | 2500-9000 |
+| 1 | Original | ✓ | | | | | | 2500-9000 |
+| 27 | LIFX (A19) | ✓ | | | | | | 2500-9000 |
+| 29 | LIFX+ (A19) | ✓ | ✓ | | | | | 2500-9000 |
+| 30 | LIFX+ (BR30) | ✓ | ✓ | | | | | 2500-9000 |
+| 32 | LIFX Z | ✓ | | ✓ | ✓ | | | 2500-9000 |
+| 36 | LIFX DL | ✓ | | | | | | 2500-9000 |
 | 38 | LIFX Beam | ✓ | | ✓ | ✓ | | | 2500-9000 |
-| 43 | LIFX BR30 | ✓ | | | | | | 2500-9000 |
-| 44 | LIFX BR30 Night Vision | ✓ | ✓ | | | | | 2500-9000 |
-| 50 | LIFX Mini White to Warm | | | | | | | 2700-6500 |
+| 44 | LIFX (BR30) | ✓ | | | | | | 2500-9000 |
+| 50 | LIFX Mini DD | | | | | | | 2500-9000 |
+| 52 | LIFX GU10 | ✓ | | | | | | 1500-9000 |
 | 55 | LIFX Tile | ✓ | | | | ✓ | | 2500-9000 |
-| 57 | LIFX Candle | ✓ | | | | ✓ | | 2500-9000 |
-| 66 | LIFX GU10 | ✓ | | | | | | 2500-9000 |
-| 90 | LIFX Clean | ✓ | | | | | ✓ | 2500-9000 |
-| 141 | LIFX Neon | ✓ | | ✓ | | | | 2500-9000 |
-| 176 | LIFX Ceiling | ✓ | | | | ✓ | | 2500-9000 |
+| 57 | LIFX Candle C | ✓ | | | | ✓ | | 1500-9000 |
+| 90 | LIFX Clean A19 1100lm | ✓ | | | | | ✓ | 1500-9000 |
+| 141 | LIFX Neon | ✓ | | ✓ | ✓ | | | 1500-9000 |
+| 176 | LIFX Ceiling | ✓ | | | | ✓ | | 1500-9000 |
 
 **Legend:**
 - **Color**: Full RGB color control
 - **Infrared**: Night vision capability
-- **Multizone**: Linear zone control (up to 16 zones)
-- **Extended MZ**: Extended multizone (>16 zones)
+- **Multizone**: Linear zone control
+- **Extended MZ**: Extended multizone protocol support (independent of zone count)
 - **Matrix**: 2D tile/matrix control
 - **HEV**: Germicidal UV-C light
 - **Temp Range**: Color temperature range in Kelvin
@@ -303,13 +311,11 @@ Filter products by capabilities using the registry:
 ### Filter by Single Capability
 
 ```python
-from lifx_emulator.products import get_registry, ProductCapability
-
-registry = get_registry()
+from lifx_emulator.products.registry import PRODUCTS
 
 # Find all multizone products
 multizone_products = [
-    product for product in registry.values()
+    product for product in PRODUCTS.values()
     if product.has_multizone
 ]
 
@@ -321,23 +327,27 @@ for product in multizone_products:
 ### Filter by Multiple Capabilities
 
 ```python
+from lifx_emulator.products.registry import PRODUCTS
+
 # Find all color + infrared products
 color_ir_products = [
-    product for product in registry.values()
+    product for product in PRODUCTS.values()
     if product.has_color and product.has_infrared
 ]
 
 for product in color_ir_products:
     print(f"{product.pid}: {product.name}")
-# Output: 29: LIFX A19 Night Vision, 44: LIFX BR30 Night Vision
+# Output: 25: LIFX+ (A19), 26: LIFX+ (BR30), 29: LIFX+ (A19), etc.
 ```
 
 ### Filter by Temperature Range
 
 ```python
+from lifx_emulator.products.registry import PRODUCTS
+
 # Find products that support warm white (< 3000K)
 warm_white_products = [
-    product for product in registry.values()
+    product for product in PRODUCTS.values()
     if product.temperature_range and product.temperature_range.min < 3000
 ]
 
@@ -348,20 +358,26 @@ for product in warm_white_products:
 ### Filter Extended Multizone
 
 ```python
-# Find extended multizone products (>16 zones)
+from lifx_emulator.products.registry import PRODUCTS
+
+# Find extended multizone products
 extended_mz_products = [
-    product for product in registry.values()
+    product for product in PRODUCTS.values()
     if product.has_extended_multizone
 ]
 
 for product in extended_mz_products:
     print(f"{product.pid}: {product.name}")
-# Output: 38: LIFX Beam, etc.
+# Output: 32: LIFX Z, 38: LIFX Beam, etc.
 ```
 
 ### Custom Filter Function
 
 ```python
+from lifx_emulator.products import ProductInfo
+from lifx_emulator.products.registry import PRODUCTS
+
+
 def filter_products(
     color: bool = False,
     multizone: bool = False,
@@ -369,10 +385,9 @@ def filter_products(
     hev: bool = False,
 ) -> list[ProductInfo]:
     """Filter products by capabilities."""
-    registry = get_registry()
     results = []
 
-    for product in registry.values():
+    for product in PRODUCTS.values():
         if color and not product.has_color:
             continue
         if multizone and not product.has_multizone:
@@ -401,7 +416,7 @@ from lifx_emulator.factories import create_device
 from lifx_emulator.products import get_product
 
 # Create device by product ID
-device = create_device(product_id=27)  # LIFX A19
+device = create_device(product_id=27)  # LIFX (A19)
 
 # Get product info
 product = get_product(27)
@@ -414,14 +429,14 @@ print(f"Multizone: {device.state.has_multizone}")
 
 ```python
 from lifx_emulator.factories import create_device
-from lifx_emulator.specs import get_product_specs
+from lifx_emulator.products.specs import get_specs
 
 # Create LIFX Z with product defaults
 device = create_device(product_id=32)
 
 # Specs are automatically applied
-specs = get_product_specs(32)
-assert device.state.zone_count == specs['zone_count']  # 16 zones
+specs = get_specs(32)
+assert device.state.zone_count == specs.default_zone_count  # 16 zones
 
 # Override defaults
 device = create_device(product_id=32, zone_count=8)  # Custom: 8 zones
@@ -441,31 +456,28 @@ lifx-emulator list-products --filter-type matrix
 lifx-emulator list-products --filter-type hev
 ```
 
-**Example Output:**
-```
-LIFX Product Registry
-┌──────┬────────────────────────────────────────────┬──────────────────────────┐
-│ ID   │ Product Name                               │ Capabilities             │
-├──────┼────────────────────────────────────────────┼──────────────────────────┤
-│ 27   │ LIFX A19                                   │ full color               │
-│ 29   │ LIFX A19 Night Vision                      │ full color, infrared     │
-│ 32   │ LIFX Z                                     │ full color, multizone    │
-│ 38   │ LIFX Beam                                  │ full color, extended-mz  │
-│ 55   │ LIFX Tile                                  │ full color, matrix       │
-│ 90   │ LIFX Clean                                 │ full color, HEV          │
-└──────┴────────────────────────────────────────────┴──────────────────────────┘
+**Example Output** (excerpt):
+```text
+LIFX Product Registry (173 products)
+
+ PID │ Product Name                             │ Capabilities
+─────┼──────────────────────────────────────────┼─────────────────────────────────────────
+  27 │ LIFX (A19)                               │ color
+  29 │ LIFX+ (A19)                              │ color, infrared
+  32 │ LIFX Z                                   │ color, extended-multizone
+  38 │ LIFX Beam                                │ color, extended-multizone
+  55 │ LIFX Tile                                │ color, matrix, chain
+  90 │ LIFX Clean A19 1100lm                    │ color, HEV
 ```
 
 ### Programmatic Product Listing
 
 ```python
-from lifx_emulator.products import get_registry
+from lifx_emulator.products.registry import PRODUCTS
 
 def list_products(filter_capability: str | None = None):
     """List all products with optional capability filter."""
-    registry = get_registry()
-
-    for pid, product in sorted(registry.items()):
+    for pid, product in sorted(PRODUCTS.items()):
         # Apply filter
         if filter_capability == "multizone" and not product.has_multizone:
             continue
@@ -503,9 +515,9 @@ list_products(filter_capability="matrix")
 The product registry is auto-generated from the official LIFX product database:
 
 - **Source:** [LIFX/products on GitHub](https://github.com/LIFX/products)
-- **Generator:** `src/lifx_emulator/products/generator.py`
-- **Registry:** `src/lifx_emulator/products/registry.py` (auto-generated)
-- **Specs:** `src/lifx_emulator/specs/` (manually curated device specifications)
+- **Generator:** `packages/lifx-emulator-core/src/lifx_emulator/products/generator.py`
+- **Registry:** `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py` (auto-generated)
+- **Specs:** `packages/lifx-emulator-core/src/lifx_emulator/products/specs.yml` (manually curated device specifications, loaded by `products/specs.py`)
 
 ### Updating Products
 
@@ -516,7 +528,7 @@ To update the product registry with the latest LIFX products:
 python -m lifx_emulator.products.generator
 
 # Verify changes
-git diff src/lifx_emulator/products/registry.py
+git diff packages/lifx-emulator-core/src/lifx_emulator/products/registry.py
 ```
 
 ---
@@ -524,9 +536,9 @@ git diff src/lifx_emulator/products/registry.py
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/products/registry.py` - Product registry (auto-generated)
-- `src/lifx_emulator/products/generator.py` - Registry generator
-- `src/lifx_emulator/specs/` - Product specifications
+- `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py` - Product registry (auto-generated)
+- `packages/lifx-emulator-core/src/lifx_emulator/products/generator.py` - Registry generator
+- `packages/lifx-emulator-core/src/lifx_emulator/products/specs.py`, `specs.yml` - Product specifications
 
 **Related Documentation:**
 - [Factories API](factories.md) - Device creation from product IDs

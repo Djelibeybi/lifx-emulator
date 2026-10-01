@@ -15,6 +15,7 @@ All factory functions return an `EmulatedLifxDevice` instance configured for a s
         - create_hev_light
         - create_multizone_light
         - create_tile_device
+        - create_switch
         - create_device
       show_root_heading: false
       heading_level: 2
@@ -112,13 +113,16 @@ print(f"Strip product: {strip.state.product}")  # 32 (LIFX Z)
 Create a matrix tile device:
 
 ```python
-from lifx_emulator import create_tile_device
+from lifx_emulator.factories import create_device, create_tile_device
 
 # Default configuration (5 tiles of 8x8)
 tiles = create_tile_device("d073d9000001")
 
-# Custom tile count (1 to 5 tiles on the chain)
+# Custom tile count (LIFX Tile chains have 1 to 5 tiles)
 tiles_custom = create_tile_device("d073d9000002", tile_count=3)
+
+# Large matrix device with 16x8 zones (LIFX Ceiling 13x26", product 201)
+large_tile = create_device(201, serial="d073d9000003")
 
 print(f"Tile count: {tiles.state.tile_count}")      # 5
 print(f"Tile width: {tiles.state.tile_width}")      # 8

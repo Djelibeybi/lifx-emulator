@@ -134,6 +134,8 @@ Device state is stored as JSON. Fields for optional capabilities (zones, tiles, 
 }
 ```
 
+Capability-specific fields (`infrared_brightness`, `hev_*`, `zone_colors`, `tile_devices`, etc.) are only written for devices with that capability. See the [file format specification](../library/storage.md#file-format).
+
 ## Restoration on Startup
 
 When a device is created with the same serial and storage as a previously saved device, its state is restored automatically. Saves are queued and written in the background, so flush them with `await storage.shutdown()` before the state is guaranteed to be on disk:

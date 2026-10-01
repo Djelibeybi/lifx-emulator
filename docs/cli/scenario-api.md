@@ -654,7 +654,7 @@ async def test_scenario():
         # Get all devices
         devices = await client.get(f"{BASE_URL}/devices")
 
-        for device in devices.json():
+        for device in devices.json()["devices"]:
             serial = device["serial"]
 
             # Set scenario for device

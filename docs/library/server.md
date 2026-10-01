@@ -156,9 +156,15 @@ Enable packet activity tracking for the HTTP API dashboard.
 
 **Example:**
 ```python
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 # Disable activity tracking
+device_manager = DeviceManager(DeviceRepository())
 server = EmulatedLifxServer(
     devices,
+    device_manager,
     "127.0.0.1",
     56700,
     track_activity=False
@@ -173,15 +179,17 @@ Optional persistent storage backend for device state.
 **Default:** `None`
 
 **Notes:**
-- When provided, device state changes are automatically saved asynchronously
+- Devices save their own state through the storage passed to their factory; pass the same instance here
+- The server uses it to delete persisted state when devices are removed (`remove_device()`, `remove_all_devices(delete_storage=True)`)
 - Allows device state to persist across emulator restarts
-- Must be used with devices created with the same storage instance
 - See [Persistent Storage Guide](../cli/storage.md) for details
 
 **Example:**
 ```python
-from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager, DevicePersistenceAsyncFile
 from lifx_emulator.factories import create_color_light
+from lifx_emulator.repositories import DeviceRepository
 
 storage = DevicePersistenceAsyncFile()
 device = create_color_light("d073d5000001", storage=storage)
@@ -218,6 +226,7 @@ Optional scenario manager for test scenario configuration.
 **Default:** `None`
 
 **Notes:**
+- Shared by all devices; if omitted, the server creates an empty one (available as `server.scenario_manager`)
 - When provided, enables runtime scenario management via REST API
 - Supports device-specific, type-specific, location-based, group-based, and global scenarios
 - Scenarios control packet dropping, delays, malformed responses, etc.
@@ -225,6 +234,7 @@ Optional scenario manager for test scenario configuration.
 
 **Example:**
 ```python
+from lifx_emulator import EmulatedLifxServer
 from lifx_emulator.scenarios import HierarchicalScenarioManager
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
@@ -251,14 +261,21 @@ Enable persistent storage of scenario configurations.
 **Default:** `False`
 
 **Notes:**
-- When enabled, scenario configurations are saved to `~/.lifx-emulator/scenarios.json`
-- Scenarios are restored from disk on startup
-- Requires `scenario_manager` to be provided
-- Ignored if `scenario_manager` is `None`
+- When enabled, scenario changes made through the API are saved via `scenario_storage` (`ScenarioPersistenceAsyncFile` writes `~/.lifx-emulator/scenarios.json`)
+- Requires both `scenario_storage` and `scenario_manager`; the constructor raises `ValueError` if either is missing
+- Load `scenario_manager` from `scenario_storage` before creating the server so saved scenarios are restored
 
 **Example:**
 ```python
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioPersistenceAsyncFile
+
 # Enable both state and scenario persistence
+scenario_storage = ScenarioPersistenceAsyncFile()
+manager = await scenario_storage.load()
+
 device_manager = DeviceManager(DeviceRepository())
 server = EmulatedLifxServer(
     devices,
@@ -267,7 +284,8 @@ server = EmulatedLifxServer(
     56700,
     storage=storage,
     scenario_manager=manager,
-    persist_scenarios=True
+    persist_scenarios=True,
+    scenario_storage=scenario_storage,
 )
 ```
 
@@ -327,28 +345,33 @@ async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as se
 
 ### Utility Methods
 
-#### `get_uptime_ns()`
-Get the server uptime in nanoseconds since startup.
+#### `get_stats()`
+Get server statistics.
 
-**Returns:** `int` - Nanoseconds elapsed since server started
+**Returns:** `dict[str, Any]` - Includes `uptime_seconds`, `start_time`, `device_count`, `packets_received`, `packets_sent`, `packets_received_by_type`, `packets_sent_by_type`, `error_count`, `packets_dropped_overload`, `websocket_events_dropped` and `activity_enabled`
 
 **Notes:**
-- Returns 0 if server hasn't started yet
+- `uptime_seconds` is measured with a monotonic clock from server construction
 - Useful for performance testing and benchmarking
-- Uses monotonic clock for accurate timing
 
 **Example:**
 ```python
+import asyncio
+
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 device_manager = DeviceManager(DeviceRepository())
 async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     await asyncio.sleep(1)
-    uptime_ns = server.get_uptime_ns()
-    uptime_ms = uptime_ns / 1_000_000
-    print(f"Server uptime: {uptime_ms:.2f}ms")
+    stats = server.get_stats()
+    print(f"Server uptime: {stats['uptime_seconds']:.2f}s")
+    print(f"Packets received: {stats['packets_received']}")
 ```
 
-#### `invalidate_scenario_cache()`
-Clear the internal scenario precedence cache.
+#### `invalidate_all_scenario_caches()`
+Clear every device's cached resolved scenario.
 
 **Notes:**
 - Normally called automatically after scenario updates via API
@@ -358,6 +381,9 @@ Clear the internal scenario precedence cache.
 
 **Example:**
 ```python
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
 manager = HierarchicalScenarioManager()
@@ -368,9 +394,9 @@ server = EmulatedLifxServer(
 
 async with server:
     # Update scenarios externally
-    manager.set_global_scenario(ScenarioConfig(...))
+    manager.set_global_scenario(ScenarioConfig(drop_packets={101: 0.5}))
     # Invalidate cache to apply changes immediately
-    server.invalidate_scenario_cache()
+    server.invalidate_all_scenario_caches()
 ```
 
 ## Packet Routing
@@ -379,7 +405,7 @@ async with server:
 
 Packets with `tagged=True` or `target=000000000000` are forwarded to all devices:
 
-```python
+```text
 # GetService broadcasts are answered by all devices
 # Client discovers all emulated devices
 ```
@@ -388,8 +414,8 @@ Packets with `tagged=True` or `target=000000000000` are forwarded to all devices
 
 Packets with a specific target serial are routed to that device:
 
-```python
-# LightSetColor for d073d5000001 goes only to that device
+```text
+# Light.SetColor for d073d5000001 goes only to that device
 # Other devices don't see the packet
 ```
 
@@ -397,7 +423,7 @@ Packets with a specific target serial are routed to that device:
 
 Packets for unknown serial addresses are silently dropped:
 
-```python
+```text
 # Packet for d073d5999999 (not in server) is ignored
 # No error or response generated
 ```
@@ -415,7 +441,7 @@ The server handles responses automatically:
 
 The server uses asyncio for concurrent operation:
 
-```python
+```text
 # Multiple clients can send packets concurrently
 # Each device processes packets independently
 # Responses are sent asynchronously
@@ -488,6 +514,13 @@ async def test_discovery(lifx_server):
 For faster tests, use module scope:
 
 ```python
+import pytest
+
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.repositories import DeviceRepository
+
 @pytest.fixture(scope="module")
 def device_manager():
     return DeviceManager(DeviceRepository())
