@@ -323,7 +323,9 @@ Devices created by product ID:
 
 ## Testing with a LIFX Client
 
-Here's how to test your emulated device with a real LIFX LAN client library. The emulator binds to `0.0.0.0` here so that it also receives the client's broadcast discovery packets:
+Here's how to test your emulated device with a real LIFX LAN client library, [`lifxlan`](https://pypi.org/project/lifxlan/). Install it with `pip install lifxlan`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
+
+The example runs the emulator and the client in one script. `lifxlan` is synchronous, so its calls run in a worker thread to keep the emulator's event loop free to reply. It addresses the emulated device directly by MAC address and IP rather than using broadcast discovery, which would also find, and change, any real LIFX devices on your network:
 
 ```python
 import asyncio
@@ -331,44 +333,49 @@ import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
-
-# Example using lifxlan library (install with: pip install lifxlan)
-from lifxlan import LifxLAN
+from lifxlan import Light
 
 
-async def run_emulator():
-    """Run the emulator in the background."""
+def control_light(host, port):
+    """Control the emulated device with lifxlan (a synchronous client)."""
+    # Address the emulated device directly by MAC address and IP. Broadcast
+    # discovery (LifxLAN().get_lights()) would also find, and change, any
+    # real LIFX devices on your network.
+    light = Light("d0:73:d5:00:00:01", host, port=port)
+
+    print(f"Device: {light.get_label()}")
+    print(f"Power: {light.get_power()}")
+
+    # Change colour to red at 50% brightness; rapid=False waits for the ack
+    light.set_color([0, 65535, 32768, 3500], 0, False)
+    print("Changed colour to red")
+
+
+async def main():
     device = create_color_light("d073d5000001")
     server = EmulatedLifxServer(
-        [device], DeviceManager(DeviceRepository()), "0.0.0.0", 56700
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
     )
 
     async with server:
-        print("Emulator running, press Ctrl+C to stop")
-        await asyncio.sleep(3600)  # Run for 1 hour
+        host, port = server.ipv4_endpoint
+        # Run the blocking client in a worker thread so the emulator's
+        # event loop stays free to answer it
+        await asyncio.to_thread(control_light, host, port)
+        print(f"Emulator colour: {device.state.color}")
 
 
-def test_with_client():
-    """Test the emulator using a LIFX client."""
-    # Discover devices on the local network
-    lifx = LifxLAN()
-    devices = lifx.get_devices()
-
-    print(f"Found {len(devices)} device(s)")
-
-    for device in devices:
-        print(f"\nDevice: {device.get_label()}")
-        print(f"Power: {device.get_power()}")
-
-        # Change colour to red
-        device.set_color([65535, 65535, 32768, 3500])  # Red, 50% brightness
-        print("Changed colour to red")
-
-
-# Run the emulator (in production, use separate processes or async tasks)
 if __name__ == "__main__":
-    # In real usage, run emulator and client in separate processes/terminals
-    asyncio.run(run_emulator())
+    asyncio.run(main())
+```
+
+You should see:
+
+```
+Device: LIFX Color 800lm 000001
+Power: 65535
+Changed colour to red
+Emulator colour: LightHsbk(hue=0, saturation=65535, brightness=32768, kelvin=3500)
 ```
 
 ## Simple pytest Example

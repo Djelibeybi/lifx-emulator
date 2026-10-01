@@ -187,27 +187,32 @@ Install the library:
 pip install lifx-async
 ```
 
+If you're working in a clone of the emulator repository, sync its `third-party` dependency group instead, which installs both `lifx-async` and `lifxlan`:
+
+```bash
+uv sync --group third-party
+```
+
 In a **separate terminal**, create `test_client.py`:
 
 ```python
 import asyncio
-from lifx import discover
-from lifx.color import HSBK
+
+from lifx import HSBK, Light
+
 
 async def main():
-    # Discover devices
-    async with discover() as group:
-        print(f"Found {len(group.devices)} device(s)")
+    # Connect directly to the emulated device. Broadcast discovery would
+    # also find, and could change, any real LIFX devices on your network.
+    async with await Light.from_ip("127.0.0.1", serial="d073d5000001") as light:
+        print(f"Device: {await light.get_label()}")
+        print(f"Power: {await light.get_power()}")
 
-        if group.devices:
-            device = group.devices[0]
-            print(f"Device: {device.label}")
-            print(f"Power: {device.power}")
+        # Change colour to red (RGB components run from 0.0 to 1.0)
+        print("Setting colour to red...")
+        await light.set_color(HSBK.from_rgb(1.0, 0.0, 0.0))
+        print("Done!")
 
-            # Change color to red
-            print("Setting color to red...")
-            await device.set_color(HSBK.from_rgb(255, 0, 0))
-            print("Done!")
 
 asyncio.run(main())
 ```
@@ -221,12 +226,13 @@ python test_client.py
 You should see:
 
 ```
-Found 1 device(s)
 Device: LIFX Color 800lm 000001
 Power: 65535
-Setting color to red...
+Setting colour to red...
 Done!
 ```
+
+If you customised the label in Step 4, you'll see that label instead.
 
 ## Troubleshooting
 

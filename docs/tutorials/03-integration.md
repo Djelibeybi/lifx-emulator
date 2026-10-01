@@ -343,7 +343,9 @@ async def test_that_might_fail(emulator_with_cleanup):
 
 ## Testing with Real LIFX Clients
 
-Integration test with an actual LIFX client library. `lifxlan` is synchronous, so run its calls in a worker thread with `asyncio.to_thread()`; calling it directly would block the event loop and the emulator could never reply. The test addresses the light directly by MAC address and IP instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1`:
+Integration test with an actual LIFX client library. `lifxlan` is synchronous, so run its calls in a worker thread with `asyncio.to_thread()`; calling it directly would block the event loop and the emulator could never reply. The test addresses the light directly by MAC address and IP instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
+
+Install `lifxlan` with `pip install lifxlan`, or, in a clone of the emulator repository, with `uv sync --group third-party`:
 
 ```python
 import asyncio
@@ -355,7 +357,6 @@ from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
-# This example uses lifxlan library: pip install lifxlan
 from lifxlan import Light
 
 

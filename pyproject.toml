@@ -19,6 +19,10 @@ dev = [
     "llmstxt-standalone>=0.2.0",
     "mkdocstrings-python>=2.0.3",
 ]
+third-party = [
+    "lifx-async>=7.6.4",
+    "lifxlan>=1.2.9",
+]
 
 [tool.ruff]
 line-length = 88

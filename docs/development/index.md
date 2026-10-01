@@ -73,6 +73,20 @@ pyright --version
 ruff --version
 ```
 
+#### Third-party client examples
+
+The tutorials include examples that drive the emulator with third-party LIFX clients, [`lifx-async`](https://pypi.org/project/lifx-async/) and [`lifxlan`](https://pypi.org/project/lifxlan/). These live in the optional `third-party` dependency group, so a plain `uv sync` does not install them. To run those examples, sync with the group enabled:
+
+```bash
+uv sync --group third-party
+```
+
+`uv sync` keeps the environment in step with the lock file, so running a plain `uv sync` afterwards removes the group again. To use the clients for a single command without changing the environment, pass the group to `uv run` instead:
+
+```bash
+uv run --group third-party python example.py
+```
+
 ### 2. Run Tests
 ```bash
 # Run all tests (764 tests)
