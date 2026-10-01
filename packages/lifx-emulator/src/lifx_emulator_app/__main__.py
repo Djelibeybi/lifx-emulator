@@ -364,7 +364,7 @@ def _tile_count_fits_product(state_dict: dict) -> bool:
 
 
 # Coerces a saved product ID with the same rules as DeviceDefinition.product_id
-_PRODUCT_ID = TypeAdapter(int)
+_PRODUCT_ID_ADAPTER = TypeAdapter(int)
 
 
 def _saved_product_id(state_dict: dict) -> int:
@@ -380,7 +380,7 @@ def _saved_product_id(state_dict: dict) -> int:
         The product ID as an int, or 0 when it is missing or not a number
     """
     try:
-        return _PRODUCT_ID.validate_python(state_dict.get("product", 0))
+        return _PRODUCT_ID_ADAPTER.validate_python(state_dict.get("product", 0))
     except ValidationError:
         return 0
 
