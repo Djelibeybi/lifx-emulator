@@ -19,6 +19,27 @@ LIFX_HEADER_SIZE: Final[int] = 36
 HEADER_SIZE = LIFX_HEADER_SIZE
 
 # ============================================================================
+# Matrix Constants
+# ============================================================================
+
+# Longest tile chain a chain-capable matrix product (the original LIFX Tile)
+# drives. Every matrix product without the chain capability is a single tile.
+MAX_CHAIN_TILES: Final[int] = 5
+
+
+def max_tile_count(has_chain: bool) -> int:
+    """Return the most tiles a matrix product can have.
+
+    Args:
+        has_chain: Whether the product has the chain capability
+
+    Returns:
+        MAX_CHAIN_TILES for a chain-capable product, 1 otherwise
+    """
+    return MAX_CHAIN_TILES if has_chain else 1
+
+
+# ============================================================================
 # Official LIFX Repository URLs
 # ============================================================================
 

@@ -9,7 +9,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from lifx_emulator.constants import max_tile_count
 from lifx_emulator.devices.device import DeviceState
+from lifx_emulator.devices.states import MatrixState
 
 logger = logging.getLogger(__name__)
 
@@ -237,6 +239,80 @@ class StateRestorer:
         if "multizone_effect_speed" in saved_state:
             state.multizone.effect_speed = saved_state["multizone_effect_speed"]
 
+    def _saved_tile_count_fits(
+        self, state: DeviceState, saved_state: dict[str, Any]
+    ) -> bool:
+        """Check the saved tile count is one this product can have.
+
+        Saved state written by an older build, or edited by hand, can carry a
+        chain (a multi-tile Mirror, say) the product does not support.
+
+        Args:
+            state: DeviceState being restored into
+            saved_state: Dictionary with saved state values
+
+        Returns:
+            True if there is no saved tile count or it is within range
+        """
+        saved_count = saved_state.get("tile_count")
+        if saved_count is None:
+            return True
+        if 1 <= saved_count <= max_tile_count(state.has_chain):
+            return True
+        logger.warning(
+            "Saved state for %s has %s tiles, which product %s cannot have; "
+            "keeping its default tile layout",
+            state.serial,
+            saved_count,
+            state.product,
+        )
+        return False
+
+    def _restore_tile_layout(
+        self, matrix: MatrixState, saved_state: dict[str, Any]
+    ) -> None:
+        """Restore tile count, dimensions and tile colours from saved state.
+
+        Args:
+            matrix: Matrix state to restore into
+            saved_state: Dictionary with saved state values
+        """
+        # First restore tile configuration (count, width, height) from saved state
+        # This ensures the device matches what was previously saved
+        if "tile_count" in saved_state:
+            matrix.tile_count = saved_state["tile_count"]
+            logger.debug("Restored tile_count: %s", matrix.tile_count)
+        if "tile_width" in saved_state:
+            matrix.tile_width = saved_state["tile_width"]
+            logger.debug("Restored tile_width: %s", matrix.tile_width)
+        if "tile_height" in saved_state:
+            matrix.tile_height = saved_state["tile_height"]
+            logger.debug("Restored tile_height: %s", matrix.tile_height)
+
+        # Now restore tile devices if available
+        if "tile_devices" in saved_state:
+            saved_tiles = saved_state["tile_devices"]
+            # Verify tile count matches (should match now that we restored it)
+            if len(saved_tiles) == matrix.tile_count:
+                # Verify all tiles have matching dimensions
+                if all(
+                    t["width"] == matrix.tile_width
+                    and t["height"] == matrix.tile_height
+                    for t in saved_tiles
+                ):
+                    matrix.tile_devices = saved_tiles
+                    logger.debug("Restored %s tile devices", len(saved_tiles))
+                else:
+                    logger.warning(
+                        "Tile dimensions mismatch, skipping tile restoration"
+                    )
+            else:
+                logger.warning(
+                    "Tile count mismatch: saved has %s tiles, current has %s tiles",
+                    len(saved_tiles),
+                    matrix.tile_count,
+                )
+
     def _restore_matrix_state(
         self, state: DeviceState, saved_state: dict[str, Any]
     ) -> None:
@@ -249,40 +325,8 @@ class StateRestorer:
         if state.matrix is None:
             return
 
-        # First restore tile configuration (count, width, height) from saved state
-        # This ensures the device matches what was previously saved
-        if "tile_count" in saved_state:
-            state.matrix.tile_count = saved_state["tile_count"]
-            logger.debug("Restored tile_count: %s", state.matrix.tile_count)
-        if "tile_width" in saved_state:
-            state.matrix.tile_width = saved_state["tile_width"]
-            logger.debug("Restored tile_width: %s", state.matrix.tile_width)
-        if "tile_height" in saved_state:
-            state.matrix.tile_height = saved_state["tile_height"]
-            logger.debug("Restored tile_height: %s", state.matrix.tile_height)
-
-        # Now restore tile devices if available
-        if "tile_devices" in saved_state:
-            saved_tiles = saved_state["tile_devices"]
-            # Verify tile count matches (should match now that we restored it)
-            if len(saved_tiles) == state.matrix.tile_count:
-                # Verify all tiles have matching dimensions
-                if all(
-                    t["width"] == state.matrix.tile_width
-                    and t["height"] == state.matrix.tile_height
-                    for t in saved_tiles
-                ):
-                    state.matrix.tile_devices = saved_tiles
-                    logger.debug("Restored %s tile devices", len(saved_tiles))
-                else:
-                    logger.warning(
-                        "Tile dimensions mismatch, skipping tile restoration"
-                    )
-            else:
-                logger.warning(
-                    f"Tile count mismatch: saved has {len(saved_tiles)} tiles, "
-                    f"current has {state.matrix.tile_count} tiles"
-                )
+        if self._saved_tile_count_fits(state, saved_state):
+            self._restore_tile_layout(state.matrix, saved_state)
 
         if "tile_effect_type" in saved_state:
             state.matrix.effect_type = saved_state["tile_effect_type"]
