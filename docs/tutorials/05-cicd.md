@@ -110,18 +110,25 @@ Using pytest-xdist for faster tests:
 **Note:** Ensure your tests use dynamic port allocation to avoid conflicts:
 
 ```python
+import socket
+
+import pytest
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 def get_free_port():
-    """Find an available port."""
-    import socket
-    with socket.socket() as s:
-        s.bind(('', 0))
+    """Find an available UDP port."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.bind(('127.0.0.1', 0))
         return s.getsockname()[1]
 
 @pytest.fixture
 async def emulator():
     port = get_free_port()
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
     async with server:
         yield server
 ```
@@ -228,7 +235,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    command: python -m lifx_emulator --color 3 --multizone 2
+    command: python -m lifx_emulator_app --color 3 --multizone 2 --bind 0.0.0.0
     ports:
       - "56700:56700/udp"
     networks:
@@ -350,11 +357,15 @@ No CI configuration changes needed - tests manage the emulator themselves!
 ```python
 import socket
 
+import pytest
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 def get_free_port():
-    """Get a free port from the OS."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        s.listen(1)
+    """Get a free UDP port from the OS."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.bind(('127.0.0.1', 0))
         port = s.getsockname()[1]
     return port
 
@@ -362,7 +373,8 @@ def get_free_port():
 async def emulator_with_dynamic_port():
     port = get_free_port()
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
 
     async with server:
         yield server, port
@@ -373,6 +385,11 @@ async def emulator_with_dynamic_port():
 When using pytest-xdist:
 
 ```python
+import pytest
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 @pytest.fixture
 async def emulator(worker_id):
     """Each worker gets unique port."""
@@ -383,8 +400,9 @@ async def emulator(worker_id):
         worker_num = int(worker_id.replace('gw', ''))
         port = 56700 + worker_num + 1
 
-    device = create_color_light(f"d073d500{worker_num:04d}")
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device = create_color_light(f"d073d5{port:06x}")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
 
     async with server:
         yield server
@@ -395,13 +413,19 @@ async def emulator(worker_id):
 ```python
 import os
 
+import pytest
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 @pytest.fixture
 async def emulator():
     # Allow port override via env var
     port = int(os.getenv('LIFX_EMULATOR_PORT', '56700'))
 
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
 
     async with server:
         yield server

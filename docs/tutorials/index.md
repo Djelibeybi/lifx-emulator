@@ -63,6 +63,9 @@ from lifx_emulator import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 @pytest.fixture
 async def lifx_devices():
@@ -75,17 +78,20 @@ async def lifx_devices():
         create_tile_device("d073d9000001", tile_count=5),
     ]
 
-    # Configure error scenarios for one device
-    devices[0].scenarios = {
-        'response_delays': {102: 0.1},  # Delay SetColor by 100ms
-    }
-
     return devices
 
 @pytest.fixture
 async def lifx_server(lifx_devices):
     """Start emulator server with devices."""
-    server = EmulatedLifxServer(lifx_devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer(lifx_devices, device_manager, "127.0.0.1", 56700)
+
+    # Configure an error scenario for one device
+    server.scenario_manager.set_device_scenario(
+        "d073d5000001",
+        ScenarioConfig(response_delays={102: 0.1}),  # Delay SetColor by 100ms
+    )
+    server.invalidate_all_scenario_caches()
 
     async with server:
         yield server

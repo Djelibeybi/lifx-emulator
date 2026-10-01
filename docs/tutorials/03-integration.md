@@ -9,12 +9,15 @@ The simplest pytest integration pattern:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def lifx_server():
     """Basic emulator fixture."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -22,8 +25,8 @@ async def lifx_server():
 @pytest.mark.asyncio
 async def test_server_running(lifx_server):
     """Test that the server is running."""
-    assert len(lifx_server.devices) == 1
-    assert lifx_server.devices[0].state.serial == "d073d5000001"
+    assert len(lifx_server.get_all_devices()) == 1
+    assert lifx_server.get_all_devices()[0].state.serial == "d073d5000001"
 ```
 
 ## Function-Scoped Fixtures
@@ -33,12 +36,15 @@ Create a fresh emulator for each test (default scope):
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture(scope="function")
 async def lifx_emulator():
     """Function-scoped fixture - new emulator per test."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -46,12 +52,12 @@ async def lifx_emulator():
 @pytest.mark.asyncio
 async def test_first(lifx_emulator):
     """First test gets a fresh emulator."""
-    assert len(lifx_emulator.devices) == 1
+    assert len(lifx_emulator.get_all_devices()) == 1
 
 @pytest.mark.asyncio
 async def test_second(lifx_emulator):
     """Second test gets a different fresh emulator."""
-    assert len(lifx_emulator.devices) == 1
+    assert len(lifx_emulator.get_all_devices()) == 1
 ```
 
 ## Module-Scoped Fixtures
@@ -61,6 +67,8 @@ Share one emulator across all tests in a module:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture(scope="module")
 async def shared_emulator():
@@ -69,7 +77,8 @@ async def shared_emulator():
         create_color_light("d073d5000001"),
         create_color_light("d073d5000002"),
     ]
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -77,12 +86,12 @@ async def shared_emulator():
 @pytest.mark.asyncio
 async def test_first_device(shared_emulator):
     """Test using shared emulator."""
-    assert shared_emulator.devices[0].state.serial == "d073d5000001"
+    assert shared_emulator.get_all_devices()[0].state.serial == "d073d5000001"
 
 @pytest.mark.asyncio
 async def test_second_device(shared_emulator):
     """Another test using the same emulator instance."""
-    assert shared_emulator.devices[1].state.serial == "d073d5000002"
+    assert shared_emulator.get_all_devices()[1].state.serial == "d073d5000002"
 ```
 
 ## Fixture with Custom Configuration
@@ -96,12 +105,15 @@ from lifx_emulator import (
     create_color_light,
     create_multizone_light,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def basic_device():
     """Single color light fixture."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -110,7 +122,8 @@ async def basic_device():
 async def multizone_device():
     """Multizone strip fixture."""
     device = create_multizone_light("d073d8000001", zone_count=16)
-    server = EmulatedLifxServer([device], "127.0.0.1", 56701)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56701)
 
     async with server:
         yield server
@@ -118,13 +131,13 @@ async def multizone_device():
 @pytest.mark.asyncio
 async def test_color_light(basic_device):
     """Test with color light."""
-    assert basic_device.devices[0].state.has_color
+    assert basic_device.get_all_devices()[0].state.has_color
 
 @pytest.mark.asyncio
 async def test_multizone_light(multizone_device):
     """Test with multizone light."""
-    assert multizone_device.devices[0].state.has_multizone
-    assert len(multizone_device.devices[0].state.zone_colors) == 16
+    assert multizone_device.get_all_devices()[0].state.has_multizone
+    assert len(multizone_device.get_all_devices()[0].state.zone_colors) == 16
 ```
 
 ## Parametrized Tests
@@ -139,6 +152,8 @@ from lifx_emulator import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture(params=[
     ("color", create_color_light, "d073d5000001"),
@@ -149,7 +164,8 @@ async def any_device(request):
     """Parametrized fixture for different device types."""
     device_type, factory, serial = request.param
     device = factory(serial)
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server, device_type
@@ -159,7 +175,7 @@ async def test_all_devices_respond(any_device):
     """Test runs 3 times, once for each device type."""
     server, device_type = any_device
     print(f"Testing {device_type} device")
-    assert len(server.devices) == 1
+    assert len(server.get_all_devices()) == 1
 ```
 
 ## Port Management
@@ -169,6 +185,8 @@ Avoid port conflicts when running tests in parallel:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 def get_free_port():
     """Find an available port."""
@@ -182,7 +200,8 @@ async def emulator_on_free_port():
     """Use dynamically allocated port."""
     device = create_color_light("d073d5000001")
     port = get_free_port()
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
 
     async with server:
         yield server, port
@@ -192,7 +211,7 @@ async def test_with_dynamic_port(emulator_on_free_port):
     """Test using dynamic port allocation."""
     server, port = emulator_on_free_port
     print(f"Emulator running on port {port}")
-    assert len(server.devices) == 1
+    assert len(server.get_all_devices()) == 1
 ```
 
 ## Test Isolation with Fresh Devices
@@ -202,13 +221,16 @@ Ensure each test has clean state:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
 @pytest.fixture
 async def fresh_device():
     """Create a fresh device for each test."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -216,21 +238,21 @@ async def fresh_device():
 @pytest.mark.asyncio
 async def test_modify_color(fresh_device):
     """Test that modifies device state."""
-    device = fresh_device.devices[0]
+    device = fresh_device.get_all_devices()[0]
 
     # Modify state
-    device.state.color = LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500)
+    device.state.color = LightHsbk(hue=0, saturation=65535, brightness=32768, kelvin=3500)
 
     # Verify modification
-    assert device.state.color.hue == 21845
+    assert device.state.color.hue == 0
 
 @pytest.mark.asyncio
 async def test_default_color(fresh_device):
     """Test gets fresh device with default state."""
-    device = fresh_device.devices[0]
+    device = fresh_device.get_all_devices()[0]
 
     # Fresh device should have default color (not modified by previous test)
-    assert device.state.color.hue == 0  # Default
+    assert device.state.color.hue == 21845  # Default
 ```
 
 ## Cleanup and Resource Management
@@ -241,12 +263,15 @@ Ensure proper cleanup even when tests fail:
 import pytest
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def emulator_with_cleanup():
     """Fixture with explicit cleanup."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     # Start server
     async with server:
@@ -261,7 +286,7 @@ async def emulator_with_cleanup():
 async def test_that_might_fail(emulator_with_cleanup):
     """Test with guaranteed cleanup."""
     # Even if this test raises an exception, cleanup runs
-    assert len(emulator_with_cleanup.devices) == 1
+    assert len(emulator_with_cleanup.get_all_devices()) == 1
 ```
 
 ## Testing with Real LIFX Clients
@@ -272,6 +297,8 @@ Integration test with an actual LIFX client library:
 import pytest
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 # This example uses lifxlan library: pip install lifxlan
 from lifxlan import LifxLAN
@@ -281,7 +308,8 @@ async def emulator_for_client():
     """Emulator configured for client testing."""
     device = create_color_light("d073d5000001")
     device.state.label = "Test Light"
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         # Give server time to start
@@ -311,7 +339,7 @@ async def test_client_set_color(emulator_for_client):
     device.set_color([65535, 65535, 32768, 3500])
 
     # Verify state change in emulator
-    emu_device = emulator_for_client.devices[0]
+    emu_device = emulator_for_client.get_all_devices()[0]
     assert emu_device.state.color.hue == 65535  # Red
 ```
 
@@ -322,6 +350,8 @@ Configure for pytest-xdist parallel execution:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def isolated_emulator(worker_id):
@@ -334,8 +364,9 @@ async def isolated_emulator(worker_id):
         worker_num = int(worker_id.replace('gw', ''))
         port = 56700 + worker_num
 
-    device = create_color_light(f"d073d500000{port % 100}")
-    server = EmulatedLifxServer([device], "127.0.0.1", port)
+    device = create_color_light(f"d073d5{port:06x}")
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
 
     async with server:
         yield server
@@ -343,7 +374,7 @@ async def isolated_emulator(worker_id):
 @pytest.mark.asyncio
 async def test_parallel_safe(isolated_emulator):
     """Test that can run in parallel with others."""
-    assert len(isolated_emulator.devices) == 1
+    assert len(isolated_emulator.get_all_devices()) == 1
 ```
 
 Run with: `pytest -n auto` (requires pytest-xdist)
@@ -360,20 +391,15 @@ from lifx_emulator import (
     create_color_light,
     create_multizone_light,
 )
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests."""
-    import asyncio
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def single_color_light():
     """Reusable single color light fixture."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -386,7 +412,8 @@ async def multiple_devices():
         create_color_light("d073d5000002"),
         create_multizone_light("d073d8000001", zone_count=16),
     ]
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -399,16 +426,24 @@ Test your client's error handling:
 ```python
 import pytest
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import ScenarioConfig
 
 @pytest.fixture
 async def unreliable_device():
     """Device configured to drop packets."""
     device = create_color_light("d073d5000001")
-    device.scenarios = {
-        'drop_packets': [101],  # Drop GetColor
-        'response_delays': {102: 1.0},  # Delay SetColor
-    }
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
+    server.scenario_manager.set_device_scenario(
+        "d073d5000001",
+        ScenarioConfig(
+            drop_packets={101: 1.0},  # Always drop GetColor
+            response_delays={102: 1.0},  # Delay SetColor by 1 second
+        ),
+    )
+    server.invalidate_all_scenario_caches()
 
     async with server:
         yield server
@@ -424,7 +459,7 @@ async def test_client_retry_logic(unreliable_device):
 async def test_client_timeout_handling(unreliable_device):
     """Test that client handles slow responses."""
     # Your client should timeout appropriately
-    # This test verifies timeout behavior
+    # This test verifies timeout behaviour
     pass
 ```
 
@@ -436,13 +471,16 @@ When to use emulator vs mocks:
 import pytest
 from unittest.mock import Mock, AsyncMock
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 # Use emulator for integration tests
 @pytest.fixture
 async def integration_emulator():
     """Full emulator for integration testing."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
     async with server:
         yield server
@@ -451,7 +489,7 @@ async def integration_emulator():
 async def test_integration_with_emulator(integration_emulator):
     """Integration test using real emulated device."""
     # Test full protocol interaction
-    assert len(integration_emulator.devices) == 1
+    assert len(integration_emulator.get_all_devices()) == 1
 
 # Use mocks for unit tests
 def test_unit_with_mock():
@@ -486,6 +524,8 @@ Run emulator in Docker for CI/CD:
 import pytest
 import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture(scope="session")
 async def dockerized_emulator():
@@ -496,7 +536,8 @@ async def dockerized_emulator():
     # In actual usage, emulator runs in separate container
     # This is a simplified example for local testing
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "0.0.0.0", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "0.0.0.0", 56700)
 
     async with server:
         await asyncio.sleep(0.1)  # Allow server to start
@@ -506,7 +547,7 @@ async def dockerized_emulator():
 async def test_with_docker(dockerized_emulator):
     """Test against dockerized emulator."""
     # Connect to emulator (in real case, from different container)
-    assert len(dockerized_emulator.devices) == 1
+    assert len(dockerized_emulator.get_all_devices()) == 1
 ```
 
 **Dockerfile example:**
@@ -529,38 +570,30 @@ Run emulator as background task during tests:
 
 ```python
 import pytest
-import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture
 async def background_emulator():
     """Emulator running as background task."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56700)
 
-    # Start server manually
+    # Start server manually; it keeps serving on the running event loop
     await server.start()
 
-    # Start server task in background
-    task = asyncio.create_task(server.run())
-
     try:
-        # Wait for server to be ready
-        await asyncio.sleep(0.1)
         yield server
     finally:
         # Stop server
         await server.stop()
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
 
 @pytest.mark.asyncio
 async def test_with_background_server(background_emulator):
     """Test with server running in background."""
-    assert len(background_emulator.devices) == 1
+    assert len(background_emulator.get_all_devices()) == 1
 ```
 
 ## Complete Test Suite Example
@@ -576,6 +609,8 @@ from lifx_emulator import (
     create_color_light,
     create_multizone_light,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
 @pytest.fixture(scope="module")
@@ -589,7 +624,8 @@ async def test_devices():
     devices[0].state.label = "Color Light"
     devices[1].state.label = "Strip Light"
 
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    device_manager = DeviceManager(DeviceRepository())
+    server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
 
     async with server:
         await asyncio.sleep(0.1)
@@ -598,26 +634,26 @@ async def test_devices():
 @pytest.mark.asyncio
 async def test_device_count(test_devices):
     """Verify device count."""
-    assert len(test_devices.devices) == 2
+    assert len(test_devices.get_all_devices()) == 2
 
 @pytest.mark.asyncio
 async def test_color_light_capabilities(test_devices):
     """Verify color light capabilities."""
-    device = test_devices.devices[0]
+    device = test_devices.get_all_devices()[0]
     assert device.state.has_color
     assert not device.state.has_multizone
 
 @pytest.mark.asyncio
 async def test_multizone_capabilities(test_devices):
     """Verify multizone capabilities."""
-    device = test_devices.devices[1]
+    device = test_devices.get_all_devices()[1]
     assert device.state.has_multizone
     assert len(device.state.zone_colors) == 16
 
 @pytest.mark.asyncio
 async def test_state_modification(test_devices):
     """Test state can be modified."""
-    device = test_devices.devices[0]
+    device = test_devices.get_all_devices()[0]
 
     # Modify color
     new_color = LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500)
