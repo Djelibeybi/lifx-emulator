@@ -44,6 +44,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Longest chain a chain-capable matrix product (the original LIFX Tile) drives
+MAX_CHAIN_TILES = 5
+
 # Device.StateLabel packs a 32-byte label; longer product names would otherwise
 # be truncated on the wire, dropping the serial suffix that keeps labels unique.
 _LABEL_MAX_BYTES = 32
@@ -359,6 +362,9 @@ class DeviceBuilder:
 
         Returns:
             Configured EmulatedLifxDevice instance
+
+        Raises:
+            ValueError: If the tile count is outside what the product supports
         """
         # 1. Generate/validate serial
         serial = self._serial or self._serial_generator.generate(self._product_info)
@@ -525,6 +531,32 @@ class DeviceBuilder:
                 self._tile_count = (
                     specs_tile_count if specs_tile_count is not None else 5
                 )
+
+            self._check_tile_count(self._tile_count)
+
+    def _check_tile_count(self, tile_count: int) -> None:
+        """Reject a tile count the product cannot have.
+
+        A matrix product without the chain capability is a single tile; only
+        a chain-capable product (the original LIFX Tile) drives 1 to 5 tiles.
+
+        Args:
+            tile_count: Requested number of tiles
+
+        Raises:
+            ValueError: If tile_count is outside the product's range
+        """
+        if self._product_info.has_chain:
+            if not 1 <= tile_count <= MAX_CHAIN_TILES:
+                raise ValueError(
+                    f"{self._product_info.name} has 1 to {MAX_CHAIN_TILES} tiles, "
+                    f"got tile_count={tile_count}"
+                )
+        elif tile_count != 1:
+            raise ValueError(
+                f"{self._product_info.name} has exactly 1 tile, "
+                f"got tile_count={tile_count}"
+            )
 
     def _create_core_state(
         self, serial: str, color: LightHsbk, version_major: int, version_minor: int

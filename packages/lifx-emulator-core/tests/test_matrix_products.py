@@ -7,6 +7,7 @@ zone at each buffer position. Zones 0-24 form the front ring and zones 25-49
 the back (uplight) ring.
 """
 
+import pytest
 from lifx_emulator.factories import create_device
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Tile
@@ -308,3 +309,23 @@ def test_mirror_unused_buffer_positions_echo_what_set64_writes():
     unused = [i for i, zone in enumerate(FIRMWARE_MIRROR_ZONE_MAP) if zone == -1]
     assert unused == [1, 3]
     assert [reply.colors[i].hue for i in unused] == [1000, 3000]
+
+
+@pytest.mark.parametrize("tile_count", [0, 2, 3])
+def test_a_non_chain_matrix_device_has_exactly_one_tile(tile_count):
+    """has_matrix without has_chain (the Mirror and every matrix product
+    except the original LIFX Tile) means a single tile, never a chain.
+    """
+    with pytest.raises(ValueError, match="exactly 1 tile"):
+        create_device(267, tile_count=tile_count)
+
+
+@pytest.mark.parametrize("tile_count", [0, 6])
+def test_a_chain_device_has_one_to_five_tiles(tile_count):
+    with pytest.raises(ValueError, match="1 to 5 tiles"):
+        create_device(55, tile_count=tile_count)  # LIFX Tile
+
+
+@pytest.mark.parametrize("tile_count", [1, 5])
+def test_the_lifx_tile_chains_one_to_five_tiles(tile_count):
+    assert create_device(55, tile_count=tile_count).state.tile_count == tile_count

@@ -1820,6 +1820,26 @@ class TestRunWithConfigDevices:
 
     @pytest.mark.asyncio
     @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    async def test_run_rejects_a_tile_chain_longer_than_five(
+        self, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """--tile-count beyond the LIFX Tile's 5-tile chain is a user error:
+        run() logs it and starts no server instead of raising a traceback."""
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        result = await run(tile=1, tile_count=7)
+
+        assert result is False
+        mock_server_class.assert_not_called()
+        assert any(
+            "1 to 5 tiles" in str(call) for call in mock_logger.error.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
     @patch("lifx_emulator_app.__main__._setup_logging")
     @patch("lifx_emulator_app.__main__._load_merged_config")
     async def test_run_config_device_invalid_product(

@@ -946,8 +946,8 @@ class TestScenarioMutationPreservesThreadBitDeviceLevel:
 
 
 class TestMatrixThreadBit:
-    """State64 bit 3 on a large matrix device (a single oversized tile) and
-    a chained matrix device (multiple tiles, one request many replies).
+    """Bit 3 on a large matrix device (a single oversized tile read with
+    two Get64 requests) and on a request answered with several replies.
     Get64Handler emits exactly one State64 per requested tile index,
     sliced to at most 64 zones by the request rect -- zone count alone
     never produces extra packets, so these are two distinct tests rather
@@ -992,28 +992,23 @@ class TestMatrixThreadBit:
         assert resp_header2.thread_connection is True
         assert resp_header2.pack()[22] & 0x08 == 0x08
 
-    def test_chained_matrix_device_single_get64_request(self):
-        """Synthetic chained matrix device: product 185 (LIFX Candle Color
-        US, max_tile_count: 1) built with an explicit tile_count=2 to
-        exercise the one-request-many-replies branch of Get64Handler.
-        Product 55 (Tile) is the only product whose specs.yml declares
-        max_tile_count > 1, and 55 cannot be Thread (its terminal firmware
-        ceiling sits below the Thread floor), so no real Thread product
-        ships as a chain -- the builder does not enforce max_tile_count,
-        and this test exists to exercise the handler branch, not to claim
-        product fidelity."""
-        device = create_device(
-            185, serial="d073d5000054", tile_count=2, connectivity="thread"
+    def test_one_request_many_replies_all_carry_the_thread_bit(self):
+        """No real matrix product can be both chained and Thread (only the
+        original LIFX Tile chains, and its terminal firmware sits below the
+        Thread floor), so the one-request-many-replies path is exercised on
+        a 16-zone multizone light: one GetColorZones yields two
+        StateMultiZone replies, and every one must carry bit 3."""
+        device = create_multizone_light(
+            "d073d5000054", zone_count=16, connectivity="thread"
         )
-        rect = TileBufferRect(fb_index=0, x=0, y=0, width=5)
         header = LifxHeader(
             source=1,
             target=device.state.get_target_bytes(),
             sequence=1,
-            pkt_type=Tile.Get64.PKT_TYPE,
+            pkt_type=MultiZone.GetColorZones.PKT_TYPE,
             res_required=True,
         )
-        packet = Tile.Get64(tile_index=0, length=2, rect=rect)
+        packet = MultiZone.GetColorZones(start_index=0, end_index=15)
         responses = device.process_packet(header, packet)
         assert len(responses) == 2
         for resp_header, _resp_packet in responses:

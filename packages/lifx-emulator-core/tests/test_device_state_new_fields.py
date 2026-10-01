@@ -27,10 +27,8 @@ def test_downlight_zone_count_requires_a_real_matrix():
     tile_height resolve through the 8x8 fallback defaults and would report a
     zone count belonging to no real device.
     """
-    from lifx_emulator.factories.builder import DeviceBuilder
-    from lifx_emulator.products.registry import get_product
-
-    st = DeviceBuilder(get_product(267)).with_tile_count(0).build().state
+    st = create_device(267).state  # Mirror
+    st.matrix = None  # a state composed without its MatrixState
 
     assert st.has_matrix is True
     assert st.matrix is None
