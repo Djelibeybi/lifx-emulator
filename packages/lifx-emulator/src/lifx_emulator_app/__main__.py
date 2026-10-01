@@ -42,6 +42,7 @@ from pydantic import TypeAdapter, ValidationError
 from rich.logging import RichHandler
 
 from lifx_emulator_app.config import (
+    DeviceDefinition,
     EmulatorConfig,
     ScenarioDefinition,
     ScenariosConfig,
@@ -65,6 +66,42 @@ device_group = cyclopts.Group.create_ordered("Device Creation")
 multizone_group = cyclopts.Group.create_ordered("Multizone Options")
 tile_group = cyclopts.Group.create_ordered("Tile/Matrix Options")
 serial_group = cyclopts.Group.create_ordered("Serial Number Options")
+
+
+def _warn_ignored_tile_dimensions(
+    logger: logging.Logger,
+    tile_width: int | None,
+    tile_height: int | None,
+    config_devices: list[DeviceDefinition] | None,
+) -> None:
+    """Log that tile_width/tile_height are deprecated and ignored.
+
+    Every matrix product has a fixed tile size from its specs, so the values
+    are accepted (old commands and configs still work) but never used.
+
+    Args:
+        logger: Logger to warn on
+        tile_width: Merged --tile-width / top-level config value
+        tile_height: Merged --tile-height / top-level config value
+        config_devices: Per-device definitions from the config file
+    """
+    suffix = (
+        "are deprecated and ignored: every matrix product has a fixed tile "
+        "size. They will be removed in the next major release."
+    )
+    if tile_width is not None or tile_height is not None:
+        logger.warning(
+            "--tile-width/--tile-height (tile_width/tile_height in a config file) %s",
+            suffix,
+        )
+    for dev_def in config_devices or []:
+        if dev_def.tile_width is not None or dev_def.tile_height is not None:
+            logger.warning(
+                "tile_width/tile_height on device %s (product %s) %s",
+                dev_def.serial or "with no serial",
+                dev_def.product_id,
+                suffix,
+            )
 
 
 def _report_device_error(
@@ -343,27 +380,22 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
 def _matrix_yaml_fields(state_dict: dict) -> dict:
     """Matrix fields of a saved device that a config can usefully carry.
 
-    Restore ignores what the product cannot have, so export leaves it out
-    rather than write a config the next startup rejects or ignores: a tile
-    count outside the product's range, and the saved tile size of a product
-    without the chain capability, which is always built at its own size.
+    Only the tile count is exported, and only when the product can have it:
+    restore ignores a count outside the product's range, so writing it would
+    produce a config the next startup rejects. Tile size is fixed per product
+    (tile_width/tile_height are deprecated config keys), so it never is.
 
     Args:
         state_dict: Saved device state
 
     Returns:
-        The tile_count, tile_width and tile_height entries to export
+        The tile_count entry to export, if any
     """
     product = get_registry().get_product(_saved_product_id(state_dict))
     has_chain = product.has_chain if product else False
-    fields: dict = {}
     if is_valid_tile_count(state_dict.get("tile_count"), has_chain):
-        fields["tile_count"] = state_dict["tile_count"]
-    if has_chain:
-        for key in ("tile_width", "tile_height"):
-            if state_dict.get(key):
-                fields[key] = state_dict[key]
-    return fields
+        return {"tile_count": state_dict["tile_count"]}
+    return {}
 
 
 # Coerces a saved product ID with the same rules as DeviceDefinition.product_id
@@ -706,8 +738,20 @@ async def run(
     ] = None,
     # Tile/Matrix Options
     tile_count: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
-    tile_width: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
-    tile_height: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
+    tile_width: Annotated[
+        int | None,
+        cyclopts.Parameter(
+            group=tile_group,
+            help="[DEPRECATED] Ignored: every matrix product has a fixed tile size.",
+        ),
+    ] = None,
+    tile_height: Annotated[
+        int | None,
+        cyclopts.Parameter(
+            group=tile_group,
+            help="[DEPRECATED] Ignored: every matrix product has a fixed tile size.",
+        ),
+    ] = None,
     # Serial Number Options
     serial_prefix: Annotated[str | None, cyclopts.Parameter(group=serial_group)] = None,
     serial_start: Annotated[int | None, cyclopts.Parameter(group=serial_group)] = None,
@@ -758,10 +802,10 @@ async def run(
         switch: Number of LIFX Switch devices (relays, no lighting).
         tile_count: Number of tiles per device. Uses product defaults if not
             specified (5 for Tile, 1 for Candle/Ceiling).
-        tile_width: Width of each tile in zones. Uses product defaults if not
-            specified (8 for most devices).
-        tile_height: Height of each tile in zones. Uses product defaults if
-            not specified (8 for most devices).
+        tile_width: DEPRECATED and ignored. Every matrix product has a fixed
+            tile size; will be removed in the next major release.
+        tile_height: DEPRECATED and ignored. Every matrix product has a fixed
+            tile size; will be removed in the next major release.
         serial_prefix: Serial number prefix as 6 hex characters. Default: d073d5.
         serial_start: Starting serial suffix for auto-incrementing device serials.
             Default: 1.
@@ -843,8 +887,6 @@ async def run(
     f_multizone_zones: int | None = cfg["multizone_zones"]
     f_multizone_extended: bool = cfg["multizone_extended"]
     f_tile_count: int | None = cfg["tile_count"]
-    f_tile_width: int | None = cfg["tile_width"]
-    f_tile_height: int | None = cfg["tile_height"]
     f_serial_prefix: str = cfg["serial_prefix"]
     f_serial_start: int = cfg["serial_start"]
     config_devices: list | None = cfg.get("devices")
@@ -887,6 +929,10 @@ async def run(
             "--persistent-scenarios is deprecated. Use 'lifx-emulator "
             "export-config' to migrate your scenarios to a config file."
         )
+
+    _warn_ignored_tile_dimensions(
+        logger, cfg["tile_width"], cfg["tile_height"], config_devices
+    )
 
     # Initialize storage if persistence is enabled
     storage = DevicePersistenceAsyncFile() if f_persistent else None
@@ -1003,8 +1049,6 @@ async def run(
                     create_tile_device(
                         get_serial(),
                         tile_count=f_tile_count,
-                        tile_width=f_tile_width,
-                        tile_height=f_tile_height,
                         storage=storage,
                     )
                 )
@@ -1031,8 +1075,6 @@ async def run(
                         serial=serial,
                         zone_count=dev_def.zone_count,
                         tile_count=dev_def.tile_count,
-                        tile_width=dev_def.tile_width,
-                        tile_height=dev_def.tile_height,
                         storage=storage,
                         advertised_services=dev_def.advertised_services,
                     )

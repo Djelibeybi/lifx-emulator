@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v3.12.0 (2026-10-01)
+
+### Bug Fixes
+
+- **devices**: Never restore a tile count the product cannot have
+  ([`cec4cfc`](https://github.com/Djelibeybi/lifx-emulator/commit/cec4cfc0a223db1a89827e0da32d9c3eb09a183a))
+
+- **devices**: Quote a rejected tile count in its error message
+  ([`f360dd9`](https://github.com/Djelibeybi/lifx-emulator/commit/f360dd9a8fcd809d2be4bd0b16c68478a26474c8))
+
+- **devices**: Reject a null saved tile count instead of crashing
+  ([`0a323f1`](https://github.com/Djelibeybi/lifx-emulator/commit/0a323f198cd98eceac35f06c0dd18d0140ea1558))
+
+- **devices**: Restore non-chain matrix devices at their own size
+  ([`e4ec7af`](https://github.com/Djelibeybi/lifx-emulator/commit/e4ec7afd98f927fa4d48fa23e38c7bb6077e31be))
+
+- **devices**: Treat a non-integer tile count as invalid, not a crash
+  ([`4475788`](https://github.com/Djelibeybi/lifx-emulator/commit/44757882e7f3b7166d8fe58d0cd2a006a0557dbc))
+
+- **factories**: Apply the zone map only at the product's own dimensions
+  ([`7760334`](https://github.com/Djelibeybi/lifx-emulator/commit/7760334142d6c1933ca66cec54d3cd9e83fb9404))
+
+- **factories**: Give non-chain matrix devices exactly one tile
+  ([`9426b27`](https://github.com/Djelibeybi/lifx-emulator/commit/9426b27d6c6c6e305b1ea4ad92a4382168c18e1a))
+
+### Features
+
+- **specs**: Model the LIFX Mirror as a 4x13 matrix with its zone map
+  ([`df54557`](https://github.com/Djelibeybi/lifx-emulator/commit/df54557297e510e49632279037cd21cac8e9a566))
+
+
 ## v3.11.0 (2026-09-24)
 
 ### Bug Fixes

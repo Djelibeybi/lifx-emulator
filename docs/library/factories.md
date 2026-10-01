@@ -120,25 +120,31 @@ from lifx_emulator import create_tile_device
 # Default configuration (5 tiles of 8x8)
 tiles = create_tile_device("d073d9000001")
 
-# Custom tile count
-tiles_custom = create_tile_device("d073d9000002", tile_count=10)
-
-# Custom tile dimensions (e.g., 16x8 with >64 zones per tile)
-large_tile = create_tile_device(
-    "d073d9000003",
-    tile_count=1,
-    tile_width=16,
-    tile_height=8
-)
+# Custom tile count (1 to 5 tiles on the chain)
+tiles_custom = create_tile_device("d073d9000002", tile_count=3)
 
 print(f"Tile count: {tiles.state.tile_count}")      # 5
 print(f"Tile width: {tiles.state.tile_width}")      # 8
 print(f"Tile height: {tiles.state.tile_height}")    # 8
 print(f"Product: {tiles.state.product}")            # 55 (LIFX Tile)
-
-# Tiles with >64 zones require multiple Get64 requests (16x8 = 128 zones)
-print(f"Large tile zones: {large_tile.state.tile_width * large_tile.state.tile_height}")  # 128
 ```
+
+!!! warning "Deprecated: `tile_width` and `tile_height`"
+    Every matrix product has a fixed tile size from its specs: the LIFX Tile
+    is always 8x8. The `tile_width`/`tile_height` arguments of
+    `create_tile_device()` and `create_device()`, and
+    `DeviceBuilder.with_tile_dimensions()`, are accepted but ignored and
+    raise a `DeprecationWarning`. They will be removed in the next major
+    release. For a tile with more than 64 zones, create the product that has
+    one:
+
+    ```python
+    from lifx_emulator.factories import create_device
+
+    # LIFX Ceiling 13x26": one 16x8 tile, so reading it takes two Get64 requests
+    large_matrix = create_device(201, serial="d073d9000003")
+    print(large_matrix.state.tile_width * large_matrix.state.tile_height)  # 128
+    ```
 
 ### Generic Device Creation
 
@@ -153,14 +159,8 @@ a19 = create_device(27, serial="d073d5000001")
 # LIFX Z (product ID 32) with custom zones
 z_strip = create_device(32, serial="d073d8000001", zone_count=24)
 
-# LIFX Tile (product ID 55) with custom configuration
-tiles = create_device(
-    55,
-    serial="d073d9000001",
-    tile_count=10,
-    tile_width=8,
-    tile_height=8
-)
+# LIFX Tile (product ID 55) with 3 tiles on its chain
+tiles = create_device(55, serial="d073d9000001", tile_count=3)
 
 # LIFX Candle (product ID 57) - loads 5x6 dimensions from product defaults
 candle = create_device(57, serial="d073d9000002")

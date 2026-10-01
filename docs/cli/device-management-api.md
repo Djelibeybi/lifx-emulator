@@ -283,8 +283,6 @@ Creates a new emulated device by product ID. The device will be added to the emu
   "serial": "d073d5000099",
   "zone_count": 16,
   "tile_count": 5,
-  "tile_width": 8,
-  "tile_height": 8,
   "firmware_major": 3,
   "firmware_minor": 70
 }
@@ -294,9 +292,8 @@ Creates a new emulated device by product ID. The device will be added to the emu
 - `product_id` (required): LIFX product ID from registry
 - `serial` (optional): Device serial (auto-generated if not provided)
 - `zone_count` (optional): Number of zones for multizone devices
-- `tile_count` (optional): Number of tiles for matrix devices
-- `tile_width` (optional): Width of each tile in zones
-- `tile_height` (optional): Height of each tile in zones
+- `tile_count` (optional): Number of tiles for matrix devices (1 to 5 for the LIFX Tile; other matrix products have exactly 1)
+- `tile_width`, `tile_height` (optional, **deprecated**): Accepted but ignored, with a logged warning; tile size is fixed per product. Will be removed in the next major release.
 - `firmware_major` (optional): Firmware major version
 - `firmware_minor` (optional): Firmware minor version
 

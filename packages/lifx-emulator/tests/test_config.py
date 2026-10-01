@@ -88,12 +88,31 @@ class TestDeviceDefinition:
             product_id=55,
             label="Art Wall",
             tile_count=5,
-            tile_width=8,
-            tile_height=8,
         )
         assert dev.product_id == 55
         assert dev.label == "Art Wall"
         assert dev.tile_count == 5
+
+    def test_config_with_deprecated_tile_dimensions_still_loads(self, tmp_path):
+        """tile_width/tile_height are deprecated and ignored, but a config
+        that sets them must keep loading (the models forbid unknown keys)."""
+        config_file = tmp_path / "old.yaml"
+        config_file.write_text(
+            "tile: 1\n"
+            "tile_width: 8\n"
+            "tile_height: 8\n"
+            "devices:\n"
+            "  - product_id: 55\n"
+            "    tile_width: 16\n"
+            "    tile_height: 8\n"
+        )
+        config = load_config(config_file)
+        assert (config.tile_width, config.tile_height) == (8, 8)
+        assert config.devices is not None
+        assert (config.devices[0].tile_width, config.devices[0].tile_height) == (
+            16,
+            8,
+        )
 
     def test_advertised_services_defaults_to_none(self):
         """Unconfigured advertised_services preserves single-UDP behaviour."""

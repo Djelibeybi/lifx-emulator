@@ -3,6 +3,7 @@
 import asyncio
 import copy
 import time
+import warnings
 from typing import cast
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -208,6 +209,43 @@ class TestAPIEndpoints:
 
         assert response.status_code == 400
         assert "exactly 1 tile" in response.json()["detail"]
+
+    def test_create_device_ignores_deprecated_tile_dimensions(
+        self, api_client, server_with_devices, caplog
+    ):
+        """tile_width/tile_height are still accepted but ignored: the device
+        keeps its product's fixed tile size and the request is logged."""
+        with warnings.catch_warnings():
+            # The service must not hand them on to the deprecated library args
+            warnings.simplefilter("error", DeprecationWarning)
+            response = api_client.post(
+                "/api/devices",
+                json={"product_id": 55, "tile_width": 16, "tile_height": 8},
+            )
+
+        assert response.status_code == 201
+        device = server_with_devices.get_device(response.json()["serial"])
+        assert (device.state.tile_width, device.state.tile_height) == (8, 8)
+        assert any(
+            "tile_width/tile_height are deprecated and ignored" in r.getMessage()
+            and r.levelname == "WARNING"
+            for r in caplog.records
+        )
+
+    def test_create_device_without_tile_dimensions_logs_no_deprecation(
+        self, api_client, caplog
+    ):
+        response = api_client.post("/api/devices", json={"product_id": 55})
+
+        assert response.status_code == 201
+        assert not any("deprecated" in r.getMessage() for r in caplog.records)
+
+    def test_openapi_marks_tile_dimensions_deprecated(self, api_client):
+        schema = api_client.get("/openapi.json").json()
+        props = schema["components"]["schemas"]["DeviceCreateRequest"]["properties"]
+
+        assert props["tile_width"]["deprecated"] is True
+        assert props["tile_height"]["deprecated"] is True
 
     def test_device_info_omits_zone_map_for_buffer_ordered_devices(self, api_client):
         response = api_client.post("/api/devices", json={"product_id": 27})

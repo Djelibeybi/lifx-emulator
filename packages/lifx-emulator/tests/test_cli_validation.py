@@ -231,11 +231,10 @@ class TestServerConfiguration:
             assert has_multizone, "Should have multizone device"
             assert has_matrix, "Should have matrix device"
 
-    def test_tile_device_dimensions(self):
-        """Test tile device with custom dimensions."""
-        device = create_tile_device(
-            "d073d5000001", tile_count=1, tile_width=16, tile_height=8
-        )
+    def test_large_matrix_device_dimensions(self):
+        """The API reports a large matrix device's fixed 16x8 tile."""
+        # LIFX Ceiling 13x26": one 16x8 tile; tile size is fixed per product
+        device = create_device(201, serial="d073d5000001")
         device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
             [device], device_manager, "127.0.0.1", find_free_port()
@@ -247,8 +246,9 @@ class TestServerConfiguration:
             assert response.status_code == 200
             devices = response.json()["devices"]
             assert devices[0]["has_matrix"] is True
-            assert len(devices[0]["tile_devices"]) > 0
-            assert any(t["width"] == 8 for t in devices[0]["tile_devices"])
+            assert [(t["width"], t["height"]) for t in devices[0]["tile_devices"]] == [
+                (16, 8)
+            ]
 
     def test_infrared_device(self):
         """Test infrared device creation."""

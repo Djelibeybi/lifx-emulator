@@ -126,17 +126,13 @@ multizone_extended: true
 # Tile/Matrix Options
 # ==============================================================================
 
-# Number of tiles per tile device (default: uses product defaults)
-# LIFX Tile default: 5 tiles
+# Number of tiles on each LIFX Tile chain, 1 to 5 (default: uses product
+# defaults). LIFX Tile default: 5 tiles
 # tile_count: 5
 
-# Width of each tile in zones (default: uses product defaults)
-# LIFX Tile default: 8
-# tile_width: 8
-
-# Height of each tile in zones (default: uses product defaults)
-# LIFX Tile default: 8
-# tile_height: 8
+# tile_width / tile_height are deprecated and ignored: every matrix product
+# has a fixed tile size (the LIFX Tile is always 8x8). They will be removed
+# in the next major release.
 
 # ==============================================================================
 # Serial Number Options
@@ -170,9 +166,10 @@ serial_start: 1
 #   infrared_brightness:  Optional - Initial IR brightness 0-65535 (IR devices only)
 #   hev_cycle_duration:   Optional - HEV cycle duration in seconds (HEV devices only)
 #   hev_indication:       Optional - HEV indication enabled (HEV devices only)
-#   tile_count:           Optional - Number of tiles (matrix devices only)
-#   tile_width:           Optional - Tile width in zones (matrix devices only)
-#   tile_height:          Optional - Tile height in zones (matrix devices only)
+#   tile_count:           Optional - Number of tiles (matrix devices only;
+#                         1 to 5 for the LIFX Tile, exactly 1 otherwise)
+#   tile_width:           Deprecated and ignored - tile size is fixed per product
+#   tile_height:          Deprecated and ignored - tile size is fixed per product
 #   advertised_services:  Optional - List of [service_id, port] pairs emitted as
 #                         StateService replies to GetService, in order. Defaults
 #                         to a single UDP (service 1) reply on the device port.
