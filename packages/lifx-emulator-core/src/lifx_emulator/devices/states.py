@@ -336,6 +336,9 @@ class DeviceState:
     # Ambient light sensor, button and uplight state (Ceiling/Mirror devices)
     ambient_light_lux: float = 0.0
     uplight_zone_count: int | None = None
+    # Zone index at each matrix buffer position (-1 where unused), for
+    # products whose zone numbering does not follow buffer order (Mirror)
+    zone_map: tuple[int, ...] | None = None
     buttons_state: ButtonsState = field(default_factory=ButtonsState)
 
     @property
@@ -351,7 +354,18 @@ class DeviceState:
         # count that belongs to no real device.
         if self.uplight_zone_count is None or not self.has_matrix or not self.matrix:
             return None
-        return self.tile_width * self.tile_height - self.uplight_zone_count
+        return self.addressable_zone_count - self.uplight_zone_count
+
+    @property
+    def addressable_zone_count(self) -> int:
+        """Matrix zones that drive a light, excluding unused buffer positions.
+
+        Without a zone map every buffer position is a zone. With one, the
+        positions mapped to -1 hold no light and are not counted.
+        """
+        if self.zone_map is not None:
+            return sum(1 for zone in self.zone_map if zone >= 0)
+        return self.tile_width * self.tile_height
 
     # Attribute routing map: maps attribute prefixes to state objects
     # This eliminates ~360 lines of property boilerplate
@@ -529,6 +543,7 @@ class DeviceState:
             "has_buttons",
             "ambient_light_lux",
             "uplight_zone_count",
+            "zone_map",
             "buttons_state",
         } or name.startswith("_"):
             object.__setattr__(self, name, value)

@@ -1,8 +1,10 @@
-"""Tests for the LIFX Mirror (product 267/268) uplight/downlight split.
+"""Tests for the LIFX Mirror (product 267/268) and Ceiling matrix geometry.
 
-The Mirror's front/rear split is modelled as metadata (`uplight_zone_count`)
-over a single 5x10 = 50-zone matrix, reusing the existing single-matrix
-Get64 handling -- no dedicated "wide tile" or split-tile code path exists.
+The Mirror is driven as a single 4x13 matrix: 52 buffer positions holding 50
+zones, with two positions unused. Zone numbering does not follow buffer order;
+the firmware zone map (mirrored from lifx-async's ``MIRROR_ZONE_MAP``) gives the
+zone at each buffer position. Zones 0-24 form the front ring and zones 25-49
+the back (uplight) ring.
 """
 
 from lifx_emulator.factories import create_device
@@ -11,11 +13,27 @@ from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import LightHsbk, TileBufferRect
 
 
-def test_mirror_split_and_total_zones():
-    st = create_device(267).state
-    assert st.uplight_zone_count == 25
-    assert st.downlight_zone_count == 25
-    assert st.tile_width * st.tile_height == 50  # via nested MatrixState
+def _get_device_chain(device) -> Tile.StateDeviceChain:
+    """Drive GetDeviceChain (701) and return the StateDeviceChain (702) reply."""
+    header = LifxHeader(
+        source=12345,
+        target=device.state.get_target_bytes(),
+        sequence=1,
+        pkt_type=701,
+        res_required=True,
+    )
+    responses = device.process_packet(header, Tile.GetDeviceChain())
+    resp_header, resp_packet = responses[-1]
+    assert resp_header.pkt_type == 702
+    assert isinstance(resp_packet, Tile.StateDeviceChain)
+    return resp_packet
+
+
+def test_mirror_reports_a_single_4x13_tile_on_the_wire():
+    for pid in (267, 268):
+        chain = _get_device_chain(create_device(pid))
+        assert chain.tile_devices_count == 1
+        assert (chain.tile_devices[0].width, chain.tile_devices[0].height) == (4, 13)
 
 
 def _seed_zone_hues(device) -> list[int]:
@@ -34,7 +52,7 @@ def _seed_zone_hues(device) -> list[int]:
     return hues
 
 
-def test_mirror_single_get64_covers_all_50_zones():
+def test_mirror_single_get64_covers_all_52_buffer_positions():
     device = create_device(267)
     hues = _seed_zone_hues(device)
 
@@ -59,8 +77,8 @@ def test_mirror_single_get64_covers_all_50_zones():
         if resp_header.pkt_type == 711
     ]
 
-    # A single Get64 must yield exactly one State64 response -- the 50-zone
-    # Mirror matrix fits within the 64-zone-per-response limit, so no
+    # A single Get64 must yield exactly one State64 response -- the 52-position
+    # Mirror buffer fits within the 64-zone-per-response limit, so no
     # second Get64/State64 round trip is required to cover the full tile.
     assert len(state64_responses) == 1
 
@@ -68,9 +86,9 @@ def test_mirror_single_get64_covers_all_50_zones():
     assert isinstance(resp_packet, Tile.State64)
     assert resp_packet.tile_index == 0
     # State64.colors is always padded to exactly 64 entries by the handler,
-    # so the padding alone proves nothing: assert the 50 real Mirror zones
-    # (uplight + downlight) are the seeded ones, in order, and that the
-    # remaining 14 entries are padding rather than device data.
+    # so the padding alone proves nothing: assert the 52 Mirror buffer
+    # positions (50 zones plus the two unused cells) are the seeded ones, in
+    # order, and that the remaining 12 entries are padding, not device data.
     assert len(resp_packet.colors) == 64
     assert [c.hue for c in resp_packet.colors[: len(hues)]] == hues
     assert all(c.hue == 0 for c in resp_packet.colors[len(hues) :])
@@ -205,3 +223,88 @@ def test_ceiling_16x8_set64_round_trip_across_split_requests():
 
     assert [c.hue for c in first.colors] == [c.hue for c in first_half_colors]
     assert [c.hue for c in second.colors] == [c.hue for c in second_half_colors]
+
+
+# Zone at each 4x13 buffer position, row by row, from the LIFX firmware team's
+# zone map (identical to lifx-async's MIRROR_ZONE_MAP); -1 marks unused cells.
+FIRMWARE_MIRROR_ZONE_MAP = (
+    *(9, -1, 40, -1),
+    *(8, 10, 41, 39),
+    *(7, 11, 42, 38),
+    *(6, 12, 43, 37),
+    *(5, 13, 44, 36),
+    *(4, 14, 45, 35),
+    *(3, 15, 46, 34),
+    *(2, 16, 47, 33),
+    *(1, 17, 48, 32),
+    *(0, 18, 49, 31),
+    *(24, 19, 25, 30),
+    *(23, 20, 26, 29),
+    *(22, 21, 27, 28),
+)
+
+
+def test_mirror_carries_the_firmware_zone_map():
+    for pid in (267, 268):
+        assert create_device(pid).state.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_mirror_front_and_back_rings_have_25_zones_each():
+    st = create_device(267).state
+    assert st.downlight_zone_count == 25
+    assert st.uplight_zone_count == 25
+
+
+def test_products_without_a_zone_map_number_zones_in_buffer_order():
+    assert create_device(201).state.zone_map is None  # Ceiling 16x8
+
+
+class _SavedStateStorage:
+    """Storage boundary stub that hands back one previously saved state."""
+
+    def __init__(self, saved_state: dict) -> None:
+        self._saved_state = saved_state
+
+    def load_device_state(self, serial: str) -> dict | None:
+        return self._saved_state
+
+
+def test_mirror_restored_with_old_5x10_geometry_drops_the_zone_map():
+    """State saved before the Mirror moved to 4x13 restores a 5x10 matrix the
+    52-entry zone map cannot describe, so the map must not be applied to it.
+    """
+    from lifx_emulator.factories.builder import DeviceBuilder
+    from lifx_emulator.products.registry import get_product
+
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": 1,
+        "tile_width": 5,
+        "tile_height": 10,
+        "tile_devices": [{"width": 5, "height": 10, "colors": [black] * 50}],
+    }
+    builder = DeviceBuilder(get_product(267)).with_serial("d073d5000267")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_width, st.tile_height) == (5, 10)
+    assert st.zone_map is None
+
+
+def test_mirror_unused_buffer_positions_echo_what_set64_writes():
+    """The two unused cells hold no light, but the emulator does not invent
+    firmware behaviour for them: they store and report writes like any cell.
+    """
+    device = create_device(267)
+    colors = [
+        LightHsbk(hue=i * 1000, saturation=65535, brightness=65535, kelvin=3500)
+        for i in range(52)
+    ]
+
+    _set64(device, y=0, colors=colors)
+    reply = _get64(device, y=0)
+
+    unused = [i for i, zone in enumerate(FIRMWARE_MIRROR_ZONE_MAP) if zone == -1]
+    assert unused == [1, 3]
+    assert [reply.colors[i].hue for i in unused] == [1000, 3000]

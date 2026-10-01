@@ -990,6 +990,11 @@ def _generate_matrix_section(
         if "uplight_zone_count" in specs:
             lines.append(f"    uplight_zone_count: {specs['uplight_zone_count']}")
 
+        # Preserve the zone map (zone index at each buffer position) if present
+        if "zone_map" in specs:
+            zone_map = ", ".join(str(zone) for zone in specs["zone_map"])
+            lines.append(f"    zone_map: [{zone_map}]")
+
         # Preserve button count if present
         if "button_count" in specs:
             lines.append(f"    button_count: {specs['button_count']}")
