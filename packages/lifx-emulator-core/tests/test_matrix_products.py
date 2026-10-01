@@ -399,9 +399,10 @@ def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
         create_device(267, tile_count="1")
 
 
-def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
-    """Decision Q3 fixes only non-chain products at their own size, so the
-    LIFX Tile still restores the tile size and colours it was saved with."""
+def test_a_chain_restores_its_tile_count_but_not_a_saved_tile_size():
+    """Tile size is fixed per product, so even the LIFX Tile, which chains 1
+    to 5 tiles, restores at 8x8: the saved tile count is kept, and saved
+    colours of another size are skipped rather than mis-sized."""
     red = {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
     tile = {"width": 16, "height": 8, "colors": [red] * 128}
     saved = {
@@ -415,8 +416,10 @@ def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
     builder = DeviceBuilder(get_product(55)).with_serial("d073d5000055")
     st = builder.with_storage(_SavedStateStorage(saved)).build().state
 
-    assert (st.tile_count, st.tile_width, st.tile_height) == (2, 16, 8)
-    assert all(t["colors"][0]["saturation"] == 65535 for t in st.tile_devices)
+    assert (st.tile_count, st.tile_width, st.tile_height) == (2, 8, 8)
+    assert all((t["width"], t["height"]) == (8, 8) for t in st.tile_devices)
+    assert all(len(t["colors"]) == 64 for t in st.tile_devices)
+    assert all(t["colors"][0].saturation != 65535 for t in st.tile_devices)
 
 
 def test_ceiling_downlight_is_every_zone_but_the_uplight():

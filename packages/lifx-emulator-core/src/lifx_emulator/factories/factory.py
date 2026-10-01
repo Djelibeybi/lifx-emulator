@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 
 from lifx_emulator.devices import Connectivity, EmulatedLifxDevice
@@ -11,6 +12,27 @@ from lifx_emulator.products.registry import get_product
 if TYPE_CHECKING:
     from lifx_emulator.devices import DevicePersistenceAsyncFile
     from lifx_emulator.scenarios import HierarchicalScenarioManager
+
+
+def _warn_if_tile_dimensions(
+    tile_width: int | None, tile_height: int | None, stacklevel: int
+) -> None:
+    """Warn that the deprecated tile_width/tile_height arguments are ignored.
+
+    Args:
+        tile_width: The tile_width argument a factory was called with
+        tile_height: The tile_height argument a factory was called with
+        stacklevel: Stack level of the factory's caller, counted from here
+    """
+    if tile_width is None and tile_height is None:
+        return
+    warnings.warn(
+        "tile_width and tile_height are deprecated and ignored: every matrix "
+        "product has a fixed tile size from its specs. They will be removed "
+        "in the next major release.",
+        DeprecationWarning,
+        stacklevel=stacklevel,
+    )
 
 
 def create_color_light(
@@ -210,9 +232,11 @@ def create_tile_device(
 
     Args:
         serial: Optional serial
-        tile_count: Optional tile count (uses product default)
-        tile_width: Optional tile width in zones (uses product default)
-        tile_height: Optional tile height in zones (uses product default)
+        tile_count: Optional number of tiles on the chain, 1 to 5 (default: 5)
+        tile_width: Deprecated and ignored; the LIFX Tile is always 8x8.
+            Will be removed in the next major release.
+        tile_height: Deprecated and ignored; the LIFX Tile is always 8x8.
+            Will be removed in the next major release.
         firmware_version: Optional firmware version tuple (major, minor)
         storage: Optional storage for persistence
         scenario_manager: Optional scenario manager
@@ -225,12 +249,11 @@ def create_tile_device(
             connectivity="thread" always raises ValueError for this
             factory.
     """
+    _warn_if_tile_dimensions(tile_width, tile_height, stacklevel=3)
     return create_device(
         55,
         serial=serial,
         tile_count=tile_count,
-        tile_width=tile_width,
-        tile_height=tile_height,
         firmware_version=firmware_version,
         storage=storage,
         scenario_manager=scenario_manager,
@@ -362,9 +385,11 @@ def create_device(
         serial: Optional serial (auto-generated if not provided)
         zone_count: Number of zones for multizone devices (auto-determined)
         extended_multizone: Enable extended multizone requests
-        tile_count: Number of tiles for matrix devices (default: 5)
-        tile_width: Width of each tile in zones (default: 8)
-        tile_height: Height of each tile in zones (default: 8)
+        tile_count: Number of tiles for matrix devices (uses product default)
+        tile_width: Deprecated and ignored; every matrix product has a fixed
+                         tile size from specs.yml. Will be removed in the next
+                         major release.
+        tile_height: Deprecated and ignored, as tile_width.
         firmware_version: Optional firmware version tuple (major, minor).
                          If not specified, uses 3.70 for extended_multizone
                          or 2.60 otherwise
@@ -396,9 +421,11 @@ def create_device(
         >>> device = create_device(27)
         >>> # Create LIFX Z strip (PID 32) with 24 zones
         >>> strip = create_device(32, zone_count=24)
-        >>> # Create LIFX Tile (PID 55) with 10 tiles
-        >>> tiles = create_device(55, tile_count=10)
+        >>> # Create LIFX Tile (PID 55) with 3 tiles
+        >>> tiles = create_device(55, tile_count=3)
     """
+    _warn_if_tile_dimensions(tile_width, tile_height, stacklevel=3)
+
     # Get product info from registry
     product_info = get_product(product_id)
     if product_info is None:
@@ -418,9 +445,6 @@ def create_device(
 
     if tile_count is not None:
         builder.with_tile_count(tile_count)
-
-    if tile_width is not None and tile_height is not None:
-        builder.with_tile_dimensions(tile_width, tile_height)
 
     if firmware_version is not None:
         builder.with_firmware_version(*firmware_version)
