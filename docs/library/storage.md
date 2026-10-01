@@ -465,17 +465,30 @@ shutil.copy("/backup/d073d5000001.json.bak", "~/.lifx-emulator/d073d5000001.json
 
 ### Exporting Device State
 
+The storage directory can also hold non-device files, such as the `scenarios.json` written by scenario persistence, so export only files whose names are valid device serials:
+
 ```python
 import json
+import os
+import re
+
 from lifx_emulator.devices import DevicePersistenceAsyncFile
 
+SERIAL_RE = re.compile(r"[0-9a-fA-F]{12}")
+
 storage = DevicePersistenceAsyncFile()
+root = os.path.realpath(storage.storage_dir)
 
 # Export all device states to a single file. Read the raw JSON files:
 # load_device_state() returns deserialised objects that aren't JSON-serialisable.
 all_states = {}
 for serial in storage.list_devices():
-    with open(storage.storage_dir / f"{serial}.json") as f:
+    if not SERIAL_RE.fullmatch(serial):
+        continue  # Not a device state file (e.g. scenarios.json)
+    path = os.path.realpath(os.path.join(root, f"{serial}.json"))
+    if not path.startswith(root + os.sep):
+        continue  # Symlink pointing outside the storage directory
+    with open(path) as f:
         all_states[serial] = json.load(f)
 
 with open("lifx-export.json", "w") as f:
