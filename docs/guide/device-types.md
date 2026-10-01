@@ -388,6 +388,28 @@ Devices with a 2D matrix of individually controlled zones.
 - **LIFX Luna** (product ID 219, 220) - 7x5
 - **LIFX Round Spot** (product ID 171, 221) - 3x1
 - **LIFX Round/Square Path** (product ID 173, 174, 222) - 3x2
+- **LIFX Mirror** (product ID 267, 268) - 4x13 with front and back rings (see below)
+
+### LIFX Mirror Zone Map
+
+The Mirror is driven as a single 4x13 matrix: 52 buffer positions holding 50
+zones, with two positions unused. Its zone numbers do not follow buffer order.
+Zones 0-24 form the front ring (facing the room) and zones 25-49 form the back
+ring (washing the wall). The emulator carries the firmware zone map, which gives
+the zone at each buffer position:
+
+| Row | Col 0 (front left) | Col 1 (front right) | Col 2 (back left) | Col 3 (back right) |
+| --- | --- | --- | --- | --- |
+| 0 | 9 | unused | 40 | unused |
+| 1-9 | 8 down to 0 | 10 up to 18 | 41 up to 49 | 39 down to 31 |
+| 10 | 24 | 19 | 25 | 30 |
+| 11 | 23 | 20 | 26 | 29 |
+| 12 | 22 | 21 | 27 | 28 |
+
+The two unused positions behave like any other buffer position: they store and
+report whatever `Set64` writes. The map is exposed as `DeviceState.zone_map`
+(`-1` marks an unused position) and as `zone_map` in the HTTP API's device
+info, and the dashboard draws the Mirror as its two rings instead of a grid.
 
 ### Capabilities
 
