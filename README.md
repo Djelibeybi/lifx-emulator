@@ -6,7 +6,7 @@
 [![CI](https://github.com/Djelibeybi/lifx-emulator/actions/workflows/ci.yml/badge.svg)](https://github.com/Djelibeybi/lifx-emulator/actions/workflows/ci.yml)
 [![Docs](https://github.com/Djelibeybi/lifx-emulator/workflows/Documentation/badge.svg)](https://Djelibeybi.github.io/lifx-emulator/)
 [![License](https://img.shields.io/badge/License-UPL--1.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13%20|%203.14-blue)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue)](https://www.python.org)
 
 ## Overview
 

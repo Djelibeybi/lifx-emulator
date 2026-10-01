@@ -67,7 +67,7 @@ LIFX Emulator is available as two packages:
 
 ## Prerequisites
 
-- **Python 3.11+** (or let uv manage it for you)
+- **Python 3.10+** (or let uv manage it for you)
 - Basic understanding of Python or command-line tools
 - (Optional) Familiarity with LIFX devices or protocol
 
