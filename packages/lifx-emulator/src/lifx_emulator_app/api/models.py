@@ -82,6 +82,17 @@ class DeviceInfo(BaseModel):
     color: ColorHsbk | None = None
     zone_colors: list[ColorHsbk] = Field(default_factory=list)
     tile_devices: list[dict] = Field(default_factory=list)
+    zone_map: list[int] | None = Field(
+        default=None,
+        description=(
+            "Zone index at each matrix buffer position in row-major order, "
+            "-1 where unused; null when zones follow buffer order"
+        ),
+    )
+    uplight_zone_count: int | None = Field(
+        default=None,
+        description="Trailing zones forming the uplight or back ring, if any",
+    )
     # Metadata fields
     version_major: int = 0
     version_minor: int = 0
