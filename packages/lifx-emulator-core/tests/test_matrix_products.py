@@ -279,9 +279,10 @@ def _restore_mirror(saved: dict) -> DeviceState:
     return builder.with_storage(_SavedStateStorage(saved)).build().state
 
 
-def test_mirror_restored_with_old_5x10_geometry_drops_the_zone_map():
-    """State saved before the Mirror moved to 4x13 restores a 5x10 matrix the
-    52-entry zone map cannot describe, so the map must not be applied to it.
+def test_mirror_restored_from_old_5x10_state_comes_back_as_4x13():
+    """State saved before the Mirror moved to 4x13 holds a 5x10 matrix. A
+    Mirror is always 4x13, so restore keeps the product's dimensions and zone
+    map and drops the saved colours, which no longer fit.
     """
     black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
     saved = {
@@ -294,8 +295,9 @@ def test_mirror_restored_with_old_5x10_geometry_drops_the_zone_map():
     }
     st = _restore_mirror(saved)
 
-    assert (st.tile_width, st.tile_height) == (5, 10)
-    assert st.zone_map is None
+    assert (st.tile_width, st.tile_height) == (4, 13)
+    assert len(st.tile_devices[0]["colors"]) == 52
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
 
 
 def test_mirror_unused_buffer_positions_echo_what_set64_writes():
@@ -371,9 +373,9 @@ def test_restoring_mirror_tile_colours_saved_without_a_tile_count():
     assert st.tile_devices[0]["colors"][0]["saturation"] == 65535
 
 
-def test_a_transposed_mirror_restore_drops_the_zone_map():
-    """13x4 holds 52 positions too, but the map is laid out 4 wide: applied
-    to a 13-wide buffer every zone would read the wrong position.
+def test_a_transposed_mirror_restore_comes_back_as_4x13():
+    """13x4 holds 52 positions too, but a Mirror is 4 wide: restore keeps the
+    product's own dimensions so the zone map reads the right positions.
     """
     black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
     saved = {
@@ -386,8 +388,8 @@ def test_a_transposed_mirror_restore_drops_the_zone_map():
     }
     st = _restore_mirror(saved)
 
-    assert (st.tile_width, st.tile_height) == (13, 4)
-    assert st.zone_map is None
+    assert (st.tile_width, st.tile_height) == (4, 13)
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
 
 
 def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
@@ -395,3 +397,22 @@ def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
     error, or "exactly 1 tile, got tile_count=1" contradicts itself."""
     with pytest.raises(ValueError, match="got tile_count='1'"):
         create_device(267, tile_count="1")
+
+
+def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
+    """Only a chain-capable product can be built at custom tile dimensions,
+    so the LIFX Tile still restores the size it was saved with."""
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    tile = {"width": 16, "height": 8, "colors": [black] * 128}
+    saved = {
+        "serial": "d073d5000055",
+        "product": 55,
+        "tile_count": 2,
+        "tile_width": 16,
+        "tile_height": 8,
+        "tile_devices": [dict(tile), dict(tile)],
+    }
+    builder = DeviceBuilder(get_product(55)).with_serial("d073d5000055")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_count, st.tile_width, st.tile_height) == (2, 16, 8)
