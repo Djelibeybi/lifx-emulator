@@ -546,10 +546,10 @@ class DeviceBuilder:
             tile_count: Requested number of tiles
 
         Raises:
-            ValueError: If tile_count is outside the product's range
+            ValueError: If tile_count is not an integer within the product's range
         """
-        most = max_tile_count(self._product_info.has_chain)
         if not is_valid_tile_count(tile_count, self._product_info.has_chain):
+            most = max_tile_count(self._product_info.has_chain)
             allowed = f"1 to {most} tiles" if most > 1 else "exactly 1 tile"
             raise ValueError(
                 f"{self._product_info.name} has {allowed}, "
