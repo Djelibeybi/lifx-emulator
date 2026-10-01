@@ -208,7 +208,7 @@ The emulator implements the **LIFX LAN Protocol** as documented at https://lan.d
 
 **Requirements:**
 
-- Python 3.11 or newer
+- Python 3.10 or newer
 - asyncio support
 - UDP networking
 
@@ -490,18 +490,19 @@ See also: [Troubleshooting Guide](reference/troubleshooting.md)
 
 ### What Python versions are supported?
 
-**Required:** Python 3.11 or newer
+**Required:** Python 3.10 or newer
 
 **Tested on:**
+- ✅ Python 3.10
 - ✅ Python 3.11
 - ✅ Python 3.12
 - ✅ Python 3.13
 - ✅ Python 3.14
 
 **Not supported:**
-- ❌ Python 3.10 and older
+- ❌ Python 3.9 and older
 
-**Why Python 3.11+?**
+**Why Python 3.10+?**
 - Modern async features
 - Performance improvements
 - Type hints improvements
