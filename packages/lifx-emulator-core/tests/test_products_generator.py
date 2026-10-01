@@ -13,6 +13,7 @@ from lifx_emulator.products.generator import (
     generate_registry_file,
     update_specs_file,
 )
+from lifx_emulator.products.specs import SpecsRegistry
 
 
 class TestGenerateProductDefinitions:
@@ -758,6 +759,30 @@ products:
             content = specs_path.read_text()
             assert "32:" in content
             assert "100:" in content
+
+    def test_regenerating_specs_keeps_the_mirror_zone_map(self):
+        """A specs.yml rewrite must not drop the hand-maintained Mirror zone
+        map, or the regenerated Mirror would number its zones in buffer order.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            specs_path = Path(tmpdir) / "specs.yml"
+            specs_path.write_text(
+                "products:\n"
+                "  267:\n"
+                "    default_tile_count: 1\n"
+                "    min_tile_count: 1\n"
+                "    max_tile_count: 1\n"
+                "    tile_width: 2\n"
+                "    tile_height: 2\n"
+                "    zone_map: [1, -1, 0, 2]\n"
+                "    notes: LIFX Mirror\n"
+            )
+
+            update_specs_file([{"vid": 1, "products": []}], specs_path)
+
+            registry = SpecsRegistry()
+            registry.load_from_file(specs_path)
+            assert registry.get_zone_map(267) == (1, -1, 0, 2)
 
 
 class TestGeneratedCodeExecution:
