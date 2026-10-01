@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.11 or higher
+- Python 3.10 or higher
 - pip or uv package manager
 
 ## Choose Your Package
@@ -22,7 +22,7 @@
 uv tool install lifx-emulator
 ```
 
-**Alternative: Using pip** (requires Python 3.11+ already installed):
+**Alternative: Using pip** (requires Python 3.10+ already installed):
 
 ```bash
 pip install lifx-emulator
@@ -134,7 +134,7 @@ lifx-emulator --port 56701
 
 ### Python Version
 
-Ensure you're using Python 3.11+:
+Ensure you're using Python 3.10+:
 
 ```bash
 python --version

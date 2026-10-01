@@ -240,7 +240,7 @@ uv run llmstxt-standalone build
 
 ### Type Checking
 - **Standard**: Pyright standard mode
-- **Target**: Python 3.11+
+- **Target**: Python 3.10+
 - **Check**: `pyright`
 
 ### Formatting
@@ -422,7 +422,7 @@ Every pull request runs:
 1. **Ruff lint check** - Code quality and formatting
 2. **Pyright type check** - Type safety validation
 3. **Pytest with coverage** - All 764 tests, 95% coverage target
-4. **Multi-version testing** - Python 3.11, 3.12, 3.13, 3.14
+4. **Multi-version testing** - Python 3.10, 3.11, 3.12, 3.13, 3.14
 5. **Documentation build** - Ensures docs compile
 
 **All checks must pass before merge.**

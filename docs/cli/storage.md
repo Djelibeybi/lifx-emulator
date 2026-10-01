@@ -249,7 +249,7 @@ This saves scenario configurations to `~/.lifx-emulator/scenarios.json`.
 For complete API documentation, see:
 
 - [Storage API Reference](../library/storage.md)
-- [AsyncDeviceStorage class reference](../library/storage.md#asyncdevicestorage)
+- [DevicePersistenceAsyncFile class reference](../library/storage.md#devicepersistenceasyncfile)
 - [File format specification](../library/storage.md#file-format)
 
 ## Migration to Config File

@@ -164,7 +164,7 @@ from lifx_emulator import create_color_light, EmulatedLifxServer
 
 ## Requirements
 
-- Python 3.11 or higher
+- Python 3.10 or higher
 
 ## Project Links
 
