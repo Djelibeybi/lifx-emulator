@@ -260,7 +260,7 @@ class StateRestorer:
         if is_valid_tile_count(saved_count, state.has_chain):
             return True
         logger.warning(
-            "Saved state for %s has %s tiles, which product %s cannot have; "
+            "Saved state for %s has tile_count %r, which product %s cannot have; "
             "keeping its default tile layout",
             state.serial,
             saved_count,

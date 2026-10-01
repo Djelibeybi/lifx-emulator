@@ -552,7 +552,8 @@ class DeviceBuilder:
         if not is_valid_tile_count(tile_count, self._product_info.has_chain):
             allowed = f"1 to {most} tiles" if most > 1 else "exactly 1 tile"
             raise ValueError(
-                f"{self._product_info.name} has {allowed}, got tile_count={tile_count}"
+                f"{self._product_info.name} has {allowed}, "
+                f"got tile_count={tile_count!r}"
             )
 
     def _create_core_state(
