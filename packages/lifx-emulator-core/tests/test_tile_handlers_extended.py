@@ -13,6 +13,15 @@ from lifx_emulator.protocol.protocol_types import (
 )
 
 
+def _seed_distinct_hues(device) -> None:
+    """Give every zone of tile 0 its own index as hue, so reads can be traced."""
+    colors = device.state.tile_devices[0]["colors"]
+    device.state.tile_devices[0]["colors"] = [
+        LightHsbk(hue=i, saturation=65535, brightness=65535, kelvin=3500)
+        for i in range(len(colors))
+    ]
+
+
 class TestTileDeviceChain:
     """Test TileGetDeviceChain handler edge cases."""
 
@@ -150,9 +159,17 @@ class TestGet64:
         # Should only get acknowledgment, no State64
         assert all(resp[0].pkt_type != 711 for resp in responses)
 
+    def test_large_matrix_device_is_a_single_16x8_tile(self, large_matrix_device):
+        """The fixture must really exceed 64 zones, or the Get64 tests below
+        pass trivially: every State64 reply is padded to 64 colours."""
+        st = large_matrix_device.state
+        assert (st.tile_count, st.tile_width, st.tile_height) == (1, 16, 8)
+        assert len(st.tile_devices[0]["colors"]) == 128
+
     def test_get_64_large_tile_partial_rows(self, large_matrix_device):
         """Test Get64 for matrix devices >64 zones with partial row extraction."""
         device = large_matrix_device
+        _seed_distinct_hues(device)
 
         # Request first 4 rows (16 zones wide × 4 rows = 64 zones)
         rect = TileBufferRect(x=0, y=0, width=16, fb_index=0)
@@ -171,11 +188,12 @@ class TestGet64:
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 711
         assert isinstance(resp_packet, Tile.State64)
-        assert len(resp_packet.colors) == 64
+        assert [c.hue for c in resp_packet.colors] == list(range(64))
 
     def test_get_64_large_tile_second_half(self, large_matrix_device):
         """Test Get64 for second half of large matrix device using y offset."""
         device = large_matrix_device
+        _seed_distinct_hues(device)
 
         # Request rows 4-7 (second half of 16x8 tile)
         rect = TileBufferRect(x=0, y=4, width=16, fb_index=0)
@@ -193,7 +211,7 @@ class TestGet64:
 
         resp_header, resp_packet = responses[-1]
         assert resp_header.pkt_type == 711
-        assert len(resp_packet.colors) == 64
+        assert [c.hue for c in resp_packet.colors] == list(range(64, 128))
 
     def test_get_64_with_offset_rectangle(self, single_tile_device):
         """Test Get64 with offset rectangle (not starting at 0,0)."""

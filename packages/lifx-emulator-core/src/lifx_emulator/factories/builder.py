@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+import warnings
 from typing import TYPE_CHECKING
 
 from lifx_emulator.constants import is_valid_tile_count, max_tile_count
@@ -179,17 +180,25 @@ class DeviceBuilder:
         return self
 
     def with_tile_dimensions(self, width: int, height: int) -> DeviceBuilder:
-        """Set tile dimensions for matrix devices.
+        """Deprecated: tile dimensions are fixed per product and are ignored.
+
+        Every matrix product is built at its own tile size from specs.yml.
+        This method will be removed in the next major release.
 
         Args:
-            width: Tile width in zones
-            height: Tile height in zones
+            width: Ignored
+            height: Ignored
 
         Returns:
             Self for method chaining
         """
-        self._tile_width = width
-        self._tile_height = height
+        warnings.warn(
+            "DeviceBuilder.with_tile_dimensions() is deprecated and ignored: "
+            "every matrix product has a fixed tile size from its specs. It "
+            "will be removed in the next major release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self
 
     def with_firmware_version(self, major: int, minor: int) -> DeviceBuilder:
@@ -488,16 +497,9 @@ class DeviceBuilder:
 
         # Tile configuration for matrix devices
         if self._product_info.has_matrix:
-            # Get tile dimensions from specs (always use specs for dimensions)
+            # Tile size is fixed per product; standard 8x8 tiles otherwise
             tile_dims = get_tile_dimensions(self._product_info.pid)
-            if tile_dims:
-                self._tile_width, self._tile_height = tile_dims
-            else:
-                # Fallback to standard 8x8 tiles
-                if self._tile_width is None:
-                    self._tile_width = 8
-                if self._tile_height is None:
-                    self._tile_height = 8
+            self._tile_width, self._tile_height = tile_dims or (8, 8)
 
             # Get default tile count from specs
             if self._tile_count is None:

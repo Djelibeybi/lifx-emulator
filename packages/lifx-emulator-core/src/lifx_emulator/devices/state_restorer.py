@@ -275,7 +275,7 @@ class StateRestorer:
         """Restore tile count and tile colours from saved state.
 
         Tile colours are restored only when every saved tile matches the
-        matrix's (possibly just restored) dimensions.
+        product's fixed tile dimensions.
 
         Args:
             matrix: Matrix state to restore into
@@ -309,22 +309,6 @@ class StateRestorer:
                     matrix.tile_count,
                 )
 
-    def _restore_tile_dimensions(
-        self, matrix: MatrixState, saved_state: dict[str, Any]
-    ) -> None:
-        """Restore tile width and height from saved state.
-
-        Args:
-            matrix: Matrix state to restore into
-            saved_state: Dictionary with saved state values
-        """
-        if "tile_width" in saved_state:
-            matrix.tile_width = saved_state["tile_width"]
-            logger.debug("Restored tile_width: %s", matrix.tile_width)
-        if "tile_height" in saved_state:
-            matrix.tile_height = saved_state["tile_height"]
-            logger.debug("Restored tile_height: %s", matrix.tile_height)
-
     def _restore_matrix_state(
         self, state: DeviceState, matrix: MatrixState, saved_state: dict[str, Any]
     ) -> None:
@@ -336,11 +320,9 @@ class StateRestorer:
             saved_state: Dictionary with saved state values
         """
         if self._saved_tile_count_fits(state, saved_state):
-            # A non-chain product (a Mirror, a Candle) is one tile of its own
-            # fixed size, so only a chain's saved dimensions are restored;
-            # saved colours of another size are then skipped.
-            if state.has_chain:
-                self._restore_tile_dimensions(matrix, saved_state)
+            # Every product has a fixed tile size from specs.yml, so saved
+            # tile_width/tile_height are never restored; saved colours of
+            # another size are then skipped.
             self._restore_tile_layout(matrix, saved_state)
 
         if "tile_effect_type" in saved_state:
