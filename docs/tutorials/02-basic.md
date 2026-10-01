@@ -325,7 +325,7 @@ Devices created by product ID:
 
 Here's how to test your emulated device with a real LIFX LAN client library, [`aiolifx`](https://pypi.org/project/aiolifx/). Install it with `pip install aiolifx`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
 
-The example runs the emulator and the client in the same event loop. `aiolifx` reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The client addresses the emulated device directly by MAC address and IP rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
+The example runs the emulator and the client in the same event loop. `aiolifx` reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The client addresses the emulated device directly by serial number and IP rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
 
 ```python
 import asyncio
@@ -349,7 +349,8 @@ async def request(method, *args):
 
 async def control_light(host, port):
     """Control the emulated device with aiolifx."""
-    # Address the emulated device directly by MAC address and IP. Broadcast
+    # Address the emulated device directly by serial number and IP (aiolifx
+    # calls the serial mac_addr, but it is not the MAC address). Broadcast
     # discovery would also find, and could change, any real LIFX devices on
     # your network.
     loop = asyncio.get_running_loop()

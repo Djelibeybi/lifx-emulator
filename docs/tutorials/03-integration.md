@@ -343,7 +343,7 @@ async def test_that_might_fail(emulator_with_cleanup):
 
 ## Testing with Real LIFX Clients
 
-Integration test with an actual LIFX client library, [`aiolifx`](https://pypi.org/project/aiolifx/). `aiolifx` runs in the same event loop as the emulator and reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The `light` fixture addresses the emulated device directly by MAC address and IP instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
+Integration test with an actual LIFX client library, [`aiolifx`](https://pypi.org/project/aiolifx/). `aiolifx` runs in the same event loop as the emulator and reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The `light` fixture addresses the emulated device directly by serial number and IP (aiolifx calls the serial `mac_addr`, but it is not the MAC address) instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
 
 Install `aiolifx` with `pip install aiolifx`, or, in a clone of the emulator repository, with `uv sync --group third-party`:
 
