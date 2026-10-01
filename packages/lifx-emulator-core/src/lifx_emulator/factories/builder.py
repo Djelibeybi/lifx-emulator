@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 import re
 import time
+import warnings
 from typing import TYPE_CHECKING
 
+from lifx_emulator.constants import is_valid_tile_count, max_tile_count
 from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.state_restorer import StateRestorer
 from lifx_emulator.devices.states import (
@@ -33,6 +35,7 @@ from lifx_emulator.products.specs import (
     get_default_zone_count,
     get_tile_dimensions,
     get_uplight_zone_count,
+    get_zone_map,
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
@@ -177,17 +180,25 @@ class DeviceBuilder:
         return self
 
     def with_tile_dimensions(self, width: int, height: int) -> DeviceBuilder:
-        """Set tile dimensions for matrix devices.
+        """Deprecated: tile dimensions are fixed per product and are ignored.
+
+        Every matrix product is built at its own tile size from specs.yml.
+        This method will be removed in the next major release.
 
         Args:
-            width: Tile width in zones
-            height: Tile height in zones
+            width: Ignored
+            height: Ignored
 
         Returns:
             Self for method chaining
         """
-        self._tile_width = width
-        self._tile_height = height
+        warnings.warn(
+            "DeviceBuilder.with_tile_dimensions() is deprecated and ignored: "
+            "every matrix product has a fixed tile size from its specs. It "
+            "will be removed in the next major release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self
 
     def with_firmware_version(self, major: int, minor: int) -> DeviceBuilder:
@@ -358,6 +369,9 @@ class DeviceBuilder:
 
         Returns:
             Configured EmulatedLifxDevice instance
+
+        Raises:
+            ValueError: If the tile count is outside what the product supports
         """
         # 1. Generate/validate serial
         serial = self._serial or self._serial_generator.generate(self._product_info)
@@ -447,6 +461,9 @@ class DeviceBuilder:
             has_buttons=self._product_info.has_buttons,
             ambient_light_lux=ambient_light_lux,
             uplight_zone_count=uplight_zone_count,
+            # Restore never changes a non-chain product's dimensions, so the
+            # product's zone map always describes its matrix
+            zone_map=get_zone_map(self._product_info.pid),
         )
 
         # Seed the physical buttons so a button device reports its real count
@@ -480,16 +497,9 @@ class DeviceBuilder:
 
         # Tile configuration for matrix devices
         if self._product_info.has_matrix:
-            # Get tile dimensions from specs (always use specs for dimensions)
+            # Tile size is fixed per product; standard 8x8 tiles otherwise
             tile_dims = get_tile_dimensions(self._product_info.pid)
-            if tile_dims:
-                self._tile_width, self._tile_height = tile_dims
-            else:
-                # Fallback to standard 8x8 tiles
-                if self._tile_width is None:
-                    self._tile_width = 8
-                if self._tile_height is None:
-                    self._tile_height = 8
+            self._tile_width, self._tile_height = tile_dims or (8, 8)
 
             # Get default tile count from specs
             if self._tile_count is None:
@@ -497,6 +507,28 @@ class DeviceBuilder:
                 self._tile_count = (
                     specs_tile_count if specs_tile_count is not None else 5
                 )
+
+            self._check_tile_count(self._tile_count)
+
+    def _check_tile_count(self, tile_count: int) -> None:
+        """Reject a tile count the product cannot have.
+
+        A matrix product without the chain capability is a single tile; only
+        a chain-capable product (the original LIFX Tile) drives 1 to 5 tiles.
+
+        Args:
+            tile_count: Requested number of tiles
+
+        Raises:
+            ValueError: If tile_count is not an integer within the product's range
+        """
+        if not is_valid_tile_count(tile_count, self._product_info.has_chain):
+            most = max_tile_count(self._product_info.has_chain)
+            allowed = f"1 to {most} tiles" if most > 1 else "exactly 1 tile"
+            raise ValueError(
+                f"{self._product_info.name} has {allowed}, "
+                f"got tile_count={tile_count!r}"
+            )
 
     def _create_core_state(
         self, serial: str, color: LightHsbk, version_major: int, version_minor: int

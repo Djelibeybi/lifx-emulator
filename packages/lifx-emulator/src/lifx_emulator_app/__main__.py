@@ -12,6 +12,7 @@ from typing import Annotated
 
 import cyclopts
 import yaml
+from lifx_emulator.constants import is_valid_tile_count
 from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
@@ -37,9 +38,11 @@ from lifx_emulator.scenarios import (
     ScenarioPersistenceAsyncFile,
 )
 from lifx_emulator.server import EmulatedLifxServer
+from pydantic import TypeAdapter, ValidationError
 from rich.logging import RichHandler
 
 from lifx_emulator_app.config import (
+    DeviceDefinition,
     EmulatorConfig,
     ScenarioDefinition,
     ScenariosConfig,
@@ -63,6 +66,62 @@ device_group = cyclopts.Group.create_ordered("Device Creation")
 multizone_group = cyclopts.Group.create_ordered("Multizone Options")
 tile_group = cyclopts.Group.create_ordered("Tile/Matrix Options")
 serial_group = cyclopts.Group.create_ordered("Serial Number Options")
+
+
+def _warn_ignored_tile_dimensions(
+    logger: logging.Logger,
+    tile_width: int | None,
+    tile_height: int | None,
+    config_devices: list[DeviceDefinition] | None,
+) -> None:
+    """Log that tile_width/tile_height are deprecated and ignored.
+
+    Every matrix product has a fixed tile size from its specs, so the values
+    are accepted (old commands and configs still work) but never used.
+
+    Args:
+        logger: Logger to warn on
+        tile_width: Merged --tile-width / top-level config value
+        tile_height: Merged --tile-height / top-level config value
+        config_devices: Per-device definitions from the config file
+    """
+    suffix = (
+        "are deprecated and ignored: every matrix product has a fixed tile "
+        "size. They will be removed in the next major release."
+    )
+    if tile_width is not None or tile_height is not None:
+        logger.warning(
+            "--tile-width/--tile-height (tile_width/tile_height in a config file) %s",
+            suffix,
+        )
+    for dev_def in config_devices or []:
+        if dev_def.tile_width is not None or dev_def.tile_height is not None:
+            logger.warning(
+                "tile_width/tile_height on device %s (product %s) %s",
+                dev_def.serial or "with no serial",
+                dev_def.product_id,
+                suffix,
+            )
+
+
+def _report_device_error(
+    logger: logging.Logger, message: str, error: ValueError, product_id: int
+) -> None:
+    """Log why a device could not be created.
+
+    The list-products hint is shown only for an unknown product ID; for a
+    known product (a bad tile count, say) it would point the user the wrong
+    way.
+
+    Args:
+        logger: Logger to report through
+        message: What failed, e.g. "Failed to create device from config"
+        error: The ValueError the factory raised
+        product_id: The product ID the device was requested as
+    """
+    logger.error("%s: %s", message, error)
+    if get_registry().get_product(product_id) is None:
+        logger.info("Run 'lifx-emulator list-products' to see available products")
 
 
 def _setup_logging(verbose: bool) -> logging.Logger:
@@ -313,14 +372,52 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
 
     # Matrix/tile
     if state_dict.get("has_matrix"):
-        if state_dict.get("tile_count"):
-            entry["tile_count"] = state_dict["tile_count"]
-        if state_dict.get("tile_width"):
-            entry["tile_width"] = state_dict["tile_width"]
-        if state_dict.get("tile_height"):
-            entry["tile_height"] = state_dict["tile_height"]
+        entry.update(_matrix_yaml_fields(state_dict))
 
     return entry
+
+
+def _matrix_yaml_fields(state_dict: dict) -> dict:
+    """Matrix fields of a saved device that a config can usefully carry.
+
+    Only the tile count is exported, and only when the product can have it:
+    restore ignores a count outside the product's range, so writing it would
+    produce a config the next startup rejects. Tile size is fixed per product
+    (tile_width/tile_height are deprecated config keys), so it never is.
+
+    Args:
+        state_dict: Saved device state
+
+    Returns:
+        The tile_count entry to export, if any
+    """
+    product = get_registry().get_product(_saved_product_id(state_dict))
+    has_chain = product.has_chain if product else False
+    if is_valid_tile_count(state_dict.get("tile_count"), has_chain):
+        return {"tile_count": state_dict["tile_count"]}
+    return {}
+
+
+# Coerces a saved product ID with the same rules as DeviceDefinition.product_id
+_PRODUCT_ID_ADAPTER = TypeAdapter(int)
+
+
+def _saved_product_id(state_dict: dict) -> int:
+    """Read a saved product ID the way config loading will.
+
+    DeviceDefinition coerces a hand-edited "55" (or "55.0") to 55 on load,
+    so export coerces with the same pydantic int rules.
+
+    Args:
+        state_dict: Saved device state
+
+    Returns:
+        The product ID as an int, or 0 when it is missing or not a number
+    """
+    try:
+        return _PRODUCT_ID_ADAPTER.validate_python(state_dict.get("product", 0))
+    except ValidationError:
+        return 0
 
 
 def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:
@@ -641,8 +738,20 @@ async def run(
     ] = None,
     # Tile/Matrix Options
     tile_count: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
-    tile_width: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
-    tile_height: Annotated[int | None, cyclopts.Parameter(group=tile_group)] = None,
+    tile_width: Annotated[
+        int | None,
+        cyclopts.Parameter(
+            group=tile_group,
+            help="[DEPRECATED] Ignored: every matrix product has a fixed tile size.",
+        ),
+    ] = None,
+    tile_height: Annotated[
+        int | None,
+        cyclopts.Parameter(
+            group=tile_group,
+            help="[DEPRECATED] Ignored: every matrix product has a fixed tile size.",
+        ),
+    ] = None,
     # Serial Number Options
     serial_prefix: Annotated[str | None, cyclopts.Parameter(group=serial_group)] = None,
     serial_start: Annotated[int | None, cyclopts.Parameter(group=serial_group)] = None,
@@ -693,10 +802,10 @@ async def run(
         switch: Number of LIFX Switch devices (relays, no lighting).
         tile_count: Number of tiles per device. Uses product defaults if not
             specified (5 for Tile, 1 for Candle/Ceiling).
-        tile_width: Width of each tile in zones. Uses product defaults if not
-            specified (8 for most devices).
-        tile_height: Height of each tile in zones. Uses product defaults if
-            not specified (8 for most devices).
+        tile_width: DEPRECATED and ignored. Every matrix product has a fixed
+            tile size; will be removed in the next major release.
+        tile_height: DEPRECATED and ignored. Every matrix product has a fixed
+            tile size; will be removed in the next major release.
         serial_prefix: Serial number prefix as 6 hex characters. Default: d073d5.
         serial_start: Starting serial suffix for auto-incrementing device serials.
             Default: 1.
@@ -778,8 +887,6 @@ async def run(
     f_multizone_zones: int | None = cfg["multizone_zones"]
     f_multizone_extended: bool = cfg["multizone_extended"]
     f_tile_count: int | None = cfg["tile_count"]
-    f_tile_width: int | None = cfg["tile_width"]
-    f_tile_height: int | None = cfg["tile_height"]
     f_serial_prefix: str = cfg["serial_prefix"]
     f_serial_start: int = cfg["serial_start"]
     config_devices: list | None = cfg.get("devices")
@@ -822,6 +929,10 @@ async def run(
             "--persistent-scenarios is deprecated. Use 'lifx-emulator "
             "export-config' to migrate your scenarios to a config file."
         )
+
+    _warn_ignored_tile_dimensions(
+        logger, cfg["tile_width"], cfg["tile_height"], config_devices
+    )
 
     # Initialize storage if persistence is enabled
     storage = DevicePersistenceAsyncFile() if f_persistent else None
@@ -899,11 +1010,8 @@ async def run(
                         create_device(pid, serial=get_serial(), storage=storage)
                     )
                 except ValueError as e:
-                    logger.error("Failed to create device: %s", e)
-                    logger.info(
-                        "Run 'lifx-emulator list-products' to see available products"
-                    )
-                    return
+                    _report_device_error(logger, "Failed to create device", e, pid)
+                    return False
 
         # Create color lights
         for _ in range(f_color):
@@ -934,17 +1042,19 @@ async def run(
                 )
             )
 
-        # Create tile devices
-        for _ in range(f_tile):
-            devices.append(
-                create_tile_device(
-                    get_serial(),
-                    tile_count=f_tile_count,
-                    tile_width=f_tile_width,
-                    tile_height=f_tile_height,
-                    storage=storage,
+        # Create tile devices (a bad --tile-count is a user error, not a crash)
+        try:
+            for _ in range(f_tile):
+                devices.append(
+                    create_tile_device(
+                        get_serial(),
+                        tile_count=f_tile_count,
+                        storage=storage,
+                    )
                 )
-            )
+        except ValueError as e:
+            logger.error("Failed to create tile devices: %s", e)
+            return False
 
         # Create switch devices
         for _ in range(f_switch):
@@ -965,8 +1075,6 @@ async def run(
                         serial=serial,
                         zone_count=dev_def.zone_count,
                         tile_count=dev_def.tile_count,
-                        tile_width=dev_def.tile_width,
-                        tile_height=dev_def.tile_height,
                         storage=storage,
                         advertised_services=dev_def.advertised_services,
                     )
@@ -1020,11 +1128,13 @@ async def run(
                         device.state.hev_indication = dev_def.hev_indication
                     devices.append(device)
                 except ValueError as e:
-                    logger.error("Failed to create device from config: %s", e)
-                    logger.info(
-                        "Run 'lifx-emulator list-products' to see available products"
+                    _report_device_error(
+                        logger,
+                        "Failed to create device from config",
+                        e,
+                        dev_def.product_id,
                     )
-                    return
+                    return False
 
     if not devices:
         if f_persistent:

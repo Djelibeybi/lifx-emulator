@@ -457,25 +457,27 @@ products:
     default_firmware_minor: 10
     notes: LIFX Ceiling 13" Intl
 
-  267:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+  267:  # LIFX Mirror, 4x13 matrix, zones 0-24 front, 25-49 rear
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
-    tile_width: 5
-    tile_height: 10
+    tile_width: 4
+    tile_height: 13
     uplight_zone_count: 25
+    zone_map: [9, -1, 40, -1, 8, 10, 41, 39, 7, 11, 42, 38, 6, 12, 43, 37, 5, 13, 44, 36, 4, 14, 45, 35, 3, 15, 46, 34, 2, 16, 47, 33, 1, 17, 48, 32, 0, 18, 49, 31, 24, 19, 25, 30, 23, 20, 26, 29, 22, 21, 27, 28]
     button_count: 4
-    notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+    notes: LIFX Mirror, 4x13 matrix, zones 0-24 front, 25-49 rear
 
-  268:  # LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+  268:  # LIFX Mirror, 4x13 matrix, zones 0-24 front, 25-49 rear
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
-    tile_width: 5
-    tile_height: 10
+    tile_width: 4
+    tile_height: 13
     uplight_zone_count: 25
+    zone_map: [9, -1, 40, -1, 8, 10, 41, 39, 7, 11, 42, 38, 6, 12, 43, 37, 5, 13, 44, 36, 4, 14, 45, 35, 3, 15, 46, 34, 2, 16, 47, 33, 1, 17, 48, 32, 0, 18, 49, 31, 24, 19, 25, 30, 23, 20, 26, 29, 22, 21, 27, 28]
     button_count: 4
-    notes: LIFX Mirror, 5x10 matrix (provisional), zones 0-24 front, 25-49 rear
+    notes: LIFX Mirror, 4x13 matrix, zones 0-24 front, 25-49 rear
 
   # ========================================
   # Switch Products (Relays)

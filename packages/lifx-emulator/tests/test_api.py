@@ -3,6 +3,7 @@
 import asyncio
 import copy
 import time
+import warnings
 from typing import cast
 from unittest.mock import patch
 
@@ -170,6 +171,85 @@ class TestAPIEndpoints:
         assert device["product"] == 27
         # Verify device was added to server
         assert len(server_with_devices.get_all_devices()) == 3
+
+    def test_mirror_device_info_carries_its_zone_map(self, api_client):
+        """The dashboard needs the zone map and back-ring size to draw the
+        Mirror's two rings instead of its 4x13 buffer grid.
+        """
+        response = api_client.post("/api/devices", json={"product_id": 267})
+        assert response.status_code == 201
+        device = response.json()
+
+        # Row by row across the 4x13 buffer; -1 marks the two unused cells.
+        assert device["zone_map"] == [
+            *(9, -1, 40, -1),
+            *(8, 10, 41, 39),
+            *(7, 11, 42, 38),
+            *(6, 12, 43, 37),
+            *(5, 13, 44, 36),
+            *(4, 14, 45, 35),
+            *(3, 15, 46, 34),
+            *(2, 16, 47, 33),
+            *(1, 17, 48, 32),
+            *(0, 18, 49, 31),
+            *(24, 19, 25, 30),
+            *(23, 20, 26, 29),
+            *(22, 21, 27, 28),
+        ]
+        assert device["uplight_zone_count"] == 25
+
+    def test_creating_a_multi_tile_mirror_is_rejected(self, api_client):
+        """Only the LIFX Tile chains; a Mirror is always a single tile."""
+        response = api_client.post(
+            "/api/devices", json={"product_id": 267, "tile_count": 2}
+        )
+
+        assert response.status_code == 400
+        assert "exactly 1 tile" in response.json()["detail"]
+
+    def test_create_device_ignores_deprecated_tile_dimensions(
+        self, api_client, server_with_devices, caplog
+    ):
+        """tile_width/tile_height are still accepted but ignored: the device
+        keeps its product's fixed tile size and the request is logged."""
+        with warnings.catch_warnings():
+            # The service must not hand them on to the deprecated library args
+            warnings.simplefilter("error", DeprecationWarning)
+            response = api_client.post(
+                "/api/devices",
+                json={"product_id": 55, "tile_width": 16, "tile_height": 8},
+            )
+
+        assert response.status_code == 201
+        device = server_with_devices.get_device(response.json()["serial"])
+        assert (device.state.tile_width, device.state.tile_height) == (8, 8)
+        assert any(
+            "tile_width/tile_height are deprecated and ignored" in r.getMessage()
+            and r.levelname == "WARNING"
+            for r in caplog.records
+        )
+
+    def test_create_device_without_tile_dimensions_logs_no_deprecation(
+        self, api_client, caplog
+    ):
+        response = api_client.post("/api/devices", json={"product_id": 55})
+
+        assert response.status_code == 201
+        assert not any("deprecated" in r.getMessage() for r in caplog.records)
+
+    def test_openapi_marks_tile_dimensions_deprecated(self, api_client):
+        schema = api_client.get("/openapi.json").json()
+        props = schema["components"]["schemas"]["DeviceCreateRequest"]["properties"]
+
+        assert props["tile_width"]["deprecated"] is True
+        assert props["tile_height"]["deprecated"] is True
+
+    def test_device_info_omits_zone_map_for_buffer_ordered_devices(self, api_client):
+        response = api_client.post("/api/devices", json={"product_id": 27})
+        device = response.json()
+
+        assert device["zone_map"] is None
+        assert device["uplight_zone_count"] is None
 
     def test_create_device_with_invalid_product(self, api_client):
         """Test POST /api/devices with invalid product ID fails validation."""

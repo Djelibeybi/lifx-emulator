@@ -388,6 +388,28 @@ Devices with a 2D matrix of individually controlled zones.
 - **LIFX Luna** (product ID 219, 220) - 7x5
 - **LIFX Round Spot** (product ID 171, 221) - 3x1
 - **LIFX Round/Square Path** (product ID 173, 174, 222) - 3x2
+- **LIFX Mirror** (product ID 267, 268) - 4x13 with front and back rings (see below)
+
+### LIFX Mirror Zone Map
+
+The Mirror is driven as a single 4x13 matrix: 52 buffer positions holding 50
+zones, with two positions unused. Its zone numbers do not follow buffer order.
+Zones 0-24 form the front ring (facing the room) and zones 25-49 form the back
+ring (washing the wall). The emulator carries the firmware zone map, which gives
+the zone at each buffer position:
+
+| Row | Col 0 (front left) | Col 1 (front right) | Col 2 (back left) | Col 3 (back right) |
+| --- | --- | --- | --- | --- |
+| 0 | 9 | unused | 40 | unused |
+| 1-9 | 8 down to 0 | 10 up to 18 | 41 up to 49 | 39 down to 31 |
+| 10 | 24 | 19 | 25 | 30 |
+| 11 | 23 | 20 | 26 | 29 |
+| 12 | 22 | 21 | 27 | 28 |
+
+The two unused positions behave like any other buffer position: they store and
+report whatever `Set64` writes. The map is exposed as `DeviceState.zone_map`
+(`-1` marks an unused position) and as `zone_map` in the HTTP API's device
+info, and the dashboard draws the Mirror as its two rings instead of a grid.
 
 ### Capabilities
 
@@ -408,31 +430,34 @@ Devices with a 2D matrix of individually controlled zones.
     # Multiple tile devices with custom tile count
     lifx-emulator --tile 2 --tile-count 3
 
-    # Custom tile dimensions
-    lifx-emulator --tile 1 --tile-width 16 --tile-height 8
-
     # Create by specific product ID
     lifx-emulator --product 55   # LIFX Tile
     lifx-emulator --product 57   # LIFX Candle
     lifx-emulator --product 176  # LIFX Ceiling
+    lifx-emulator --product 201  # LIFX Ceiling 13x26" (one 16x8 tile, >64 zones)
     ```
+
+!!! note "Tile size is fixed per product"
+    The LIFX Tile is always 8x8 with 1 to 5 tiles on its chain; every other
+    matrix product is a single tile of its own size. The `--tile-width` /
+    `--tile-height` options and `tile_width` / `tile_height` arguments are
+    deprecated and ignored. To get a different tile size, choose the product
+    that has it.
 
 === "Python Library"
 
     ```python
     from lifx_emulator import create_tile_device
+    from lifx_emulator.factories import create_device
 
     # Standard LIFX Tile (8x8) with default 5 tiles
     tiles = create_tile_device("d073d9000001")
 
-    # Custom tile count
-    tiles = create_tile_device("d073d9000002", tile_count=10)
+    # Custom tile count (1 to 5)
+    tiles = create_tile_device("d073d9000002", tile_count=3)
 
-    # Custom tile dimensions (e.g., 16x8 with >64 zones)
-    large_tile = create_tile_device("d073dc000001", tile_count=1, tile_width=16, tile_height=8)
-
-    # Any custom size
-    custom = create_tile_device("d073dc000002", tile_count=3, tile_width=12, tile_height=12)
+    # Large matrix device: LIFX Ceiling 13x26", one 16x8 tile (>64 zones)
+    large_matrix = create_device(201, serial="d073dc000001")
     ```
 
 === "REST API"
@@ -443,16 +468,16 @@ Devices with a 2D matrix of individually controlled zones.
       -H "Content-Type: application/json" \
       -d '{"product_id": 55, "tile_count": 5}'
 
-    # Custom dimensions
+    # Large matrix device (LIFX Ceiling 13x26", one 16x8 tile)
     curl -X POST http://localhost:8080/api/devices \
       -H "Content-Type: application/json" \
-      -d '{"product_id": 55, "tile_count": 1, "tile_width": 16, "tile_height": 8}'
+      -d '{"product_id": 201}'
     ```
 
 ### Matrix Configuration
 
 ```python
-tiles = create_tile_device("d073d9000001", tile_count=5)
+device = create_tile_device("d073d9000001", tile_count=5)
 
 # Check configuration
 print(f"Has matrix: {device.state.has_matrix}")  # True
@@ -462,7 +487,7 @@ print(f"Tile height: {device.state.tile_height}")  # 8
 
 # Access tile devices
 for i, tile in enumerate(device.state.tile_devices):
-    print(f"Tile {i}: {tile.width}x{tile.height} zones")
+    print(f"Tile {i}: {tile['width']}x{tile['height']} zones")
 ```
 
 ### Matrix Packet Types

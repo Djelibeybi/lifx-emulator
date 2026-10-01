@@ -23,11 +23,23 @@ class DeviceCreateRequest(BaseModel):
     tile_count: int | None = Field(
         None, description="Number of tiles for matrix devices", ge=0, le=5
     )
+    # Deprecated: every matrix product has a fixed tile size. Still accepted
+    # (and range-checked) so existing clients keep working; removal is
+    # planned for the next major release. Marked deprecated in the OpenAPI
+    # schema only: Field(deprecated=True) would warn on every attribute read.
     tile_width: int | None = Field(
-        None, description="Width of each tile in zones", ge=1, le=256
+        None,
+        description="Deprecated and ignored: tile size is fixed per product",
+        ge=1,
+        le=256,
+        json_schema_extra={"deprecated": True},
     )
     tile_height: int | None = Field(
-        None, description="Height of each tile in zones", ge=1, le=256
+        None,
+        description="Deprecated and ignored: tile size is fixed per product",
+        ge=1,
+        le=256,
+        json_schema_extra={"deprecated": True},
     )
     firmware_major: int | None = Field(
         None, description="Firmware major version", ge=0, le=255
@@ -82,6 +94,17 @@ class DeviceInfo(BaseModel):
     color: ColorHsbk | None = None
     zone_colors: list[ColorHsbk] = Field(default_factory=list)
     tile_devices: list[dict] = Field(default_factory=list)
+    zone_map: list[int] | None = Field(
+        default=None,
+        description=(
+            "Zone index at each matrix buffer position in row-major order, "
+            "-1 where unused; null when zones follow buffer order"
+        ),
+    )
+    uplight_zone_count: int | None = Field(
+        default=None,
+        description="Trailing zones forming the uplight or back ring, if any",
+    )
     # Metadata fields
     version_major: int = 0
     version_minor: int = 0

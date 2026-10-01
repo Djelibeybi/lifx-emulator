@@ -188,9 +188,7 @@ class TestDeviceEdgeCases:
 
     def test_tile_device_tile_colors(self):
         """Test tile device tile structure."""
-        device = create_tile_device(
-            "d073d5000001", tile_count=2, tile_width=8, tile_height=8
-        )
+        device = create_tile_device("d073d5000001", tile_count=2)
 
         # Check tile count
         assert len(device.state.tile_devices) == 2

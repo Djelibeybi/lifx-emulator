@@ -2,6 +2,43 @@
 
 <!-- version list -->
 
+## v4.7.0 (2026-10-01)
+
+### Bug Fixes
+
+- **cli**: Coerce an exported product ID with pydantic's int rules
+  ([`d5586e3`](https://github.com/Djelibeybi/lifx-emulator/commit/d5586e3c48e43be1a5b81852fc962bd54880399d))
+
+- **cli**: Export a saved tile size only for chain products
+  ([`101d3bb`](https://github.com/Djelibeybi/lifx-emulator/commit/101d3bbd2af5b93f231fc5d49f83fbbd767c377c))
+
+- **cli**: Export only tile counts the product can have
+  ([`e8ccb7d`](https://github.com/Djelibeybi/lifx-emulator/commit/e8ccb7d3c420e7cccd1526b2fc985faac540b4b1))
+
+- **cli**: Fail startup when a configured device cannot be built
+  ([`7fca501`](https://github.com/Djelibeybi/lifx-emulator/commit/7fca5014a3d80686a90fc68c608fafa34a6cdce2))
+
+- **cli**: Read a saved product ID as config loading does on export
+  ([`e8e8408`](https://github.com/Djelibeybi/lifx-emulator/commit/e8e840879c70dc0a1eadabad82df9472e335dd4a))
+
+- **core-devices**: Treat a non-integer tile count as invalid, not a crash
+  ([`4475788`](https://github.com/Djelibeybi/lifx-emulator/commit/44757882e7f3b7166d8fe58d0cd2a006a0557dbc))
+
+- **core-factories**: Give non-chain matrix devices exactly one tile
+  ([`9426b27`](https://github.com/Djelibeybi/lifx-emulator/commit/9426b27d6c6c6e305b1ea4ad92a4382168c18e1a))
+
+- **frontend**: Keep Mirror ring labels legible on bright zones
+  ([`9825d7d`](https://github.com/Djelibeybi/lifx-emulator/commit/9825d7df595462eda7db376e48a7b2ed12ea4c80))
+
+### Features
+
+- **api**: Expose the zone map and uplight zone count in DeviceInfo
+  ([`71a5f6b`](https://github.com/Djelibeybi/lifx-emulator/commit/71a5f6bf94f27c5ad0eaa907539018a04e4cbf81))
+
+- **frontend**: Draw the LIFX Mirror as its front and back rings
+  ([`feb1624`](https://github.com/Djelibeybi/lifx-emulator/commit/feb16244ef541511c93a9f7a1832d1f8b4788810))
+
+
 ## v4.6.1 (2026-09-24)
 
 ### Bug Fixes

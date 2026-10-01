@@ -34,6 +34,9 @@ class ProductSpecs:
         max_firmware_minor: Terminal (maximum) firmware minor version for a
             discontinued product
         uplight_zone_count: Number of trailing matrix zones forming the uplight or rear
+        zone_map: Zone index at each matrix buffer position in row-major order,
+            -1 where a position is unused, for products whose zone numbering
+            does not follow buffer order
         button_count: Number of physical buttons on button-capable devices
         notes: Human-readable notes about this product
     """
@@ -52,6 +55,7 @@ class ProductSpecs:
     max_firmware_major: int | None = None
     max_firmware_minor: int | None = None
     uplight_zone_count: int | None = None
+    zone_map: tuple[int, ...] | None = None
     button_count: int | None = None
     notes: str | None = None
 
@@ -90,6 +94,20 @@ class ProductSpecs:
         return isinstance(self.max_firmware_major, int) and isinstance(
             self.max_firmware_minor, int
         )
+
+
+def _parse_zone_map(raw: list[int] | None) -> tuple[int, ...] | None:
+    """Convert a ``zone_map`` entry from specs.yml into an immutable tuple.
+
+    Args:
+        raw: The YAML value, expected to be a list of integers
+
+    Returns:
+        The zone map as a tuple, or None when the entry is absent
+    """
+    if raw is None:
+        return None
+    return tuple(raw)
 
 
 class SpecsRegistry:
@@ -138,6 +156,7 @@ class SpecsRegistry:
                 max_firmware_major=specs_data.get("max_firmware_major"),
                 max_firmware_minor=specs_data.get("max_firmware_minor"),
                 uplight_zone_count=specs_data.get("uplight_zone_count"),
+                zone_map=_parse_zone_map(specs_data.get("zone_map")),
                 button_count=specs_data.get("button_count"),
                 notes=specs_data.get("notes"),
             )
@@ -261,6 +280,19 @@ class SpecsRegistry:
         specs = self.get_specs(product_id)
         return specs.uplight_zone_count if specs else None
 
+    def get_zone_map(self, product_id: int) -> tuple[int, ...] | None:
+        """Get the zone index at each matrix buffer position.
+
+        Args:
+            product_id: Product ID
+
+        Returns:
+            Zone map in row-major buffer order (-1 where a position is unused)
+            if defined, None otherwise
+        """
+        specs = self.get_specs(product_id)
+        return specs.zone_map if specs else None
+
     def get_button_count(self, product_id: int) -> int | None:
         """Get number of physical buttons for a button-capable product.
 
@@ -379,6 +411,19 @@ def get_uplight_zone_count(product_id: int) -> int | None:
         Number of uplight zones if defined, None otherwise
     """
     return _specs_registry.get_uplight_zone_count(product_id)
+
+
+def get_zone_map(product_id: int) -> tuple[int, ...] | None:
+    """Get the zone index at each matrix buffer position.
+
+    Args:
+        product_id: Product ID
+
+    Returns:
+        Zone map in row-major buffer order (-1 where a position is unused)
+        if defined, None otherwise
+    """
+    return _specs_registry.get_zone_map(product_id)
 
 
 def get_button_count(product_id: int) -> int | None:

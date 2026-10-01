@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 import yaml
 from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator_app.__main__ import (
@@ -225,7 +226,7 @@ class TestDeviceStateToYamlDict:
         assert "hev_indication" not in result
 
     def test_matrix_device(self):
-        """Tile/matrix fields are included."""
+        """The tile count is exported; the fixed tile size never is."""
         state = {
             "product": 55,
             "serial": "d073d5000001",
@@ -240,8 +241,95 @@ class TestDeviceStateToYamlDict:
         }
         result = _device_state_to_yaml_dict(state)
         assert result["tile_count"] == 5
-        assert result["tile_width"] == 8
-        assert result["tile_height"] == 8
+        assert "tile_width" not in result
+        assert "tile_height" not in result
+
+    @pytest.mark.parametrize(
+        ("product", "tile_count"),
+        [
+            (57, 2),  # LIFX Candle: one tile, no chain
+            (9999, 2),  # unknown product: no chain capability to rely on
+            (55, "3"),  # hand-edited saved state: not an integer
+            ("tile", 2),  # hand-edited product ID that is not a number
+        ],
+    )
+    def test_matrix_tile_count_the_product_cannot_have_is_not_exported(
+        self, product, tile_count
+    ):
+        """State saved by an older build can hold a chain a non-chain product
+        cannot have (a 2-tile Candle). Restore already ignores it; exporting
+        it would write a config the next startup rejects."""
+        state = {
+            "product": product,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": tile_count,
+            "tile_width": 5,
+            "tile_height": 6,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "tile_count" not in result
+
+    @pytest.mark.parametrize("product", ["55", "55.0"])
+    def test_matrix_tile_count_kept_when_saved_product_id_is_a_string(self, product):
+        """Config loading coerces product_id "55" (or "55.0") to the LIFX
+        Tile, so export must too, or a 3-tile chain is dropped and comes back
+        as 5 tiles."""
+        state = {
+            "product": product,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 3,
+            "tile_width": 8,
+            "tile_height": 8,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result.get("tile_count") == 3
+
+    @pytest.mark.parametrize("product", [55, 267])
+    def test_saved_tile_dimensions_are_not_exported(self, product):
+        """Every matrix product, the chain-capable LIFX Tile included, is
+        built and restored at its own fixed size; tile_width/tile_height are
+        deprecated config keys, so export never writes them."""
+        state = {
+            "product": product,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 1,
+            "tile_width": 5,
+            "tile_height": 10,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "tile_width" not in result
+        assert "tile_height" not in result
+
+    def test_chain_without_saved_dimensions_exports_only_its_tile_count(self):
+        state = {
+            "product": 55,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 3,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result["tile_count"] == 3
+        assert "tile_width" not in result
+        assert "tile_height" not in result
 
 
 class TestCleanScenario:

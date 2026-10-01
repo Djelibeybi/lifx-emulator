@@ -16,6 +16,7 @@ from lifx_emulator.devices.states import (
 from lifx_emulator.factories import (
     create_color_light,
     create_color_temperature_light,
+    create_device,
     create_hev_light,
     create_infrared_light,
     create_multizone_light,
@@ -108,10 +109,12 @@ def multi_tile_device():
 
 @pytest.fixture
 def large_matrix_device():
-    """Create a large matrix device (single 16x8 tile with >64 zones)."""
-    return create_tile_device(
-        "d073d5000012", tile_count=1, tile_width=16, tile_height=8
-    )
+    """Create a large matrix device (single 16x8 tile with >64 zones).
+
+    The LIFX Ceiling 13x26" (PID 201) is one 16x8 tile; tile size is fixed per
+    product, so a LIFX Tile cannot stand in for it.
+    """
+    return create_device(201, serial="d073d5000012")
 
 
 @pytest.fixture
@@ -217,9 +220,8 @@ def integration_devices(integration_port):
         create_multizone_light("d073d5000005", zone_count=82, extended_multizone=True),
         create_tile_device("d073d5000006", tile_count=5),
         create_color_temperature_light("d073d5000007"),
-        create_tile_device(
-            "d073d5000008", tile_count=1, tile_width=16, tile_height=8
-        ),  # Large tile (>64 zones)
+        # Large matrix device: the LIFX Ceiling 13x26" is one 16x8 tile
+        create_device(201, serial="d073d5000008"),
     ]
 
     # Set all devices to use the same port

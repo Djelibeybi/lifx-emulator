@@ -1,21 +1,43 @@
-"""Tests for the LIFX Mirror (product 267/268) uplight/downlight split.
+"""Tests for the LIFX Mirror (product 267/268) and Ceiling matrix geometry.
 
-The Mirror's front/rear split is modelled as metadata (`uplight_zone_count`)
-over a single 5x10 = 50-zone matrix, reusing the existing single-matrix
-Get64 handling -- no dedicated "wide tile" or split-tile code path exists.
+The Mirror is driven as a single 4x13 matrix: 52 buffer positions holding 50
+zones, with two positions unused. Zone numbering does not follow buffer order;
+the firmware zone map (mirrored from lifx-async's ``MIRROR_ZONE_MAP``) gives the
+zone at each buffer position. Zones 0-24 form the front ring and zones 25-49
+the back (uplight) ring.
 """
 
+import pytest
+from lifx_emulator.devices import DeviceState
 from lifx_emulator.factories import create_device
+from lifx_emulator.factories.builder import DeviceBuilder
+from lifx_emulator.products.registry import get_product
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import LightHsbk, TileBufferRect
 
 
-def test_mirror_split_and_total_zones():
-    st = create_device(267).state
-    assert st.uplight_zone_count == 25
-    assert st.downlight_zone_count == 25
-    assert st.tile_width * st.tile_height == 50  # via nested MatrixState
+def _get_device_chain(device) -> Tile.StateDeviceChain:
+    """Drive GetDeviceChain (701) and return the StateDeviceChain (702) reply."""
+    header = LifxHeader(
+        source=12345,
+        target=device.state.get_target_bytes(),
+        sequence=1,
+        pkt_type=701,
+        res_required=True,
+    )
+    responses = device.process_packet(header, Tile.GetDeviceChain())
+    resp_header, resp_packet = responses[-1]
+    assert resp_header.pkt_type == 702
+    assert isinstance(resp_packet, Tile.StateDeviceChain)
+    return resp_packet
+
+
+def test_mirror_reports_a_single_4x13_tile_on_the_wire():
+    for pid in (267, 268):
+        chain = _get_device_chain(create_device(pid))
+        assert chain.tile_devices_count == 1
+        assert (chain.tile_devices[0].width, chain.tile_devices[0].height) == (4, 13)
 
 
 def _seed_zone_hues(device) -> list[int]:
@@ -34,7 +56,7 @@ def _seed_zone_hues(device) -> list[int]:
     return hues
 
 
-def test_mirror_single_get64_covers_all_50_zones():
+def test_mirror_single_get64_covers_all_52_buffer_positions():
     device = create_device(267)
     hues = _seed_zone_hues(device)
 
@@ -59,8 +81,8 @@ def test_mirror_single_get64_covers_all_50_zones():
         if resp_header.pkt_type == 711
     ]
 
-    # A single Get64 must yield exactly one State64 response -- the 50-zone
-    # Mirror matrix fits within the 64-zone-per-response limit, so no
+    # A single Get64 must yield exactly one State64 response -- the 52-position
+    # Mirror buffer fits within the 64-zone-per-response limit, so no
     # second Get64/State64 round trip is required to cover the full tile.
     assert len(state64_responses) == 1
 
@@ -68,9 +90,9 @@ def test_mirror_single_get64_covers_all_50_zones():
     assert isinstance(resp_packet, Tile.State64)
     assert resp_packet.tile_index == 0
     # State64.colors is always padded to exactly 64 entries by the handler,
-    # so the padding alone proves nothing: assert the 50 real Mirror zones
-    # (uplight + downlight) are the seeded ones, in order, and that the
-    # remaining 14 entries are padding rather than device data.
+    # so the padding alone proves nothing: assert the 52 Mirror buffer
+    # positions (50 zones plus the two unused cells) are the seeded ones, in
+    # order, and that the remaining 12 entries are padding, not device data.
     assert len(resp_packet.colors) == 64
     assert [c.hue for c in resp_packet.colors[: len(hues)]] == hues
     assert all(c.hue == 0 for c in resp_packet.colors[len(hues) :])
@@ -205,3 +227,220 @@ def test_ceiling_16x8_set64_round_trip_across_split_requests():
 
     assert [c.hue for c in first.colors] == [c.hue for c in first_half_colors]
     assert [c.hue for c in second.colors] == [c.hue for c in second_half_colors]
+
+
+# Zone at each 4x13 buffer position, row by row, from the LIFX firmware team's
+# zone map (identical to lifx-async's MIRROR_ZONE_MAP); -1 marks unused cells.
+FIRMWARE_MIRROR_ZONE_MAP = (
+    *(9, -1, 40, -1),
+    *(8, 10, 41, 39),
+    *(7, 11, 42, 38),
+    *(6, 12, 43, 37),
+    *(5, 13, 44, 36),
+    *(4, 14, 45, 35),
+    *(3, 15, 46, 34),
+    *(2, 16, 47, 33),
+    *(1, 17, 48, 32),
+    *(0, 18, 49, 31),
+    *(24, 19, 25, 30),
+    *(23, 20, 26, 29),
+    *(22, 21, 27, 28),
+)
+
+
+def test_mirror_carries_the_firmware_zone_map():
+    for pid in (267, 268):
+        assert create_device(pid).state.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_mirror_front_and_back_rings_have_25_zones_each():
+    st = create_device(267).state
+    assert st.downlight_zone_count == 25
+    assert st.uplight_zone_count == 25
+
+
+def test_products_without_a_zone_map_number_zones_in_buffer_order():
+    assert create_device(201).state.zone_map is None  # Ceiling 16x8
+
+
+class _SavedStateStorage:
+    """Storage boundary stub that hands back one previously saved state."""
+
+    def __init__(self, saved_state: dict) -> None:
+        self._saved_state = saved_state
+
+    def load_device_state(self, serial: str) -> dict | None:
+        return self._saved_state
+
+
+def _restore_mirror(saved: dict) -> DeviceState:
+    """Build a Mirror (267) whose storage hands back ``saved`` on restore."""
+    builder = DeviceBuilder(get_product(267)).with_serial("d073d5000267")
+    return builder.with_storage(_SavedStateStorage(saved)).build().state
+
+
+def test_mirror_restored_from_old_5x10_state_comes_back_as_4x13():
+    """State saved before the Mirror moved to 4x13 holds a 5x10 matrix. A
+    Mirror is always 4x13, so restore keeps the product's dimensions and zone
+    map and drops the saved colours, which no longer fit.
+    """
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": 1,
+        "tile_width": 5,
+        "tile_height": 10,
+        "tile_devices": [{"width": 5, "height": 10, "colors": [black] * 50}],
+    }
+    st = _restore_mirror(saved)
+
+    assert (st.tile_width, st.tile_height) == (4, 13)
+    assert len(st.tile_devices[0]["colors"]) == 52
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_mirror_unused_buffer_positions_echo_what_set64_writes():
+    """The two unused cells hold no light, but the emulator does not invent
+    firmware behaviour for them: they store and report writes like any cell.
+    """
+    device = create_device(267)
+    colors = [
+        LightHsbk(hue=i * 1000, saturation=65535, brightness=65535, kelvin=3500)
+        for i in range(52)
+    ]
+
+    _set64(device, y=0, colors=colors)
+    reply = _get64(device, y=0)
+
+    assert device.state.zone_map is not None
+    unused = [i for i, zone in enumerate(device.state.zone_map) if zone == -1]
+    assert unused == [1, 3]
+    assert [reply.colors[i].hue for i in unused] == [1000, 3000]
+
+
+@pytest.mark.parametrize("tile_count", [0, 2, 3, True])
+def test_a_non_chain_matrix_device_has_exactly_one_tile(tile_count):
+    """has_matrix without has_chain (the Mirror and every matrix product
+    except the original LIFX Tile) means a single tile, never a chain.
+    """
+    with pytest.raises(ValueError, match="exactly 1 tile"):
+        create_device(267, tile_count=tile_count)
+
+
+@pytest.mark.parametrize("tile_count", [0, 6])
+def test_a_chain_device_has_one_to_five_tiles(tile_count):
+    with pytest.raises(ValueError, match="1 to 5 tiles"):
+        create_device(55, tile_count=tile_count)  # LIFX Tile
+
+
+@pytest.mark.parametrize("tile_count", [1, 5])
+def test_the_lifx_tile_chains_one_to_five_tiles(tile_count):
+    assert create_device(55, tile_count=tile_count).state.tile_count == tile_count
+
+
+@pytest.mark.parametrize("saved_count", [0, 3, "1", True, None])
+def test_restoring_a_saved_multi_tile_mirror_keeps_one_tile(saved_count):
+    """Saved state can carry a tile count no Mirror can have (written by an
+    older build, or edited by hand); restore must not bring it back.
+    """
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    tile = {"width": 4, "height": 13, "colors": [black] * 52}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": saved_count,
+        "tile_width": 4,
+        "tile_height": 13,
+        "tile_devices": [dict(tile) for _ in range(int(saved_count or 0))],
+    }
+    st = _restore_mirror(saved)
+
+    assert st.tile_count == 1 and type(st.tile_count) is int
+    assert len(st.tile_devices) == 1
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_restoring_mirror_tile_colours_saved_without_a_tile_count():
+    red = {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_devices": [{"width": 4, "height": 13, "colors": [red] * 52}],
+    }
+    st = _restore_mirror(saved)
+
+    assert st.tile_devices[0]["colors"][0]["saturation"] == 65535
+
+
+def test_a_transposed_mirror_restore_comes_back_as_4x13():
+    """13x4 holds 52 positions too, but a Mirror is 4 wide: restore keeps the
+    product's own dimensions so the zone map reads the right positions.
+    """
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000267",
+        "product": 267,
+        "tile_count": 1,
+        "tile_width": 13,
+        "tile_height": 4,
+        "tile_devices": [{"width": 13, "height": 4, "colors": [black] * 52}],
+    }
+    st = _restore_mirror(saved)
+
+    assert (st.tile_width, st.tile_height) == (4, 13)
+    assert st.zone_map == FIRMWARE_MIRROR_ZONE_MAP
+
+
+def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
+    """A config or API value of "1" must not read as the integer 1 in the
+    error, or "exactly 1 tile, got tile_count=1" contradicts itself."""
+    with pytest.raises(ValueError, match="got tile_count='1'"):
+        create_device(267, tile_count="1")
+
+
+def test_a_chain_restores_its_tile_count_but_not_a_saved_tile_size():
+    """Tile size is fixed per product, so even the LIFX Tile, which chains 1
+    to 5 tiles, restores at 8x8: the saved tile count is kept, and saved
+    colours of another size are skipped rather than mis-sized."""
+    red = {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+    tile = {"width": 16, "height": 8, "colors": [red] * 128}
+    saved = {
+        "serial": "d073d5000055",
+        "product": 55,
+        "tile_count": 2,
+        "tile_width": 16,
+        "tile_height": 8,
+        "tile_devices": [dict(tile), dict(tile)],
+    }
+    builder = DeviceBuilder(get_product(55)).with_serial("d073d5000055")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_count, st.tile_width, st.tile_height) == (2, 8, 8)
+    assert all((t["width"], t["height"]) == (8, 8) for t in st.tile_devices)
+    assert all(len(t["colors"]) == 64 for t in st.tile_devices)
+    assert all(t["colors"][0].saturation != 65535 for t in st.tile_devices)
+
+
+def test_ceiling_downlight_is_every_zone_but_the_uplight():
+    """Without a zone map every buffer position drives a light: an 8x8
+    Ceiling's 64 zones are 63 downlight plus its single uplight."""
+    st = create_device(176).state
+    assert st.uplight_zone_count == 1
+    assert st.downlight_zone_count == 63
+
+
+def test_a_chain_restored_without_saved_dimensions_keeps_its_tile_size():
+    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
+    saved = {
+        "serial": "d073d5000055",
+        "product": 55,
+        "tile_count": 3,
+        "tile_devices": [
+            {"width": 8, "height": 8, "colors": [black] * 64} for _ in range(3)
+        ],
+    }
+    builder = DeviceBuilder(get_product(55)).with_serial("d073d5000055")
+    st = builder.with_storage(_SavedStateStorage(saved)).build().state
+
+    assert (st.tile_count, st.tile_width, st.tile_height) == (3, 8, 8)
