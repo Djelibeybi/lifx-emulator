@@ -400,10 +400,10 @@ def test_a_string_tile_count_is_rejected_and_quoted_in_the_message():
 
 
 def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
-    """Only a chain-capable product can be built at custom tile dimensions,
-    so the LIFX Tile still restores the size it was saved with."""
-    black = {"hue": 0, "saturation": 0, "brightness": 0, "kelvin": 3500}
-    tile = {"width": 16, "height": 8, "colors": [black] * 128}
+    """Decision Q3 fixes only non-chain products at their own size, so the
+    LIFX Tile still restores the tile size and colours it was saved with."""
+    red = {"hue": 0, "saturation": 65535, "brightness": 65535, "kelvin": 3500}
+    tile = {"width": 16, "height": 8, "colors": [red] * 128}
     saved = {
         "serial": "d073d5000055",
         "product": 55,
@@ -416,3 +416,4 @@ def test_a_chain_keeps_its_saved_tile_dimensions_on_restore():
     st = builder.with_storage(_SavedStateStorage(saved)).build().state
 
     assert (st.tile_count, st.tile_width, st.tile_height) == (2, 16, 8)
+    assert all(t["colors"][0]["saturation"] == 65535 for t in st.tile_devices)
