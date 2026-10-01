@@ -21,6 +21,7 @@ from lifx_emulator.protocol.protocol_types import (
     TileBufferRect,
 )
 from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
 
 class TestDeviceState:
@@ -877,7 +878,6 @@ class TestTileHandlers:
 
     def test_get_64_zones(self, tile_device):
         """Test TileGet64 (707) returns State64 (711)."""
-        from lifx_emulator.protocol.protocol_types import TileBufferRect
 
         rect = TileBufferRect(x=0, y=0, width=8, fb_index=0)
         packet = Tile.Get64(tile_index=0, length=1, rect=rect)
@@ -927,7 +927,6 @@ class TestAcknowledgment:
 
     def test_ack_generated_when_scenario_affects_acks(self, color_device):
         """Test process_packet includes ack when scenario targets ack behavior."""
-        from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
         scenario_manager = HierarchicalScenarioManager()
         scenario_manager.set_device_scenario(
@@ -958,7 +957,6 @@ class TestAcknowledgment:
         self, color_device
     ):
         """Test ACK included for unsupported packets when scenario targets acks."""
-        from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
         scenario_manager = HierarchicalScenarioManager()
         scenario_manager.set_device_scenario(
