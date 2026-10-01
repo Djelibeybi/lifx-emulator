@@ -272,23 +272,18 @@ class StateRestorer:
     def _restore_tile_layout(
         self, matrix: MatrixState, saved_state: dict[str, Any]
     ) -> None:
-        """Restore tile count, dimensions and tile colours from saved state.
+        """Restore tile count and tile colours from saved state.
+
+        Tile colours are restored only when every saved tile matches the
+        matrix's (possibly just restored) dimensions.
 
         Args:
             matrix: Matrix state to restore into
             saved_state: Dictionary with saved state values
         """
-        # First restore tile configuration (count, width, height) from saved state
-        # This ensures the device matches what was previously saved
         if "tile_count" in saved_state:
             matrix.tile_count = saved_state["tile_count"]
             logger.debug("Restored tile_count: %s", matrix.tile_count)
-        if "tile_width" in saved_state:
-            matrix.tile_width = saved_state["tile_width"]
-            logger.debug("Restored tile_width: %s", matrix.tile_width)
-        if "tile_height" in saved_state:
-            matrix.tile_height = saved_state["tile_height"]
-            logger.debug("Restored tile_height: %s", matrix.tile_height)
 
         # Now restore tile devices if available
         if "tile_devices" in saved_state:
@@ -314,6 +309,22 @@ class StateRestorer:
                     matrix.tile_count,
                 )
 
+    def _restore_tile_dimensions(
+        self, matrix: MatrixState, saved_state: dict[str, Any]
+    ) -> None:
+        """Restore tile width and height from saved state.
+
+        Args:
+            matrix: Matrix state to restore into
+            saved_state: Dictionary with saved state values
+        """
+        if "tile_width" in saved_state:
+            matrix.tile_width = saved_state["tile_width"]
+            logger.debug("Restored tile_width: %s", matrix.tile_width)
+        if "tile_height" in saved_state:
+            matrix.tile_height = saved_state["tile_height"]
+            logger.debug("Restored tile_height: %s", matrix.tile_height)
+
     def _restore_matrix_state(
         self, state: DeviceState, saved_state: dict[str, Any]
     ) -> None:
@@ -327,6 +338,11 @@ class StateRestorer:
             return
 
         if self._saved_tile_count_fits(state, saved_state):
+            # A non-chain product (a Mirror, a Candle) is one tile of its own
+            # fixed size, so only a chain's saved dimensions are restored;
+            # saved colours of another size are then skipped.
+            if state.has_chain:
+                self._restore_tile_dimensions(state.matrix, saved_state)
             self._restore_tile_layout(state.matrix, saved_state)
 
         if "tile_effect_type" in saved_state:

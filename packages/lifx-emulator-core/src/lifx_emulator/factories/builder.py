@@ -452,6 +452,9 @@ class DeviceBuilder:
             has_buttons=self._product_info.has_buttons,
             ambient_light_lux=ambient_light_lux,
             uplight_zone_count=uplight_zone_count,
+            # Restore never changes a non-chain product's dimensions, so the
+            # product's zone map always describes its matrix
+            zone_map=get_zone_map(self._product_info.pid),
         )
 
         # Seed the physical buttons so a button device reports its real count
@@ -469,10 +472,6 @@ class DeviceBuilder:
         if restorer is not None:
             restorer.restore_if_available(state)
 
-        # The zone map describes the product's own geometry, so it is applied
-        # only after restore has settled the matrix dimensions.
-        state.zone_map = self._zone_map_for(state)
-
         # 12. Create device
         return EmulatedLifxDevice(
             state,
@@ -480,33 +479,6 @@ class DeviceBuilder:
             scenario_manager=self._scenario_manager,
             persist_initial_state=self._persist_initial_state,
         )
-
-    def _zone_map_for(self, state: DeviceState) -> tuple[int, ...] | None:
-        """Return the product's zone map if it describes this device's matrix.
-
-        Args:
-            state: The composed (and possibly restored) device state
-
-        Returns:
-            The zone map when the tile has the product's own dimensions,
-            None otherwise
-        """
-        zone_map = get_zone_map(self._product_info.pid)
-        if zone_map is None:
-            return None
-        # The map is row-major over the product's width, so a tile with the
-        # same buffer size but other dimensions (13x4 for a 4x13 Mirror) would
-        # read every zone from the wrong position.
-        product_dims = get_tile_dimensions(self._product_info.pid)
-        if (state.tile_width, state.tile_height) != product_dims:
-            logger.warning(
-                "Zone map for product %s does not fit a %sx%s matrix, ignoring it",
-                self._product_info.pid,
-                state.tile_width,
-                state.tile_height,
-            )
-            return None
-        return zone_map
 
     def _apply_product_defaults(self):
         """Apply product-specific defaults from specs."""
