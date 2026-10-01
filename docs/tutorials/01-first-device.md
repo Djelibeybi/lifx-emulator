@@ -187,7 +187,7 @@ Install the library:
 pip install lifx-async
 ```
 
-If you're working in a clone of the emulator repository, sync its `third-party` dependency group instead, which installs both `lifx-async` and `aiolifx`:
+If you're working in a clone of the emulator repository, sync its `third-party` dependency group instead:
 
 ```bash
 uv sync --group third-party

@@ -20,7 +20,6 @@ dev = [
     "mkdocstrings-python>=2.0.3",
 ]
 third-party = [
-    "aiolifx>=1.2.2",
     "lifx-async>=7.6.4",
 ]
 

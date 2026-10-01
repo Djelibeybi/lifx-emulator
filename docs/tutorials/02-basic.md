@@ -323,63 +323,49 @@ Devices created by product ID:
 
 ## Testing with a LIFX Client
 
-Here's how to test your emulated device with a real LIFX LAN client library, [`aiolifx`](https://pypi.org/project/aiolifx/). Install it with `pip install aiolifx`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
+Here's how to test your emulated device with a real LIFX LAN client library, [`lifx-async`](https://pypi.org/project/lifx-async/). Install it with `pip install lifx-async`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
 
-The example runs the emulator and the client in the same event loop. `aiolifx` reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The client addresses the emulated device directly by serial number and IP rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
+The example runs the emulator and the client in the same event loop and follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices). The client connects directly to the emulated device by IP and serial number rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
 
 ```python
 import asyncio
 
-from aiolifx.aiolifx import Light
+from lifx import Colors, Device, LifxError
 
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
 
-async def request(method, *args):
-    """Await an aiolifx callback-based request and return its response."""
-    future = asyncio.get_running_loop().create_future()
-    method(*args, callb=lambda _light, response: future.set_result(response))
-    response = await future
-    if response is None:
-        raise TimeoutError("No response from the device")
-    return response
+async def control_light(host: str, port: int) -> None:
+    """Control the emulated device with lifx-async."""
+    # Connect directly to the emulated device by IP and serial number.
+    # Broadcast discovery would also find, and could change, any real LIFX
+    # devices on your network.
+    async with await Device.connect(host, serial="d073d5000001", port=port) as light:
+        label: str = await light.get_label()
+        power: int = await light.get_power()
+        print(f"Device: {label}")
+        print(f"Power: {power}")
 
-
-async def control_light(host, port):
-    """Control the emulated device with aiolifx."""
-    # Address the emulated device directly by serial number and IP (aiolifx
-    # calls the serial mac_addr, but it is not the MAC address). Broadcast
-    # discovery would also find, and could change, any real LIFX devices on
-    # your network.
-    loop = asyncio.get_running_loop()
-    transport, light = await loop.create_datagram_endpoint(
-        lambda: Light(loop, "d0:73:d5:00:00:01", host, port),
-        remote_addr=(host, port),
-    )
-    try:
-        await request(light.get_label)
-        await request(light.get_power)
-        print(f"Device: {light.label}")
-        print(f"Power: {light.power_level}")
-
-        # Change colour to red at 50% brightness and wait for the ack
-        await request(light.set_color, [0, 65535, 32768, 3500])
+        await light.set_color(Colors.RED)
         print("Changed colour to red")
-    finally:
-        transport.close()
 
 
-async def main():
+async def main() -> None:
     device = create_color_light("d073d5000001")
     server = EmulatedLifxServer(
         [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
     )
 
     async with server:
-        host, port = server.ipv4_endpoint
-        await control_light(host, port)
+        endpoint = server.ipv4_endpoint
+        assert endpoint is not None  # Set once the server has started
+        host, port = endpoint
+        try:
+            await control_light(host, port)
+        except LifxError as e:
+            print(f"LIFX error: {e}")
         print(f"Emulator colour: {device.state.color}")
 
 
@@ -393,7 +379,7 @@ You should see:
 Device: LIFX Color 800lm 000001
 Power: 65535
 Changed colour to red
-Emulator colour: LightHsbk(hue=0, saturation=65535, brightness=32768, kelvin=3500)
+Emulator colour: LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
 ```
 
 ## Simple pytest Example

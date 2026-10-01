@@ -343,16 +343,14 @@ async def test_that_might_fail(emulator_with_cleanup):
 
 ## Testing with Real LIFX Clients
 
-Integration test with an actual LIFX client library, [`aiolifx`](https://pypi.org/project/aiolifx/). `aiolifx` runs in the same event loop as the emulator and reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The `light` fixture addresses the emulated device directly by serial number and IP (aiolifx calls the serial `mac_addr`, but it is not the MAC address) instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
+Integration test with an actual LIFX client library, [`lifx-async`](https://pypi.org/project/lifx-async/). It runs in the same event loop as the emulator. The `light` fixture connects directly to the emulated device by IP and serial number instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
 
-Install `aiolifx` with `pip install aiolifx`, or, in a clone of the emulator repository, with `uv sync --group third-party`:
+Install `lifx-async` with `pip install lifx-async`, or, in a clone of the emulator repository, with `uv sync --group third-party`:
 
 ```python
-import asyncio
-
 import pytest
 import pytest_asyncio
-from aiolifx.aiolifx import Light
+from lifx import Colors, Device, Light
 
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
@@ -374,39 +372,22 @@ async def emulator_for_client():
 
 @pytest_asyncio.fixture
 async def light(emulator_for_client):
-    """An aiolifx Light connected directly to the emulated device."""
+    """A lifx-async light connected directly to the emulated device."""
     host, port = emulator_for_client.ipv4_endpoint
-    loop = asyncio.get_running_loop()
-    transport, light = await loop.create_datagram_endpoint(
-        lambda: Light(loop, "d0:73:d5:00:00:01", host, port),
-        remote_addr=(host, port),
-    )
-    yield light
-    transport.close()
-
-
-async def request(method, *args):
-    """Await an aiolifx callback-based request and return its response."""
-    future = asyncio.get_running_loop().create_future()
-    method(*args, callb=lambda _light, response: future.set_result(response))
-    response = await future
-    assert response is not None, "No response from the device"
-    return response
+    async with await Device.connect(host, serial="d073d5000001", port=port) as light:
+        yield light
 
 
 @pytest.mark.asyncio
-async def test_client_get_label(light):
+async def test_client_get_label(light: Light):
     """Test client can talk to the emulated device."""
-    await request(light.get_label)
-
-    assert light.label == "Test Light"
+    assert await light.get_label() == "Test Light"
 
 
 @pytest.mark.asyncio
-async def test_client_set_color(emulator_for_client, light):
+async def test_client_set_color(emulator_for_client, light: Light):
     """Test client can control emulated device."""
-    # Change colour to red and wait for the acknowledgement
-    await request(light.set_color, [0, 65535, 32768, 3500])
+    await light.set_color(Colors.RED)
 
     # Verify state change in emulator
     emu_device = emulator_for_client.get_device("d073d5000001")
