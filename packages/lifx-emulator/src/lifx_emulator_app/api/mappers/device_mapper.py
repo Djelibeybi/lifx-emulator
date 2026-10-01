@@ -83,6 +83,12 @@ class DeviceMapper:
             tile_devices=device.state.matrix.tile_devices
             if device.state.matrix is not None
             else [],
+            # Zone numbering for matrices whose zones do not follow buffer
+            # order (Mirror), and the trailing uplight/back zone count
+            zone_map=list(device.state.zone_map)
+            if device.state.zone_map is not None
+            else None,
+            uplight_zone_count=device.state.uplight_zone_count,
             # Firmware/version metadata
             version_major=device.state.version_major,
             version_minor=device.state.version_minor,

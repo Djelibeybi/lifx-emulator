@@ -171,6 +171,39 @@ class TestAPIEndpoints:
         # Verify device was added to server
         assert len(server_with_devices.get_all_devices()) == 3
 
+    def test_mirror_device_info_carries_its_zone_map(self, api_client):
+        """The dashboard needs the zone map and back-ring size to draw the
+        Mirror's two rings instead of its 4x13 buffer grid.
+        """
+        response = api_client.post("/api/devices", json={"product_id": 267})
+        assert response.status_code == 201
+        device = response.json()
+
+        # Row by row across the 4x13 buffer; -1 marks the two unused cells.
+        assert device["zone_map"] == [
+            *(9, -1, 40, -1),
+            *(8, 10, 41, 39),
+            *(7, 11, 42, 38),
+            *(6, 12, 43, 37),
+            *(5, 13, 44, 36),
+            *(4, 14, 45, 35),
+            *(3, 15, 46, 34),
+            *(2, 16, 47, 33),
+            *(1, 17, 48, 32),
+            *(0, 18, 49, 31),
+            *(24, 19, 25, 30),
+            *(23, 20, 26, 29),
+            *(22, 21, 27, 28),
+        ]
+        assert device["uplight_zone_count"] == 25
+
+    def test_device_info_omits_zone_map_for_buffer_ordered_devices(self, api_client):
+        response = api_client.post("/api/devices", json={"product_id": 27})
+        device = response.json()
+
+        assert device["zone_map"] is None
+        assert device["uplight_zone_count"] is None
+
     def test_create_device_with_invalid_product(self, api_client):
         """Test POST /api/devices with invalid product ID fails validation."""
         response = api_client.post("/api/devices", json={"product_id": 99999})
