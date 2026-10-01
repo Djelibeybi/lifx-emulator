@@ -125,3 +125,17 @@ from lifx_emulator_app.api import create_api_app, run_api_server
 
 - `packages/lifx-emulator-core/src/lifx_emulator/products/registry.py` → `python -m lifx_emulator.products.generator`
 - `packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py` → `python -m lifx_emulator.protocol.generator`
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues on `Djelibeybi/lifx-emulator` via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical labels: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` at the root, ADRs in `docs/adr/`. See `docs/agents/domain.md`.
