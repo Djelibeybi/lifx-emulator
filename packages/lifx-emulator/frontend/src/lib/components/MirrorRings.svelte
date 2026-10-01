@@ -53,15 +53,18 @@
 		stroke: var(--border-primary);
 	}
 
+	/* Dark text on a light halo stays legible on any zone colour, from
+	   bright yellow to unlit black, in either theme. */
 	.zone-label {
 		font-family: var(--font-mono);
 		font-size: 9px;
-		fill: var(--text-primary);
+		font-weight: 600;
+		fill: #111;
 		text-anchor: middle;
 		dominant-baseline: central;
 		paint-order: stroke;
-		stroke: var(--bg-primary);
-		stroke-width: 2px;
+		stroke: rgba(255, 255, 255, 0.85);
+		stroke-width: 2.5px;
 		pointer-events: none;
 	}
 </style>
