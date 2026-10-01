@@ -142,6 +142,13 @@ class DeviceService:
             >>> info.product
             27
         """
+        if request.tile_width is not None or request.tile_height is not None:
+            logger.warning(
+                "tile_width/tile_height are deprecated and ignored: every "
+                "matrix product has a fixed tile size. They will be removed "
+                "in the next major release."
+            )
+
         # Build firmware version tuple if provided
         firmware_version = None
         if request.firmware_major is not None and request.firmware_minor is not None:
@@ -155,8 +162,6 @@ class DeviceService:
                     serial=request.serial,
                     zone_count=request.zone_count,
                     tile_count=request.tile_count,
-                    tile_width=request.tile_width,
-                    tile_height=request.tile_height,
                     firmware_version=firmware_version,
                     storage=self.server.storage,
                     scenario_manager=self.server.scenario_manager,

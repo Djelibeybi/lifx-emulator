@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.7.1 (2026-10-01)
+
+### Bug Fixes
+
+- **cli**: Deprecate tile_width and tile_height options
+  ([`401ec2b`](https://github.com/Djelibeybi/lifx-emulator/commit/401ec2baa770df2e36a0d6963153d22f76e9ca81))
+
+
 ## v4.7.0 (2026-10-01)
 
 ### Bug Fixes

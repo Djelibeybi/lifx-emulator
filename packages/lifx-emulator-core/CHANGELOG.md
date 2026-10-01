@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.12.1 (2026-10-01)
+
+### Bug Fixes
+
+- **factories**: Deprecate tile_width and tile_height
+  ([`5478554`](https://github.com/Djelibeybi/lifx-emulator/commit/54785548b3c310725fa61cec0919fdd47b199459))
+
+
 ## v3.12.0 (2026-10-01)
 
 ### Bug Fixes

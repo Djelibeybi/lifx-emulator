@@ -269,24 +269,17 @@ Number of tile devices to emulate (LIFX Tile).
 
 ### `--tile-count <COUNT>`
 
-Number of tiles per tile device. If not specified, uses product default (5 for LIFX Tile).
+Number of tiles on each LIFX Tile chain, from 1 to 5. If not specified, uses the product default (5 for LIFX Tile).
 
 - **Default:** `None` (uses product defaults)
-- **Example:** `--tile-count 10`
+- **Example:** `--tile-count 3`
 
-### `--tile-width <zones>`
+### `--tile-width <zones>` / `--tile-height <zones>`
 
-Width of each tile in zones. If not specified, uses product default (typically 8).
+!!! warning "Deprecated"
+    These options are accepted but ignored, and log a deprecation warning. Every matrix product has a fixed tile size (the LIFX Tile is always 8x8). They will be removed in the next major release.
 
-- **Default:** `None` (uses product defaults)
-- **Example:** `--tile-width 16`
-
-### `--tile-height <zones>`
-
-Height of each tile in zones. If not specified, uses product default (typically 8).
-
-- **Default:** `None` (uses product defaults)
-- **Example:** `--tile-height 8`
+    To emulate a matrix device with a different tile size, choose a product that has it: for example `--product 201` (LIFX Ceiling 13x26", one 16x8 tile). See [Products and Specs](../guide/products-and-specs.md).
 
 ### `--switch <COUNT>`
 
