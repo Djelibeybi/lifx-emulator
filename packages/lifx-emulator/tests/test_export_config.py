@@ -294,6 +294,26 @@ class TestDeviceStateToYamlDict:
         result = _device_state_to_yaml_dict(state)
         assert result.get("tile_count") == 3
 
+    def test_non_chain_matrix_dimensions_are_not_exported(self):
+        """A non-chain product (an old 5x10 Mirror save) is always built and
+        restored at its own size, so writing the saved size would only
+        misdescribe the device in the exported config."""
+        state = {
+            "product": 267,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "has_matrix": True,
+            "tile_count": 1,
+            "tile_width": 5,
+            "tile_height": 10,
+            "location_label": "Test Location",
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "tile_width" not in result
+        assert "tile_height" not in result
+
 
 class TestCleanScenario:
     """Test _clean_scenario helper."""

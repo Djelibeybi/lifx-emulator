@@ -335,32 +335,35 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
 
     # Matrix/tile
     if state_dict.get("has_matrix"):
-        if _tile_count_fits_product(state_dict):
-            entry["tile_count"] = state_dict["tile_count"]
-        if state_dict.get("tile_width"):
-            entry["tile_width"] = state_dict["tile_width"]
-        if state_dict.get("tile_height"):
-            entry["tile_height"] = state_dict["tile_height"]
+        entry.update(_matrix_yaml_fields(state_dict))
 
     return entry
 
 
-def _tile_count_fits_product(state_dict: dict) -> bool:
-    """Whether a saved tile count is one its product can have.
+def _matrix_yaml_fields(state_dict: dict) -> dict:
+    """Matrix fields of a saved device that a config can usefully carry.
 
-    Restore ignores an out-of-range tile count (a chain on a product without
-    the chain capability), so export must not write it into a config the
-    next startup would reject.
+    Restore ignores what the product cannot have, so export leaves it out
+    rather than write a config the next startup rejects or ignores: a tile
+    count outside the product's range, and the saved tile size of a product
+    without the chain capability, which is always built at its own size.
 
     Args:
         state_dict: Saved device state
 
     Returns:
-        True if the saved tile count is an integer within the product's range
+        The tile_count, tile_width and tile_height entries to export
     """
     product = get_registry().get_product(_saved_product_id(state_dict))
     has_chain = product.has_chain if product else False
-    return is_valid_tile_count(state_dict.get("tile_count"), has_chain)
+    fields: dict = {}
+    if is_valid_tile_count(state_dict.get("tile_count"), has_chain):
+        fields["tile_count"] = state_dict["tile_count"]
+    if has_chain:
+        for key in ("tile_width", "tile_height"):
+            if state_dict.get(key):
+                fields[key] = state_dict[key]
+    return fields
 
 
 # Coerces a saved product ID with the same rules as DeviceDefinition.product_id
