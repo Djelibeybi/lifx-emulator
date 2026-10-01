@@ -193,25 +193,29 @@ If you're working in a clone of the emulator repository, sync its `third-party` 
 uv sync --group third-party
 ```
 
-In a **separate terminal**, create `test_client.py`:
+In a **separate terminal**, create `test_client.py`. It follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices): connect with a context manager, use a `Colors` preset, and handle `LifxError`:
 
 ```python
 import asyncio
 
-from lifx import HSBK, Light
+from lifx import Colors, Device, LifxError
 
 
-async def main():
-    # Connect directly to the emulated device. Broadcast discovery would
-    # also find, and could change, any real LIFX devices on your network.
-    async with await Light.from_ip("127.0.0.1", serial="d073d5000001") as light:
-        print(f"Device: {await light.get_label()}")
-        print(f"Power: {await light.get_power()}")
+async def main() -> None:
+    try:
+        # Connect directly to the emulated device. Broadcast discovery would
+        # also find, and could change, any real LIFX devices on your network.
+        async with await Device.connect("127.0.0.1", serial="d073d5000001") as light:
+            label: str = await light.get_label()
+            power: int = await light.get_power()
+            print(f"Device: {label}")
+            print(f"Power: {power}")
 
-        # Change colour to red (RGB components run from 0.0 to 1.0)
-        print("Setting colour to red...")
-        await light.set_color(HSBK.from_rgb(1.0, 0.0, 0.0))
-        print("Done!")
+            print("Setting colour to red...")
+            await light.set_color(Colors.RED)
+            print("Done!")
+    except LifxError as e:
+        print(f"LIFX error: {e}")
 
 
 asyncio.run(main())
