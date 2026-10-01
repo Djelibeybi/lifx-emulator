@@ -357,9 +357,27 @@ def _tile_count_fits_product(state_dict: dict) -> bool:
     Returns:
         True if the saved tile count is an integer within the product's range
     """
-    product = get_registry().get_product(state_dict.get("product", 0))
+    product = get_registry().get_product(_saved_product_id(state_dict))
     has_chain = product.has_chain if product else False
     return is_valid_tile_count(state_dict.get("tile_count"), has_chain)
+
+
+def _saved_product_id(state_dict: dict) -> int:
+    """Read a saved product ID the way config loading will.
+
+    DeviceDefinition coerces a hand-edited "55" to 55 on load, so export
+    looks the product up by the same integer.
+
+    Args:
+        state_dict: Saved device state
+
+    Returns:
+        The product ID as an int, or 0 when it is missing or not a number
+    """
+    try:
+        return int(state_dict.get("product", 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _scenarios_to_yaml_dict(scenario_file: Path) -> dict | None:
