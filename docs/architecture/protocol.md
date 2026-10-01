@@ -69,8 +69,12 @@ from lifx_emulator.protocol.packets import Light
 packet = Light.SetColor.unpack(payload_bytes)
 print(packet.color.hue)  # Access typed fields
 
-# Pack a State response
-response = Light.State(color=device_state.color, power=device_state.power_level, ...)
+# Pack a StateColor response
+response = Light.StateColor(
+    color=device_state.color,
+    power=device_state.power_level,
+    label=device_state.label,
+)
 response_bytes = response.pack()
 ```
 
@@ -112,8 +116,10 @@ The generators produce:
 `get_packet_class(pkt_type)` maps a numeric packet type to its class:
 
 ```python
+from lifx_emulator.protocol.packets import get_packet_class
+
 get_packet_class(2)   # → Device.GetService
-get_packet_class(101) # → Light.Get (GetColor)
+get_packet_class(101) # → Light.GetColor
 get_packet_class(502) # → MultiZone.GetColorZones
 get_packet_class(707) # → Tile.Get64
 ```

@@ -88,7 +88,7 @@ Handlers are split across four modules matching the protocol namespaces:
 |--------|-------------|----------|
 | `device_handlers.py` | 2-59 | GetService, GetVersion, SetLabel |
 | `light_handlers.py` | 101-149 | GetColor, SetColor, GetInfrared |
-| `multizone_handlers.py` | 501-512 | GetColorZones, SetExtendedColorZones |
+| `multizone_handlers.py` | 501-512 | GetColorZones, ExtendedSetColorZones |
 | `tile_handlers.py` | 701-720 | Get64, Set64, CopyFrameBuffer |
 
 ### 7. Response Construction
@@ -105,8 +105,8 @@ Handlers return packet objects (not headers). The device wraps each response in 
 Some handlers return multiple packets:
 
 - **Multizone** (`GetColorZones`): one `StateMultiZone` (type 506) per 8 zones
-- **Extended multizone** (`GetExtendedColorZones`): one or more `ExtendedStateMultiZone` (type 512) per 82 zones
-- **Tile** (`Get64`): one `StateTileState64` per tile in the chain, with up to 64 zones per packet
+- **Extended multizone** (`ExtendedGetColorZones`): one or more `ExtendedStateMultiZone` (type 512) per 82 zones
+- **Tile** (`Get64`): one `State64` (type 711) per tile in the chain, with up to 64 zones per packet
 
 Handlers return these as lists, and `process_packet()` constructs a separate header for each.
 

@@ -99,8 +99,8 @@ from lifx_emulator import (
 
 **Handler Registry** (`handlers/`)
 
-- `handlers/registry.py` - `PacketHandlerRegistry`
-  - Maps packet types → handler functions
+- `handlers/registry.py` - `HandlerRegistry`
+  - Maps packet types → stateless handler instances
   - Modular handlers by namespace:
     - `device_handlers.py` - Device.* packets (types 2-59)
     - `light_handlers.py` - Light.* packets (types 101-149)
@@ -112,8 +112,9 @@ from lifx_emulator import (
 
 **Interfaces** (`repositories/`)
 
-- `repositories/storage_backend.py`
+- `repositories/device_repository.py`
   - `IDeviceRepository` - In-memory device collection
+- `repositories/storage_backend.py`
   - `IDeviceStorageBackend` - Device state persistence
   - `IScenarioStorageBackend` - Scenario persistence
 
@@ -132,13 +133,15 @@ from lifx_emulator import (
 @dataclass
 class DeviceState:
     """Complete device state"""
-    core: CoreDeviceState        # Serial, power, label, firmware
-    color: ColorState | None      # HSBK color for color devices
-    infrared: InfraredState | None
-    hev: HevState | None
-    multizone: MultiZoneState | None
-    matrix: MatrixState | None
-    relay: RelayState | None
+    core: CoreDeviceState        # Serial, power, label, colour, firmware
+    network: NetworkState
+    location: LocationState
+    group: GroupState
+    waveform: WaveformState
+    infrared: InfraredState | None = None
+    hev: HevState | None = None
+    multizone: MultiZoneState | None = None
+    matrix: MatrixState | None = None
 ```
 
 **Capability Detection**
@@ -151,25 +154,26 @@ class DeviceState:
 **Factory Functions** (`factories/factory.py`)
 
 ```python
-# Simple factories
-create_color_light(serial, storage) -> EmulatedLifxDevice
-create_multizone_light(serial, zone_count, extended_multizone, storage)
-create_tile_device(serial, tile_count, storage)
-create_switch(serial, product_id, storage)
+# Simple factories (each returns an EmulatedLifxDevice)
+create_color_light(serial, storage=storage)
+create_multizone_light(serial, zone_count, extended_multizone, storage=storage)
+create_tile_device(serial, tile_count, storage=storage)
+create_switch(serial, product_id, storage=storage)
 
 # Universal factory
-create_device(product_id, serial, zone_count, tile_count, storage)
+create_device(product_id, serial, zone_count=zone_count, tile_count=tile_count)
 ```
 
 **Builder Pattern** (`factories/builder.py`)
 
 ```python
-builder = (
-    DeviceBuilder()
+from lifx_emulator.factories import DeviceBuilder
+from lifx_emulator.products import get_product
+
+device = (
+    DeviceBuilder(get_product(29))  # LIFX+ (A19), with infrared
     .with_serial("d073d5000001")
-    .with_product(27)  # LIFX A19
-    .with_color_support()
-    .with_infrared_support()
+    .with_firmware_version(3, 70)
     .build()
 )
 ```
@@ -242,7 +246,7 @@ python -m lifx_emulator.protocol.generator
 def create_api_app(server: EmulatedLifxServer) -> FastAPI:
     """Creates OpenAPI 3.1.0 compliant FastAPI application"""
 
-def run_api_server(server, host, port):
+async def run_api_server(server, host="127.0.0.1", port=8080):
     """Run uvicorn ASGI server"""
 ```
 
@@ -304,10 +308,10 @@ graph TD
 ```mermaid
 graph TD
     A[UDP Socket] --> B["EmulatedLifxServer.handle_packet()"]
-    B --> C["DeviceManager.route_packet()"]
+    B --> C["DeviceManager.resolve_target_devices()"]
     C --> D["EmulatedLifxDevice.process_packet()"]
-    D --> E["PacketHandlerRegistry.get_handler()"]
-    E --> F["handlers/*_handlers.py:handle_*()"]
+    D --> E["HandlerRegistry.get_handler()"]
+    E --> F["handlers/*_handlers.py:*Handler.handle()"]
     F --> G[Response packets sent via UDP]
 ```
 

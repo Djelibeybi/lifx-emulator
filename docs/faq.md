@@ -289,12 +289,23 @@ See also: [CI/CD Integration Tutorial](tutorials/05-cicd.md)
 **Yes!** Use the `firmware_version` scenario:
 
 ```python
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
 device = create_color_light("d073d5000001")
 
 # Emulate firmware version 3.70
-device.scenarios = {
-    'firmware_version': (3, 70)
-}
+scenario_manager = HierarchicalScenarioManager()
+scenario_manager.set_device_scenario(
+    "d073d5000001", ScenarioConfig(firmware_version=(3, 70))
+)
+
+device_manager = DeviceManager(DeviceRepository())
+server = EmulatedLifxServer(
+    [device], device_manager, "127.0.0.1", 56700, scenario_manager=scenario_manager
+)
 ```
 
 **Use cases:**
@@ -332,9 +343,16 @@ See also: [Testing Scenarios Guide](guide/testing-scenarios.md#6-custom-firmware
 **Example:**
 
 ```python
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 # Emulator side
 device = create_color_light("d073d5000001")
-server = EmulatedLifxServer([device], "0.0.0.0", 56700)  # Bind to all interfaces
+device_manager = DeviceManager(DeviceRepository())
+server = EmulatedLifxServer(
+    [device], device_manager, "0.0.0.0", 56700
+)  # Bind to all interfaces
 
 # Client side (using any LIFX library)
 # Discovery will find the emulated device
@@ -353,16 +371,16 @@ server = EmulatedLifxServer([device], "0.0.0.0", 56700)  # Bind to all interface
 
 **Available effects:**
 
-- MOVE effect (packet type 510/511)
+- MOVE effect (`MultiZone.GetEffect` 507 / `MultiZone.SetEffect` 508)
 
 **Example:**
 ```python
 strip = create_multizone_light("d073d8000001", zone_count=16)
 
 # Device responds to:
-# - GetColorZones (502) / SetColorZones (503)
-# - GetMultiZoneEffect (510) / SetMultiZoneEffect (511)
-# - GetExtendedColorZones (506) / SetExtendedColorZones (512)
+# - GetColorZones (502) / SetColorZones (501)
+# - GetEffect (507) / SetEffect (508)
+# - ExtendedGetColorZones (511) / ExtendedSetColorZones (510)
 ```
 
 ### Can I test tile patterns?

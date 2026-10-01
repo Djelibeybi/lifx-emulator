@@ -124,7 +124,7 @@ sequenceDiagram
 
 4. **Packet Processing**
    - Device unpacks payload using packet class
-   - Determines packet type (e.g., LightSetColor)
+   - Determines packet type (e.g., `Light.SetColor`)
    - Routes to specific handler method
 
 5. **State Update**
@@ -149,16 +149,16 @@ sequenceDiagram
 class EmulatedLifxServer:
     """UDP server that routes packets to devices."""
 
-    def __init__(self, devices, bind_address, port):
-        self._devices = {d.state.serial: d for d in devices}
-        self._bind_address = bind_address
-        self._port = port
+    def __init__(self, devices, device_manager, bind_address="127.0.0.1", port=56700):
+        self._device_manager = device_manager  # Owns the device repository
+        self.bind_address = bind_address
+        self.port = port
 
     async def start(self):
         """Start UDP server."""
         pass
 
-    def handle_packet(self, data, addr):
+    async def handle_packet(self, data, addr):
         """Route incoming packet to device(s)."""
         # Parse header
         # Find target device(s)
@@ -172,37 +172,37 @@ class EmulatedLifxServer:
 class EmulatedLifxDevice:
     """Virtual LIFX device with stateful behavior."""
 
-    def __init__(self, state: DeviceState):
-        self.state = state
-        self.scenarios = {}  # Testing scenarios
+    def __init__(self, device_state: DeviceState, storage=None, scenario_manager=None):
+        self.state = device_state
+        self.storage = storage
+        self.scenario_manager = scenario_manager  # Testing scenarios
+        self.handlers = create_default_registry()
 
     def process_packet(self, header, packet):
         """Process incoming packet and generate responses."""
         # Handle acknowledgments
-        # Route to packet-specific handler
-        # Generate response packets
-        pass
-
-    def _handle_light_set_color(self, packet):
-        """Handle LightSetColor command."""
-        # Update self.state.color
-        # Return response if needed
+        # Route to the handler registered for header.pkt_type
+        # Return a list of (header, packet) response tuples
         pass
 ```
 
 ### Protocol Layer
 
 ```python
+@dataclass
 class LifxHeader:
     """36-byte LIFX packet header."""
 
-    def __init__(self, ...):
-        self.target = target        # 6-byte serial + 2 null bytes
-        self.source = source        # 4-byte identifier
-        self.sequence = sequence    # 1-byte sequence number
-        self.pkt_type = pkt_type    # Packet type number
-        self.tagged = tagged        # tagged
-        # ... more fields
+    size: int = 0
+    protocol: int = 1024
+    source: int = 0                 # 4-byte identifier
+    target: bytes = b"\x00" * 8     # 6-byte serial + 2 null bytes
+    tagged: bool = False
+    ack_required: bool = False
+    res_required: bool = False
+    sequence: int = 0               # 1-byte sequence number
+    pkt_type: int = 0               # Packet type number
+    # ... more fields
 
     def pack(self) -> bytes:
         """Pack header to 36 bytes."""
@@ -219,26 +219,27 @@ class LifxHeader:
 ```python
 @dataclass
 class DeviceState:
-    """Device state storage."""
+    """Device state composed from focused sub-states."""
 
-    # Identity
-    serial: str
-    label: str
-    vendor: int
-    product: int
+    # Always present
+    core: CoreDeviceState  # serial, label, power_level, color, product, ...
+    network: NetworkState
+    location: LocationState
+    group: GroupState
+    waveform: WaveformState
+
+    # Present only when the device has the capability
+    infrared: InfraredState | None = None
+    hev: HevState | None = None
+    multizone: MultiZoneState | None = None  # zone_count, zone_colors
+    matrix: MatrixState | None = None  # tile_count, tile_devices
 
     # Capabilities
-    has_color: bool
-    has_infrared: bool
-    has_multizone: bool
-    has_matrix: bool
-    has_hev: bool
-
-    # Light state
-    power_level: int
-    color: LightHsbk
-    zone_colors: list[LightHsbk]
-    tile_devices: list[TileState]
+    has_color: bool = True
+    has_infrared: bool = False
+    has_multizone: bool = False
+    has_matrix: bool = False
+    has_hev: bool = False
 
     # ... more fields
 ```
@@ -260,40 +261,42 @@ Devices advertise capabilities through boolean flags:
 
 The emulator implements 44+ packet types across multiple domains:
 
-### Device Domain (1-45)
+### Device Domain (2-59)
 
-- GetService (2) / StateService (3)
-- GetVersion (32) / StateVersion (33)
-- GetLabel (23) / StateLabel (25)
-- SetLabel (24)
-- GetPower (20) / StatePower (22)
-- SetPower (21)
+- `Device.GetService` (2) / `Device.StateService` (3)
+- `Device.GetVersion` (32) / `Device.StateVersion` (33)
+- `Device.GetLabel` (23) / `Device.StateLabel` (25)
+- `Device.SetLabel` (24)
+- `Device.GetPower` (20) / `Device.StatePower` (22)
+- `Device.SetPower` (21)
 
-### Light Domain (100-122)
+### Light Domain (101-149)
 
-- LightGet (101) / LightState (107)
-- LightSetColor (102)
-- LightSetWaveform (103)
-- LightGetInfrared (120) / LightStateInfrared (121)
-- LightSetInfrared (122)
+- `Light.GetColor` (101) / `Light.StateColor` (107)
+- `Light.SetColor` (102)
+- `Light.SetWaveform` (103)
+- `Light.GetInfrared` (120) / `Light.StateInfrared` (121)
+- `Light.SetInfrared` (122)
 
-### MultiZone Domain (500-512)
+### MultiZone Domain (501-512)
 
-- GetColorZones (502) / StateZone (503)
-- StateMultiZone (506)
-- SetColorZones (501)
-- GetMultiZoneEffect (507) / StateMultiZoneEffect (508)
-- SetMultiZoneEffect (509)
-- SetExtendedColorZones (510)
-- GetExtendedColorZones (511) / StateExtendedColorZones (512)
+- `MultiZone.GetColorZones` (502) / `MultiZone.StateZone` (503)
+- `MultiZone.StateMultiZone` (506)
+- `MultiZone.SetColorZones` (501)
+- `MultiZone.GetEffect` (507) / `MultiZone.StateEffect` (509)
+- `MultiZone.SetEffect` (508)
+- `MultiZone.ExtendedSetColorZones` (510)
+- `MultiZone.ExtendedGetColorZones` (511) / `MultiZone.ExtendedStateMultiZone` (512)
 
-### Tile Domain (700-719)
+### Tile Domain (701-720)
 
-- GetDeviceChain (701) / StateDeviceChain (702)
-- SetUserPosition (703)
-- GetTileState64 (707) / StateTileState64 (711)
-- SetTileState64 (715)
-- GetTileEffect (718) / StateTileEffect (719)
+- `Tile.GetDeviceChain` (701) / `Tile.StateDeviceChain` (702)
+- `Tile.SetUserPosition` (703)
+- `Tile.Get64` (707) / `Tile.State64` (711)
+- `Tile.Set64` (715)
+- `Tile.CopyFrameBuffer` (716)
+- `Tile.GetEffect` (718) / `Tile.StateEffect` (720)
+- `Tile.SetEffect` (719)
 
 See [Protocol Layer](protocol.md) for complete packet documentation.
 
@@ -304,25 +307,22 @@ See [Protocol Layer](protocol.md) for complete packet documentation.
 Factory functions encapsulate device creation:
 
 ```python
-def create_color_light(serial=None):
-    """Create LIFX A19 with sensible defaults."""
-    return create_device(27, serial=serial)
+def create_color_light(serial=None, storage=None, **options):
+    """Create a LIFX Color light with sensible defaults."""
+    return create_device(91, serial=serial, storage=storage, **options)
 ```
 
 ### Strategy Pattern
 
-Packet handlers implement strategy pattern:
+Packet handlers implement strategy pattern: one stateless handler class per
+packet type, looked up in a `HandlerRegistry` by `PKT_TYPE`:
 
 ```python
-def process_packet(self, header, packet):
-    handler_map = {
-        LightSetColor: self._handle_light_set_color,
-        LightSetPower: self._handle_light_set_power,
-        # ... more handlers
-    }
-    handler = handler_map.get(type(packet))
+def _handle_packet_type(self, header, packet):
+    handler = self.handlers.get_handler(header.pkt_type)
     if handler:
-        return handler(packet)
+        return handler.handle(self.state, packet, header.res_required)
+    return []
 ```
 
 ### State Pattern
@@ -330,9 +330,15 @@ def process_packet(self, header, packet):
 Device state changes based on received commands:
 
 ```python
-def _handle_light_set_color(self, packet):
-    self.state.color = packet.color
-    self.state.power_level = packet.color.brightness
+class SetColorHandler(PacketHandler):
+    PKT_TYPE = Light.SetColor.PKT_TYPE
+
+    def handle(self, device_state, packet, res_required):
+        if packet:
+            device_state.color = packet.color
+        if res_required:
+            return [Light.StateColor(...)]
+        return []
 ```
 
 ## Concurrency Model
@@ -345,7 +351,12 @@ The emulator uses Python's asyncio:
 - **Stateful devices**: Each device maintains independent state
 
 ```python
-async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+device_manager = DeviceManager(DeviceRepository())
+async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
     # Server runs in background tasks
     # Your test code runs concurrently
     await asyncio.sleep(1)
@@ -356,13 +367,19 @@ async with EmulatedLifxServer(devices, "127.0.0.1", 56700) as server:
 The emulator supports advanced testing scenarios:
 
 ```python
-device.scenarios = {
-    'drop_packets': {101: 1.0},      # Drop all LightGet packets
-    'response_delays': {102: 0.5},   # Delay SetColor by 500ms
-    'malformed_packets': [107],      # Truncate StateLight
-    'invalid_field_values': [22],    # Send invalid StatePower
-    'partial_responses': [506],      # Incomplete multizone response
-}
+from lifx_emulator.scenarios import ScenarioConfig
+
+server.scenario_manager.set_device_scenario(
+    "d073d5000001",
+    ScenarioConfig(
+        drop_packets={101: 1.0},  # Drop all GetColor packets
+        response_delays={102: 0.5},  # Delay SetColor by 500ms
+        malformed_packets=[107],  # Truncate StateColor
+        invalid_field_values=[22],  # Send invalid StatePower
+        partial_responses=[506],  # Incomplete multizone response
+    ),
+)
+server.invalidate_all_scenario_caches()
 ```
 
 ## Next Steps

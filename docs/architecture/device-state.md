@@ -38,7 +38,7 @@ Boolean flags indicate what a device supports:
 | `has_matrix` | 2D zone grid | `MatrixState` sub-state |
 | `has_hev` | Germicidal UV-C | `HevState` sub-state |
 | `has_relays` | Physical relays | Switch behavior |
-| `has_buttons` | Physical buttons | Button protocol (not yet implemented) |
+| `has_buttons` | Physical buttons | Button protocol (types 905–911) |
 
 These flags are set by factory functions based on the product specification and cannot change at runtime.
 
@@ -56,8 +56,11 @@ state.tile_width     # → state.matrix.tile_width (or 8 if matrix is None)
 The `_ATTRIBUTE_ROUTES` dictionary maps attribute names to their sub-state. Some attributes use tuple routing for name translation:
 
 ```python
-"multizone_effect_type": ("multizone", "effect_type")
-# state.multizone_effect_type → state.multizone.effect_type
+_ATTRIBUTE_ROUTES = {
+    # ...
+    "multizone_effect_type": ("multizone", "effect_type"),
+    # state.multizone_effect_type → state.multizone.effect_type
+}
 ```
 
 When an optional sub-state is `None`, reads return a default value from `_OPTIONAL_DEFAULTS` and writes are silently ignored.

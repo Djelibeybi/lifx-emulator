@@ -153,7 +153,7 @@ python -m lifx_emulator.products.generator
 **Decision**: Implement async file persistence with debouncing:
 - Queue state changes in memory
 - Debounce writes (100ms default)
-- Async file I/O (aiofiles)
+- File I/O on a single-worker thread pool executor
 - Graceful shutdown flushes pending writes
 
 **Consequences**:
@@ -167,11 +167,14 @@ python -m lifx_emulator.products.generator
 
 **Usage**:
 ```python
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
+
 storage = DevicePersistenceAsyncFile()
 device = create_color_light("d073d5000001", storage=storage)
 
-# State changes auto-save asynchronously
-device.state.label = "My Light"
+# State-changing packets (SetColor, SetLabel, SetPower, ...) are saved
+# asynchronously after the handler runs
 
 # Graceful shutdown
 await storage.shutdown()
@@ -202,7 +205,7 @@ await storage.shutdown()
 **Implementation**:
 ```
 handlers/
-├── registry.py           # PacketHandlerRegistry
+├── registry.py           # HandlerRegistry
 ├── device_handlers.py    # Device.* packets (types 2-59)
 ├── light_handlers.py     # Light.* packets (types 101-149)
 ├── multizone_handlers.py # MultiZone.* packets (types 501-512)
@@ -224,17 +227,21 @@ handlers/
 ```python
 @dataclass
 class DeviceState:
-    core: CoreDeviceState           # Always present
-    color: ColorState | None        # Only for color devices
-    infrared: InfraredState | None
-    hev: HevState | None
-    multizone: MultiZoneState | None
-    matrix: MatrixState | None
-    relay: RelayState | None
+    core: CoreDeviceState  # Always present
+    network: NetworkState
+    location: LocationState
+    group: GroupState
+    waveform: WaveformState
+
+    # Optional capability-specific state
+    infrared: InfraredState | None = None
+    hev: HevState | None = None
+    multizone: MultiZoneState | None = None
+    matrix: MatrixState | None = None
 
     # Capability flags
-    has_color: bool
-    has_infrared: bool
+    has_color: bool = True
+    has_infrared: bool = False
     # ... etc
 ```
 
@@ -306,21 +313,19 @@ manager.set_device_scenario("d073d5000001", ScenarioConfig(drop_packets={101: 1.
 
 **Simple factories** (`factories/factory.py`):
 ```python
-create_color_light(serial, storage)
-create_multizone_light(serial, zone_count, extended_multizone, storage)
-create_tile_device(serial, tile_count, storage)
-create_device(product_id, serial, zone_count, tile_count, storage)
+create_color_light(serial, storage=storage)
+create_multizone_light(serial, zone_count, extended_multizone, storage=storage)
+create_tile_device(serial, tile_count, storage=storage)
+create_device(product_id, serial, zone_count=zone_count, tile_count=tile_count)
 ```
 
 **Builder pattern** (`factories/builder.py`):
 ```python
-device = (
-    DeviceBuilder()
-    .with_serial("d073d5000001")
-    .with_product(27)
-    .with_color_support()
-    .build()
-)
+from lifx_emulator.factories import DeviceBuilder
+from lifx_emulator.products import get_product
+
+product = get_product(27)  # LIFX A19
+device = DeviceBuilder(product).with_serial("d073d5000001").build()
 ```
 
 **Consequences**:
@@ -344,10 +349,12 @@ device = (
 
 ```python
 class ActivityObserver(Protocol):
-    def on_packet_sent(self, event: PacketEvent): ...
-    def on_packet_received(self, event: PacketEvent): ...
-    def on_state_changed(self, device: EmulatedLifxDevice): ...
+    def on_packet_received(self, event: PacketEvent) -> None: ...
+    def on_packet_sent(self, event: PacketEvent) -> None: ...
 ```
+
+State changes are reported separately through the
+`EmulatedLifxDevice.on_state_changed` callback.
 
 **Consequences**:
 - ✅ Decoupled components
@@ -405,6 +412,7 @@ class ActivityObserver(Protocol):
 **Decision**: Use capability flags to filter packets before processing:
 - Devices set capability flags: `has_color`, `has_multizone`, `has_matrix`, `has_relays`, `has_buttons`
 - Switch devices (`has_relays=True`, `has_buttons=True`) return `StateUnhandled` for Light/MultiZone/Tile packets
+- Light packets are rejected when `has_relays` is set, MultiZone packets when `has_multizone` is not, Tile packets when `has_matrix` is not
 - Device.* packets are handled normally
 
 **Consequences**:
@@ -415,10 +423,19 @@ class ActivityObserver(Protocol):
 
 **Example** (`devices/device.py`):
 ```python
-# Switches reject lighting packets
-if not self.state.has_color and pkt_type in LIGHT_PACKET_TYPES:
-    return StateUnhandled(unhandled_type=pkt_type)
+def _should_handle_packet(self, pkt_type: int) -> bool:
+    # Device.* packets are always handled (2-59)
+    if 2 <= pkt_type <= 59:
+        return True
+    # Switches (devices with relays) reject Light.* packets (101-149)
+    if 101 <= pkt_type <= 149:
+        return not self.state.has_relays
+    # ... MultiZone, Tile and Button ranges check their capability flags
+    return True
 ```
+
+When this returns `False`, `process_packet()` replies with
+`Device.StateUnhandled(unhandled_type=pkt_type)`.
 
 **Reference**: `docs/guide/device-types.md`
 
