@@ -113,14 +113,17 @@ await server.stop()
 
 ### 3. Device (Advanced)
 
-For custom device creation:
+Every factory function returns an `EmulatedLifxDevice`; its `DeviceState` is available as `device.state` and can be customised after creation:
 
 ```python
-from lifx_emulator.devices import EmulatedLifxDevice, DeviceState
+from lifx_emulator.factories import create_device
 
-state = DeviceState(serial="d073d5000001", label="Custom Device")
-device = EmulatedLifxDevice(state)
+device = create_device(27, serial="d073d5000001")  # LIFX A19
+device.state.label = "Custom Device"
+print(device.state.label)  # Custom Device
 ```
+
+`DeviceState` is composed of sub-states, so build devices with the factory functions rather than constructing `DeviceState` directly.
 
 👉 **[Full Device Documentation](device.md)**
 

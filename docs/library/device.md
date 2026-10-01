@@ -24,25 +24,44 @@ The device module provides the core classes for emulating LIFX devices: `DeviceS
 
 ## DeviceState
 
-Dataclass holding all stateful information for an emulated LIFX device.
+Composed dataclass holding all stateful information for an emulated LIFX device.
 
 `DeviceState` represents the complete state of a virtual LIFX device, including identity (serial, product ID), current settings (color, power, label), capabilities (color, multizone, matrix, etc.), and feature-specific state (zones, tiles, HEV cycle status).
 
-### Fields
+`DeviceState` is not a flat dataclass: it is composed of focused sub-states (`core`, `network`, `location`, `group`, `waveform`, plus optional `infrared`, `hev`, `multizone` and `matrix`). Its constructor takes those sub-state objects, not keyword arguments such as `serial=` or `label=`. See [Device State](../architecture/device-state.md) for the full structure.
+
+!!! tip "Create devices with the factory functions"
+    Don't construct `DeviceState` by hand. Use the [factory functions](factories.md) (`create_color_light()`, `create_multizone_light()`, `create_tile_device()`, `create_device()` and friends), which build the correct sub-states and capability flags from the product registry and `specs.yml`, then return an `EmulatedLifxDevice`. The state is available as `device.state`.
+
+```python
+from lifx_emulator.factories import create_color_light
+
+device = create_color_light("d073d5000001")
+state = device.state
+state.label = "Living Room"
+
+print(state.serial)  # d073d5000001
+print(state.product)  # 91 (LIFX Color, the default for create_color_light)
+print(state.core.label)  # Living Room
+```
+
+### Attributes
+
+The attributes below are read and written directly on `DeviceState`; each one is delegated to the sub-state that owns it (for example, `state.label` reads `state.core.label`, and `state.zone_count` reads `state.multizone.zone_count`). Default values shown are those used when the device is created by a factory function.
 
 #### Identity
 
-- **`serial`** (`str` = `'d073d5123456'`) - 12-character hexadecimal device serial number
-- **`mac_address`** (`bytes` = `bytes.fromhex('d073d5123456')`) - 6-byte MAC address (derived from serial)
+- **`serial`** (`str`) - 12-character hexadecimal device serial number
+- **`mac_address`** (`bytes`) - 6-byte MAC address (derived from serial)
 - **`vendor`** (`int` = `1`) - LIFX vendor ID (always 1)
-- **`product`** (`int` = `27`) - Product ID (e.g., 27 for A19, 32 for Z strip)
-- **`version_major`** (`int` = `3`) - Firmware major version
-- **`version_minor`** (`int` = `70`) - Firmware minor version
+- **`product`** (`int`) - Product ID (e.g., 27 for A19, 32 for Z strip)
+- **`version_major`** (`int`) - Firmware major version
+- **`version_minor`** (`int`) - Firmware minor version
 
 #### Basic State
 
 - **`port`** (`int` = `56700`) - UDP port for communication
-- **`label`** (`str` = `'Emulated LIFX'`) - Device label (max 32 bytes)
+- **`label`** (`str`) - Device label (max 32 bytes)
 - **`power_level`** (`int` = `0`) - Power state (0=off, 65535=on)
 - **`color`** (`LightHsbk`) - Current HSBK color
 - **`uptime_ns`** (`int` = `0`) - Device uptime in nanoseconds
@@ -121,9 +140,11 @@ Get the 8-byte target field for this device (6-byte serial + 2 null bytes).
 
 **Example:**
 ```python
-device_state = DeviceState(serial="d073d5000001")
-target = device_state.get_target_bytes()
-# Returns: b'\xd0\x73\xd5\x00\x00\x01\x00\x00'
+from lifx_emulator.factories import create_color_light
+
+device = create_color_light("d073d5000001")
+target = device.state.get_target_bytes()
+# Returns: b'\xd0s\xd5\x00\x00\x01\x00\x00'
 ```
 
 ---
@@ -136,31 +157,40 @@ Emulated LIFX device that processes protocol packets and manages state.
 
 ### Constructor
 
-#### `EmulatedLifxDevice(device_state, scenarios=None, storage=None, handler_registry=None)`
+#### `EmulatedLifxDevice(device_state, storage=None, handler_registry=None, scenario_manager=None, on_state_changed=None, persist_initial_state=False)`
 
 Create a new emulated LIFX device.
+
+In most cases you should not call this constructor directly: the [factory functions](factories.md) build a fully configured `DeviceState` for a product and wrap it in an `EmulatedLifxDevice` for you, and accept the same `storage` and `scenario_manager` collaborators.
 
 **Parameters:**
 
 - **`device_state`** (`DeviceState`) - Initial device state
-- **`scenarios`** (`dict | None`) - Optional testing scenarios configuration (see [Testing Scenarios](#testing-scenarios))
-- **`storage`** (`AsyncDeviceStorage | None`) - Optional async persistent storage for state
+- **`storage`** (`DevicePersistenceAsyncFile | None`) - Optional async persistent storage for state
 - **`handler_registry`** (`HandlerRegistry | None`) - Optional custom packet handler registry
+- **`scenario_manager`** (`HierarchicalScenarioManager | None`) - Optional scenario manager for testing scenarios (see [Testing Scenarios](#testing-scenarios))
+- **`on_state_changed`** (`StateChangeCallback | None`) - Optional callback invoked after a state-changing packet
+- **`persist_initial_state`** (`bool` = `False`) - Save the initial state as soon as persistence is activated
 
 **Example:**
 ```python
-from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
 # Create basic device
-state = DeviceState(serial="d073d5000001", product=27, label="Living Room")
-device = EmulatedLifxDevice(state)
+device = create_color_light("d073d5000001")
+device.state.label = "Living Room"
 
 # Create device with testing scenarios
-scenarios = {
-    "drop_packets": {116: 1.0},  # Drop all SetColor packets (100% drop rate)
-    "response_delays": {2: 0.5},  # Delay GetService responses by 500ms
-}
-device = EmulatedLifxDevice(state, scenarios=scenarios)
+manager = HierarchicalScenarioManager()
+manager.set_device_scenario(
+    "d073d5000002",
+    ScenarioConfig(
+        drop_packets={102: 1.0},  # Drop all SetColor packets (100% drop rate)
+        response_delays={2: 0.5},  # Delay GetService responses by 500ms
+    ),
+)
+device = create_color_light("d073d5000002", scenario_manager=manager)
 ```
 
 ### Methods
@@ -171,63 +201,11 @@ Calculate current uptime in nanoseconds since device creation.
 
 **Returns:** `int` - Uptime in nanoseconds
 
-#### `should_respond(packet_type: int) -> bool`
+#### `invalidate_scenario_cache() -> None`
 
-Check if device should respond to a packet (for testing packet drop scenarios).
+Discard the cached, merged scenario configuration so it is re-resolved from the scenario manager on the next packet. Call this after changing scenarios at runtime (the server's `invalidate_all_scenario_caches()` does this for every device).
 
-**Parameters:**
-
-- **`packet_type`** (`int`) - LIFX packet type number
-
-**Returns:** `bool` - `False` if packet should be dropped, `True` otherwise
-
-#### `get_response_delay(packet_type: int) -> float`
-
-Get configured response delay for a packet type (for testing timeout scenarios).
-
-**Parameters:**
-
-- **`packet_type`** (`int`) - LIFX packet type number
-
-**Returns:** `float` - Delay in seconds (0.0 if no delay configured)
-
-#### `should_send_malformed(packet_type: int) -> bool`
-
-Check if response packet should be malformed (for testing error handling).
-
-**Parameters:**
-
-- **`packet_type`** (`int`) - LIFX packet type number
-
-**Returns:** `bool` - `True` if response should be truncated/corrupted
-
-#### `should_send_invalid_fields(packet_type: int) -> bool`
-
-Check if response packet should have invalid field values (all 0xFF bytes).
-
-**Parameters:**
-
-- **`packet_type`** (`int`) - LIFX packet type number
-
-**Returns:** `bool` - `True` if response fields should be invalid
-
-#### `get_firmware_version_override() -> tuple[int, int] | None`
-
-Get firmware version override from scenarios configuration.
-
-**Returns:** `tuple[int, int] | None` - (major, minor) version tuple or `None`
-
-#### `should_send_partial_response(packet_type: int) -> bool`
-
-Check if multizone/tile response should be partial (incomplete data for testing).
-
-**Parameters:**
-
-- **`packet_type`** (`int`) - LIFX packet type number
-
-**Returns:** `bool` - `True` if response should be incomplete
-
-#### `process_packet(header: LifxHeader, packet: Any | None) -> list[tuple[LifxHeader, Any]]`
+#### `process_packet(header: LifxHeader, packet: Any | None, *, scenario: ScenarioConfig | None = None, should_respond: bool | None = None) -> list[tuple[LifxHeader, Any]]`
 
 Process an incoming LIFX protocol packet and generate response packets.
 
@@ -244,25 +222,40 @@ This is the main entry point for packet processing. It:
 
 - **`header`** (`LifxHeader`) - Parsed packet header
 - **`packet`** (`Any | None`) - Parsed packet payload (None for header-only packets)
+- **`scenario`** (`ScenarioConfig | None`) - Pre-resolved scenario; resolved from the device's scenario manager when omitted
+- **`should_respond`** (`bool | None`) - Pre-resolved drop decision; resolved from the scenario when omitted
 
 **Returns:** `list[tuple[LifxHeader, Any]]` - List of response packets to send
 
 **Example:**
 ```python
+from lifx_emulator.factories import create_color_light
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Light
+from lifx_emulator.protocol.protocol_types import LightHsbk
 
-# Parse incoming packet
-header = LifxHeader.unpack(raw_header)
-packet = Light.SetColor.unpack(raw_payload)
+device = create_color_light("d073d5000001")
+
+# Build (or unpack from the wire) an incoming SetColor request
+packet = Light.SetColor(
+    color=LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500),
+    duration=0,
+)
+header = LifxHeader(
+    source=12345,
+    target=device.state.get_target_bytes(),
+    res_required=True,
+    sequence=1,
+    pkt_type=Light.SetColor.PKT_TYPE,
+)
 
 # Process and get responses
 responses = device.process_packet(header, packet)
 
-# Send each response
+# Each response is a (header, packet) tuple ready to pack and send
 for resp_header, resp_packet in responses:
     raw_response = resp_header.pack() + resp_packet.pack()
-    sock.sendto(raw_response, client_address)
+    print(resp_header.pkt_type, len(raw_response))  # 107 88 (Light.State)
 ```
 
 ---
@@ -290,39 +283,34 @@ Capability flags in `DeviceState` determine which features the device supports a
 - `has_extended_multizone` is independent of zone count — it indicates firmware support for the extended multizone protocol
 - Matrix devices store tile data in `tile_devices` list
 
+Capability flags are set by the factory functions from the product registry, so you choose a product rather than setting flags yourself.
+
 **Example:**
 ```python
-# Create a multizone device
-state = DeviceState(
-    serial="d073d5000002",
-    product=32,  # LIFX Z
-    has_multizone=True,
-    zone_count=16,
-    zone_colors=[LightHsbk(hue=0, saturation=65535, brightness=32768, kelvin=3500) for _ in range(16)]
-)
+from lifx_emulator.factories import create_device, create_multizone_light
 
-# Create a tile device
-state = DeviceState(
-    serial="d073d5000003",
-    product=55,  # LIFX Tile
-    has_matrix=True,
-    tile_count=5,
-    tile_width=8,
-    tile_height=8,
-)
+# Create a multizone device (LIFX Z, product 32) with 16 zones
+strip = create_multizone_light("d073d5000002", zone_count=16)
+print(strip.state.has_multizone, strip.state.zone_count)  # True 16
+
+# Create a matrix device (LIFX Tile, product 55) with a chain of 5 tiles.
+# Tile dimensions are fixed by the product (8x8 for the Tile).
+tiles = create_device(55, serial="d073d5000003", tile_count=5)
+print(tiles.state.has_matrix, tiles.state.tile_count)  # True 5
+print(f"{tiles.state.tile_width}x{tiles.state.tile_height}")  # 8x8
 ```
 
 ---
 
 ## Testing Scenarios
 
-The `scenarios` parameter allows you to configure error injection and testing behaviors for emulated devices. This is useful for testing client library error handling, timeouts, and edge cases.
+Scenarios configure error injection and testing behaviours for emulated devices. Each scenario is a `ScenarioConfig` registered with a `HierarchicalScenarioManager` at device, type, location, group or global scope; pass the manager to the factory function (or `EmulatedLifxDevice`) as `scenario_manager`. This is useful for testing client library error handling, timeouts, and edge cases.
 
 ### Available Scenarios
 
 | Scenario | Type | Description | Example |
 |----------|------|-------------|---------|
-| `drop_packets` | `dict[int, float]` | Packet types to drop with rates (0.0-1.0) | `{116: 1.0, 117: 0.5}` - Always drop 116, drop 117 50% |
+| `drop_packets` | `dict[int, float]` | Packet types to drop with rates (0.0-1.0) | `{102: 1.0, 101: 0.5}` - Always drop SetColor, drop Get 50% |
 | `response_delays` | `dict[int, float]` | Delay (seconds) before responding to packet type | `{2: 1.5}` - Delay GetService by 1.5s |
 | `malformed_packets` | `list[int]` | Packet types to send truncated/corrupted | `[107]` - Corrupt State packets |
 | `invalid_field_values` | `list[int]` | Packet types to send with invalid fields (0xFF) | `[107]` - Invalid State values |
@@ -331,39 +319,55 @@ The `scenarios` parameter allows you to configure error injection and testing be
 
 ### Examples
 
+```python
+from lifx_emulator.factories import create_color_light, create_multizone_light
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
+manager = HierarchicalScenarioManager()
+```
+
 **Simulate network issues:**
 ```python
-scenarios = {
-    "drop_packets": {2: 1.0},  # Drop all GetService packets - simulate discovery failure
-    "response_delays": {116: 2.0},  # Delay SetColor by 2 seconds
-}
-device = EmulatedLifxDevice(state, scenarios=scenarios)
+manager.set_device_scenario(
+    "d073d5000001",
+    ScenarioConfig(
+        drop_packets={2: 1.0},  # Drop all GetService packets - simulate discovery failure
+        response_delays={102: 2.0},  # Delay SetColor by 2 seconds
+    ),
+)
+device = create_color_light("d073d5000001", scenario_manager=manager)
 ```
 
 **Test error handling:**
 ```python
-scenarios = {
-    "malformed_packets": [107],  # Corrupt Light.State responses
-    "invalid_field_values": [118],  # Invalid Light.StatePower values
-}
-device = EmulatedLifxDevice(state, scenarios=scenarios)
+manager.set_device_scenario(
+    "d073d5000002",
+    ScenarioConfig(
+        malformed_packets=[107],  # Corrupt Light.State responses
+        invalid_field_values=[118],  # Invalid Light.StatePower values
+    ),
+)
+device = create_color_light("d073d5000002", scenario_manager=manager)
 ```
 
 **Test multizone edge cases:**
 ```python
-scenarios = {
-    "partial_responses": [506],  # Send incomplete StateMultiZone packets
-}
-device = EmulatedLifxDevice(state, scenarios=scenarios)
+manager.set_type_scenario(
+    "multizone",
+    ScenarioConfig(partial_responses=[506]),  # Send incomplete StateMultiZone packets
+)
+strip = create_multizone_light("d073d5000003", extended_multizone=False, scenario_manager=manager)
 ```
 
 **Test firmware compatibility:**
 ```python
-scenarios = {
-    "firmware_version": (2, 77),  # Report older firmware version
-}
-device = EmulatedLifxDevice(state, scenarios=scenarios)
+manager.set_global_scenario(
+    ScenarioConfig(firmware_version=(2, 77)),  # Report older firmware version
+)
+device = create_color_light("d073d5000004", scenario_manager=manager)
 ```
+
+If you change scenarios after devices have processed packets, call `device.invalidate_scenario_cache()` (or `server.invalidate_all_scenario_caches()`) so the new configuration takes effect.
 
 ---
 
@@ -374,7 +378,9 @@ device = EmulatedLifxDevice(state, scenarios=scenarios)
 Access device state directly through the `state` attribute:
 
 ```python
-device = EmulatedLifxDevice(state)
+from lifx_emulator.factories import create_multizone_light
+
+device = create_multizone_light("d073d5000002", zone_count=16)
 
 # Check power
 if device.state.power_level == 65535:
@@ -392,9 +398,14 @@ if device.state.has_multizone:
 
 ### Modifying State
 
-Modify state fields directly and optionally save to persistent storage:
+Modify state attributes directly; each assignment is routed to the owning sub-state:
 
 ```python
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.protocol.protocol_types import LightHsbk
+
+device = create_color_light("d073d5000001")
+
 # Change color
 device.state.color = LightHsbk(hue=21845, saturation=65535, brightness=32768, kelvin=3500)
 
@@ -403,34 +414,36 @@ device.state.label = "Kitchen Light"
 
 # Power on
 device.state.power_level = 65535
-
-# Save to persistent storage (if configured)
-# State changes are automatically queued for async save
-# If needed, manually queue a save:
-# await device.storage.save_device_state(device.state)
 ```
+
+State changes made by protocol packets (SetColor, SetPower, SetLabel and so on) are queued for saving automatically when the device has storage. Direct attribute assignments like the ones above are not; queue a save yourself with `await device.storage.save_device_state(device.state)`.
 
 ### Persistent Storage Integration
 
-Use `AsyncDeviceStorage` to persist state across restarts:
+Use `DevicePersistenceAsyncFile` to persist state across restarts. Pass the same storage and serial to a factory function on the next run and the saved state is restored:
 
 ```python
 import asyncio
-from lifx_emulator.async_storage import AsyncDeviceStorage
+
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
+
 
 async def main():
-    storage = AsyncDeviceStorage()  # Uses ~/.lifx-emulator by default
-    device = EmulatedLifxDevice(state, storage=storage)
+    storage = DevicePersistenceAsyncFile()  # Uses ~/.lifx-emulator by default
+    device = create_color_light("d073d5000001", storage=storage)
+    device.state.label = "Kitchen Light"
 
-    # State changes are automatically queued for async save
-    # Manual async save:
+    # Queue an async save, then flush pending writes before exiting
     await storage.save_device_state(device.state)
+    await storage.shutdown()
 
-    # On next run, state is automatically restored
+    # On the next run, state is restored from ~/.lifx-emulator/d073d5000001.json
+    restored = create_color_light("d073d5000001", storage=DevicePersistenceAsyncFile())
+    print(restored.state.label)  # Kitchen Light
+
 
 asyncio.run(main())
-restored_device = EmulatedLifxDevice(DeviceState(serial=state.serial), storage=storage)
-# restored_device.state.label == "Kitchen Light"
 ```
 
 ---
@@ -487,7 +500,7 @@ graph TD
 
 ## References
 
-**Source:** `src/lifx_emulator/device.py`
+**Source:** `packages/lifx-emulator-core/src/lifx_emulator/devices/device.py`, `packages/lifx-emulator-core/src/lifx_emulator/devices/states.py`
 
 **Related Documentation:**
 
