@@ -47,7 +47,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
     from lifx_emulator.devices import DeviceManager
 
     async def main():
-        # Create a LIFX Color 800lm light
+        # Create a LIFX Color light
         device = create_color_light("d073d5000001")
 
         # Create repository and manager (required)
@@ -101,7 +101,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
 
     The CLI command `lifx-emulator --color 1 --verbose` does the following:
 
-    - `--color 1` - Creates 1 LIFX Color 800lm light (product ID 91)
+    - `--color 1` - Creates 1 LIFX Color light (product ID 91)
     - `--verbose` - Enables detailed packet logging to see activity
 
     **CLI Options Explained:**
@@ -122,7 +122,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
     device = create_color_light("d073d5000001")
     ```
 
-    - `create_color_light()` - Creates a LIFX Color 800lm bulb (product ID 91)
+    - `create_color_light()` - Creates a LIFX Color bulb (product ID 91)
     - `"d073d5000001"` - The device's unique serial number (MAC address)
 
     ### Creating the Server
@@ -237,7 +237,9 @@ Done!
 **Solution:** Change the port number:
 
 ```python
-server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56701)  # Different port
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56701
+)  # Different port
 ```
 
 ### Device Not Discovered
@@ -250,7 +252,9 @@ server = EmulatedLifxServer([device], device_manager, "127.0.0.1", 56701)  # Dif
 3. Try binding to `"0.0.0.0"` instead of `"127.0.0.1"`:
 
 ```python
-server = EmulatedLifxServer([device], device_manager, "0.0.0.0", 56700)
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "0.0.0.0", 56700
+)
 ```
 
 ### Python Version Error
@@ -290,7 +294,9 @@ Try these modifications to your `first_device.py`:
       create_color_light("d073d5000002"),
       create_color_light("d073d5000003"),
   ]
-  server = EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700)
+  server = EmulatedLifxServer(
+      devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+  )
   ```
 
 - **Different device type:** Try a multizone strip:

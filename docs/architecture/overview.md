@@ -351,12 +351,10 @@ The emulator uses Python's asyncio:
 - **Stateful devices**: Each device maintains independent state
 
 ```python
-from lifx_emulator import EmulatedLifxServer
-from lifx_emulator.devices import DeviceManager
-from lifx_emulator.repositories import DeviceRepository
-
-device_manager = DeviceManager(DeviceRepository())
-async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as server:
+server = EmulatedLifxServer(
+    devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+)
+async with server:
     # Server runs in background tasks
     # Your test code runs concurrently
     await asyncio.sleep(1)
@@ -366,21 +364,30 @@ async with EmulatedLifxServer(devices, device_manager, "127.0.0.1", 56700) as se
 
 The emulator supports advanced testing scenarios:
 
-```python
-from lifx_emulator.scenarios import ScenarioConfig
+Scenarios are `ScenarioConfig` objects registered on the server's `HierarchicalScenarioManager` at device, type, location, group or global scope. `drop_packets` matches the incoming request type; the other fields match the outgoing response type:
 
-server.scenario_manager.set_device_scenario(
+```python
+manager = HierarchicalScenarioManager()
+manager.set_device_scenario(
     "d073d5000001",
     ScenarioConfig(
-        drop_packets={101: 1.0},  # Drop all GetColor packets
-        response_delays={102: 0.5},  # Delay SetColor by 500ms
+        drop_packets={101: 1.0},  # Drop all GetColor requests
+        response_delays={107: 0.5},  # Delay StateColor replies by 500ms
         malformed_packets=[107],  # Truncate StateColor
         invalid_field_values=[22],  # Send invalid StatePower
-        partial_responses=[506],  # Incomplete multizone response
+        partial_responses=[506],  # Incomplete StateMultiZone response
     ),
 )
-server.invalidate_all_scenario_caches()
+server = EmulatedLifxServer(
+    devices,
+    DeviceManager(DeviceRepository()),
+    "127.0.0.1",
+    56700,
+    scenario_manager=manager,
+)
 ```
+
+See [Testing Scenarios](../guide/testing-scenarios.md) for the full guide.
 
 ## Next Steps
 

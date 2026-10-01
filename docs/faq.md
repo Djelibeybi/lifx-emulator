@@ -116,7 +116,7 @@ The emulator implements the **LIFX LAN Protocol** as documented at https://lan.d
 
 - ❌ WiFi/network layer (emulator uses UDP directly)
 - ❌ Firmware updates
-- ❌ Physical buttons or sensors
+- ❌ Physical button presses and real sensor readings (switch button configuration and ambient light queries are answered from emulated state)
 - ❌ Actual light output (brightness, color rendering)
 - ❌ Power consumption
 
@@ -216,7 +216,7 @@ The emulator implements the **LIFX LAN Protocol** as documented at https://lan.d
 
 **Windows:**
 
-- May need `WindowsProactorEventLoopPolicy` for asyncio
+- The default asyncio event loop works; no event loop policy change is needed
 - Firewall may prompt for UDP access
 - Use dynamic port allocation in tests
 
@@ -241,9 +241,7 @@ The emulator implements the **LIFX LAN Protocol** as documented at https://lan.d
 FROM python:3.13-slim
 
 WORKDIR /app
-COPY . /app
-
-RUN pip install -e .
+RUN pip install --no-cache-dir lifx-emulator
 
 EXPOSE 56700/udp
 
@@ -286,26 +284,15 @@ See also: [CI/CD Integration Tutorial](tutorials/05-cicd.md)
 
 ### Can I emulate specific firmware versions?
 
-**Yes!** Use the `firmware_version` scenario:
+**Yes!** Pass `firmware_version=(major, minor)` to the factory function:
 
 ```python
-from lifx_emulator import EmulatedLifxServer, create_color_light
-from lifx_emulator.devices import DeviceManager
-from lifx_emulator.repositories import DeviceRepository
-from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
-
-device = create_color_light("d073d5000001")
+from lifx_emulator import create_color_light
 
 # Emulate firmware version 3.70
-scenario_manager = HierarchicalScenarioManager()
-scenario_manager.set_device_scenario(
-    "d073d5000001", ScenarioConfig(firmware_version=(3, 70))
-)
+device = create_color_light("d073d5000001", firmware_version=(3, 70))
 
-device_manager = DeviceManager(DeviceRepository())
-server = EmulatedLifxServer(
-    [device], device_manager, "127.0.0.1", 56700, scenario_manager=scenario_manager
-)
+print(device.state.version_major, device.state.version_minor)  # 3 70
 ```
 
 **Use cases:**
@@ -317,7 +304,7 @@ server = EmulatedLifxServer(
 
 **Note:** This only changes the *reported* version, not actual behavior.
 
-See also: [Testing Scenarios Guide](guide/testing-scenarios.md#6-custom-firmware-version-firmware_version)
+See also: [Factory Functions - Custom Firmware Versions](library/factories.md#custom-firmware-versions)
 
 ### Does it support firmware updates?
 
@@ -349,13 +336,15 @@ from lifx_emulator.repositories import DeviceRepository
 
 # Emulator side
 device = create_color_light("d073d5000001")
-device_manager = DeviceManager(DeviceRepository())
 server = EmulatedLifxServer(
-    [device], device_manager, "0.0.0.0", 56700
-)  # Bind to all interfaces
+    [device],
+    DeviceManager(DeviceRepository()),
+    "0.0.0.0",  # Bind to all interfaces
+    56700,
+)
 
-# Client side (using any LIFX library)
-# Discovery will find the emulated device
+# Run it with `async with server:` (or `await server.start()`).
+# Client side (using any LIFX library): discovery will find the emulated device
 ```
 
 **Discovery tips:**
@@ -371,16 +360,21 @@ server = EmulatedLifxServer(
 
 **Available effects:**
 
-- MOVE effect (`MultiZone.GetEffect` 507 / `MultiZone.SetEffect` 508)
+- MOVE effect (GetEffect 507 / SetEffect 508 / StateEffect 509)
 
 **Example:**
 ```python
-strip = create_multizone_light("d073d8000001", zone_count=16)
+from lifx_emulator import create_multizone_light
+
+strip = create_multizone_light(
+    "d073d8000001", zone_count=16, extended_multizone=True
+)
 
 # Device responds to:
-# - GetColorZones (502) / SetColorZones (501)
-# - GetEffect (507) / SetEffect (508)
+# - GetColorZones (502) / SetColorZones (501) -> StateMultiZone (506)
+# - GetEffect (507) / SetEffect (508) -> StateEffect (509)
 # - ExtendedGetColorZones (511) / ExtendedSetColorZones (510)
+#   -> ExtendedStateMultiZone (512), when extended_multizone=True
 ```
 
 ### Can I test tile patterns?
@@ -389,18 +383,24 @@ strip = create_multizone_light("d073d8000001", zone_count=16)
 
 **Tile features:**
 
-- Multiple tiles per device (up to 5 or more)
+- Up to 5 tiles per chain
 - Get64/Set64 for zone updates
 - GetDeviceChain for tile info
-- Custom tile dimensions (8x8, 16x8, 5x6)
+- Product-specific tile dimensions from the product defaults (8x8 Tile, 5x6 Candle, 16x8 Ceiling 13x26")
 
 **Example:**
 
 ```python
+from lifx_emulator import create_tile_device
+from lifx_emulator.factories import create_device
+
 tiles = create_tile_device("d073d9000001", tile_count=5)
 
 # Each tile has 64 zones (8x8)
-# Responds to Get64 (707) and Set64 (715) packets
+# Responds to Get64 (707) -> State64 (711) and Set64 (715)
+
+# Other matrix products take their dimensions from the product ID
+candle = create_device(57, serial="d073d9000002")  # LIFX Candle: one 5x6 tile
 ```
 
 ## Troubleshooting Questions
@@ -520,12 +520,6 @@ See also: [Troubleshooting Guide](reference/troubleshooting.md)
 **Not supported:**
 - ❌ Python 3.9 and older
 
-**Why Python 3.10+?**
-- Modern async features
-- Performance improvements
-- Type hints improvements
-- Better error messages
-
 ### What are the differences from real devices?
 
 **Protocol differences:**
@@ -537,7 +531,7 @@ See also: [Troubleshooting Guide](reference/troubleshooting.md)
 - 🔴 Emulator responds instantly (no physical light transition)
 - 🔴 Emulator has no memory/CPU constraints
 - 🔴 Emulator doesn't model WiFi issues
-- 🔴 Emulator doesn't have button inputs
+- 🔴 Emulator has no physical button presses
 
 **State differences:**
 - ✅ Color, power, zones, tiles: accurate

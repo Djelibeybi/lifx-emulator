@@ -52,11 +52,11 @@ Test error handling:
 
 ## Complete Example
 
-Here's a complete example showing multiple features:
+Here's a complete example showing multiple features. The async fixtures assume pytest-asyncio's `asyncio_mode = "auto"` (see [Integration Testing](../guide/integration-testing.md)):
 
 ```python
-import asyncio
 import pytest
+
 from lifx_emulator import (
     EmulatedLifxServer,
     create_color_light,
@@ -65,42 +65,66 @@ from lifx_emulator import (
 )
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
-from lifx_emulator.scenarios import ScenarioConfig
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
+
 
 @pytest.fixture
-async def lifx_devices():
+def scenario_manager():
+    """Configure error scenarios shared by the devices and the server."""
+    manager = HierarchicalScenarioManager()
+
+    # Delay StateColor (107) replies from one device by 100ms. Response
+    # delays are keyed by the response packet type, not the request.
+    manager.set_device_scenario(
+        "d073d5000001", ScenarioConfig(response_delays={107: 0.1})
+    )
+    return manager
+
+
+@pytest.fixture
+def lifx_devices(scenario_manager):
     """Create a diverse set of emulated devices."""
-    devices = [
-        create_color_light("d073d5000001"),
-        create_color_light("d073d5000002"),
-        create_multizone_light("d073d8000001", zone_count=16),
-        create_multizone_light("d073d8000002", zone_count=82, extended_multizone=True),
-        create_tile_device("d073d9000001", tile_count=5),
+    return [
+        create_color_light("d073d5000001", scenario_manager=scenario_manager),
+        create_color_light("d073d5000002", scenario_manager=scenario_manager),
+        create_multizone_light(
+            "d073d8000001", zone_count=16, scenario_manager=scenario_manager
+        ),
+        create_multizone_light(
+            "d073d8000002",
+            zone_count=82,
+            extended_multizone=True,
+            scenario_manager=scenario_manager,
+        ),
+        create_tile_device(
+            "d073d9000001", tile_count=5, scenario_manager=scenario_manager
+        ),
     ]
 
-    return devices
 
 @pytest.fixture
-async def lifx_server(lifx_devices):
+async def lifx_server(lifx_devices, scenario_manager):
     """Start emulator server with devices."""
-    device_manager = DeviceManager(DeviceRepository())
-    server = EmulatedLifxServer(lifx_devices, device_manager, "127.0.0.1", 56700)
-
-    # Configure an error scenario for one device
-    server.scenario_manager.set_device_scenario(
-        "d073d5000001",
-        ScenarioConfig(response_delays={102: 0.1}),  # Delay SetColor by 100ms
+    # The server assigns its scenario manager to every device it manages,
+    # so pass it the same manager the scenarios were registered on.
+    server = EmulatedLifxServer(
+        lifx_devices,
+        DeviceManager(DeviceRepository()),
+        "127.0.0.1",
+        56700,
+        scenario_manager=scenario_manager,
     )
-    server.invalidate_all_scenario_caches()
 
     async with server:
         yield server
+
 
 @pytest.mark.asyncio
 async def test_discovery(lifx_server):
     """Test device discovery."""
     # Your test code here
-    pass
+    assert len(lifx_server.get_all_devices()) == 5
+
 
 @pytest.mark.asyncio
 async def test_color_control(lifx_server):

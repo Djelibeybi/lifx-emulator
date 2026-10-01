@@ -33,21 +33,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.13'
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+
     - name: Install dependencies
-      run: |
-        pip install uv
-        uv sync
+      run: uv sync
 
     - name: Run tests with emulator
-      run: |
-        pytest tests/ -v
+      run: uv run pytest tests/ -v
 
 ```
 
@@ -76,10 +76,10 @@ jobs:
         python-version: ['3.13', '3.14']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -107,30 +107,25 @@ Using pytest-xdist for faster tests:
         pytest tests/ -v -n auto
 ```
 
-**Note:** Ensure your tests use dynamic port allocation to avoid conflicts:
+**Note:** Ensure your tests use dynamic port allocation to avoid conflicts. Bind to port `0` so the operating system picks a free UDP port, then read the real port from `server.ipv4_endpoint` once the server has started (`server.port` stays `0`):
 
 ```python
-import socket
-
 import pytest
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
-def get_free_port():
-    """Find an available UDP port."""
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(('127.0.0.1', 0))
-        return s.getsockname()[1]
 
 @pytest.fixture
 async def emulator():
-    port = get_free_port()
     device = create_color_light("d073d5000001")
-    device_manager = DeviceManager(DeviceRepository())
-    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+    )
     async with server:
-        yield server
+        port = server.ipv4_endpoint[1]  # The port the OS assigned
+        yield server, port
 ```
 
 ## GitLab CI Integration
@@ -159,7 +154,7 @@ before_script:
 test:
   stage: test
   script:
-    - pytest tests/ -v --junitxml=report.xml
+    - uv run pytest tests/ -v --junitxml=report.xml
   artifacts:
     when: always
     reports:
@@ -172,8 +167,7 @@ test:
 test:
   stage: test
   script:
-    - pip install pytest-cov
-    - pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+    - uv run --with pytest-cov pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     reports:
@@ -220,22 +214,21 @@ RUN pip install --no-cache-dir uv && \
     uv sync
 
 # Run tests by default
-CMD ["pytest", "tests/", "-v"]
+CMD ["uv", "run", "pytest", "tests/", "-v"]
 ```
 
 ### Docker Compose for Multi-Container Testing
 
-Create `docker-compose.test.yml`:
+Create `docker-compose.test.yml` (this assumes `lifx-emulator` is one of your project's dependencies, so `uv sync` installs it):
 
 ```yaml
-version: '3.8'
-
 services:
   emulator:
     build:
       context: .
       dockerfile: Dockerfile.test
-    command: python -m lifx_emulator_app --color 3 --multizone 2 --bind 0.0.0.0
+    # Bind to 0.0.0.0 so the tests container can reach the emulator
+    command: uv run lifx-emulator --color 3 --multizone 2 --bind 0.0.0.0
     ports:
       - "56700:56700/udp"
     networks:
@@ -245,7 +238,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    command: pytest tests/integration/ -v
+    command: uv run pytest tests/integration/ -v
     depends_on:
       - emulator
     networks:
@@ -262,21 +255,18 @@ networks:
 Run with:
 
 ```bash
-docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+docker compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
 ### Standalone Emulator Container
 
-Build and run emulator in a container:
+Build and run the emulator in a container:
 
 ```dockerfile
 # Dockerfile
 FROM python:3.13-slim
 
-WORKDIR /app
-COPY . /app
-
-RUN pip install -e .
+RUN pip install --no-cache-dir lifx-emulator
 
 # Expose UDP port
 EXPOSE 56700/udp
@@ -323,19 +313,22 @@ Better approach - let pytest manage the process:
 
 ```python
 # conftest.py
-import pytest
+import signal
 import subprocess
 import time
-import signal
+
+import pytest
+
 
 @pytest.fixture(scope="session")
 def emulator_process():
     """Start emulator as subprocess for entire test session."""
-    # Start emulator
+    # Start emulator. Discard its output: a pipe that is never read can
+    # fill up and block the emulator, especially with --verbose.
     proc = subprocess.Popen(
         ["lifx-emulator", "--color", "3"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
 
     # Wait for startup
@@ -354,31 +347,28 @@ No CI configuration changes needed - tests manage the emulator themselves!
 
 ### Strategy 1: Dynamic Port Allocation
 
-```python
-import socket
+Bind to port `0` and let the operating system assign a free UDP port. `server.port` keeps the value you passed (`0`), so read the assigned port from `server.ipv4_endpoint` after the server starts:
 
+```python
 import pytest
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
-def get_free_port():
-    """Get a free UDP port from the OS."""
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(('127.0.0.1', 0))
-        port = s.getsockname()[1]
-    return port
 
 @pytest.fixture
 async def emulator_with_dynamic_port():
-    port = get_free_port()
     device = create_color_light("d073d5000001")
-    device_manager = DeviceManager(DeviceRepository())
-    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+    )
 
     async with server:
-        yield server, port
+        yield server, server.ipv4_endpoint[1]
 ```
+
+This avoids the race in "find a free port, close it, then bind it" helpers, where another process can take the port in between.
 
 ### Strategy 2: Port Ranges per Worker
 
@@ -386,23 +376,27 @@ When using pytest-xdist:
 
 ```python
 import pytest
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
+
 @pytest.fixture
 async def emulator(worker_id):
-    """Each worker gets unique port."""
-    if worker_id == 'master':
-        port = 56700
+    """Each worker gets a unique port and serial."""
+    if worker_id == "master":
+        # Not running under xdist
+        worker_num = 0
     else:
         # Extract worker number (gw0, gw1, etc.)
-        worker_num = int(worker_id.replace('gw', ''))
-        port = 56700 + worker_num + 1
+        worker_num = int(worker_id.replace("gw", "")) + 1
 
-    device = create_color_light(f"d073d5{port:06x}")
-    device_manager = DeviceManager(DeviceRepository())
-    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
+    port = 56700 + worker_num
+    device = create_color_light(f"d073d500{worker_num:04d}")
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", port
+    )
 
     async with server:
         yield server
@@ -414,18 +408,21 @@ async def emulator(worker_id):
 import os
 
 import pytest
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
 
+
 @pytest.fixture
 async def emulator():
     # Allow port override via env var
-    port = int(os.getenv('LIFX_EMULATOR_PORT', '56700'))
+    port = int(os.getenv("LIFX_EMULATOR_PORT", "56700"))
 
     device = create_color_light("d073d5000001")
-    device_manager = DeviceManager(DeviceRepository())
-    server = EmulatedLifxServer([device], device_manager, "127.0.0.1", port)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", port
+    )
 
     async with server:
         yield server
@@ -462,39 +459,34 @@ jobs:
         python-version: ['3.13', '3.14']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
+    - name: Install uv (with dependency caching)
+      uses: astral-sh/setup-uv@v10
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        enable-cache: true
 
+    # Assumes pytest, pytest-asyncio, pytest-cov and pytest-xdist are in
+    # your project's dev dependency group (uv add --dev ...)
     - name: Install dependencies
-      run: |
-        pip install uv
-        uv sync
-        pip install pytest pytest-asyncio pytest-cov pytest-xdist
+      run: uv sync
 
+    # One line, because the default shell on Windows runners is PowerShell,
+    # which does not understand backslash line continuations
     - name: Run tests with coverage
-      run: |
-        pytest tests/ -v -n auto \
-          --cov=src \
-          --cov-report=xml \
-          --cov-report=term-missing
+      run: uv run pytest tests/ -v -n auto --cov=src --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v7
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
       with:
-        file: ./coverage.xml
+        files: ./coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: true
 ```
 
@@ -522,7 +514,7 @@ before_script:
 test:unit:
   stage: test
   script:
-    - pytest tests/unit/ -v --junitxml=report.xml
+    - uv run pytest tests/unit/ -v --junitxml=report.xml
   artifacts:
     when: always
     reports:
@@ -531,7 +523,7 @@ test:unit:
 test:integration:
   stage: test
   script:
-    - pytest tests/integration/ -v -n auto --junitxml=integration-report.xml
+    - uv run --with pytest-xdist pytest tests/integration/ -v -n auto --junitxml=integration-report.xml
   artifacts:
     when: always
     reports:
@@ -540,8 +532,7 @@ test:integration:
 test:coverage:
   stage: test
   script:
-    - pip install pytest-cov
-    - pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+    - uv run --with pytest-cov pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     paths:
@@ -603,15 +594,21 @@ gitlab-runner exec docker test
 ### 1. Use Fixture Scopes Appropriately
 
 ```python
+import pytest
+import pytest_asyncio
+
+
 # Session scope - shared across all tests (fastest)
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def shared_emulator():
     ...
 
+
 # Module scope - shared within a test file
-@pytest.fixture(scope="module")
+@pytest_asyncio.fixture(scope="module", loop_scope="module")
 async def module_emulator():
     ...
+
 
 # Function scope - fresh per test (slowest, most isolated)
 @pytest.fixture(scope="function")
@@ -619,14 +616,28 @@ async def fresh_emulator():
     ...
 ```
 
+With pytest-asyncio, a shared emulator must run on an event loop that lives as long as the fixture, and the tests that use it must run on that same loop. Otherwise the server sits on a loop that is idle while your test runs, and every request times out with no reply. Give the fixture a matching `loop_scope` as above and mark the tests that use it:
+
+```python
+@pytest.mark.asyncio(loop_scope="session")
+async def test_discovery(shared_emulator):
+    ...
+```
+
+Alternatively, set `asyncio_default_fixture_loop_scope` and `asyncio_default_test_loop_scope` to `"session"` in your pytest configuration.
+
 ### 2. Cache Dependencies
 
 Always cache pip/uv dependencies in CI to speed up builds:
 
 ```yaml
-# GitHub Actions
+# GitHub Actions: setup-uv caches the uv cache directory for you
+- uses: astral-sh/setup-uv@v10
+  with:
+    enable-cache: true
 
-- uses: actions/cache@v3
+# Or, with pip
+- uses: actions/cache@v6
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
@@ -634,10 +645,12 @@ Always cache pip/uv dependencies in CI to speed up builds:
 
 ### 3. Use Timeouts
 
-Prevent hanging tests:
+Prevent hanging tests (the `timeout` marker needs the `pytest-timeout` plugin):
 
 ```python
-@pytest.mark.asyncio
+import pytest
+
+
 @pytest.mark.timeout(30)  # Fail after 30 seconds
 async def test_with_timeout(emulator):
     ...
@@ -656,7 +669,7 @@ jobs:
 ```yaml
     - name: Upload logs on failure
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: test-logs
         path: |
@@ -694,17 +707,11 @@ jobs:
 
 **Problem:** Tests fail on Windows runners
 
-**Solution:** Ensure proper async event loop handling:
+**Solutions:**
 
-```python
-# conftest.py
-import sys
-import pytest
-
-if sys.platform == 'win32':
-    import asyncio
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-```
+- Don't change the event loop policy. The default Proactor event loop on Windows supports the UDP sockets the emulator uses, and `asyncio.set_event_loop_policy()` is deprecated from Python 3.14.
+- Use `shell: bash` (or keep commands on one line) in workflow steps, because the default shell on Windows runners is PowerShell.
+- Bind to `127.0.0.1` so Windows Defender Firewall doesn't prompt for network access.
 
 ## Next Steps
 

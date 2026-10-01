@@ -164,10 +164,10 @@ from lifx_emulator.repositories import DeviceRepository
 device_manager = DeviceManager(DeviceRepository())
 server = EmulatedLifxServer(
     devices,
-    device_manager,
+    DeviceManager(DeviceRepository()),
     "127.0.0.1",
     56700,
-    track_activity=False
+    track_activity=False,
 )
 ```
 

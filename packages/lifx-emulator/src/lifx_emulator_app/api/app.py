@@ -59,10 +59,13 @@ def create_api_app(server: EmulatedLifxServer) -> FastAPI:
         Configured FastAPI application
 
     Example:
+        >>> from lifx_emulator.devices import DeviceManager
+        >>> from lifx_emulator.repositories import DeviceRepository
         >>> from lifx_emulator.server import EmulatedLifxServer
-        >>> server = EmulatedLifxServer(bind="127.0.0.1", port=56700)
+        >>> server = EmulatedLifxServer(
+        ...     [], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+        ... )
         >>> app = create_api_app(server)
-        >>> # Run with: uvicorn app:app --host 127.0.0.1 --port 8080
     """
     # Create WebSocket manager early so we can reference it in lifespan
     ws_manager = WebSocketManager(server)
@@ -278,9 +281,16 @@ async def run_api_server(
 
     Example:
         >>> import asyncio
+        >>> from lifx_emulator.devices import DeviceManager
+        >>> from lifx_emulator.repositories import DeviceRepository
         >>> from lifx_emulator.server import EmulatedLifxServer
-        >>> server = EmulatedLifxServer(bind="127.0.0.1", port=56700)
-        >>> asyncio.run(run_api_server(server, host="0.0.0.0", port=8080))
+        >>> async def main():
+        ...     server = EmulatedLifxServer(
+        ...         [], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+        ...     )
+        ...     async with server:
+        ...         await run_api_server(server, host="127.0.0.1", port=8080)
+        >>> asyncio.run(main())  # doctest: +SKIP
     """
 
     app = create_api_app(server)
