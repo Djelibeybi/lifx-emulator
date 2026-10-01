@@ -4,7 +4,7 @@ import socket
 import time
 
 import pytest
-from lifx_emulator.devices.device import DeviceState
+from lifx_emulator.devices.device import DeviceState, EmulatedLifxDevice
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.devices.states import (
     CoreDeviceState,
@@ -23,6 +23,7 @@ from lifx_emulator.factories import (
 )
 from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.scenarios.manager import HierarchicalScenarioManager, ScenarioConfig
 from lifx_emulator.server import EmulatedLifxServer
 
 
@@ -131,18 +132,6 @@ def server_with_devices(color_device, multizone_device, tile_device):
 @pytest.fixture
 def device_with_scenarios():
     """Create a device with test scenarios configured."""
-    from lifx_emulator.devices.device import DeviceState, EmulatedLifxDevice
-    from lifx_emulator.devices.states import (
-        CoreDeviceState,
-        GroupState,
-        LocationState,
-        NetworkState,
-        WaveformState,
-    )
-    from lifx_emulator.scenarios.manager import (
-        HierarchicalScenarioManager,
-        ScenarioConfig,
-    )
 
     # Create device state
     core = CoreDeviceState(

@@ -1,8 +1,10 @@
 """Tests for LIFX Switch device emulation."""
 
-from lifx_emulator.factories import create_device, create_switch
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light, create_device, create_switch
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Light
+from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 
 class TestSwitchFactory:
@@ -98,7 +100,6 @@ class TestSwitchCapabilityFiltering:
 
     def test_color_light_handles_light_packets(self):
         """Test color lights (non-switches) handle Light.* packets."""
-        from lifx_emulator.factories import create_color_light
 
         light = create_color_light("d073d5000001")
 
@@ -268,7 +269,6 @@ class TestSwitchEdgeCases:
 
     def test_switch_with_persistence(self):
         """Test switch device works with persistence enabled."""
-        from lifx_emulator.devices import DevicePersistenceAsyncFile
 
         storage = DevicePersistenceAsyncFile()
         switch = create_switch("d073d7000001", storage=storage)
@@ -278,7 +278,6 @@ class TestSwitchEdgeCases:
 
     def test_switch_with_scenario_manager(self):
         """Test switch device works with scenario manager."""
-        from lifx_emulator.scenarios import HierarchicalScenarioManager
 
         manager = HierarchicalScenarioManager()
         switch = create_switch("d073d7000001", scenario_manager=manager)

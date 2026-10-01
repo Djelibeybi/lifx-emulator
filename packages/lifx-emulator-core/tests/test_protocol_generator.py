@@ -15,6 +15,8 @@ from lifx_emulator.protocol.generator import (
     format_long_import,
     format_long_list,
     generate_enum_code,
+    generate_field_code,
+    generate_nested_packet_code,
     generate_pack_method,
     generate_unpack_method,
     parse_field_type,
@@ -433,7 +435,6 @@ class TestGeneratePackMethod:
 
     def test_pack_simple_uint32_field(self):
         """Test packing simple uint32 field."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [{"name": "Value", "type": "uint32"}]
         code = generate_pack_method(fields_data, "field")
@@ -445,7 +446,6 @@ class TestGeneratePackMethod:
 
     def test_pack_reserved_field(self):
         """Test packing reserved fields."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [
             {"size_bytes": 4}  # Reserved field without name
@@ -456,7 +456,6 @@ class TestGeneratePackMethod:
 
     def test_pack_byte_array_field(self):
         """Test packing byte array field."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [{"name": "Data", "type": "[6]byte", "size_bytes": 6}]
         code = generate_pack_method(fields_data, "field")
@@ -466,7 +465,6 @@ class TestGeneratePackMethod:
 
     def test_pack_nested_structure(self):
         """Test packing nested structure."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [{"name": "Color", "type": "<HSBK>"}]
         code = generate_pack_method(fields_data, "field", enum_types=set())
@@ -475,7 +473,6 @@ class TestGeneratePackMethod:
 
     def test_pack_array_of_nested_structures(self):
         """Test packing array of nested structures."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [{"name": "Colors", "type": "[8]<HSBK>"}]
         code = generate_pack_method(fields_data, "field", enum_types=set())
@@ -485,7 +482,6 @@ class TestGeneratePackMethod:
 
     def test_pack_enum_field(self):
         """Test packing enum field."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [{"name": "Service", "type": "<DeviceService>"}]
         code = generate_pack_method(fields_data, "field", enum_types={"DeviceService"})
@@ -495,7 +491,6 @@ class TestGeneratePackMethod:
 
     def test_pack_multiple_fields(self):
         """Test packing multiple fields."""
-        from lifx_emulator.protocol.generator import generate_pack_method
 
         fields_data = [
             {"name": "X", "type": "uint16"},
@@ -515,7 +510,6 @@ class TestGenerateUnpackMethod:
 
     def test_unpack_simple_uint32_field(self):
         """Test unpacking simple uint32 field."""
-        from lifx_emulator.protocol.generator import generate_unpack_method
 
         fields_data = [{"name": "Value", "type": "uint32"}]
         code = generate_unpack_method("TestClass", fields_data, "field")
@@ -527,7 +521,6 @@ class TestGenerateUnpackMethod:
 
     def test_unpack_byte_array(self):
         """Test unpacking byte array."""
-        from lifx_emulator.protocol.generator import generate_unpack_method
 
         fields_data = [{"name": "Data", "type": "[6]byte", "size_bytes": 6}]
         code = generate_unpack_method("TestClass", fields_data, "field")
@@ -537,7 +530,6 @@ class TestGenerateUnpackMethod:
 
     def test_unpack_nested_structure(self):
         """Test unpacking nested structure."""
-        from lifx_emulator.protocol.generator import generate_unpack_method
 
         fields_data = [{"name": "Color", "type": "<HSBK>"}]
         code = generate_unpack_method(
@@ -549,7 +541,6 @@ class TestGenerateUnpackMethod:
 
     def test_unpack_multiple_fields(self):
         """Test unpacking multiple fields."""
-        from lifx_emulator.protocol.generator import generate_unpack_method
 
         fields_data = [
             {"name": "X", "type": "uint16"},
@@ -563,7 +554,6 @@ class TestGenerateUnpackMethod:
 
     def test_unpack_enum_field(self):
         """Test unpacking enum field."""
-        from lifx_emulator.protocol.generator import generate_unpack_method
 
         fields_data = [{"name": "Service", "type": "<DeviceService>"}]
         code = generate_unpack_method(
@@ -578,7 +568,6 @@ class TestGenerateFieldCode:
 
     def test_generate_simple_field_structure(self):
         """Test generating simple field structure."""
-        from lifx_emulator.protocol.generator import generate_field_code
 
         fields = {"SimpleField": {"fields": [{"name": "Value", "type": "uint32"}]}}
         code, mappings = generate_field_code(fields)
@@ -591,7 +580,6 @@ class TestGenerateFieldCode:
 
     def test_generate_field_with_reserved_bytes(self):
         """Test generating field with reserved bytes."""
-        from lifx_emulator.protocol.generator import generate_field_code
 
         fields = {"ReservedField": {"fields": [{"size_bytes": 4}]}}
         code, mappings = generate_field_code(fields)
@@ -600,7 +588,6 @@ class TestGenerateFieldCode:
 
     def test_generate_multiple_fields(self):
         """Test generating multiple field structures."""
-        from lifx_emulator.protocol.generator import generate_field_code
 
         fields = {
             "Field1": {"fields": [{"name": "A", "type": "uint16"}]},
@@ -615,7 +602,6 @@ class TestGenerateFieldCode:
 
     def test_field_code_with_nested_type(self):
         """Test field code generation with nested types."""
-        from lifx_emulator.protocol.generator import generate_field_code
 
         fields = {"ColorField": {"fields": [{"name": "Color", "type": "<HSBK>"}]}}
         code, mappings = generate_field_code(fields)
@@ -629,7 +615,6 @@ class TestGenerateNestedPacketCode:
 
     def test_generate_device_packets(self):
         """Test generating Device category packets."""
-        from lifx_emulator.protocol.generator import generate_nested_packet_code
 
         packets = {
             "device": {
@@ -650,7 +635,6 @@ class TestGenerateNestedPacketCode:
 
     def test_generate_light_packets(self):
         """Test generating Light category packets."""
-        from lifx_emulator.protocol.generator import generate_nested_packet_code
 
         packets = {
             "light": {
@@ -668,7 +652,6 @@ class TestGenerateNestedPacketCode:
 
     def test_packet_kind_classification(self):
         """Test packet kind classification (GET, SET, STATE, OTHER)."""
-        from lifx_emulator.protocol.generator import generate_nested_packet_code
 
         packets = {
             "device": {
@@ -689,7 +672,6 @@ class TestGenerateNestedPacketCode:
 
     def test_tile_copy_buffer_is_set_operation(self):
         """Test Tile.CopyFrameBuffer is classified as SET operation."""
-        from lifx_emulator.protocol.generator import generate_nested_packet_code
 
         packets = {"tile": {"CopyFrameBuffer": {"pkt_type": 518, "fields": []}}}
         code = generate_nested_packet_code(packets)
