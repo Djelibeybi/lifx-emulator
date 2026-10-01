@@ -556,7 +556,6 @@ class DeviceBuilder:
             version_major=version_major,
             version_minor=version_minor,
             build_timestamp=int(time.time()),
-            mac_address=bytes.fromhex(serial[:12]),
             advertised_services=self._advertised_services,
         )
 

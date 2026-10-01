@@ -33,7 +33,7 @@ Dataclass holding all stateful information for an emulated LIFX device.
 #### Identity
 
 - **`serial`** (`str` = `'d073d5123456'`) - 12-character hexadecimal device serial number
-- **`mac_address`** (`bytes` = `bytes.fromhex('d073d5123456')`) - 6-byte network MAC address. This is a distinct value from the serial number; the factories currently initialise it from the serial bytes
+- **`mac_address`** (`bytes`, read-only) - 6-byte network MAC address, derived from the serial and firmware version. A distinct value from the serial number: firmware 3.70 to 3.x reports the serial with its final octet incremented (wrapping `ff` to `00`); all other firmware reports a MAC identical to the serial
 - **`vendor`** (`int` = `1`) - LIFX vendor ID (always 1)
 - **`product`** (`int` = `27`) - Product ID (e.g., 27 for A19, 32 for Z strip)
 - **`version_major`** (`int` = `3`) - Firmware major version
