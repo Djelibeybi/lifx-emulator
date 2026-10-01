@@ -323,32 +323,51 @@ Devices created by product ID:
 
 ## Testing with a LIFX Client
 
-Here's how to test your emulated device with a real LIFX LAN client library, [`lifxlan`](https://pypi.org/project/lifxlan/). Install it with `pip install lifxlan`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
+Here's how to test your emulated device with a real LIFX LAN client library, [`aiolifx`](https://pypi.org/project/aiolifx/). Install it with `pip install aiolifx`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
 
-The example runs the emulator and the client in one script. `lifxlan` is synchronous, so its calls run in a worker thread to keep the emulator's event loop free to reply. It addresses the emulated device directly by MAC address and IP rather than using broadcast discovery, which would also find, and change, any real LIFX devices on your network:
+The example runs the emulator and the client in the same event loop. `aiolifx` reports responses through callbacks, so a small `request()` helper turns each call into something you can `await`. The client addresses the emulated device directly by MAC address and IP rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
 
 ```python
 import asyncio
 
+from aiolifx.aiolifx import Light
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.repositories import DeviceRepository
-from lifxlan import Light
 
 
-def control_light(host, port):
-    """Control the emulated device with lifxlan (a synchronous client)."""
+async def request(method, *args):
+    """Await an aiolifx callback-based request and return its response."""
+    future = asyncio.get_running_loop().create_future()
+    method(*args, callb=lambda _light, response: future.set_result(response))
+    response = await future
+    if response is None:
+        raise TimeoutError("No response from the device")
+    return response
+
+
+async def control_light(host, port):
+    """Control the emulated device with aiolifx."""
     # Address the emulated device directly by MAC address and IP. Broadcast
-    # discovery (LifxLAN().get_lights()) would also find, and change, any
-    # real LIFX devices on your network.
-    light = Light("d0:73:d5:00:00:01", host, port=port)
+    # discovery would also find, and could change, any real LIFX devices on
+    # your network.
+    loop = asyncio.get_running_loop()
+    transport, light = await loop.create_datagram_endpoint(
+        lambda: Light(loop, "d0:73:d5:00:00:01", host, port),
+        remote_addr=(host, port),
+    )
+    try:
+        await request(light.get_label)
+        await request(light.get_power)
+        print(f"Device: {light.label}")
+        print(f"Power: {light.power_level}")
 
-    print(f"Device: {light.get_label()}")
-    print(f"Power: {light.get_power()}")
-
-    # Change colour to red at 50% brightness; rapid=False waits for the ack
-    light.set_color([0, 65535, 32768, 3500], 0, False)
-    print("Changed colour to red")
+        # Change colour to red at 50% brightness and wait for the ack
+        await request(light.set_color, [0, 65535, 32768, 3500])
+        print("Changed colour to red")
+    finally:
+        transport.close()
 
 
 async def main():
@@ -359,9 +378,7 @@ async def main():
 
     async with server:
         host, port = server.ipv4_endpoint
-        # Run the blocking client in a worker thread so the emulator's
-        # event loop stays free to answer it
-        await asyncio.to_thread(control_light, host, port)
+        await control_light(host, port)
         print(f"Emulator colour: {device.state.color}")
 
 
