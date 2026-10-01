@@ -285,7 +285,7 @@ class StateRestorer:
             matrix.tile_count = saved_state["tile_count"]
             logger.debug("Restored tile_count: %s", matrix.tile_count)
 
-        # Now restore tile devices if available
+        # Restore tile colours if available
         if "tile_devices" in saved_state:
             saved_tiles = saved_state["tile_devices"]
             # Verify tile count matches (should match now that we restored it)
