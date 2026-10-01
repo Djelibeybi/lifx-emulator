@@ -13,7 +13,7 @@ The storage module provides asynchronous persistent storage of device state usin
 
 ### Core Components
 
-- [AsyncDeviceStorage](#asyncdevicestorage) - Async storage handler class
+- [DevicePersistenceAsyncFile](#devicepersistenceasyncfile) - Async storage handler class
 - [File Format](#file-format) - JSON state file specification
 - [State Serialization](#state-serialization) - Converting state to/from JSON
 
@@ -26,13 +26,13 @@ The storage module provides asynchronous persistent storage of device state usin
 
 ---
 
-## AsyncDeviceStorage
+## DevicePersistenceAsyncFile
 
 Main class for handling asynchronous persistent device state storage with smart debouncing and batch writes.
 
 ### Constructor
 
-#### `AsyncDeviceStorage(storage_dir: Path | str = DEFAULT_STORAGE_DIR, debounce_ms: int = 100, batch_size_threshold: int = 50)`
+#### `DevicePersistenceAsyncFile(storage_dir: Path | str = DEFAULT_STORAGE_DIR, debounce_ms: int = 100, batch_size_threshold: int = 50)`
 
 Initialize an async storage handler for device state persistence.
 
@@ -43,13 +43,13 @@ Initialize an async storage handler for device state persistence.
 
 **Example:**
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
 # Use default location (~/.lifx-emulator)
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 
 # Use custom location with custom debounce settings
-storage = AsyncDeviceStorage(
+storage = DevicePersistenceAsyncFile(
     "/var/lib/lifx-emulator",
     debounce_ms=200,
     batch_size_threshold=100
@@ -72,17 +72,25 @@ Queues the device state for saving. The write is performed asynchronously with d
 **Example:**
 ```python
 import asyncio
-from lifx_emulator.devices import DeviceState
-from lifx_emulator.async_storage import AsyncDeviceStorage
+
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
+
 
 async def main():
-    state = DeviceState(serial="d073d5000001", label="Living Room", power_level=65535)
-    storage = AsyncDeviceStorage()
+    storage = DevicePersistenceAsyncFile()
+    device = create_color_light("d073d5000001")
+    device.state.label = "Living Room"
+    device.state.power_level = 65535
 
     # Queue state for async save (non-blocking)
-    await storage.save_device_state(state)
+    await storage.save_device_state(device.state)
 
-    # File will be created at: ~/.lifx-emulator/d073d5000001.json
+    # Flush pending writes before the event loop exits
+    await storage.shutdown()
+
+    # File is now at: ~/.lifx-emulator/d073d5000001.json
+
 
 asyncio.run(main())
 ```
@@ -100,9 +108,9 @@ Reads the JSON file for the specified serial and returns the deserialized state 
 
 **Example:**
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 state_dict = storage.load_device_state("d073d5000001")
 
 if state_dict:
@@ -112,23 +120,25 @@ else:
     print("No saved state found")
 ```
 
-#### `delete_device_state(serial: str) -> None`
+#### `async delete_device_state(serial: str) -> bool`
 
-Delete saved state for a device (synchronous).
+Delete saved state for a device.
 
-Removes the JSON file for the specified serial from disk.
+Discards any queued write for the serial and removes its JSON file from disk.
 
 **Parameters:**
 - **`serial`** (`str`) - Device serial to delete
 
-**Returns:** `None`
+**Returns:** `bool` - `True` if a state file was removed
 
 **Example:**
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+import asyncio
 
-storage = AsyncDeviceStorage()
-storage.delete_device_state("d073d5000001")
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+
+storage = DevicePersistenceAsyncFile()
+asyncio.run(storage.delete_device_state("d073d5000001"))
 # Removes: ~/.lifx-emulator/d073d5000001.json
 ```
 
@@ -142,9 +152,9 @@ Returns a list of device serials that have saved state files in the storage dire
 
 **Example:**
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 devices = storage.list_devices()
 print(f"Found {len(devices)} saved devices:")
 for serial in devices:
@@ -161,9 +171,9 @@ Removes all `.json` files from the storage directory.
 
 **Example:**
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 count = storage.delete_all_device_states()
 print(f"Deleted {count} device states")
 ```
@@ -266,11 +276,12 @@ Convert DeviceState to JSON-compatible dictionary.
 
 **Example:**
 ```python
-from lifx_emulator.devices import DeviceState
-from lifx_emulator.state_serializer import serialize_device_state
+from lifx_emulator.devices.state_serializer import serialize_device_state
+from lifx_emulator.factories import create_color_light
 
-state = DeviceState(serial="d073d5000001", label="Test Light")
-state_dict = serialize_device_state(state)
+device = create_color_light("d073d5000001")
+device.state.label = "Test Light"
+state_dict = serialize_device_state(device.state)
 # state_dict is JSON-compatible dict
 ```
 
@@ -285,11 +296,13 @@ Convert JSON dictionary back to DeviceState-compatible format.
 
 **Example:**
 ```python
-from lifx_emulator.state_serializer import deserialize_device_state
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
+storage = DevicePersistenceAsyncFile()
+
+# load_device_state() calls deserialize_device_state() for you
 loaded_dict = storage.load_device_state("d073d5000001")
 if loaded_dict:
-    # Already deserialized by load_device_state
     print(f"Label: {loaded_dict['label']}")
 ```
 
@@ -310,17 +323,17 @@ You can specify a custom storage directory:
 
 ```python
 from pathlib import Path
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
 # Project-specific storage
-storage = AsyncDeviceStorage("./lifx_state")
+storage = DevicePersistenceAsyncFile("./lifx_state")
 
 # System-wide storage (requires permissions)
-storage = AsyncDeviceStorage("/var/lib/lifx-emulator")
+storage = DevicePersistenceAsyncFile("/var/lib/lifx-emulator")
 
 # Temporary storage (for testing)
 import tempfile
-storage = AsyncDeviceStorage(tempfile.mkdtemp())
+storage = DevicePersistenceAsyncFile(tempfile.mkdtemp())
 ```
 
 ---
@@ -332,21 +345,30 @@ storage = AsyncDeviceStorage(tempfile.mkdtemp())
 When creating a device with storage enabled, existing state is automatically restored:
 
 ```python
+import asyncio
+
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 from lifx_emulator.factories import create_color_light
-from lifx_emulator.async_storage import AsyncDeviceStorage
 
-storage = AsyncDeviceStorage()
 
-# First run: Create device and save state
-device = create_color_light(serial="d073d5000001", storage=storage)
-device.state.label = "Living Room"
-device.state.power_level = 65535
-await storage.save_device_state(device.state)  # Queue async save
+async def main():
+    storage = DevicePersistenceAsyncFile()
 
-# Later run: State is automatically restored
-device = create_color_light(serial="d073d5000001", storage=storage)
-print(device.state.label)  # "Living Room"
-print(device.state.power_level)  # 65535
+    # First run: Create device and save state
+    device = create_color_light(serial="d073d5000001", storage=storage)
+    device.state.label = "Living Room"
+    device.state.power_level = 65535
+    await storage.save_device_state(device.state)  # Queue async save
+    await storage.shutdown()  # Flush pending writes
+
+    # Later run: State is automatically restored
+    storage = DevicePersistenceAsyncFile()
+    device = create_color_light(serial="d073d5000001", storage=storage)
+    print(device.state.label)  # Living Room
+    print(device.state.power_level)  # 65535
+
+
+asyncio.run(main())
 ```
 
 ### Automatic State Saving
@@ -358,23 +380,36 @@ Device state is automatically saved when:
 
 **Example with automatic saving:**
 ```python
-from lifx_emulator.devices import EmulatedLifxDevice, DeviceState
-from lifx_emulator.async_storage import AsyncDeviceStorage
+import asyncio
+
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
 from lifx_emulator.protocol.header import LifxHeader
-from lifx_emulator.protocol.packets import Light
-from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.protocol.packets import Device
 
-storage = AsyncDeviceStorage()
-state = DeviceState(serial="d073d5000001")
-device = EmulatedLifxDevice(state, storage=storage)
 
-# Simulate SetLabel packet
-header = LifxHeader(pkt_type=24, source=1, sequence=1)
-packet = Light.SetLabel(label="Kitchen Light")
-device.process_packet(header, packet)
+async def main():
+    storage = DevicePersistenceAsyncFile()
+    device = create_color_light("d073d5000001", storage=storage)
 
-# State is automatically saved after processing
-# Restarting the emulator will restore "Kitchen Light" label
+    # Simulate a SetLabel packet
+    packet = Device.SetLabel(label="Kitchen Light")
+    header = LifxHeader(
+        source=1,
+        target=device.state.get_target_bytes(),
+        sequence=1,
+        pkt_type=Device.SetLabel.PKT_TYPE,
+    )
+    device.process_packet(header, packet)
+
+    # State is automatically queued for saving after processing.
+    # Drain the device's pending saves, then flush storage to disk.
+    await device.close()
+    await storage.shutdown()
+    print(storage.load_device_state("d073d5000001")["label"])  # Kitchen Light
+
+
+asyncio.run(main())
 ```
 
 ### Manual State Management
@@ -404,9 +439,9 @@ if state_dict:
 
 ```python
 import shutil
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 
 # Backup entire storage directory
 shutil.copytree(storage.storage_dir, "/backup/lifx-emulator-backup")
@@ -432,16 +467,16 @@ shutil.copy("/backup/d073d5000001.json.bak", "~/.lifx-emulator/d073d5000001.json
 
 ```python
 import json
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 
-# Export all device states to a single file
+# Export all device states to a single file. Read the raw JSON files:
+# load_device_state() returns deserialised objects that aren't JSON-serialisable.
 all_states = {}
 for serial in storage.list_devices():
-    state = storage.load_device_state(serial)
-    if state:
-        all_states[serial] = state
+    with open(storage.storage_dir / f"{serial}.json") as f:
+        all_states[serial] = json.load(f)
 
 with open("lifx-export.json", "w") as f:
     json.dump(all_states, f, indent=2)
@@ -449,23 +484,30 @@ with open("lifx-export.json", "w") as f:
 
 ### Importing Device State
 
+Saved state files are plain JSON, so importing is a matter of writing each state back to the storage directory. The next time a device with that serial is created with the same storage, its state is restored:
+
 ```python
 import json
-from lifx_emulator.async_storage import AsyncDeviceStorage
-from lifx_emulator.devices import DeviceState
 
-storage = AsyncDeviceStorage()
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_device
+
+storage = DevicePersistenceAsyncFile()
 
 # Import from exported file
 with open("lifx-export.json") as f:
     all_states = json.load(f)
 
 for serial, state_dict in all_states.items():
-    # Create device state and save
-    state = DeviceState(**state_dict)
-    storage.save_device_state(state)
+    with open(storage.storage_dir / f"{serial}.json", "w") as f:
+        json.dump(state_dict, f, indent=2)
 
 print(f"Imported {len(all_states)} devices")
+
+# Recreate a device; its saved state is restored automatically
+serial, state_dict = next(iter(all_states.items()))
+device = create_device(state_dict["product"], serial=serial, storage=storage)
+print(device.state.label)
 ```
 
 ---
@@ -516,9 +558,9 @@ rm ~/.lifx-emulator/d073d5000001.json
 ### Programmatic CLI Access
 
 ```python
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-storage = AsyncDeviceStorage()
+storage = DevicePersistenceAsyncFile()
 
 # List devices
 print("Saved devices:")
@@ -554,9 +596,11 @@ device = create_color_light(serial=uuid.uuid4().hex[:12], storage=storage)
 Storage operations may fail due to permissions, disk space, etc:
 
 ```python
+from lifx_emulator.devices import DevicePersistenceError
+
 try:
-    storage.save_device_state(device.state)
-except Exception as e:
+    await storage.commit_device_state(device.state)  # Save and flush to disk now
+except DevicePersistenceError as e:
     logger.error("Failed to save state: %s", e)
     # Continue without persistence
 ```
@@ -669,9 +713,9 @@ for file_path in storage_dir.glob("*.json"):
 ## References
 
 **Source Files:**
-- `src/lifx_emulator/storage.py` - Storage implementation
-- `src/lifx_emulator/state_serializer.py` - State serialization
-- `src/lifx_emulator/async_storage.py` - Async storage variant
+- `packages/lifx-emulator-core/src/lifx_emulator/devices/persistence.py` - Async storage implementation (`DevicePersistenceAsyncFile`)
+- `packages/lifx-emulator-core/src/lifx_emulator/devices/state_serializer.py` - State serialisation
+- `packages/lifx-emulator-core/src/lifx_emulator/devices/state_restorer.py` - Restoring saved state into new devices
 
 **Related Documentation:**
 - [Device API](device.md) - Device state structure
