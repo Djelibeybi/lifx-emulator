@@ -274,11 +274,13 @@ class TestDeviceStateToYamlDict:
         result = _device_state_to_yaml_dict(state)
         assert "tile_count" not in result
 
-    def test_matrix_tile_count_kept_when_saved_product_id_is_a_string(self):
-        """Config loading coerces product_id "55" to the LIFX Tile, so export
-        must too, or a 3-tile chain is dropped and comes back as 5 tiles."""
+    @pytest.mark.parametrize("product", ["55", "55.0"])
+    def test_matrix_tile_count_kept_when_saved_product_id_is_a_string(self, product):
+        """Config loading coerces product_id "55" (or "55.0") to the LIFX
+        Tile, so export must too, or a 3-tile chain is dropped and comes back
+        as 5 tiles."""
         state = {
-            "product": "55",
+            "product": product,
             "serial": "d073d5000001",
             "label": "",
             "power_level": 0,

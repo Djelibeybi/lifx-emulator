@@ -38,6 +38,7 @@ from lifx_emulator.scenarios import (
     ScenarioPersistenceAsyncFile,
 )
 from lifx_emulator.server import EmulatedLifxServer
+from pydantic import TypeAdapter, ValidationError
 from rich.logging import RichHandler
 
 from lifx_emulator_app.config import (
@@ -362,11 +363,15 @@ def _tile_count_fits_product(state_dict: dict) -> bool:
     return is_valid_tile_count(state_dict.get("tile_count"), has_chain)
 
 
+# Coerces a saved product ID with the same rules as DeviceDefinition.product_id
+_PRODUCT_ID = TypeAdapter(int)
+
+
 def _saved_product_id(state_dict: dict) -> int:
     """Read a saved product ID the way config loading will.
 
-    DeviceDefinition coerces a hand-edited "55" to 55 on load, so export
-    looks the product up by the same integer.
+    DeviceDefinition coerces a hand-edited "55" (or "55.0") to 55 on load,
+    so export coerces with the same pydantic int rules.
 
     Args:
         state_dict: Saved device state
@@ -375,8 +380,8 @@ def _saved_product_id(state_dict: dict) -> int:
         The product ID as an int, or 0 when it is missing or not a number
     """
     try:
-        return int(state_dict.get("product", 0))
-    except (TypeError, ValueError):
+        return _PRODUCT_ID.validate_python(state_dict.get("product", 0))
+    except ValidationError:
         return 0
 
 
