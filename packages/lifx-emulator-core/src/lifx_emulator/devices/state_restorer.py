@@ -197,7 +197,7 @@ class StateRestorer:
 
         # Matrix (Tile)
         if state.has_matrix and state.matrix:
-            self._restore_matrix_state(state, saved_state)
+            self._restore_matrix_state(state, state.matrix, saved_state)
 
         # Buttons
         if state.has_buttons and "buttons_config" in saved_state:
@@ -326,33 +326,31 @@ class StateRestorer:
             logger.debug("Restored tile_height: %s", matrix.tile_height)
 
     def _restore_matrix_state(
-        self, state: DeviceState, saved_state: dict[str, Any]
+        self, state: DeviceState, matrix: MatrixState, saved_state: dict[str, Any]
     ) -> None:
         """Restore matrix (tile) specific state.
 
         Args:
             state: DeviceState to restore into
+            matrix: The device's matrix state (state.matrix, already present)
             saved_state: Dictionary with saved state values
         """
-        if state.matrix is None:
-            return
-
         if self._saved_tile_count_fits(state, saved_state):
             # A non-chain product (a Mirror, a Candle) is one tile of its own
             # fixed size, so only a chain's saved dimensions are restored;
             # saved colours of another size are then skipped.
             if state.has_chain:
-                self._restore_tile_dimensions(state.matrix, saved_state)
-            self._restore_tile_layout(state.matrix, saved_state)
+                self._restore_tile_dimensions(matrix, saved_state)
+            self._restore_tile_layout(matrix, saved_state)
 
         if "tile_effect_type" in saved_state:
-            state.matrix.effect_type = saved_state["tile_effect_type"]
+            matrix.effect_type = saved_state["tile_effect_type"]
         if "tile_effect_speed" in saved_state:
-            state.matrix.effect_speed = saved_state["tile_effect_speed"]
+            matrix.effect_speed = saved_state["tile_effect_speed"]
         if "tile_effect_palette_count" in saved_state:
-            state.matrix.effect_palette_count = saved_state["tile_effect_palette_count"]
+            matrix.effect_palette_count = saved_state["tile_effect_palette_count"]
         if "tile_effect_palette" in saved_state:
-            state.matrix.effect_palette = saved_state["tile_effect_palette"]
+            matrix.effect_palette = saved_state["tile_effect_palette"]
 
     def _restore_buttons_state(
         self, state: DeviceState, saved_state: dict[str, Any]
