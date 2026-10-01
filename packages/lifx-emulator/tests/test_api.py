@@ -5,9 +5,10 @@ import copy
 import time
 import warnings
 from typing import cast
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+import uvicorn
 from fastapi.testclient import TestClient
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
@@ -16,9 +17,11 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api import create_api_app
+from lifx_emulator_app.api.app import run_api_server
 from lifx_emulator_app.api.models import ColorHsbk, DeviceStateUpdate
 from lifx_emulator_app.api.services.device_service import DeviceService
 
@@ -884,7 +887,6 @@ class TestScenarioConfiguration:
         were not being converted to integers, causing packet dropping to fail
         because the comparison was int vs string.
         """
-        from lifx_emulator.protocol.header import LifxHeader
 
         # Set scenario with string keys (as JSON will provide)
         scenario_config = {
@@ -1415,9 +1417,6 @@ class TestRunAPIServer:
         self, server_with_devices, monkeypatch
     ):
         """Test that run_api_server creates uvicorn server with correct config."""
-        from unittest.mock import AsyncMock, Mock
-
-        from lifx_emulator_app.api.app import run_api_server
 
         # Mock uvicorn components
         mock_server_instance = Mock()
@@ -1436,7 +1435,6 @@ class TestRunAPIServer:
         mock_config_class.side_effect = capture_config
 
         # Monkeypatch uvicorn
-        import uvicorn
 
         monkeypatch.setattr(uvicorn, "Server", mock_server_class)
         monkeypatch.setattr(uvicorn, "Config", mock_config_class)
@@ -1458,9 +1456,6 @@ class TestRunAPIServer:
         self, server_with_devices, monkeypatch
     ):
         """Test that run_api_server uses default host and port."""
-        from unittest.mock import AsyncMock, Mock
-
-        from lifx_emulator_app.api.app import run_api_server
 
         # Mock uvicorn components
         mock_server_instance = Mock()
@@ -1477,7 +1472,6 @@ class TestRunAPIServer:
         mock_config_class = Mock(side_effect=capture_config)
 
         # Monkeypatch uvicorn
-        import uvicorn
 
         monkeypatch.setattr(uvicorn, "Server", mock_server_class)
         monkeypatch.setattr(uvicorn, "Config", mock_config_class)
