@@ -249,6 +249,7 @@ class TestDeviceStateToYamlDict:
         [
             (57, 2),  # LIFX Candle: one tile, no chain
             (9999, 2),  # unknown product: no chain capability to rely on
+            (55, "3"),  # hand-edited saved state: not an integer
         ],
     )
     def test_matrix_tile_count_the_product_cannot_have_is_not_exported(
