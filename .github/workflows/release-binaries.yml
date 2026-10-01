@@ -6,7 +6,7 @@ on:
 
 env:
   PYAPP_VERSION: 0.26.0
-  PYTHON_VERSION: '3.12'
+  PYTHON_VERSION: '3.14'
 
 jobs:
   build:
@@ -28,12 +28,12 @@ jobs:
           asset_name: lifx-emulator-linux-x86_64
 
         - target: x86_64-apple-darwin
-          os: macos-15-intel
+          os: macos-26-intel
           binary_name: lifx-emulator
           asset_name: lifx-emulator-macos-x86_64
 
         - target: aarch64-apple-darwin
-          os: macos-14
+          os: macos-26
           binary_name: lifx-emulator
           asset_name: lifx-emulator-macos-arm64
 
