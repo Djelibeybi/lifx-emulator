@@ -226,7 +226,7 @@ class TestDeviceStateToYamlDict:
         assert "hev_indication" not in result
 
     def test_matrix_device(self):
-        """Tile/matrix fields are included."""
+        """The tile count is exported; the fixed tile size never is."""
         state = {
             "product": 55,
             "serial": "d073d5000001",
@@ -241,8 +241,8 @@ class TestDeviceStateToYamlDict:
         }
         result = _device_state_to_yaml_dict(state)
         assert result["tile_count"] == 5
-        assert result["tile_width"] == 8
-        assert result["tile_height"] == 8
+        assert "tile_width" not in result
+        assert "tile_height" not in result
 
     @pytest.mark.parametrize(
         ("product", "tile_count"),
@@ -294,12 +294,13 @@ class TestDeviceStateToYamlDict:
         result = _device_state_to_yaml_dict(state)
         assert result.get("tile_count") == 3
 
-    def test_non_chain_matrix_dimensions_are_not_exported(self):
-        """A non-chain product (an old 5x10 Mirror save) is always built and
-        restored at its own size, so writing the saved size would only
-        misdescribe the device in the exported config."""
+    @pytest.mark.parametrize("product", [55, 267])
+    def test_saved_tile_dimensions_are_not_exported(self, product):
+        """Every matrix product, the chain-capable LIFX Tile included, is
+        built and restored at its own fixed size; tile_width/tile_height are
+        deprecated config keys, so export never writes them."""
         state = {
-            "product": 267,
+            "product": product,
             "serial": "d073d5000001",
             "label": "",
             "power_level": 0,

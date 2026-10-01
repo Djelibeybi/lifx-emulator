@@ -117,6 +117,8 @@ class DeviceDefinition(BaseModel):
     hev_cycle_duration: int | None = None
     hev_indication: bool | None = None
     tile_count: int | None = None
+    # Deprecated and ignored (tile size is fixed per product); kept so
+    # existing configs still load. Removal planned for the next major release.
     tile_width: int | None = None
     tile_height: int | None = None
     advertised_services: list[tuple[int, int]] | None = None
@@ -205,6 +207,8 @@ class EmulatorConfig(BaseModel):
 
     # Tile/Matrix options
     tile_count: int | None = None
+    # Deprecated and ignored (tile size is fixed per product); kept so
+    # existing configs still load. Removal planned for the next major release.
     tile_width: int | None = None
     tile_height: int | None = None
 

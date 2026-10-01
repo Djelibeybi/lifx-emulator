@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from lifx_emulator.factories import (
     create_color_light,
+    create_device,
     create_multizone_light,
     create_tile_device,
 )
@@ -108,15 +109,12 @@ class TestFormatCapabilities:
         assert "tile(5)" in caps
 
     def test_format_large_tile_device(self):
-        """Test formatting capabilities for large tile device (>64 zones)."""
-        # Large tiles have 16x8 = 128 zones, which is > 64
-        device = create_tile_device(
-            "d073d5000001", tile_count=1, tile_width=16, tile_height=8
-        )
+        """Test formatting capabilities for large matrix device (>64 zones)."""
+        # The LIFX Ceiling 13x26" is one 16x8 tile: 128 zones, which is > 64
+        device = create_device(201, serial="d073d5000001")
         caps = _format_capabilities(device)
-        # For large tiles with more than 64 zones, the format includes dimensions
-        assert "tile" in caps
-        assert "16x8" in caps or "1" in caps  # Either shows dimensions or count
+        # For tiles with more than 64 zones, the format includes dimensions
+        assert "tile(1x 16x8)" in caps
 
 
 class TestFormatProductCapabilities:
@@ -870,9 +868,7 @@ class TestRunCommand:
         mock_server.stop = MagicMock(return_value=asyncio.Future())
         mock_server.stop.return_value.set_result(None)
 
-        task = asyncio.create_task(
-            run(tile=1, tile_count=3, tile_width=8, tile_height=8)
-        )
+        task = asyncio.create_task(run(tile=1, tile_count=3))
         await asyncio.sleep(0.1)
         task.cancel()
         try:
@@ -2107,3 +2103,95 @@ class TestBrowserFlag:
 
         # Verify webbrowser.open was NOT called (API not enabled)
         mock_webbrowser_open.assert_not_called()
+
+
+async def _run_and_capture(cfg_overrides: dict) -> tuple[list, MagicMock, list]:
+    """Run the emulator briefly with a merged config and capture its effects.
+
+    Args:
+        cfg_overrides: Merged config values to override
+
+    Returns:
+        The devices handed to the server, the mocked logger, and every
+        warning raised while running
+    """
+    with (
+        patch("lifx_emulator_app.__main__._load_merged_config") as mock_load_cfg,
+        patch("lifx_emulator_app.__main__.EmulatedLifxServer") as mock_server_class,
+        patch("lifx_emulator_app.__main__._setup_logging") as mock_setup_logging,
+        warnings.catch_warnings(record=True) as caught,
+    ):
+        warnings.simplefilter("always")
+        mock_load_cfg.return_value = _make_cfg(**cfg_overrides)
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    return mock_server_class.call_args[0][0], mock_logger, list(caught)
+
+
+def _tile_dimension_warnings(mock_logger: MagicMock) -> list[str]:
+    return [
+        str(call)
+        for call in mock_logger.warning.call_args_list
+        if "deprecated" in str(call) and "tile" in str(call)
+    ]
+
+
+class TestTileDimensionDeprecation:
+    """--tile-width/--tile-height and their config keys are ignored."""
+
+    @pytest.mark.asyncio
+    async def test_top_level_tile_dimensions_are_logged_and_ignored(self):
+        devices, mock_logger, caught = await _run_and_capture(
+            {"tile": 1, "tile_width": 16, "tile_height": 8}
+        )
+
+        assert (devices[0].state.tile_width, devices[0].state.tile_height) == (8, 8)
+        logged = _tile_dimension_warnings(mock_logger)
+        assert len(logged) == 1
+        assert "--tile-width" in logged[0]
+        # The CLI does not hand them on to the deprecated library arguments
+        assert not [w for w in caught if issubclass(w.category, DeprecationWarning)]
+
+    @pytest.mark.asyncio
+    async def test_device_tile_dimensions_are_logged_and_ignored(self):
+        devices, mock_logger, caught = await _run_and_capture(
+            {
+                "devices": [
+                    DeviceDefinition(
+                        product_id=55,
+                        serial="d073d5000055",
+                        tile_width=16,
+                        tile_height=8,
+                    )
+                ]
+            }
+        )
+
+        assert (devices[0].state.tile_width, devices[0].state.tile_height) == (8, 8)
+        logged = _tile_dimension_warnings(mock_logger)
+        assert len(logged) == 1
+        assert "d073d5000055" in logged[0]
+        assert not [w for w in caught if issubclass(w.category, DeprecationWarning)]
+
+    @pytest.mark.asyncio
+    async def test_no_warning_without_tile_dimensions(self):
+        _, mock_logger, _ = await _run_and_capture(
+            {"tile": 1, "devices": [DeviceDefinition(product_id=55)]}
+        )
+
+        assert _tile_dimension_warnings(mock_logger) == []

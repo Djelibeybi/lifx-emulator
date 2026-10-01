@@ -94,19 +94,19 @@ class TestDeviceCreateRequestValidation:
         with pytest.raises(ValidationError, match="less than or equal to 5"):
             DeviceCreateRequest(product_id=55, tile_count=6)
 
-    def test_tile_dimensions_valid(self):
-        """Test valid tile dimensions."""
+    def test_deprecated_tile_dimensions_still_accepted(self):
+        """Deprecated tile dimensions still validate, so old clients work."""
         request = DeviceCreateRequest(product_id=55, tile_width=8, tile_height=8)
         assert request.tile_width == 8
         assert request.tile_height == 8
 
     def test_tile_width_too_small(self):
-        """Test tile width of 0 is rejected."""
+        """Test tile width of 0 is still rejected while deprecated."""
         with pytest.raises(ValidationError, match="greater than or equal to 1"):
             DeviceCreateRequest(product_id=55, tile_width=0, tile_height=8)
 
     def test_tile_dimensions_too_large(self):
-        """Test tile dimensions > 256 are rejected."""
+        """Test tile dimensions > 256 are still rejected while deprecated."""
         with pytest.raises(ValidationError, match="less than or equal to 256"):
             DeviceCreateRequest(product_id=55, tile_width=257, tile_height=8)
 
