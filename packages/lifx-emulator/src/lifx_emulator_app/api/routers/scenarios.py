@@ -63,7 +63,7 @@ def _add_device_endpoints(router: APIRouter, service: ScenarioService):
         "/devices/{serial}",
         response_model=ScenarioResponse,
         summary="Get device scenario",
-        description="Returns the scenario for a specific device by serial number.",
+        description="Returns the scenario for a specific device by serial.",
         responses={404: {"description": "Device scenario not set"}},
     )
     async def get_device_scenario(serial: str):
@@ -77,7 +77,7 @@ def _add_device_endpoints(router: APIRouter, service: ScenarioService):
         "/devices/{serial}",
         response_model=ScenarioResponse,
         summary="Set device scenario",
-        description="Sets the scenario for a specific device by serial number.",
+        description="Sets the scenario for a specific device by serial.",
         responses={404: {"description": "Invalid device serial format"}},
     )
     async def set_device_scenario(serial: str, scenario: ScenarioConfig):

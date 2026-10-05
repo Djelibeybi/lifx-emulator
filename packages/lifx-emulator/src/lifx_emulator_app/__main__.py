@@ -65,7 +65,7 @@ api_group = cyclopts.Group.create_ordered("HTTP API Server")
 device_group = cyclopts.Group.create_ordered("Device Creation")
 multizone_group = cyclopts.Group.create_ordered("Multizone Options")
 tile_group = cyclopts.Group.create_ordered("Tile/Matrix Options")
-serial_group = cyclopts.Group.create_ordered("Serial Number Options")
+serial_group = cyclopts.Group.create_ordered("Serial Options")
 
 
 def _warn_ignored_tile_dimensions(
@@ -752,7 +752,7 @@ async def run(
             help="[DEPRECATED] Ignored: every matrix product has a fixed tile size.",
         ),
     ] = None,
-    # Serial Number Options
+    # Serial Options
     serial_prefix: Annotated[str | None, cyclopts.Parameter(group=serial_group)] = None,
     serial_start: Annotated[int | None, cyclopts.Parameter(group=serial_group)] = None,
 ) -> bool | None:
@@ -806,7 +806,7 @@ async def run(
             tile size; will be removed in the next major release.
         tile_height: DEPRECATED and ignored. Every matrix product has a fixed
             tile size; will be removed in the next major release.
-        serial_prefix: Serial number prefix as 6 hex characters. Default: d073d5.
+        serial_prefix: Serial prefix as 6 hex characters. Default: d073d5.
         serial_start: Starting serial suffix for auto-incrementing device serials.
             Default: 1.
 
