@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import difflib
 import ipaddress
 import time
 import uuid
@@ -524,10 +525,7 @@ class DeviceState:
             # Delegate to the state object
             return getattr(state_obj, attr_name)
 
-        # If not in routing map, raise AttributeError
-        raise AttributeError(
-            f"'{type(self).__name__}' object has no attribute '{name}'"
-        )
+        raise AttributeError(self._unknown_attribute_message(name))
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Dynamically delegate attribute writes to appropriate state object.
@@ -538,6 +536,12 @@ class DeviceState:
             name: Attribute name being set
             value: Value to set
 
+        Raises:
+            AttributeError: If ``name`` is neither a dataclass field, a routed
+                attribute nor a private attribute. Accepting it would create a
+                stray attribute and leave the device's real state unchanged.
+            ValueError: If ``name`` refers to immutable network state.
+
         Note:
             Dataclass fields and private attributes bypass delegation.
         """
@@ -545,63 +549,48 @@ class DeviceState:
             raise ValueError(
                 "Network and mDNS settings are immutable; recreate the device"
             )
-        # Dataclass fields and private attributes use normal assignment
-        if name in {
-            "core",
-            "network",
-            "location",
-            "group",
-            "waveform",
-            "infrared",
-            "hev",
-            "multizone",
-            "matrix",
-            "has_color",
-            "has_infrared",
-            "has_multizone",
-            "has_extended_multizone",
-            "has_matrix",
-            "has_chain",
-            "has_hev",
-            "has_relays",
-            "has_buttons",
-            "ambient_light_lux",
-            "uplight_zone_count",
-            "zone_map",
-            "buttons_state",
-        } or name.startswith("_"):
+        if name in self.__dataclass_fields__ or name.startswith("_"):
             object.__setattr__(self, name, value)
+        elif name in self._ATTRIBUTE_ROUTES:
+            self._set_routed(name, value)
+        else:
+            raise AttributeError(self._unknown_attribute_message(name))
+
+    def _set_routed(self, name: str, value: Any) -> None:
+        """Write a routed attribute through to its sub-state object."""
+        route = self._ATTRIBUTE_ROUTES[name]
+
+        # Route can be either 'state_name' or ('state_name', 'attr_name')
+        if isinstance(route, tuple):
+            state_name, attr_name = route
+        else:
+            state_name = route
+            attr_name = name
+
+        state_obj = object.__getattribute__(self, state_name)
+
+        # Optional state objects that are absent silently ignore writes
+        if state_obj is None:
             return
 
-        # Check if this attribute has a routing rule
-        if name in self._ATTRIBUTE_ROUTES:
-            route = self._ATTRIBUTE_ROUTES[name]
+        try:
+            setattr(state_obj, attr_name, value)
+        except dataclasses.FrozenInstanceError as e:
+            raise ValueError(
+                f"{attr_name} is fixed at device creation and cannot be "
+                "reassigned; pass it as an argument to the device "
+                "factory or DeviceBuilder when constructing the device "
+                "instead"
+            ) from e
 
-            # Route can be either 'state_name' or ('state_name', 'attr_name')
-            if isinstance(route, tuple):
-                state_name, attr_name = route
-            else:
-                state_name = route
-                attr_name = name
-
-            # Get the state object
-            state_obj = object.__getattribute__(self, state_name)
-
-            # Handle optional state objects - silently ignore writes if None
-            if state_obj is None:
-                return
-
-            # Delegate to the state object
-            try:
-                setattr(state_obj, attr_name, value)
-            except dataclasses.FrozenInstanceError as e:
-                raise ValueError(
-                    f"{attr_name} is fixed at device creation and cannot be "
-                    "reassigned; pass it as an argument to the device "
-                    "factory or DeviceBuilder when constructing the device "
-                    "instead"
-                ) from e
-            return
-
-        # For unknown attributes, use normal assignment (allows adding new attributes)
-        object.__setattr__(self, name, value)
+    def _unknown_attribute_message(self, name: str) -> str:
+        """Build an AttributeError message, suggesting close matches."""
+        message = f"'{type(self).__name__}' object has no attribute '{name}'"
+        candidates = [*self.__dataclass_fields__, *self._ATTRIBUTE_ROUTES]
+        # A truncated name ("power" for "power_level") is the likeliest
+        # mistake, so prefer prefix matches over general similarity.
+        matches = [c for c in candidates if c.startswith(name)]
+        matches = matches or difflib.get_close_matches(name, candidates, n=1)
+        if matches:
+            message += f"; did you mean '{matches[0]}'?"
+        return message
