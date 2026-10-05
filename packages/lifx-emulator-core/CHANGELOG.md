@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v3.12.4 (2026-10-05)
+
+### Bug Fixes
+
+- **devices**: Apply the firmware_version scenario to StateHostFirmware
+  ([`1825589`](https://github.com/Djelibeybi/lifx-emulator/commit/182558946fb10c7c429ceff12b57232fcc31ed53))
+
+- **scenarios**: Reject firmware versions that do not fit uint16
+  ([`3d77c7c`](https://github.com/Djelibeybi/lifx-emulator/commit/3d77c7c7bc67373d433f890b85dc892f9b02fff1))
+
+
 ## v3.12.3 (2026-10-05)
 
 ### Bug Fixes
