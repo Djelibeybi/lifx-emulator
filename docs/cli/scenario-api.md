@@ -21,7 +21,7 @@ curl http://localhost:8080/api/scenarios/global
 
 Scenarios operate at 5 scope levels with automatic precedence (highest to lowest):
 
-1. **Device-specific** - Single device by serial number
+1. **Device-specific** - Single device by serial
 2. **Device-type** - All devices of a type (color, multizone, extended_multizone, matrix, hev, infrared, basic)
 3. **Location-specific** - All devices in a location
 4. **Group-specific** - All devices in a group
@@ -537,7 +537,7 @@ curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
 ### Example 7: Clear All Scenarios
 
 ```bash
-# List all devices to find serial numbers
+# List all devices to find serials
 curl http://localhost:8080/api/devices | jq '.[] | .serial'
 
 # Clear scenarios for specific devices

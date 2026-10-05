@@ -85,11 +85,11 @@ Are you testing protocol implementation?
             └─ No → Use Mock
 ```
 
-## Serial Number Strategies
+## Serial Strategies
 
 ### Consistent Naming Conventions
 
-Use meaningful serial number patterns for easier debugging:
+Use meaningful serial patterns for easier debugging:
 
 ```python
 # Good: Meaningful patterns
@@ -110,7 +110,7 @@ DEVICES = {
 
 ### Avoid Conflicts
 
-Ensure serial numbers are unique across your test suite:
+Ensure serials are unique across your test suite:
 
 ```python
 # Bad: Reusing serials in different tests
@@ -135,7 +135,7 @@ import pytest
 
 @pytest.fixture
 def unique_serial():
-    """Generate unique serial numbers."""
+    """Generate unique serials."""
     counter = 0
     def _get_serial(prefix="d073d5"):
         nonlocal counter
@@ -675,7 +675,7 @@ Before writing a new test, ask:
 - [ ] Do I need the full emulator, or would a mock suffice?
 - [ ] What fixture scope is appropriate (function/module/session)?
 - [ ] Am I using dynamic port allocation?
-- [ ] Are my serial numbers unique and meaningful?
+- [ ] Are my serials unique and meaningful?
 - [ ] Am I using context managers for cleanup?
 - [ ] Have I added appropriate timeouts?
 - [ ] Can this test run in parallel with others?

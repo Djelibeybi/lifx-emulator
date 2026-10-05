@@ -251,7 +251,7 @@ class DeviceState:
   - Fluent API: `.with_color_support().build()`
 
 - **Configuration services**:
-  - `serial_generator.py` - Serial number generation
+  - `serial_generator.py` - Serial generation
   - `firmware_config.py` - Firmware version logic
   - `default_config.py` - Default color/power values
 

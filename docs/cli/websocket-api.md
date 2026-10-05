@@ -299,7 +299,7 @@ Pushed when a scenario configuration is modified.
 | Scope | Identifier | Description |
 |-------|-----------|-------------|
 | `global` | `null` | Applies to all devices |
-| `device` | Serial number | Applies to specific device |
+| `device` | Serial | Applies to specific device |
 | `type` | Device type | Applies to device type (e.g., "color", "multizone") |
 | `location` | Location label | Applies to devices in location |
 | `group` | Group label | Applies to devices in group |

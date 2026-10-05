@@ -69,7 +69,7 @@ Device Management                              [Remove All]
 **Features:**
 
 - Dropdown list of all available products (137+ options)
-- Serial numbers are auto-generated
+- Serials are auto-generated
 - **Remove All** button with confirmation (disabled when no devices exist)
 - Instant WebSocket updates when devices are added/removed
 
@@ -104,7 +104,7 @@ Devices (3)                                    [Remove All]
 
 **Header:**
 
-- Device serial number (clickable, displays copy tooltip)
+- Device serial (clickable, displays copy tooltip)
 - Device label (e.g., "Living Room Light")
 - Delete button (red, with confirmation)
 
@@ -190,13 +190,13 @@ Direction: [All ▼]  Device/Target: [______]  Packet: [______]  [Clear]
   - `RX` (blue) - Received from client
   - `TX` (orange) - Transmitted to client
 - **Packet Name**: Human-readable LIFX packet type (e.g., "GetColor", "SetColor")
-- **Device**: Target device serial number
+- **Device**: Target device serial
 - **Address**: Client IP address and port
 
 **Filtering Options:**
 
 - **Direction**: Filter by RX (received) or TX (transmitted)
-- **Device/Target**: Text filter for device serial numbers
+- **Device/Target**: Text filter for device serials
 - **Packet**: Text filter for packet names (e.g., "GetColor", "SetPower")
 - **Clear**: Reset all filters to show all activity
 
@@ -497,7 +497,7 @@ The web interface provides no authentication or authorization:
 
 ## Advanced Features
 
-### Serial Number Details
+### Serial Details
 
 Each device has a unique 12-character hexadecimal serial:
 

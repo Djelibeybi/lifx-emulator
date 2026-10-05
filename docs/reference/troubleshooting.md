@@ -329,7 +329,7 @@ PermissionError: [Errno 13] Permission denied
 1. **Check header format:**
 
    - Header is exactly 36 bytes
-   - Target field is 8 bytes (6-byte serial number + 2 null bytes)
+   - Target field is 8 bytes (6-byte serial + 2 null bytes)
    - Packet type in bytes 32-33 (little-endian)
 
 2. **Verify packet structure:**
@@ -758,7 +758,7 @@ async with server:
 
 ### "ValueError: Invalid serial format"
 
-**Cause:** Serial number not 12 hex characters
+**Cause:** Serial not 12 hex characters
 
 **Fix:**
 ```python
