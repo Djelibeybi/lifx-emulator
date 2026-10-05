@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v4.7.2 (2026-10-05)
+
+### Bug Fixes
+
+- **core-scenarios**: Reject firmware versions that do not fit uint16
+  ([`3d77c7c`](https://github.com/Djelibeybi/lifx-emulator/commit/3d77c7c7bc67373d433f890b85dc892f9b02fff1))
+
+### Documentation
+
+- Rewrite examples for the current API and move clients to lifx-async
+  ([#234](https://github.com/Djelibeybi/lifx-emulator/pull/234),
+  [`ba6c346`](https://github.com/Djelibeybi/lifx-emulator/commit/ba6c346765eb73a3c66d240eafbf01a721b3dcaa))
+
+- **cli**: Call the device identifier the serial
+  ([`c0a2a2c`](https://github.com/Djelibeybi/lifx-emulator/commit/c0a2a2c4167e8abcdbcdbba6be433008357c4393))
+
+
 ## v4.7.1 (2026-10-01)
 
 ### Bug Fixes

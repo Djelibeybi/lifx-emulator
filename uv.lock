@@ -432,7 +432,7 @@ wheels = [
 
 [[package]]
 name = "lifx-emulator"
-version = "4.7.1"
+version = "4.7.2"
 source = { editable = "packages/lifx-emulator" }
 dependencies = [
     { name = "cyclopts" },
