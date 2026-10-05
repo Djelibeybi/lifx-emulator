@@ -54,13 +54,13 @@ class CoreDeviceState:
 
     @property
     def mac_address(self) -> bytes:
-        """The device's 6-byte network MAC address.
+        """The device's 6-byte MAC address as visible on the network.
 
-        A LIFX serial looks like a MAC address but is a distinct value. Most
-        firmware reports a MAC identical to the serial; firmware 3.70 to 3.x
-        increments the final octet, wrapping from 0xff to 0x00 without carrying
-        into the octet before it. Derived on each read so it follows firmware
-        changes.
+        This is not the serial number. On firmware 3.70 to 3.x the MAC address
+        is one more than the serial in the final octet, wrapping from 0xff to
+        0x00 without carrying into the octet before it; on all other firmware
+        it is the same as the serial. An emulated device has no hardware
+        address, so this is computed on each read and follows firmware changes.
         """
         serial = bytes.fromhex(self.serial[:12])
         if (

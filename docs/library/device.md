@@ -51,8 +51,13 @@ The attributes below are read and written directly on `DeviceState`; each one is
 
 #### Identity
 
+<<<<<<< HEAD
 - **`serial`** (`str` = `'d073d5123456'`) - 12-character hexadecimal device serial number
 - **`mac_address`** (`bytes`, read-only) - 6-byte network MAC address, derived from the serial and firmware version. A distinct value from the serial number: firmware 3.70 to 3.x reports the serial with its final octet incremented (wrapping `ff` to `00`); all other firmware reports a MAC identical to the serial
+=======
+- **`serial`** (`str`) - 12-character hexadecimal device serial number
+- **`mac_address`** (`bytes`, read-only) - The device's 6-byte MAC address as visible on the network. This is not the serial number. On firmware 3.70 to 3.x the MAC address is one more than the serial in the final octet (`ff` wraps to `00`); on all other firmware it is the same as the serial
+>>>>>>> 0975a3a (docs(core-devices): describe mac_address as the network MAC address)
 - **`vendor`** (`int` = `1`) - LIFX vendor ID (always 1)
 - **`product`** (`int`) - Product ID (e.g., 27 for A19, 32 for Z strip)
 - **`version_major`** (`int`) - Firmware major version
