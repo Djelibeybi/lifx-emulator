@@ -2,6 +2,7 @@
 
 from unittest.mock import Mock
 
+import pytest
 from lifx_emulator.constants import LIFX_HEADER_SIZE
 from lifx_emulator.devices import DeviceManager
 from lifx_emulator.factories import create_color_light
@@ -10,6 +11,7 @@ from lifx_emulator.protocol.packets import Device
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 from lifx_emulator.server import EmulatedLifxServer
+from pydantic import ValidationError
 
 SERIAL = "d073d5000001"
 
@@ -105,6 +107,27 @@ class TestFirmwareVersionScenario:
 
         assert [h.pkt_type for h, _ in responses] == [Device.StateLabel.PKT_TYPE]
         assert responses[0][1].label == device.state.label
+
+
+class TestFirmwareVersionValidation:
+    """Both components must fit the uint16 fields of StateHostFirmware."""
+
+    @pytest.mark.parametrize("version", [(0, 0), (65535, 65535)])
+    def test_accepts_uint16_boundaries(self, version):
+        device, _ = _device_with_scenario(ScenarioConfig(firmware_version=version))
+
+        state = _host_firmware(device)
+
+        assert (state.version_major, state.version_minor) == version
+
+    @pytest.mark.parametrize("version", [(-1, 60), (2, -1), (65536, 60), (2, 65536)])
+    def test_rejects_out_of_range_components(self, version):
+        with pytest.raises(ValidationError):
+            ScenarioConfig(firmware_version=version)
+
+    def test_rejects_out_of_range_from_dict(self):
+        with pytest.raises(ValidationError):
+            ScenarioConfig.from_dict({"firmware_version": [65536, 60]})
 
 
 class TestFirmwareVersionScenarioOnTheWire:
