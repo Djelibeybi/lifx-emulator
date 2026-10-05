@@ -1,4 +1,4 @@
-"""Tests for the MAC address a device derives from its serial and firmware."""
+"""Tests for the network MAC address an emulated device reports."""
 
 import pytest
 from lifx_emulator.factories import create_device
