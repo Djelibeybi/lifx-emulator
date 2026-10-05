@@ -135,7 +135,7 @@ multizone_extended: true
 # in the next major release.
 
 # ==============================================================================
-# Serial Number Options
+# Serial Options
 # ==============================================================================
 
 # Serial prefix - 6 hex characters (default: d073d5)

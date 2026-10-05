@@ -608,9 +608,9 @@ print(f"Cleared {count} device states")
 
 ## Best Practices
 
-### 1. Always Use Same Serial Numbers
+### 1. Always Use Same Serials
 
-For state persistence to work, devices must use consistent serial numbers:
+For state persistence to work, devices must use consistent serials:
 
 ```python
 # Good: Fixed serial
@@ -698,7 +698,7 @@ echo "Backed up to $BACKUP_DIR"
 **Solutions:**
 1. Verify `--persistent` flag is used
 2. Check storage directory exists and is writable
-3. Ensure consistent serial numbers
+3. Ensure consistent serials
 4. Check logs for save errors
 
 ```python

@@ -246,10 +246,10 @@ Returns a paginated list of all emulated devices with their current configuratio
 GET /api/devices/{serial}
 ```
 
-Returns detailed information about a specific device by its serial number.
+Returns detailed information about a specific device by its serial.
 
 **Path Parameters:**
-- `serial`: Device serial number (e.g., `d073d5000001`)
+- `serial`: Device serial (e.g., `d073d5000001`)
 
 **Response (200 OK):**
 Same as list devices, but for a single device.
@@ -358,7 +358,7 @@ PATCH /api/devices/{serial}/state
 Updates the state of an existing device. All fields are optional — only the fields you include will be changed.
 
 **Path Parameters:**
-- `serial`: Device serial number (e.g., `d073d5000001`)
+- `serial`: Device serial (e.g., `d073d5000001`)
 
 **Request Body:**
 ```json
@@ -516,7 +516,7 @@ DELETE /api/devices/{serial}
 Removes an emulated device from the server. The device will stop responding to LIFX protocol packets.
 
 **Path Parameters:**
-- `serial`: Device serial number
+- `serial`: Device serial
 
 **Response (204 No Content):**
 No response body.

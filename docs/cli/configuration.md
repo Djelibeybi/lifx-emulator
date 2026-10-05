@@ -183,7 +183,7 @@ tile_count: 5
     in the next major release. Pick a product with the tile size you need
     instead, such as `product_id: 201` (LIFX Ceiling 13x26", one 16x8 tile).
 
-### Serial Number Options
+### Serial Options
 
 ```yaml
 # Serial prefix - exactly 6 hex characters (default: d073d5)

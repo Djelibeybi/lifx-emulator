@@ -176,7 +176,7 @@ builder = (
 
 **Configuration Services**
 
-- `factories/serial_generator.py` - Serial number generation
+- `factories/serial_generator.py` - Serial generation
 - `factories/firmware_config.py` - Firmware version logic
 - `factories/default_config.py` - Default color/power values
 

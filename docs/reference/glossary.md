@@ -54,18 +54,18 @@ A set of tiles connected together on a single device. Most modern matrix devices
 A 12-character hexadecimal string representing a unique device identifier. Examples: `d073d5000001`, `d073d8123456`.
 
 ### Serial Bytes
-The 6-byte binary representation of a serial number. The LIFX protocol uses these 6 bytes to identify a device in the packet header `target` field.
+The 6-byte binary representation of a serial. The LIFX protocol uses these 6 bytes to identify a device in the packet header `target` field.
 
 ### Target
 An 8-byte field in the LIFX packet header consisting of:
 
-- 6 bytes: Device serial number (serial bytes)
+- 6 bytes: Device serial (serial bytes)
 - 2 bytes: Reserved (always 0x00 0x00)
 
 When `target` is all zeros (`00:00:00:00:00:00:00:00`), the packet is a broadcast.
 
 ### MAC Address
-Media Access Control address - a 6-byte identifier for a network interface. A LIFX serial number looks like a MAC address and is often almost identical to the device's real MAC address, but it is not the MAC address. The LIFX protocol identifies devices by serial number, never by MAC address.
+Media Access Control address - a 6-byte identifier for a network interface. A LIFX serial looks like a MAC address and is often almost identical to the device's real MAC address, but it is not the MAC address. The LIFX protocol identifies devices by serial, never by MAC address.
 
 ## Product Information
 

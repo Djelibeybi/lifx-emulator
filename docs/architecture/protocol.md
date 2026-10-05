@@ -30,7 +30,7 @@ The `protocol` field is always 1024. The `addressable` bit is always 1. The `tag
 
 | Field | Size | Description |
 |-------|------|-------------|
-| `target` | 64 bits | 6-byte device serial number + 2 null bytes |
+| `target` | 64 bits | 6-byte device serial + 2 null bytes |
 | reserved | 48 bits | Reserved (zeros) |
 | flags | 8 bits | Bitfield: res_required (1), ack_required (1), reserved (6) |
 | `sequence` | 8 bits | Sequence number for request/response matching |
