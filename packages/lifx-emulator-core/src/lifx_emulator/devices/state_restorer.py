@@ -42,7 +42,7 @@ class StateRestorer:
         must stay in agreement and this cache must never pre-filter.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
 
         Returns:
             The saved state dict, or None if there is no storage or no saved
@@ -62,7 +62,7 @@ class StateRestorer:
         """Peek at the saved connectivity value without restoring anything.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
             product: Product ID the device is being built as
 
         Returns:

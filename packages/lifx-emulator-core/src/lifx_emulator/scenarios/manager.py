@@ -115,7 +115,7 @@ class HierarchicalScenarioManager:
         """Get device-specific scenario by serial.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
 
         Returns:
             ScenarioConfig if scenario exists, None otherwise
@@ -177,7 +177,7 @@ class HierarchicalScenarioManager:
         Scalars use the most specific non-None value.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
             device_type: Device type (color, multizone, matrix, etc.)
             location: Device location label
             group: Device group label

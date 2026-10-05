@@ -72,7 +72,7 @@ class IDeviceManager(Protocol):
         """Remove a device from the manager.
 
         Args:
-            serial: Serial number of device to remove (12 hex chars)
+            serial: Serial of device to remove (12 hex chars)
             storage: Optional storage backend to delete persistent state
 
         Returns:
@@ -95,10 +95,10 @@ class IDeviceManager(Protocol):
         ...
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
-        """Get a device by serial number.
+        """Get a device by serial.
 
         Args:
-            serial: Serial number (12 hex chars)
+            serial: Serial (12 hex chars)
 
         Returns:
             Device if found, None otherwise
@@ -244,7 +244,7 @@ class DeviceManager:
         """Remove a device from the manager.
 
         Args:
-            serial: Serial number of device to remove (12 hex chars)
+            serial: Serial of device to remove (12 hex chars)
             storage: Optional storage backend to delete persistent state
 
         Returns:
@@ -328,10 +328,10 @@ class DeviceManager:
         return device_count
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
-        """Get a device by serial number.
+        """Get a device by serial.
 
         Args:
-            serial: Serial number (12 hex chars)
+            serial: Serial (12 hex chars)
 
         Returns:
             Device if found, None otherwise

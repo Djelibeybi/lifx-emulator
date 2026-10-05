@@ -199,7 +199,7 @@ class TestDeviceEdgeCases:
             assert tile["height"] == 8
 
     def test_device_serial_formats(self):
-        """Test various serial number formats."""
+        """Test various serial formats."""
         serials = [
             "d073d5000001",
             "d073d5abcdef",

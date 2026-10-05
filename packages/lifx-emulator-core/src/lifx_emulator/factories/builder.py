@@ -61,7 +61,7 @@ def _default_label(product_name: str, serial: str) -> str:
 
     Args:
         product_name: Product name from the registry
-        serial: Device serial number
+        serial: Device serial
 
     Returns:
         Label of at most 32 UTF-8 bytes
@@ -130,10 +130,10 @@ class DeviceBuilder:
         self._firmware_config = FirmwareConfig()
 
     def with_serial(self, serial: str) -> DeviceBuilder:
-        """Set device serial number.
+        """Set device serial.
 
         Args:
-            serial: 12-character hex serial number
+            serial: 12-character hex serial
 
         Returns:
             Self for method chaining
@@ -306,7 +306,7 @@ class DeviceBuilder:
         creation.
 
         Args:
-            serial: The device's serial number, used to look up any saved
+            serial: The device's serial, used to look up any saved
                 connectivity via ``restorer``.
             restorer: A ``StateRestorer`` to peek saved connectivity from,
                 or None when no storage is configured (the common case for
@@ -536,7 +536,7 @@ class DeviceBuilder:
         """Create core device state.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
             color: Initial color
             version_major: Firmware major version
             version_minor: Firmware minor version

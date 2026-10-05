@@ -34,7 +34,7 @@ class IDeviceRepository(Protocol):
         """Remove a device from the repository.
 
         Args:
-            serial: Serial number of device to remove
+            serial: Serial of device to remove
 
         Returns:
             True if device was removed, False if not found
@@ -42,10 +42,10 @@ class IDeviceRepository(Protocol):
         ...
 
     def get(self, serial: str) -> EmulatedLifxDevice | None:
-        """Get a device by serial number.
+        """Get a device by serial.
 
         Args:
-            serial: Serial number to look up
+            serial: Serial to look up
 
         Returns:
             Device if found, None otherwise
@@ -80,7 +80,7 @@ class IDeviceRepository(Protocol):
 class DeviceRepository:
     """In-memory device repository implementation.
 
-    Stores devices in a dictionary keyed by serial number.
+    Stores devices in a dictionary keyed by serial.
     This is the default implementation used by EmulatedLifxServer.
     """
 
@@ -107,7 +107,7 @@ class DeviceRepository:
         """Remove a device from the repository.
 
         Args:
-            serial: Serial number of device to remove
+            serial: Serial of device to remove
 
         Returns:
             True if device was removed, False if not found
@@ -118,10 +118,10 @@ class DeviceRepository:
         return False
 
     def get(self, serial: str) -> EmulatedLifxDevice | None:
-        """Get a device by serial number.
+        """Get a device by serial.
 
         Args:
-            serial: Serial number to look up
+            serial: Serial to look up
 
         Returns:
             Device if found, None otherwise
