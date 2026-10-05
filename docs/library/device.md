@@ -190,7 +190,7 @@ manager.set_device_scenario(
     "d073d5000002",
     ScenarioConfig(
         drop_packets={102: 1.0},  # Drop all SetColor packets (100% drop rate)
-        response_delays={2: 0.5},  # Delay GetService responses by 500ms
+        response_delays={3: 0.5},  # Delay StateService (3) replies by 500ms
     ),
 )
 device = create_color_light("d073d5000002", scenario_manager=manager)
@@ -314,7 +314,7 @@ Scenarios configure error injection and testing behaviours for emulated devices.
 | Scenario | Type | Description | Example |
 |----------|------|-------------|---------|
 | `drop_packets` | `dict[int, float]` | Packet types to drop with rates (0.0-1.0) | `{102: 1.0, 101: 0.5}` - Always drop SetColor, drop Get 50% |
-| `response_delays` | `dict[int, float]` | Delay (seconds) before responding to packet type | `{2: 1.5}` - Delay GetService by 1.5s |
+| `response_delays` | `dict[int, float]` | Delay (seconds) before sending the outgoing response type | `{3: 1.5}` - Delay StateService (reply to GetService) by 1.5s |
 | `malformed_packets` | `list[int]` | Packet types to send truncated/corrupted | `[107]` - Corrupt StateColor packets |
 | `invalid_field_values` | `list[int]` | Packet types to send with invalid fields (0xFF) | `[107]` - Invalid StateColor values |
 | `partial_responses` | `list[int]` | Multizone/tile packets to send incomplete | `[506]` - Partial zone data |
@@ -336,7 +336,7 @@ manager.set_device_scenario(
     "d073d5000001",
     ScenarioConfig(
         drop_packets={2: 1.0},  # Drop all GetService packets - simulate discovery failure
-        response_delays={102: 2.0},  # Delay SetColor by 2 seconds
+        response_delays={107: 2.0},  # Delay StateColor (reply to SetColor) by 2 seconds
     ),
 )
 device = create_color_light("d073d5000001", scenario_manager=manager)

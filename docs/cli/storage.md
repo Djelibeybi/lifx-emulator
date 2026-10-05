@@ -287,7 +287,7 @@ async def main():
     manager = HierarchicalScenarioManager()
     manager.set_device_scenario(
         "d073d5000001",
-        ScenarioConfig(response_delays={101: 0.5}),  # 500ms delay on GetColor
+        ScenarioConfig(response_delays={107: 0.5}),  # Delay StateColor (107) replies by 500ms
     )
 
     device = create_color_light(
