@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v3.12.2 (2026-10-05)
+
+### Bug Fixes
+
+- **devices**: Derive mac_address from serial and firmware
+  ([`db6ddb4`](https://github.com/Djelibeybi/lifx-emulator/commit/db6ddb424018236c551f9461e7a275d88bfcc823))
+
+### Documentation
+
+- **devices**: Call the device identifier the serial
+  ([`8c48fb0`](https://github.com/Djelibeybi/lifx-emulator/commit/8c48fb0e413221eab06bc1058ffc5707e35d1e7b))
+
+- **devices**: Describe mac_address as the network MAC address
+  ([`29bacd4`](https://github.com/Djelibeybi/lifx-emulator/commit/29bacd43c69cf74e9e350d97a34d81c8688a707c))
+
+- **devices**: Stop calling the serial a MAC in persistence
+  ([`70274df`](https://github.com/Djelibeybi/lifx-emulator/commit/70274dfad7cf8499d6208e3a002c0782055e3520))
+
+
 ## v3.12.1 (2026-10-01)
 
 ### Bug Fixes
