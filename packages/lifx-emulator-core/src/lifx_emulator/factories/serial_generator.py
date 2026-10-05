@@ -1,4 +1,4 @@
-"""Serial number generation service for LIFX devices."""
+"""Serial generation service for LIFX devices."""
 
 from __future__ import annotations
 
@@ -10,9 +10,9 @@ if TYPE_CHECKING:
 
 
 class SerialGenerator:
-    """Generates serial numbers for emulated LIFX devices.
+    """Generates serials for emulated LIFX devices.
 
-    Serial numbers are 12-character hex strings with different prefixes
+    Serials are 12-character hex strings with different prefixes
     based on device capabilities for easier identification.
 
     Prefixes:
@@ -39,13 +39,13 @@ class SerialGenerator:
     PREFIX_DEFAULT = "d073d5"
 
     def generate(self, product_info: ProductInfo) -> str:
-        """Generate a serial number based on product capabilities.
+        """Generate a serial based on product capabilities.
 
         Args:
             product_info: Product information from registry
 
         Returns:
-            12-character hex serial number
+            12-character hex serial
 
         Examples:
             >>> from lifx_emulator.products.registry import get_product

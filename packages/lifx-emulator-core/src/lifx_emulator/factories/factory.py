@@ -329,7 +329,7 @@ def create_switch(
     They respond with StateUnhandled (223) to Light, MultiZone, and Tile packets.
 
     Args:
-        serial: Device serial number (auto-generated if None)
+        serial: Device serial (auto-generated if None)
         product_id: Switch product ID (default: 70 - LIFX Switch)
         firmware_version: Optional firmware version (major, minor)
         storage: Optional persistence backend

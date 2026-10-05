@@ -675,7 +675,7 @@ class EmulatedLifxServer:
         """Remove a device from the server.
 
         Args:
-            serial: Serial number of device to remove (12 hex chars)
+            serial: Serial of device to remove (12 hex chars)
 
         Returns:
             True if removed, False if device not found
@@ -711,10 +711,10 @@ class EmulatedLifxServer:
         return removed
 
     def get_device(self, serial: str) -> EmulatedLifxDevice | None:
-        """Get a device by serial number.
+        """Get a device by serial.
 
         Args:
-            serial: Serial number (12 hex chars)
+            serial: Serial (12 hex chars)
 
         Returns:
             Device if found, None otherwise

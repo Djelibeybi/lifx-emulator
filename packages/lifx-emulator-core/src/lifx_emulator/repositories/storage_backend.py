@@ -37,7 +37,7 @@ class IDeviceStorageBackend(Protocol):
         """Flush queued state for one device to durable storage.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
 
         Returns:
             True if queued state was written, False if it was already flushed
@@ -48,7 +48,7 @@ class IDeviceStorageBackend(Protocol):
         """Load device state from persistent storage (sync).
 
         Args:
-            serial: Device serial number (12-character hex string)
+            serial: Device serial (12-character hex string)
 
         Returns:
             Dictionary with device state data, or None if not found
@@ -59,7 +59,7 @@ class IDeviceStorageBackend(Protocol):
         """Delete device state from persistent storage asynchronously.
 
         Args:
-            serial: Device serial number
+            serial: Device serial
 
         Returns:
             True if state was deleted, False if not found
@@ -70,7 +70,7 @@ class IDeviceStorageBackend(Protocol):
         """Delete several device states as one transaction.
 
         Args:
-            serials: Canonical device serial numbers
+            serials: Canonical device serials
 
         Returns:
             Number of existing state files deleted
@@ -81,7 +81,7 @@ class IDeviceStorageBackend(Protocol):
         """List all device serials with saved state.
 
         Returns:
-            List of serial numbers
+            List of serials
         """
         raise NotImplementedError
 

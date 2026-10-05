@@ -56,7 +56,7 @@ class CoreDeviceState:
     def mac_address(self) -> bytes:
         """The device's 6-byte MAC address as visible on the network.
 
-        This is not the serial number. On firmware 3.70 to 3.x the MAC address
+        This is not the serial. On firmware 3.70 to 3.x the MAC address
         is one more than the serial in the final octet, wrapping from 0xff to
         0x00 without carrying into the octet before it; on all other firmware
         it is the same as the serial. An emulated device has no hardware
