@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v3.12.3 (2026-10-05)
+
+### Bug Fixes
+
+- **devices**: Reject unknown DeviceState attributes
+  ([#241](https://github.com/Djelibeybi/lifx-emulator/pull/241),
+  [`74df76b`](https://github.com/Djelibeybi/lifx-emulator/commit/74df76b0ccb6d791ca1e416a30090ae239ff1d8e))
+
+### Documentation
+
+- Use the LIFX d073d5 OUI for all example and test serials
+  ([#242](https://github.com/Djelibeybi/lifx-emulator/pull/242),
+  [`bde9891`](https://github.com/Djelibeybi/lifx-emulator/commit/bde98913046da32e6506181e53977c31b374d655))
+
+
 ## v3.12.2 (2026-10-05)
 
 ### Bug Fixes
