@@ -20,7 +20,7 @@ dev = [
     "mkdocstrings-python>=2.0.3",
 ]
 third-party = [
-    "lifx-async>=7.6.4",
+    "lifx-async>=7.6.6",
 ]
 
 [tool.ruff]

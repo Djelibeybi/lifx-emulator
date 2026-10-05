@@ -23,7 +23,7 @@ dev = [
     { name = "ruff", specifier = ">=0.14.2" },
     { name = "zensical", specifier = ">=0.0.37" },
 ]
-third-party = [{ name = "lifx-async", specifier = ">=7.6.4" }]
+third-party = [{ name = "lifx-async", specifier = ">=7.6.6" }]
 
 [[package]]
 name = "annotated-doc"
@@ -423,11 +423,11 @@ wheels = [
 
 [[package]]
 name = "lifx-async"
-version = "7.6.4"
+version = "7.6.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e4/64/d7573b6818dd339a1e40ba2c5f50c8ddd645b5a9220870f0a34a0019d3bd/lifx_async-7.6.4.tar.gz", hash = "sha256:816c3d171a2b9cb276dd2822557aae8d2bcde35603fe169e8f5bad05bd2994ae", size = 11454354, upload-time = "2026-09-30T16:59:49.657Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/bf/2d1c93de31aa7d4aedf0b0921e7c2e1839bacd4bc89a892e7230d49efaa6/lifx_async-7.6.6.tar.gz", hash = "sha256:1728e1863cf45808d0d32e7b661c2c85d98d11059e8714d17229295bd317d6c5", size = 11455609, upload-time = "2026-10-04T22:53:20.088Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/8a/c779de247d500b8b7228986baa3788c60fd66387bf012dc7d8fe781efc91/lifx_async-7.6.4-py3-none-any.whl", hash = "sha256:605bc1f5d2073b20aa0c5585bf6628e8a4a97d73599a16bb7f3ef8b8a8cbf198", size = 426341, upload-time = "2026-09-30T16:59:47.37Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/d2/3f31f0b585641b6d3705141c2dbc998d667b14da0dc0fd718c729467e293/lifx_async-7.6.6-py3-none-any.whl", hash = "sha256:1ef2864f47b65badadadf3919ad39c86942d36b5d539088db6883bb1bacbf7de", size = 426550, upload-time = "2026-10-04T22:53:17.839Z" },
 ]
 
 [[package]]
