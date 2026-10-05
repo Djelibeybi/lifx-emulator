@@ -4,16 +4,22 @@ import asyncio
 import logging
 import uuid
 import warnings
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from lifx_emulator.factories import (
     create_color_light,
     create_device,
+    create_hev_light,
+    create_infrared_light,
     create_multizone_light,
     create_tile_device,
 )
-from lifx_emulator.products.registry import ProductInfo, TemperatureRange
+from lifx_emulator.products.registry import (
+    ProductCapability,
+    ProductInfo,
+    TemperatureRange,
+)
 from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 from lifx_emulator_app.__main__ import (
     _apply_config_scenarios,
@@ -26,6 +32,7 @@ from lifx_emulator_app.__main__ import (
 )
 from lifx_emulator_app.config import (
     DeviceDefinition,
+    EmulatorConfig,
     HsbkConfig,
     ScenarioDefinition,
     ScenariosConfig,
@@ -74,7 +81,6 @@ class TestFormatCapabilities:
 
     def test_format_infrared_device(self):
         """Test formatting capabilities for infrared device."""
-        from lifx_emulator.factories import create_infrared_light
 
         device = create_infrared_light("d073d5000001")
         caps = _format_capabilities(device)
@@ -82,7 +88,6 @@ class TestFormatCapabilities:
 
     def test_format_hev_device(self):
         """Test formatting capabilities for HEV device."""
-        from lifx_emulator.factories import create_hev_light
 
         device = create_hev_light("d073d5000001")
         caps = _format_capabilities(device)
@@ -122,7 +127,6 @@ class TestFormatProductCapabilities:
 
     def test_format_switch_product(self):
         """Test formatting for switch products."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=89,
@@ -139,7 +143,6 @@ class TestFormatProductCapabilities:
 
     def test_format_full_color_product(self):
         """Test formatting for full color products."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=27,
@@ -193,7 +196,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_infrared(self):
         """Test formatting for products with infrared."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=29,
@@ -208,7 +210,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_multizone(self):
         """Test formatting for products with multizone."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=32,
@@ -223,7 +224,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_extended_multizone(self):
         """Test formatting for products with extended multizone."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=38,
@@ -240,7 +240,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_matrix(self):
         """Test formatting for products with matrix."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=55,
@@ -255,7 +254,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_hev(self):
         """Test formatting for products with HEV."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=90,
@@ -270,7 +268,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_chain(self):
         """Test formatting for products with chain capability."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=55,
@@ -287,7 +284,6 @@ class TestFormatProductCapabilities:
 
     def test_format_product_with_buttons_not_switch(self):
         """Test formatting for products with buttons that aren't switches."""
-        from lifx_emulator.products.registry import ProductCapability
 
         product = ProductInfo(
             pid=70,
@@ -308,7 +304,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_no_filter(self, mock_get_registry, mock_print):
         """Test listing all products."""
-        from lifx_emulator.products.registry import ProductCapability
 
         # Mock registry with a few products
         mock_registry = MagicMock()
@@ -357,7 +352,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_filter_multizone(self, mock_get_registry, mock_print):
         """Test listing products filtered by multizone."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -393,7 +387,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_filter_color(self, mock_get_registry, mock_print):
         """Test listing products filtered by color."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -429,7 +422,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_filter_matrix(self, mock_get_registry, mock_print):
         """Test listing products filtered by matrix."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -465,7 +457,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_filter_hev(self, mock_get_registry, mock_print):
         """Test listing products filtered by HEV."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -501,7 +492,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_filter_infrared(self, mock_get_registry, mock_print):
         """Test listing products filtered by infrared."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -537,7 +527,6 @@ class TestListProducts:
     @patch("lifx_emulator_app.__main__.get_registry")
     def test_list_products_no_results(self, mock_get_registry, mock_print):
         """Test listing products with filter that matches nothing."""
-        from lifx_emulator.products.registry import ProductCapability
 
         mock_registry = MagicMock()
         mock_registry._products = {
@@ -658,7 +647,6 @@ class TestRunCommand:
         self, mock_setup_logging, mock_storage_class, mock_server_class, mock_resolve
     ):
         """Test running with persistent storage."""
-        from unittest.mock import AsyncMock
 
         mock_server = MagicMock()
         mock_server_class.return_value = mock_server
@@ -1199,7 +1187,6 @@ class TestLoadMergedConfigErrors:
     )
     def test_devices_carried_from_config(self, mock_resolve, mock_load):
         """Devices list from config file is carried through to result."""
-        from lifx_emulator_app.config import DeviceDefinition, EmulatorConfig
 
         devices = [DeviceDefinition(product_id=27, label="Test")]
         mock_load.return_value = EmulatorConfig(devices=devices)
@@ -1217,7 +1204,6 @@ class TestLoadMergedConfigErrors:
     )
     def test_config_path_stored(self, mock_resolve, mock_load):
         """Config path is stored in result for logging."""
-        from lifx_emulator_app.config import EmulatorConfig
 
         mock_load.return_value = EmulatorConfig()
         result = _load_merged_config(config_flag="/fake/config.yaml")
@@ -1231,7 +1217,6 @@ class TestLoadMergedConfigErrors:
     )
     def test_empty_devices_list_preserved(self, mock_resolve, mock_load):
         """Explicit `devices: []` is preserved, not treated as None."""
-        from lifx_emulator_app.config import EmulatorConfig
 
         mock_load.return_value = EmulatorConfig(devices=[])
         result = _load_merged_config(config_flag="/fake/config.yaml")
@@ -1245,7 +1230,6 @@ class TestLoadMergedConfigErrors:
     )
     def test_empty_scenarios_preserved(self, mock_resolve, mock_load):
         """Explicit `scenarios: {}` is preserved, not treated as None."""
-        from lifx_emulator_app.config import EmulatorConfig
 
         mock_load.return_value = EmulatorConfig(scenarios=ScenariosConfig())
         result = _load_merged_config(config_flag="/fake/config.yaml")
@@ -1270,7 +1254,6 @@ class TestLoadMergedConfigScenarios:
     )
     def test_scenarios_passed_through(self, mock_resolve, mock_load):
         """Scenarios from file config are included in result."""
-        from lifx_emulator_app.config import EmulatorConfig
 
         scenarios = ScenariosConfig(
             global_scenario=ScenarioDefinition(drop_packets={101: 1.0}),
@@ -1329,7 +1312,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Device with explicit serial uses that serial."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[DeviceDefinition(product_id=27, serial="aabbcc000001")]
@@ -1363,7 +1345,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Device power_level and color are applied."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1409,7 +1390,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Devices with same location share the same location_id."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1456,7 +1436,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Zone colors are applied to multizone device."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1508,7 +1487,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Zone colors shorter than zone_count are padded with default color."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1570,7 +1548,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Zone colors longer than zone_count are truncated."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1619,7 +1596,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Auto-generated serials skip explicitly assigned serials."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             color=1,
@@ -1658,7 +1634,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Infrared brightness and HEV fields are applied."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[
@@ -1792,7 +1767,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Device label from config definition is applied."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_load_cfg.return_value = _make_cfg(
             devices=[DeviceDefinition(product_id=27, label="My Lamp")]
@@ -1872,7 +1846,6 @@ class TestRunWithConfigDevices:
         self, mock_load_cfg, mock_setup_logging, mock_resolve
     ):
         """run() fails when a config device has an unknown product_id."""
-        from lifx_emulator_app.config import DeviceDefinition
 
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
@@ -1899,7 +1872,6 @@ class TestRunWithConfigDevices:
         self, mock_storage_class, mock_setup_logging, mock_server_class, mock_resolve
     ):
         """Persistent mode with no devices logs warning instead of error."""
-        from unittest.mock import AsyncMock
 
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger

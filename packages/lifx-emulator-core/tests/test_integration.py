@@ -8,6 +8,8 @@ import socket
 
 import pytest
 from lifx_emulator.constants import HEADER_SIZE
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.factories import create_color_light
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Device, Light, MultiZone, Tile
 from lifx_emulator.protocol.protocol_types import (
@@ -15,6 +17,8 @@ from lifx_emulator.protocol.protocol_types import (
     LightHsbk,
     TileBufferRect,
 )
+from lifx_emulator.repositories import DeviceRepository
+from lifx_emulator.server import EmulatedLifxServer
 
 
 def create_header(
@@ -94,10 +98,6 @@ class TestDeviceDiscovery:
         Clients must tolerate the unknown service byte and select the UDP
         entry's port to talk to the device.
         """
-        from lifx_emulator.devices import DeviceManager
-        from lifx_emulator.factories import create_color_light
-        from lifx_emulator.repositories import DeviceRepository
-        from lifx_emulator.server import EmulatedLifxServer
 
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
             probe.bind(("127.0.0.1", 0))

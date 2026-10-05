@@ -15,7 +15,15 @@ from lifx_emulator.factories import (
 )
 from lifx_emulator.handlers.button_handlers import SetConfigHandler
 from lifx_emulator.protocol.packets import Button
-from lifx_emulator.protocol.protocol_types import ButtonBacklightHsbk, LightHsbk
+from lifx_emulator.protocol.protocol_types import Button as ButtonStruct
+from lifx_emulator.protocol.protocol_types import (
+    ButtonAction,
+    ButtonBacklightHsbk,
+    ButtonGesture,
+    ButtonTarget,
+    ButtonTargetType,
+    LightHsbk,
+)
 
 
 class MockStorage:
@@ -332,15 +340,6 @@ class TestButtonStateRestoration:
 
     def test_buttons_survive_a_serialize_restore_round_trip(self):
         """Button.Set mutates the per-button actions, so they must persist."""
-        from lifx_emulator.protocol.protocol_types import (
-            Button as ButtonStruct,
-        )
-        from lifx_emulator.protocol.protocol_types import (
-            ButtonAction,
-            ButtonGesture,
-            ButtonTarget,
-            ButtonTargetType,
-        )
 
         device = create_device(219, serial="d073d5000001")
         device.state.buttons_state.buttons[0] = ButtonStruct(
