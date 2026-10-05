@@ -481,7 +481,7 @@ scenarios:
 | `response_delays` | `{packet_type: seconds}` | Delay before responding |
 | `malformed_packets` | `[packet_type, ...]` | Send truncated/corrupted responses |
 | `invalid_field_values` | `[packet_type, ...]` | Send responses with all 0xFF bytes |
-| `firmware_version` | `[major, minor]` | Override firmware version |
+| `firmware_version` | `[major, minor]` | Override the version reported in `StateHostFirmware` |
 | `partial_responses` | `[packet_type, ...]` | Send incomplete multizone/tile data |
 | `send_unhandled` | `bool` | Send StateUnhandled for unknown packets |
 

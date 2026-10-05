@@ -144,12 +144,20 @@ config = ScenarioConfig(partial_responses=[506])  # StateMultiZone
 
 ### Firmware Version
 
-`ScenarioConfig` accepts a `firmware_version` field, but devices do not currently apply it. To emulate a specific firmware version, set it when creating the device instead:
+`firmware_version` changes the version a device reports in `StateHostFirmware` (15), the reply to `GetHostFirmware` (14). Only the reported version changes: the device keeps its configured firmware and the features that go with it, so you can test a client's version-based feature detection. Because it is a scenario, you can change it at runtime and at any scope:
+
+```python
+from lifx_emulator.scenarios import ScenarioConfig
+
+# Report firmware 2.60 in StateHostFirmware
+config = ScenarioConfig(firmware_version=(2, 60))
+```
+
+To emulate a device that really runs a given firmware version, including the features it enables, set it when creating the device instead:
 
 ```python
 from lifx_emulator import create_color_light
 
-# Simulate older firmware
 device = create_color_light("d073d5000001", firmware_version=(2, 60))
 ```
 
@@ -355,10 +363,14 @@ config = ScenarioConfig(malformed_packets=[107])
 ### Testing Firmware Compatibility
 
 ```python
-# Set the firmware version on the device itself; the firmware_version
-# scenario field is not currently applied
+# Devices that really run older and newer firmware
 older = create_color_light("d073d5000001", firmware_version=(2, 60))
 newer = create_color_light("d073d5000002", firmware_version=(3, 90))
+
+# Or make one device report a different version at runtime
+manager.set_device_scenario(
+    "d073d5000002", ScenarioConfig(firmware_version=(2, 60))
+)
 
 # Test client behaviour with older and newer firmware
 ```

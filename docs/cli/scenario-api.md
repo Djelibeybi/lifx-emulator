@@ -89,7 +89,7 @@ Send response packets with all fields set to 0xFF (invalid). Tests validation.
 
 **Type:** Array [major, minor] or null
 
-Override firmware version reported by device.
+Override the firmware version the device reports in `StateHostFirmware` (15). The device's configured firmware, and the features that depend on it, are unchanged.
 
 ```json
 {"firmware_version": [2, 60]}
@@ -472,15 +472,17 @@ curl -X PUT http://localhost:8080/api/scenarios/types/color \
 Override firmware version to test backward compatibility:
 
 ```bash
-# Set device to old firmware version
+# Make the device report an old firmware version
 curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
   -H "Content-Type: application/json" \
   -d '{"firmware_version": [2, 60]}'
 
-# Get the device to verify firmware version is changed
-curl http://localhost:8080/api/devices/d073d5000001 | jq '.version_major, .version_minor'
-# Output: 2, 60
+# Verify the scenario is set
+curl http://localhost:8080/api/scenarios/devices/d073d5000001 | jq '.scenario.firmware_version'
+# Output: [2, 60]
 ```
+
+A client that sends `GetHostFirmware` (14) to the device now receives version 2.60 in `StateHostFirmware` (15). The device API (`/api/devices/d073d5000001`) still shows the configured firmware, because the scenario changes only what the device reports.
 
 ### Example 4: Simulate Problematic Device
 

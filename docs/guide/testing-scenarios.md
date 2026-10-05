@@ -466,11 +466,9 @@ if __name__ == "__main__":
 
 Override the reported firmware version to test version compatibility.
 
-!!! warning "Use the factory, not the scenario field"
+The scenario changes the version in `StateHostFirmware` (15), the reply to `GetHostFirmware` (14). The device keeps its configured firmware, and the features that depend on it, so this tests a client's version-based feature detection. To emulate a device that really runs a given version, pass `firmware_version=(major, minor)` to the factory instead.
 
-    `ScenarioConfig` accepts a `firmware_version` field, but the emulator does not currently apply it: devices keep reporting their own firmware version. To emulate a specific firmware version, pass `firmware_version=(major, minor)` to the factory when you create the device.
-
-**Configuration:** Tuple of (major, minor) version numbers, passed to the factory
+**Configuration:** Tuple of (major, minor) version numbers
 
 **Use Cases:**
 - Test version detection
