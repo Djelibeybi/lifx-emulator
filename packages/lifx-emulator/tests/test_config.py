@@ -497,6 +497,16 @@ class TestScenarioDefinition:
         s = ScenarioDefinition(response_delays=None)
         assert s.response_delays is None
 
+    @pytest.mark.parametrize("version", [(-1, 60), (65536, 60), (2, 65536)])
+    def test_firmware_version_out_of_range_rejected(self, version):
+        """StateHostFirmware fields are uint16, so reject values that don't fit."""
+        with pytest.raises(ValueError, match="firmware_version"):
+            ScenarioDefinition(firmware_version=version)
+
+    def test_firmware_version_uint16_maximum_accepted(self):
+        s = ScenarioDefinition(firmware_version=(65535, 65535))
+        assert s.firmware_version == (65535, 65535)
+
 
 class TestScenariosConfig:
     """Test ScenariosConfig model."""

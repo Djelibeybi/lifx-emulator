@@ -4,9 +4,15 @@ This module contains Pydantic models that are used across multiple layers
 of the application (domain, API, persistence, etc.).
 """
 
+from typing import Annotated
+
 from pydantic import BaseModel, Field, field_validator
 
 ACK_PACKET_TYPE = 45
+
+
+# StateHostFirmware carries the major and minor versions as uint16 fields
+FirmwareVersionComponent = Annotated[int, Field(ge=0, le=0xFFFF)]
 
 
 class ScenarioConfig(BaseModel):
@@ -43,8 +49,12 @@ class ScenarioConfig(BaseModel):
         default_factory=list,
         description="List of packet types to send with all 0xFF bytes in fields",
     )
-    firmware_version: tuple[int, int] | None = Field(
-        None, description="Override firmware version (major, minor). Example: [3, 70]"
+    firmware_version: (
+        tuple[FirmwareVersionComponent, FirmwareVersionComponent] | None
+    ) = Field(
+        None,
+        description="Override the firmware version (major, minor) reported in "
+        "StateHostFirmware; each component is 0-65535. Example: [3, 70]",
     )
     partial_responses: list[int] = Field(
         default_factory=list,

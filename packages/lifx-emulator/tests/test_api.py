@@ -1492,3 +1492,23 @@ def test_clear_devices_removes_all_repository_entries(api_client, server_with_de
     response = api_client.delete("/api/devices")
     assert response.status_code == 200
     assert server_with_devices.get_all_devices() == []
+
+
+class TestFirmwareVersionScenarioValidation:
+    """Scenario endpoints reject firmware versions that do not fit uint16."""
+
+    @pytest.mark.parametrize("version", [[-1, 60], [65536, 60], [2, 65536]])
+    def test_put_device_scenario_rejects_out_of_range(self, api_client, version):
+        response = api_client.put(
+            "/api/scenarios/devices/d073d5000001",
+            json={"firmware_version": version},
+        )
+        assert response.status_code == 422
+
+    def test_put_device_scenario_accepts_uint16_maximum(self, api_client):
+        response = api_client.put(
+            "/api/scenarios/devices/d073d5000001",
+            json={"firmware_version": [65535, 65535]},
+        )
+        assert response.status_code == 200
+        assert response.json()["scenario"]["firmware_version"] == [65535, 65535]

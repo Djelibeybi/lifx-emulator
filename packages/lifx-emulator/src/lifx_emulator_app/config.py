@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from lifx_emulator.scenarios.models import FirmwareVersionComponent
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,9 @@ class ScenarioDefinition(BaseModel):
     response_delays: dict[int, float] | None = None
     malformed_packets: list[int] | None = None
     invalid_field_values: list[int] | None = None
-    firmware_version: tuple[int, int] | None = None
+    firmware_version: (
+        tuple[FirmwareVersionComponent, FirmwareVersionComponent] | None
+    ) = None
     partial_responses: list[int] | None = None
     send_unhandled: bool | None = None
 
