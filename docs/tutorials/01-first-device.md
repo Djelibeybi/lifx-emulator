@@ -123,7 +123,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
     ```
 
     - `create_color_light()` - Creates a LIFX Color bulb (product ID 91)
-    - `"d073d5000001"` - The device's unique serial number. LIFX serials look like MAC addresses, and are often almost identical to the device's real MAC address, but they are not the MAC address
+    - `"d073d5000001"` - The device's unique serial. LIFX serials look like MAC addresses, and are often almost identical to the device's real MAC address, but they are not the MAC address
 
     ### Creating the Server
 

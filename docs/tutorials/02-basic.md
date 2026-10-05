@@ -325,7 +325,7 @@ Devices created by product ID:
 
 Here's how to test your emulated device with a real LIFX LAN client library, [`lifx-async`](https://pypi.org/project/lifx-async/). Install it with `pip install lifx-async`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
 
-The example runs the emulator and the client in the same event loop and follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices). The client connects directly to the emulated device by IP and serial number rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
+The example runs the emulator and the client in the same event loop and follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices). The client connects directly to the emulated device by IP and serial rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
 
 ```python
 import asyncio
@@ -339,7 +339,7 @@ from lifx_emulator.repositories import DeviceRepository
 
 async def control_light(host: str, port: int) -> None:
     """Control the emulated device with lifx-async."""
-    # Connect directly to the emulated device by IP and serial number.
+    # Connect directly to the emulated device by IP and serial.
     # Broadcast discovery would also find, and could change, any real LIFX
     # devices on your network.
     async with await Device.connect(host, serial="d073d5000001", port=port) as light:

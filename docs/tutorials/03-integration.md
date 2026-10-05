@@ -343,7 +343,7 @@ async def test_that_might_fail(emulator_with_cleanup):
 
 ## Testing with Real LIFX Clients
 
-Integration test with an actual LIFX client library, [`lifx-async`](https://pypi.org/project/lifx-async/). It runs in the same event loop as the emulator. The `light` fixture connects directly to the emulated device by IP and serial number instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
+Integration test with an actual LIFX client library, [`lifx-async`](https://pypi.org/project/lifx-async/). It runs in the same event loop as the emulator. The `light` fixture connects directly to the emulated device by IP and serial instead of relying on broadcast discovery, which doesn't reach a server bound to `127.0.0.1` and would also find any real LIFX devices on your network.
 
 Install `lifx-async` with `pip install lifx-async`, or, in a clone of the emulator repository, with `uv sync --group third-party`:
 
