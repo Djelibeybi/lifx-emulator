@@ -206,7 +206,7 @@ Example with a typical discovery flow:
 1. Your library broadcasts `GetService` (packet type 2)
 2. Emulator responds with `StateService` listing UDP service on port 56700
 3. Your library sends `GetVersion` to get product info
-4. Emulator responds with vendor=1, product=27 (or configured product)
+4. Emulator responds with vendor=1, product=91 for `create_color_light()` (or the configured product)
 5. Your library can now send commands to control the device
 
 ## Next Steps

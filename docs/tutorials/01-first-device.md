@@ -1,6 +1,6 @@
 # Your First LIFX Device
 
-**Difficulty:** 🟢 Beginner | **Time:** ⏱️ 5 minutes | **Prerequisites:** Python 3.11+, LIFX Emulator installed
+**Difficulty:** 🟢 Beginner | **Time:** ⏱️ 5 minutes | **Prerequisites:** Python 3.10+, LIFX Emulator installed
 
 This tutorial walks you through creating and running your first emulated LIFX device. By the end, you'll have a virtual LIFX light running on your machine that responds to LIFX protocol commands.
 
@@ -30,7 +30,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
     ```
     INFO     Starting LIFX Emulator on 127.0.0.1:56700
     INFO     Created 1 emulated device(s):
-    INFO       • LIFX Color 000001 (d073d5000001) - color
+    INFO       • LIFX Color 800lm 000001 (d073d5000001) - color
     INFO     Server running with verbose packet logging... Press Ctrl+C to stop
     ```
 
@@ -47,7 +47,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
     from lifx_emulator.devices import DeviceManager
 
     async def main():
-        # Create a LIFX A19 color light
+        # Create a LIFX Color light
         device = create_color_light("d073d5000001")
 
         # Create repository and manager (required)
@@ -86,7 +86,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
 
     ```
     Emulator running!
-    Device: LIFX Light
+    Device: LIFX Color 800lm 000001
     Serial: d073d5000001
     Listening on: 127.0.0.1:56700
 
@@ -101,7 +101,7 @@ This tutorial walks you through creating and running your first emulated LIFX de
 
     The CLI command `lifx-emulator --color 1 --verbose` does the following:
 
-    - `--color 1` - Creates 1 LIFX A19 color light (product ID 27)
+    - `--color 1` - Creates 1 LIFX Color light (product ID 91)
     - `--verbose` - Enables detailed packet logging to see activity
 
     **CLI Options Explained:**
@@ -122,8 +122,8 @@ This tutorial walks you through creating and running your first emulated LIFX de
     device = create_color_light("d073d5000001")
     ```
 
-    - `create_color_light()` - Creates a LIFX A19 bulb (product ID 27)
-    - `"d073d5000001"` - The device's unique serial number (MAC address)
+    - `create_color_light()` - Creates a LIFX Color bulb (product ID 91)
+    - `"d073d5000001"` - The device's unique serial. LIFX serials look like MAC addresses, and are often almost identical to the device's real MAC address, but they are not the MAC address
 
     ### Creating the Server
 
@@ -151,11 +151,12 @@ This tutorial walks you through creating and running your first emulated LIFX de
     2. Runs your code inside the block
     3. Stops the server cleanly when done
 
-## Step 4: Customizing Your Device (Optional)
+## Step 3: Customising Your Device (Optional)
 
-You can customize the device before starting the server:
+You can customise the device before starting the server:
 
 ```python
+from lifx_emulator import create_color_light
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
 # Create device
@@ -163,7 +164,7 @@ device = create_color_light("d073d5000001")
 
 # Customize it
 device.state.label = "My First Light"
-device.state.power = 65535  # On (max power)
+device.state.power_level = 65535  # On (max power)
 device.state.color = LightHsbk(
     hue=21845,      # Green (120 degrees)
     saturation=65535,  # Fully saturated
@@ -174,7 +175,7 @@ device.state.color = LightHsbk(
 # Now start the server...
 ```
 
-## Step 5: Testing with a LIFX Client (Optional)
+## Step 4: Testing with a LIFX Client (Optional)
 
 If you have a LIFX client library installed, you can test your emulated device.
 
@@ -186,27 +187,36 @@ Install the library:
 pip install lifx-async
 ```
 
-In a **separate terminal**, create `test_client.py`:
+If you're working in a clone of the emulator repository, sync its `third-party` dependency group instead:
+
+```bash
+uv sync --group third-party
+```
+
+In a **separate terminal**, create `test_client.py`. It follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices): connect with a context manager, use a `Colors` preset, and handle `LifxError`:
 
 ```python
 import asyncio
-from lifx import discover
-from lifx.color import HSBK
 
-async def main():
-    # Discover devices
-    async with discover() as group:
-        print(f"Found {len(group.devices)} device(s)")
+from lifx import Colors, Device, LifxError
 
-        if group.devices:
-            device = group.devices[0]
-            print(f"Device: {device.label}")
-            print(f"Power: {device.power}")
 
-            # Change color to red
-            print("Setting color to red...")
-            await device.set_color(HSBK.from_rgb(255, 0, 0))
+async def main() -> None:
+    try:
+        # Connect directly to the emulated device. Broadcast discovery would
+        # also find, and could change, any real LIFX devices on your network.
+        async with await Device.connect("127.0.0.1", serial="d073d5000001") as light:
+            label: str = await light.get_label()
+            power: int = await light.get_power()
+            print(f"Device: {label}")
+            print(f"Power: {power}")
+
+            print("Setting colour to red...")
+            await light.set_color(Colors.RED)
             print("Done!")
+    except LifxError as e:
+        print(f"LIFX error: {e}")
+
 
 asyncio.run(main())
 ```
@@ -220,12 +230,13 @@ python test_client.py
 You should see:
 
 ```
-Found 1 device(s)
-Device: LIFX Light
+Device: LIFX Color 800lm 000001
 Power: 65535
-Setting color to red...
+Setting colour to red...
 Done!
 ```
+
+If you customised the label in Step 4, you'll see that label instead.
 
 ## Troubleshooting
 
@@ -236,7 +247,9 @@ Done!
 **Solution:** Change the port number:
 
 ```python
-server = EmulatedLifxServer([device], "127.0.0.1", 56701)  # Different port
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56701
+)  # Different port
 ```
 
 ### Device Not Discovered
@@ -249,17 +262,19 @@ server = EmulatedLifxServer([device], "127.0.0.1", 56701)  # Different port
 3. Try binding to `"0.0.0.0"` instead of `"127.0.0.1"`:
 
 ```python
-server = EmulatedLifxServer([device], "0.0.0.0", 56700)
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "0.0.0.0", 56700
+)
 ```
 
 ### Python Version Error
 
 **Error:** `SyntaxError` or import errors
 
-**Solution:** Ensure you're using Python 3.11 or newer:
+**Solution:** Ensure you're using Python 3.10 or newer:
 
 ```bash
-python --version  # Should show 3.11 or higher
+python --version  # Should show 3.10 or higher
 ```
 
 ## What You've Learned
@@ -267,7 +282,7 @@ python --version  # Should show 3.11 or higher
 ✓ How to create an emulated LIFX device
 ✓ How to start the emulator server
 ✓ How to use the context manager pattern
-✓ How to customize device properties
+✓ How to customise device properties
 ✓ How to test with a LIFX client
 
 ## Next Steps
@@ -289,7 +304,9 @@ Try these modifications to your `first_device.py`:
       create_color_light("d073d5000002"),
       create_color_light("d073d5000003"),
   ]
-  server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+  server = EmulatedLifxServer(
+      devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+  )
   ```
 
 - **Different device type:** Try a multizone strip:

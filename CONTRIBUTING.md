@@ -26,6 +26,20 @@ cd lifx-emulator
 uv sync
 ```
 
+### Third-party client examples
+
+The tutorials include examples that drive the emulator with [`lifx-async`](https://pypi.org/project/lifx-async/), a third-party LIFX client. It lives in the optional `third-party` dependency group, so a plain `uv sync` does not install it. To run those examples, sync with the group enabled:
+
+```bash
+uv sync --group third-party
+```
+
+`uv sync` keeps the environment in step with the lock file, so running a plain `uv sync` afterwards removes the group again. To use it for a single command without changing the environment, pass the group to `uv run` instead:
+
+```bash
+uv run --group third-party python example.py
+```
+
 ## Project Structure
 
 This is a **uv workspace monorepo** with two packages:

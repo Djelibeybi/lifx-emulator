@@ -95,6 +95,10 @@ async def main():
 asyncio.run(main())
 ```
 
+#### `async shutdown() -> None`
+
+Flush all pending writes and shut down the storage executor. Call this before your application exits so queued saves reach disk.
+
 #### `load_device_state(serial: str) -> dict[str, Any] | None`
 
 Load device state from disk (synchronous).
@@ -189,35 +193,38 @@ Device state is saved as JSON files with the naming convention `{serial}.json`.
 ```json
 {
   "serial": "d073d5000001",
-  "product": 27,
   "label": "Living Room Light",
+  "product": 91,
   "power_level": 65535,
+  "connectivity": "wifi",
   "color": {
     "hue": 21845,
     "saturation": 65535,
     "brightness": 32768,
     "kelvin": 3500
   },
-  "location_id": "01234567-89ab-cdef-0123-456789abcdef",
+  "location_id": "0123456789abcdef0123456789abcdef",
   "location_label": "Home",
-  "group_id": "fedcba98-7654-3210-fedc-ba9876543210",
+  "location_updated_at": 1790872052870081024,
+  "group_id": "fedcba9876543210fedcba9876543210",
   "group_label": "Living Room",
-  "infrared_brightness": 0,
-  "hev_cycle_duration_s": 7200,
-  "hev_cycle_remaining_s": 0,
-  "zone_count": 0,
-  "zone_colors": [],
-  "tile_count": 0,
-  "tile_devices": []
+  "group_updated_at": 1790872052870404096,
+  "has_color": true,
+  "has_infrared": false,
+  "has_multizone": false,
+  "has_matrix": false,
+  "has_hev": false
 }
 ```
+
+Capability-specific fields are only written when the device has that capability: `infrared_brightness` for infrared devices, `hev_*` fields for HEV devices, `zone_count`/`zone_colors`/`multizone_effect_*` for multizone devices, and `tile_*` fields for matrix devices.
 
 ### Multizone Device Example
 
 ```json
 {
-  "serial": "d073d5000002",
-  "product": 32,
+  "serial": "d073d8000001",
+  "product": 38,
   "label": "Kitchen Strip",
   "power_level": 65535,
   "color": {
@@ -239,7 +246,7 @@ Device state is saved as JSON files with the naming convention `{serial}.json`.
 
 ```json
 {
-  "serial": "d073d5000003",
+  "serial": "d073d9000001",
   "product": 55,
   "label": "Wall Art",
   "power_level": 65535,
@@ -248,10 +255,18 @@ Device state is saved as JSON files with the naming convention `{serial}.json`.
   "tile_height": 8,
   "tile_devices": [
     {
+      "accel_meas_x": 0,
+      "accel_meas_y": 0,
+      "accel_meas_z": 0,
       "user_x": 0.0,
       "user_y": 0.0,
       "width": 8,
       "height": 8,
+      "device_version_vendor": 1,
+      "device_version_product": 55,
+      "firmware_build": 0,
+      "firmware_version_major": 3,
+      "firmware_version_minor": 50,
       "colors": [...]
     },
     ...
@@ -263,7 +278,7 @@ Device state is saved as JSON files with the naming convention `{serial}.json`.
 
 ## State Serialization
 
-The `state_serializer` module handles conversion between DeviceState objects and JSON-compatible dictionaries.
+The `lifx_emulator.devices.state_serializer` module handles conversion between DeviceState objects and JSON-compatible dictionaries.
 
 ### `serialize_device_state(device_state: DeviceState) -> dict`
 
@@ -287,7 +302,7 @@ state_dict = serialize_device_state(device.state)
 
 ### `deserialize_device_state(state_dict: dict) -> dict`
 
-Convert JSON dictionary back to DeviceState-compatible format.
+Convert a JSON dictionary back to DeviceState-compatible values (bytes IDs, `LightHsbk` colours). The dictionary is modified in place and returned.
 
 **Parameters:**
 - **`state_dict`** (`dict`) - Serialized state dictionary
@@ -304,6 +319,10 @@ storage = DevicePersistenceAsyncFile()
 loaded_dict = storage.load_device_state("d073d5000001")
 if loaded_dict:
     print(f"Label: {loaded_dict['label']}")
+
+# Deserialize a raw state file yourself
+with open(storage.storage_dir / "d073d5000001.json") as f:
+    state_dict = deserialize_device_state(json.load(f))
 ```
 
 ---
@@ -375,8 +394,9 @@ asyncio.run(main())
 
 Device state is automatically saved when:
 
-- Device properties are updated via protocol packets (SetColor, SetPower, SetLabel, etc.)
-- Device is properly shut down (via context manager or explicit save)
+- Device properties are updated via state-changing protocol packets (SetColor, SetPower, SetLabel, etc.)
+
+Direct attribute assignments such as `device.state.label = "..."` are not saved automatically; call `save_device_state()` yourself, and `shutdown()` before exit to flush pending writes.
 
 **Example with automatic saving:**
 ```python
@@ -417,8 +437,6 @@ asyncio.run(main())
 For fine-grained control, use manual save/load:
 
 ```python
-import asyncio
-
 # Manual async save
 await storage.save_device_state(device.state)
 
@@ -514,7 +532,7 @@ SERIAL_RE = re.compile(r"[0-9a-fA-F]{12}")
 storage = DevicePersistenceAsyncFile()
 root = os.path.realpath(storage.storage_dir)
 
-# Import from exported file
+# Import from exported file (stop the emulator first)
 with open("lifx-export.json") as f:
     all_states = json.load(f)
 
@@ -613,6 +631,8 @@ print(f"Cleared {count} device states")
 For state persistence to work, devices must use consistent serials:
 
 ```python
+from lifx_emulator.factories import create_color_light
+
 # Good: Fixed serial
 device = create_color_light(serial="d073d5000001", storage=storage)
 
@@ -656,6 +676,11 @@ Ensure state is saved on cleanup:
 import asyncio
 from contextlib import asynccontextmanager
 
+from lifx_emulator.devices import DevicePersistenceAsyncFile
+from lifx_emulator.factories import create_color_light
+
+storage = DevicePersistenceAsyncFile()
+
 @asynccontextmanager
 async def managed_device(serial, storage):
     device = create_color_light(serial=serial, storage=storage)
@@ -670,6 +695,7 @@ async def main():
         # Use device
         device.state.power_level = 65535
     # State automatically saved on exit
+    await storage.shutdown()  # Flush pending writes
 
 asyncio.run(main())
 ```
@@ -696,7 +722,7 @@ echo "Backed up to $BACKUP_DIR"
 **Problem:** Changes aren't saved between restarts
 
 **Solutions:**
-1. Verify `--persistent` flag is used
+1. Verify the devices were created with a `storage` instance (or, for the deprecated CLI flag, that `--persistent` is used)
 2. Check storage directory exists and is writable
 3. Ensure consistent serials
 4. Check logs for save errors
@@ -704,7 +730,7 @@ echo "Backed up to $BACKUP_DIR"
 ```python
 import logging
 logging.basicConfig(level=logging.DEBUG)
-# Will show "Saved state for device..." messages
+# Will show "Flushed N device states to disk" messages
 ```
 
 ### Permission Errors

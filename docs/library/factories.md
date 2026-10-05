@@ -15,6 +15,7 @@ All factory functions return an `EmulatedLifxDevice` instance configured for a s
         - create_hev_light
         - create_multizone_light
         - create_tile_device
+        - create_switch
         - create_device
       show_root_heading: false
       heading_level: 2
@@ -23,7 +24,7 @@ All factory functions return an `EmulatedLifxDevice` instance configured for a s
 
 ### Color Light
 
-Create a standard RGB color light (LIFX A19):
+Create a standard full-colour light (LIFX Color 800lm):
 
 ```python
 from lifx_emulator import create_color_light
@@ -36,7 +37,7 @@ device = create_color_light("d073d5000001")
 
 # Access state
 print(f"Label: {device.state.label}")
-print(f"Product: {device.state.product}")  # 27 (LIFX A19)
+print(f"Product: {device.state.product}")  # 91 (LIFX Color 800lm)
 print(f"Has color: {device.state.has_color}")  # True
 ```
 
@@ -50,7 +51,7 @@ from lifx_emulator import create_color_temperature_light
 device = create_color_temperature_light("d073d5000001")
 
 print(f"Has color: {device.state.has_color}")  # False
-print(f"Product: {device.state.product}")  # 50 (LIFX Mini White to Warm)
+print(f"Product: {device.state.product}")  # 50 (LIFX Mini DD)
 ```
 
 ### Infrared Light
@@ -63,7 +64,7 @@ from lifx_emulator import create_infrared_light
 device = create_infrared_light("d073d5000002")
 
 print(f"Has infrared: {device.state.has_infrared}")  # True
-print(f"Product: {device.state.product}")  # 29 (LIFX A19 Night Vision)
+print(f"Product: {device.state.product}")  # 29 (LIFX+ A19)
 print(f"IR brightness: {device.state.infrared_brightness}")  # 16384 (25%)
 ```
 
@@ -77,37 +78,34 @@ from lifx_emulator import create_hev_light
 device = create_hev_light("d073d5000003")
 
 print(f"Has HEV: {device.state.has_hev}")  # True
-print(f"Product: {device.state.product}")  # 90 (LIFX Clean)
+print(f"Product: {device.state.product}")  # 90 (LIFX Clean A19 1100lm)
 print(f"HEV cycle duration: {device.state.hev_cycle_duration_s}")  # 7200 (2 hours)
 ```
 
 ### Multizone Light
 
-Create a linear multizone device (strip or beam):
+Create a linear multizone device. `create_multizone_light()` always creates a LIFX Beam; use `create_device()` with a product ID for other strips such as the LIFX Z:
 
 ```python
 from lifx_emulator import create_multizone_light
+from lifx_emulator.factories import create_device
 
-# Standard LIFX Z with default 16 zones
-strip = create_multizone_light("d073d8000001")
+# LIFX Beam with the default 80 zones and extended multizone support
+beam = create_multizone_light("d073d8000001")
 
 # Custom zone count
-strip_custom = create_multizone_light("d073d8000002", zone_count=24)
+beam_custom = create_multizone_light("d073d8000002", zone_count=60)
 
-# Extended multizone (LIFX Beam) with default 80 zones
-beam = create_multizone_light("d073d8000003", extended_multizone=True)
+# Standard multizone only (no extended multizone packets, firmware 2.60)
+beam_standard = create_multizone_light("d073d8000003", extended_multizone=False)
 
-# Custom extended multizone
-beam_custom = create_multizone_light(
-    "d073d8000004",
-    zone_count=60,
-    extended_multizone=True
-)
+# LIFX Z (product ID 32) with the default 16 zones
+strip = create_device(32, serial="d073d8000004")
 
-print(f"Strip zones: {strip.state.zone_count}")  # 16
 print(f"Beam zones: {beam.state.zone_count}")   # 80
-print(f"Strip product: {strip.state.product}")  # 32 (LIFX Z)
+print(f"Strip zones: {strip.state.zone_count}")  # 16
 print(f"Beam product: {beam.state.product}")    # 38 (LIFX Beam)
+print(f"Strip product: {strip.state.product}")  # 32 (LIFX Z)
 ```
 
 ### Tile Device
@@ -115,13 +113,16 @@ print(f"Beam product: {beam.state.product}")    # 38 (LIFX Beam)
 Create a matrix tile device:
 
 ```python
-from lifx_emulator import create_tile_device
+from lifx_emulator.factories import create_device, create_tile_device
 
 # Default configuration (5 tiles of 8x8)
 tiles = create_tile_device("d073d9000001")
 
-# Custom tile count (1 to 5 tiles on the chain)
+# Custom tile count (LIFX Tile chains have 1 to 5 tiles)
 tiles_custom = create_tile_device("d073d9000002", tile_count=3)
+
+# Large matrix device with 16x8 zones (LIFX Ceiling 13x26", product 201)
+large_tile = create_device(201, serial="d073d9000003")
 
 print(f"Tile count: {tiles.state.tile_count}")      # 5
 print(f"Tile width: {tiles.state.tile_width}")      # 8
@@ -172,14 +173,19 @@ print(f"Candle size: {candle.state.tile_width}x{candle.state.tile_height}")  # 5
 Serials must be 12 hex characters (6 bytes):
 
 ```python
+from lifx_emulator import create_color_light
+
 # Valid formats
 device = create_color_light("d073d5000001")  # Serial with LIFX prefix ("d073d5")
 device = create_color_light("cafe00abcdef")  # Serial with custom prefix
 device = create_color_light()                # Auto-generate serial
 
-# Invalid (will raise error)
-device = create_color_light("123")           # Too short
-device = create_color_light("xyz")           # Not hex
+# Invalid (raises ValueError)
+for bad_serial in ("123", "xyz"):  # Too short / not hex
+    try:
+        create_color_light(bad_serial)
+    except ValueError as e:
+        print(e)  # Serial must be exactly 12 ASCII hexadecimal characters
 ```
 
 Auto-generated serials use prefixes based on device type:
@@ -195,11 +201,14 @@ Auto-generated serials use prefixes based on device type:
 When parameters like `zone_count` or `tile_count` are not specified, the factory functions automatically load defaults from the product registry's specs system:
 
 ```python
+from lifx_emulator import create_multizone_light, create_tile_device
+from lifx_emulator.factories import create_device
+
 # Uses product default (16 zones for LIFX Z)
-strip = create_multizone_light("d073d8000001")
+strip = create_device(32, serial="d073d8000001")
 
 # Uses product default (80 zones for LIFX Beam)
-beam = create_multizone_light("d073d8000002", extended_multizone=True)
+beam = create_multizone_light("d073d8000002")
 
 # Uses product default (5 tiles for LIFX Tile)
 tiles = create_tile_device("d073d9000001")
@@ -215,13 +224,15 @@ See [Product Registry](products.md) for all product definitions and defaults.
 After creation, access device state:
 
 ```python
+from lifx_emulator import create_color_light
+
 device = create_color_light("d073d5000001")
 
 # Device identity
 print(device.state.serial)          # "d073d5000001"
-print(device.state.label)           # "A19 d073d5"
+print(device.state.label)           # "LIFX Color 800lm 000001"
 print(device.state.vendor)          # 1 (LIFX)
-print(device.state.product)         # 27 (LIFX A19)
+print(device.state.product)         # 91 (LIFX Color 800lm)
 
 # Device capabilities
 print(device.state.has_color)       # True
@@ -236,8 +247,8 @@ print(device.state.color)           # LightHsbk(...)
 print(device.state.port)            # 56700 (default)
 
 # Firmware version
-print(device.state.version_major)   # 2
-print(device.state.version_minor)   # 80
+print(device.state.version_major)   # 3
+print(device.state.version_minor)   # 70
 ```
 
 ## Multiple Devices
@@ -245,48 +256,74 @@ print(device.state.version_minor)   # 80
 Create multiple devices for testing:
 
 ```python
+import asyncio
+
 from lifx_emulator import (
+    EmulatedLifxServer,
     create_color_light,
     create_multizone_light,
     create_tile_device,
-    EmulatedLifxServer,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.factories import create_device
+from lifx_emulator.repositories import DeviceRepository
 
-# Create a diverse set of devices
-devices = [
-    create_color_light("d073d5000001"),
-    create_color_light("d073d5000002"),
-    create_multizone_light("d073d8000001", zone_count=16),
-    create_multizone_light("d073d8000002", zone_count=82, extended_multizone=True),
-    create_tile_device("d073d9000001", tile_count=5),
-]
 
-# Start server with all devices
-server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
-await server.start()
+async def main():
+    # Create a diverse set of devices
+    devices = [
+        create_color_light("d073d5000001"),
+        create_color_light("d073d5000002"),
+        create_device(32, serial="d073d8000001", zone_count=16),  # LIFX Z
+        create_multizone_light("d073d8000002", zone_count=82),  # LIFX Beam
+        create_tile_device("d073d9000001", tile_count=5),
+    ]
+
+    # Start server with all devices
+    server = EmulatedLifxServer(
+        devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
+    async with server:
+        await asyncio.sleep(60)
+
+
+asyncio.run(main())
 ```
 
 ## Advanced Options
 
 ### Persistent Storage
 
-Devices can automatically persist state across restarts:
+Devices can persist state across restarts. State-changing protocol packets (`SetColor`, `SetLabel`, ...) queue a save automatically; direct assignments to `device.state` need an explicit `save_device_state()`:
 
 ```python
+import asyncio
+
 from lifx_emulator import create_color_light
-from lifx_emulator.async_storage import AsyncDeviceStorage
+from lifx_emulator.devices import DevicePersistenceAsyncFile
 
-# Create storage (uses ~/.lifx-emulator by default)
-storage = AsyncDeviceStorage()
 
-# Create device with storage enabled
-device = create_color_light("d073d5000001", storage=storage)
+async def main():
+    # Create storage (uses ~/.lifx-emulator by default)
+    storage = DevicePersistenceAsyncFile()
 
-# State changes are automatically saved asynchronously
-device.state.label = "My Light"
+    # Create device with storage enabled; saved state is restored here
+    device = create_color_light("d073d5000001", storage=storage)
 
-# On next run, state is automatically restored from disk
+    # Direct assignments are not saved automatically, so queue a save
+    device.state.label = "My Light"
+    await storage.save_device_state(device.state)
+
+    # Flush pending writes before the event loop exits
+    await storage.shutdown()
+
+    # On next run, state is automatically restored from disk
+
+
+asyncio.run(main())
 ```
+
+See [Storage API](storage.md) for details.
 
 ### Test Scenarios
 
@@ -294,7 +331,7 @@ Inject test scenarios (packet loss, delays, etc.) for error testing:
 
 ```python
 from lifx_emulator import create_color_light
-from lifx_emulator.scenarios.manager import HierarchicalScenarioManager, ScenarioConfig
+from lifx_emulator.scenarios import HierarchicalScenarioManager, ScenarioConfig
 
 # Create scenario manager
 manager = HierarchicalScenarioManager()
@@ -307,10 +344,12 @@ manager.set_device_scenario(
     device.state.serial,
     ScenarioConfig(
         drop_packets={101: 0.3},  # Drop 30% of GetColor packets
-        response_delays={102: 0.5},  # Add 500ms delay to SetColor
+        response_delays={107: 0.5},  # Delay StateColor (107) replies by 500ms
     )
 )
 ```
+
+When the device runs inside an `EmulatedLifxServer`, pass the same manager to the server as `scenario_manager=manager`: the server assigns its own scenario manager to every device it manages, so scenarios registered only on the factory's manager would be ignored.
 
 ### Custom Firmware Versions
 

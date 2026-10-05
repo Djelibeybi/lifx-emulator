@@ -48,12 +48,16 @@ Run automated tests in continuous integration pipelines without physical device 
 The emulator allows you to test your LIFX library without physical devices:
 
 ```python
-import asyncio
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def test_my_library():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
         # Test your library here
@@ -66,7 +70,7 @@ Run tests in continuous integration pipelines:
 
 ```bash
 # Start emulator in background
-lifx-emulator --bind 127.0.0.1 --port 56701 &
+lifx-emulator --bind 127.0.0.1 --port 56701 --color 1 &
 EMULATOR_PID=$!
 
 # Run tests
@@ -81,8 +85,8 @@ kill $EMULATOR_PID
 Experiment with LIFX protocol features:
 
 ```bash
-# Start with verbose logging to see all packets
-lifx-emulator --verbose
+# Start a colour light with verbose logging to see all packets
+lifx-emulator --color 1 --verbose
 ```
 
 ## Next Steps

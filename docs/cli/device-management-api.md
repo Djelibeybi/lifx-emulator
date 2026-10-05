@@ -591,7 +591,7 @@ for device in data["devices"]:
 # Create a new device
 response = requests.post(
     f"{BASE_URL}/devices",
-    json={"product_id": 27, "zone_count": 16}
+    json={"product_id": 32, "zone_count": 16}  # LIFX Z
 )
 if response.status_code == 201:
     device = response.json()

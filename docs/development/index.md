@@ -73,6 +73,20 @@ pyright --version
 ruff --version
 ```
 
+#### Third-party client examples
+
+The tutorials include examples that drive the emulator with [`lifx-async`](https://pypi.org/project/lifx-async/), a third-party LIFX client. It lives in the optional `third-party` dependency group, so a plain `uv sync` does not install it. To run those examples, sync with the group enabled:
+
+```bash
+uv sync --group third-party
+```
+
+`uv sync` keeps the environment in step with the lock file, so running a plain `uv sync` afterwards removes the group again. To use it for a single command without changing the environment, pass the group to `uv run` instead:
+
+```bash
+uv run --group third-party python example.py
+```
+
 ### 2. Run Tests
 ```bash
 # Run all tests (764 tests)
@@ -284,30 +298,45 @@ python -m lifx_emulator.products.generator
    python -m lifx_emulator.protocol.generator
    ```
 
-2. **Create handler function** in appropriate handler module:
+2. **Create handler class** in appropriate handler module:
    ```python
    # handlers/light_handlers.py
-   def handle_new_packet(
-       device: EmulatedLifxDevice,
-       packet: NewPacket,
-       header: LifxHeader,
-   ) -> list[Any]:
-       # Implementation
-       return [ResponsePacket(...)]
+   class NewPacketHandler(PacketHandler):
+       """Handle LightNewPacket (NNN) -> LightStateNewPacket (NNN)."""
+
+       PKT_TYPE = Light.NewPacket.PKT_TYPE
+
+       def handle(
+           self,
+           device_state: DeviceState,
+           packet: Light.NewPacket | None,
+           res_required: bool,
+       ) -> list[Any]:
+           # Implementation
+           return [Light.StateNewPacket(...)]
    ```
 
-3. **Register handler** in `handlers/registry.py`:
+3. **Register handler** by adding an instance to the module's handler list
+   (`create_default_registry()` in `handlers/__init__.py` registers every list):
    ```python
-   registry.register(NewPacket.PKT_TYPE, handle_new_packet)
+   ALL_LIGHT_HANDLERS = [
+       # ...
+       NewPacketHandler(),
+   ]
    ```
 
-4. **Add tests** in `tests/test_handlers.py`:
+4. **Add tests** in `packages/lifx-emulator-core/tests/test_light_handlers_extended.py`:
    ```python
-   def test_handle_new_packet():
-       device = create_color_light()
-       packet = NewPacket(...)
-       header = create_test_header()
-       responses = handle_new_packet(device, packet, header)
+   def test_handle_new_packet(color_device):
+       header = LifxHeader(
+           source=12345,
+           target=color_device.state.get_target_bytes(),
+           sequence=1,
+           pkt_type=Light.NewPacket.PKT_TYPE,
+           res_required=True,
+       )
+       packet = Light.NewPacket(...)
+       responses = color_device.process_packet(header, packet)
        assert len(responses) == 1
        # ... assertions
    ```
@@ -327,11 +356,9 @@ python -m lifx_emulator.products.generator
    ```python
    def create_new_device_type(
        serial: str | None = None,
-       storage: IDeviceStorageBackend | None = None,
+       storage: DevicePersistenceAsyncFile | None = None,
    ) -> EmulatedLifxDevice:
-       builder = DeviceBuilder()
-       # ... configure builder
-       return builder.build()
+       return create_device(99, serial=serial, storage=storage)
    ```
 
 3. **Add to `__init__.py` exports**:
@@ -345,18 +372,18 @@ python -m lifx_emulator.products.generator
 4. **Add CLI argument** in `__main__.py`:
    ```python
    @app.default
-   def main(
+   async def run(
        # ...
        new_device_type: int = 0,
    ):
-       # ... device creation logic
+       ...  # device creation logic
    ```
 
 5. **Add tests**:
    ```python
    def test_create_new_device_type():
        device = create_new_device_type()
-       assert device.state.has_new_capability
+       assert device.state.product == 99
        # ... assertions
    ```
 
@@ -372,7 +399,6 @@ lifx-emulator --verbose
 
 ### Inspect Device State
 ```python
-import asyncio
 from lifx_emulator import create_color_light
 
 device = create_color_light()
@@ -381,19 +407,22 @@ print(device.state)  # Pretty-prints all state
 
 ### Test Single Packet
 ```python
-from lifx_emulator.protocol.packets import Light
+from lifx_emulator import create_color_light
 from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Light
 
-packet = Light.Get()
+device = create_color_light("d073d5000001")
+packet = Light.GetColor()
 header = LifxHeader(
     target=bytes.fromhex("d073d5000001") + b"\x00\x00",
     source=12345,
     sequence=1,
-    pkt_type=Light.Get.PKT_TYPE,
+    pkt_type=Light.GetColor.PKT_TYPE,
+    res_required=True,
 )
 
-responses = device.process_packet(packet, header, ("127.0.0.1", 56700))
-print(responses)
+responses = device.process_packet(header, packet)
+print(responses)  # list of (header, packet) tuples
 ```
 
 ### Profile Performance

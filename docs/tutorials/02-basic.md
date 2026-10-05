@@ -2,28 +2,37 @@
 
 This page demonstrates basic usage patterns for the LIFX Emulator. These examples cover the most common use cases for getting started.
 
+Every example creates its server with a `DeviceManager`, which `EmulatedLifxServer` requires as its second argument. Give each server its own `DeviceManager(DeviceRepository())`; don't share one between servers.
+
 ## Single Device Creation
 
-The simplest way to start is with a single color light:
+The simplest way to start is with a single colour light:
 
 ```python
 import asyncio
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
-    # Create a single LIFX color light (A19)
+    # Create a single LIFX colour light (LIFX Color, product 91)
     device = create_color_light("d073d5000001")
 
     # Create and start the server
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
         print(f"Emulator running with device {device.state.serial}")
         print(f"Label: {device.state.label}")
-        print(f"Product: {device.state.product_id}")
+        print(f"Product: {device.state.product}")
 
         # Keep server running
         await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -32,8 +41,8 @@ if __name__ == "__main__":
 **Output:**
 ```
 Emulator running with device d073d5000001
-Label: LIFX Light
-Product: 27
+Label: LIFX Color 800lm 000001
+Product: 91
 ```
 
 ## Using Context Manager (Recommended)
@@ -42,11 +51,17 @@ The context manager automatically handles server startup and shutdown:
 
 ```python
 import asyncio
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     # Server starts automatically on entry, stops on exit
     async with server:
@@ -55,9 +70,12 @@ async def main():
 
     print("Server has stopped cleanly")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+If you can't use `async with`, call `await server.start()` and `await server.stop()` yourself, with `stop()` in a `finally` block.
 
 ## Multiple Devices on Same Server
 
@@ -65,12 +83,16 @@ Run multiple devices simultaneously:
 
 ```python
 import asyncio
+
 from lifx_emulator import (
     EmulatedLifxServer,
     create_color_light,
     create_color_temperature_light,
     create_infrared_light,
 )
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     # Create different device types
@@ -81,15 +103,20 @@ async def main():
         create_infrared_light("d073d5000004"),
     ]
 
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
         print(f"Running {len(devices)} devices:")
         for device in devices:
-            print(f"  - {device.state.serial}: {device.state.label} "
-                  f"(product {device.state.product_id})")
+            print(
+                f"  - {device.state.serial}: {device.state.label} "
+                f"(product {device.state.product})"
+            )
 
         await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -98,10 +125,10 @@ if __name__ == "__main__":
 **Output:**
 ```
 Running 4 devices:
-  - d073d5000001: LIFX Light (product 27)
-  - d073d5000002: LIFX Light (product 27)
-  - d073d5000003: LIFX Light (product 50)
-  - d073d5000004: LIFX+ A19 (product 29)
+  - d073d5000001: LIFX Color 800lm 000001 (product 91)
+  - d073d5000002: LIFX Color 800lm 000002 (product 91)
+  - d073d5000003: LIFX Mini DD 000003 (product 50)
+  - d073d5000004: LIFX+ (A19) 000004 (product 29)
 ```
 
 ## Query Device State
@@ -110,11 +137,17 @@ Access device state at any time:
 
 ```python
 import asyncio
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
         # Access current device state
@@ -122,16 +155,19 @@ async def main():
 
         print(f"Serial: {state.serial}")
         print(f"Label: {state.label}")
-        print(f"Power: {state.power}")
-        print(f"Color: H={state.color.hue}, S={state.color.saturation}, "
-              f"B={state.color.brightness}, K={state.color.kelvin}")
-        print(f"Capabilities:")
+        print(f"Power: {state.power_level}")
+        print(
+            f"Colour: H={state.color.hue}, S={state.color.saturation}, "
+            f"B={state.color.brightness}, K={state.color.kelvin}"
+        )
+        print("Capabilities:")
         print(f"  - Color: {state.has_color}")
         print(f"  - Infrared: {state.has_infrared}")
         print(f"  - Multizone: {state.has_multizone}")
         print(f"  - Matrix: {state.has_matrix}")
 
         await asyncio.sleep(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -140,9 +176,9 @@ if __name__ == "__main__":
 **Output:**
 ```
 Serial: d073d5000001
-Label: LIFX Light
+Label: LIFX Color 800lm 000001
 Power: 65535
-Color: H=0, S=0, B=65535, K=3500
+Colour: H=21845, S=65535, B=32768, K=3500
 Capabilities:
   - Color: True
   - Infrared: False
@@ -156,7 +192,11 @@ Configure the server's network settings:
 
 ```python
 import asyncio
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     device = create_color_light("d073d5000001")
@@ -165,49 +205,60 @@ async def main():
     # Use "0.0.0.0" to listen on all interfaces
     server = EmulatedLifxServer(
         devices=[device],
+        device_manager=DeviceManager(DeviceRepository()),
         bind_address="127.0.0.1",
-        port=56701  # Non-standard port
+        port=56701,  # Non-standard port
     )
 
     async with server:
-        print(f"Server listening on 127.0.0.1:56701")
+        print("Server listening on 127.0.0.1:56701")
         await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+Pass `port=0` to let the operating system choose a free port. `server.port` stays `0`; read the port that was actually bound from `server.ipv4_endpoint[1]` (or `device.state.port`) once the server has started.
+
 ## Setting Initial Device State
 
-Customize device state before starting the server:
+Customise device state before starting the server:
 
 ```python
 import asyncio
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
 from lifx_emulator.protocol.protocol_types import LightHsbk
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     device = create_color_light("d073d5000001")
 
     # Configure device state before starting
     device.state.label = "Living Room Light"
-    device.state.power = 65535  # On
+    device.state.power_level = 65535  # On
     device.state.color = LightHsbk(
-        hue=21845,      # 120° (green)
+        hue=21845,  # 120° (green)
         saturation=65535,  # Fully saturated
         brightness=32768,  # 50% brightness
-        kelvin=3500
+        kelvin=3500,
     )
 
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
-        print(f"Device ready with custom state:")
+        print("Device ready with custom state:")
         print(f"  Label: {device.state.label}")
-        print(f"  Power: {'On' if device.state.power else 'Off'}")
-        print(f"  Color: Green at 50% brightness")
+        print(f"  Power: {'On' if device.state.power_level else 'Off'}")
+        print("  Colour: Green at 50% brightness")
 
         await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -219,7 +270,12 @@ Use the universal factory to create any device type:
 
 ```python
 import asyncio
-from lifx_emulator import EmulatedLifxServer, create_device
+
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.factories import create_device
+from lifx_emulator.repositories import DeviceRepository
+
 
 async def main():
     # Create devices using product IDs from the registry
@@ -230,7 +286,9 @@ async def main():
         create_device(90, serial="d073d5000004"),  # LIFX Clean (HEV)
     ]
 
-    server = EmulatedLifxServer(devices, "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
         print("Devices created by product ID:")
@@ -245,9 +303,10 @@ async def main():
             if device.state.has_hev:
                 capabilities.append("hev")
 
-            print(f"  - Product {device.state.product_id}: {', '.join(capabilities)}")
+            print(f"  - Product {device.state.product}: {', '.join(capabilities)}")
 
         await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -264,69 +323,97 @@ Devices created by product ID:
 
 ## Testing with a LIFX Client
 
-Here's how to test your emulated device with a real LIFX LAN client library:
+Here's how to test your emulated device with a real LIFX LAN client library, [`lifx-async`](https://pypi.org/project/lifx-async/). Install it with `pip install lifx-async`, or, in a clone of the emulator repository, with `uv sync --group third-party`.
+
+The example runs the emulator and the client in the same event loop and follows the [lifx-async best practices](https://djelibeybi.github.io/lifx-async/api/#best-practices). The client connects directly to the emulated device by IP and serial rather than using broadcast discovery, which would also find, and could change, any real LIFX devices on your network:
 
 ```python
 import asyncio
+
+from lifx import Colors, Device, LifxError
+
 from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
 
-# Example using lifxlan library (install with: pip install lifxlan)
-from lifxlan import LifxLAN
 
-async def run_emulator():
-    """Run the emulator in the background."""
+async def control_light(host: str, port: int) -> None:
+    """Control the emulated device with lifx-async."""
+    # Connect directly to the emulated device by IP and serial.
+    # Broadcast discovery would also find, and could change, any real LIFX
+    # devices on your network.
+    async with await Device.connect(host, serial="d073d5000001", port=port) as light:
+        label: str = await light.get_label()
+        power: int = await light.get_power()
+        print(f"Device: {label}")
+        print(f"Power: {power}")
+
+        await light.set_color(Colors.RED)
+        print("Changed colour to red")
+
+
+async def main() -> None:
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+    )
 
     async with server:
-        print("Emulator running, press Ctrl+C to stop")
-        await asyncio.sleep(3600)  # Run for 1 hour
+        endpoint = server.ipv4_endpoint
+        assert endpoint is not None  # Set once the server has started
+        host, port = endpoint
+        try:
+            await control_light(host, port)
+        except LifxError as e:
+            print(f"LIFX error: {e}")
+        print(f"Emulator colour: {device.state.color}")
 
-def test_with_client():
-    """Test the emulator using a LIFX client."""
-    # Discover devices on the local network
-    lifx = LifxLAN()
-    devices = lifx.get_devices()
 
-    print(f"Found {len(devices)} device(s)")
-
-    for device in devices:
-        print(f"\nDevice: {device.get_label()}")
-        print(f"Power: {device.get_power()}")
-
-        # Change color to red
-        device.set_color([65535, 65535, 32768, 3500])  # Red, full brightness
-        print("Changed color to red")
-
-# Run the emulator (in production, use separate processes or async tasks)
 if __name__ == "__main__":
-    # In real usage, run emulator and client in separate processes/terminals
-    asyncio.run(run_emulator())
+    asyncio.run(main())
+```
+
+You should see:
+
+```
+Device: LIFX Color 800lm 000001
+Power: 65535
+Changed colour to red
+Emulator colour: LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
 ```
 
 ## Simple pytest Example
 
-Basic pytest integration:
+Basic pytest integration (requires [pytest-asyncio](https://pytest-asyncio.readthedocs.io/)):
 
 ```python
 import pytest
-import asyncio
-from lifx_emulator import EmulatedLifxServer, create_color_light
+import pytest_asyncio
 
-@pytest.fixture
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+
+@pytest_asyncio.fixture
 async def emulator():
     """Pytest fixture for emulator."""
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    # Port 0 lets the OS pick a free port
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+    )
 
     async with server:
         yield server
 
+
 @pytest.mark.asyncio
 async def test_device_responds(emulator):
     """Test that device is accessible."""
-    assert len(emulator.devices) == 1
-    device = emulator.devices[0]
+    devices = emulator.get_all_devices()
+    assert len(devices) == 1
+    device = devices[0]
     assert device.state.serial == "d073d5000001"
     assert device.state.has_color is True
 ```

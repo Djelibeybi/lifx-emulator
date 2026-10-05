@@ -220,7 +220,7 @@ if specification:
 # Get specific values
 zones = get_default_zone_count(32)  # 16 for LIFX Z
 tiles = get_default_tile_count(55)  # 5 for LIFX Tile
-width, height = get_tile_dimensions(176)  # (22, 22) for LIFX Ceiling
+width, height = get_tile_dimensions(176)  # (8, 8) for LIFX Ceiling
 ```
 
 ## Contributing

@@ -107,10 +107,10 @@ The data portion of a LIFX packet after the 36-byte header. Contains packet-spec
 ### Packet Type
 A 16-bit integer identifying the type of LIFX message. Examples:
 
-- 2: GetService (discovery)
-- 101: LightGetPower
-- 102: LightSetColor
-- 107: LightState (color)
+- 2: Device.GetService (discovery)
+- 101: Light.GetColor
+- 102: Light.SetColor
+- 107: Light.StateColor
 
 ## Protocol Flags
 
@@ -139,7 +139,7 @@ change.
 A simple response packet (type 45) confirming receipt of a command. Sent when `ack_required=True` in the received packet's header.
 
 ### Response
-A state packet containing requested information (e.g., LightState, StatePower). Sent in reply to the corresponding get packet.
+A state packet containing requested information (e.g., `Light.StateColor`, `Device.StatePower`). Sent in reply to the corresponding get packet.
 
 ## Zone and Tile Concepts
 
@@ -335,10 +335,10 @@ A boolean indicating whether a device has HEV (germicidal UV-C) capability.
 ## Factory Functions
 
 ### create_color_light()
-Factory function that creates a full RGB color light (LIFX A19, product ID 27).
+Factory function that creates a full RGB color light (LIFX Color, product ID 91).
 
 ### create_multizone_light()
-Factory function that creates a multizone device (LIFX Z or Beam depending on `extended_multizone` parameter).
+Factory function that creates a multizone device (LIFX Beam, product ID 38; `extended_multizone` toggles extended multizone support).
 
 ### create_tile_device()
 Factory function that creates a matrix device (LIFX Tile by default, product ID 55).

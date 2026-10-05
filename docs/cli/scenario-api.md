@@ -32,14 +32,14 @@ Scenarios operate at 5 scope levels with automatic precedence (highest to lowest
 If you have:
 
 - Global: `drop_packets: {101: 1.0}`
-- Type (multizone): `response_delays: {502: 1.0}`
+- Type (multizone): `response_delays: {506: 1.0}`
 - Device (d073d5000001): `drop_packets: {102: 0.5}`
 
 Then device d073d5000001 would:
 
 - Drop packet 101 with 100% rate (from global)
 - Drop packet 102 with 50% rate (from device-specific)
-- Have 1.0s delay for packet type 502 (from type scenario)
+- Have 1.0s delay before sending packet type 506 (from type scenario)
 
 ## Configuration Properties
 
@@ -59,10 +59,10 @@ Silently drop (don't respond to) packets of specified types with given probabili
 
 **Type:** Object mapping packet type to delay in seconds
 
-Add artificial delay before responding. Simulates latency.
+Add artificial delay before sending a response. Simulates latency. Keys are the **outgoing response** packet type, not the request type: `StateColor` (107) is the reply to both `GetColor` (101) and `SetColor` (102), and `StatePower` (118) is the reply to `GetLightPower` (116) and `SetLightPower` (117). Use `45` to delay acknowledgements.
 
 ```json
-{"response_delays": {"101": 0.5, "116": 1.0}}
+{"response_delays": {"107": 0.5, "118": 1.0}}
 ```
 
 ### malformed_packets
@@ -156,7 +156,7 @@ Content-Type: application/json
 ```json
 {
   "drop_packets": {"101": 1.0, "102": 0.6},
-  "response_delays": {"101": 0.5, "116": 1.0},
+  "response_delays": {"107": 0.5, "118": 1.0},
   "malformed_packets": [],
   "invalid_field_values": [],
   "firmware_version": null,
@@ -171,7 +171,7 @@ Content-Type: application/json
 ```bash
 curl -X PUT http://localhost:8080/api/scenarios/global \
   -H "Content-Type: application/json" \
-  -d '{"drop_packets": {"101": 1.0}, "response_delays": {"116": 0.5}}'
+  -d '{"drop_packets": {"101": 1.0}, "response_delays": {"118": 0.5}}'
 ```
 
 #### Clear Global Scenario
@@ -294,10 +294,11 @@ Content-Type: application/json
 
 **Example:**
 ```bash
-# All multizone devices will respond slowly to GetColorZones (502)
+# All multizone devices will send StateMultiZone (506), the reply to
+# GetColorZones (502), slowly
 curl -X PUT http://localhost:8080/api/scenarios/types/multizone \
   -H "Content-Type: application/json" \
-  -d '{"response_delays": {"502": 1.0}}'
+  -d '{"response_delays": {"506": 1.0}}'
 ```
 
 #### Clear Type Scenario
@@ -355,7 +356,7 @@ Content-Type: application/json
 # All devices in Kitchen will have poor connectivity
 curl -X PUT http://localhost:8080/api/scenarios/locations/Kitchen \
   -H "Content-Type: application/json" \
-  -d '{"response_delays": {"116": 0.5}, "drop_packets": {"101": 0.3}}'
+  -d '{"response_delays": {"118": 0.5}, "drop_packets": {"101": 0.3}}'
 ```
 
 #### Clear Location Scenario
@@ -453,17 +454,15 @@ curl -X DELETE http://localhost:8080/api/scenarios/types/color
 Add realistic network delays:
 
 ```bash
-# Simulate 500ms latency to all color light responses
+# Simulate 500ms latency on acknowledgements (45), StateColor (107)
+# and StatePower (118) from all color lights
 curl -X PUT http://localhost:8080/api/scenarios/types/color \
   -H "Content-Type: application/json" \
   -d '{
     "response_delays": {
       "45": 0.5,
-      "101": 0.5,
-      "102": 0.5,
       "107": 0.5,
-      "116": 0.5,
-      "117": 0.5
+      "118": 0.5
     }
   }'
 ```
@@ -493,7 +492,7 @@ curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5000001 \
   -H "Content-Type: application/json" \
   -d '{
     "drop_packets": {"101": 1.0},
-    "response_delays": {"102": 1.0, "116": 0.8},
+    "response_delays": {"107": 1.0, "118": 0.8},
     "malformed_packets": [107],
     "firmware_version": [2, 50]
   }'
@@ -507,15 +506,15 @@ Test a group of devices with poor connectivity:
 # All devices in Kitchen location have latency
 curl -X PUT http://localhost:8080/api/scenarios/locations/Kitchen \
   -H "Content-Type: application/json" \
-  -d '{"response_delays": {"116": 0.5}}'
+  -d '{"response_delays": {"118": 0.5}}'
 
 # Override with specific device being worse
 curl -X PUT http://localhost:8080/api/scenarios/devices/d073d5kitchen01 \
   -H "Content-Type: application/json" \
-  -d '{"response_delays": {"116": 2.0}, "drop_packets": {"102": 0.5}}'
+  -d '{"response_delays": {"118": 2.0}, "drop_packets": {"102": 0.5}}'
 
-# Device d073d5kitchen01 will have 2.0s delay for 116 (device override wins)
-# Other Kitchen devices will have 0.5s delay for 116 (location scenario)
+# Device d073d5kitchen01 will have 2.0s delay for StatePower (118) (device override wins)
+# Other Kitchen devices will have 0.5s delay for 118 (location scenario)
 ```
 
 ### Example 6: Test Invalid Data Handling
@@ -630,7 +629,7 @@ def clear_device_scenario(serial):
 # Usage
 scenario = {
     "drop_packets": {"101": 1.0},
-    "response_delays": {"102": 0.5}
+    "response_delays": {"107": 0.5}
 }
 
 result = set_device_scenario("d073d5000001", scenario)
@@ -654,7 +653,7 @@ async def test_scenario():
         # Get all devices
         devices = await client.get(f"{BASE_URL}/devices")
 
-        for device in devices.json():
+        for device in devices.json()["devices"]:
             serial = device["serial"]
 
             # Set scenario for device
@@ -712,7 +711,7 @@ def test_with_latency():
     """Test client handles slow responses."""
     requests.put(
         f"{API_URL}/scenarios/types/color",
-        json={"response_delays": {"101": 0.5}}
+        json={"response_delays": {"107": 0.5}}  # StateColor replies
     )
 
     client = YourLIFXClient()
@@ -765,7 +764,7 @@ jobs:
         run: |
           curl -X PUT http://localhost:8080/api/scenarios/types/color \
             -H "Content-Type: application/json" \
-            -d '{"response_delays": {"101": 0.5}}'
+            -d '{"response_delays": {"107": 0.5}}'
 
       - name: Run performance tests
         run: pytest tests/ -v -k "performance"
@@ -778,17 +777,22 @@ jobs:
 | 45 | Acknowledgement | Sent when ack_required is set |
 | 101 | GetColor | Request current color state |
 | 102 | SetColor | Set device color |
-| 103 | GetWaveform | Get waveform effect |
-| 104 | SetWaveform | Set waveform effect |
-| 107 | StateColor | Response with current color |
+| 103 | SetWaveform | Set waveform effect |
+| 107 | StateColor | Response to GetColor, SetColor and SetWaveform |
 | 116 | GetLightPower | Request power state |
 | 117 | SetLightPower | Set power state |
+| 118 | StatePower | Response to GetLightPower and SetLightPower |
+| 501 | SetColorZones | Set multizone colors |
 | 502 | GetColorZones | Request multizone colors |
-| 503 | SetColorZones | Set multizone colors |
-| 506 | StateMultiZone | Response with zone colors |
-| 512 | ExtendedStateMultiZone | Response with extended zones |
+| 503 | StateZone | Response with a single zone colour |
+| 506 | StateMultiZone | Response with up to 8 zone colours |
+| 510 | ExtendedSetColorZones | Set extended multizone colours |
+| 511 | ExtendedGetColorZones | Request extended multizone colours |
+| 512 | ExtendedStateMultiZone | Response with up to 82 zone colours |
 | 701 | GetDeviceChain | Get tile chain info |
+| 702 | StateDeviceChain | Response with tile chain info |
 | 707 | Get64 | Get tile zone data |
+| 711 | State64 | Response with tile zone data |
 | 715 | Set64 | Set tile zone data |
 
 ## Tips and Best Practices

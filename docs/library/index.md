@@ -146,11 +146,11 @@ all_products = get_registry()
 
 | Function | Product | Description |
 |----------|---------|-------------|
-| `create_color_light()` | LIFX A19 (27) | Standard RGB color light |
-| `create_color_temperature_light()` | LIFX Mini White to Warm (50) | Variable color temperature |
-| `create_infrared_light()` | LIFX A19 Night Vision (29) | IR capable light |
-| `create_hev_light()` | LIFX Clean (90) | HEV cleaning light |
-| `create_multizone_light()` | LIFX Z (32) or Beam (38) | Linear multizone strip |
+| `create_color_light()` | LIFX Color 800lm (91) | Standard RGB color light |
+| `create_color_temperature_light()` | LIFX Mini DD (50) | Variable color temperature |
+| `create_infrared_light()` | LIFX+ A19 (29) | IR capable light |
+| `create_hev_light()` | LIFX Clean A19 1100lm (90) | HEV cleaning light |
+| `create_multizone_light()` | LIFX Beam (38) | Linear multizone strip |
 | `create_tile_device()` | LIFX Tile (55) | Tile matrix |
 | `create_switch()` | LIFX Switch (70) | Relay-based switch |
 | `create_device()` | Any product ID | Universal factory |
@@ -221,9 +221,11 @@ The following are exported from `lifx_emulator`:
 from lifx_emulator import (
     # Server
     EmulatedLifxServer,
+    MdnsStatus,
 
     # Device (for advanced usage)
     EmulatedLifxDevice,
+    Connectivity,
 
     # Factory functions (recommended)
     create_color_light,
@@ -232,10 +234,10 @@ from lifx_emulator import (
     create_infrared_light,
     create_multizone_light,
     create_tile_device,
-    create_switch,
-    create_device,
 )
 ```
+
+`create_switch` and `create_device` are exported from `lifx_emulator.factories`.
 
 ## Common Patterns
 
@@ -262,6 +264,7 @@ async def test_basic():
 ### Multiple Device Types
 
 ```python
+from lifx_emulator import EmulatedLifxServer
 from lifx_emulator.factories import (
     create_color_light,
     create_multizone_light,

@@ -74,7 +74,10 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`has_multizone`** (`bool` = `False`) - Supports multizone (linear strips)
 - **`has_matrix`** (`bool` = `False`) - Supports matrix (2D tiles)
 - **`has_chain`** (`bool` = `False`) - Supports multiple tiles
+- **`has_extended_multizone`** (`bool` = `False`) - Supports the extended multizone protocol
 - **`has_hev`** (`bool` = `False`) - Supports HEV (germicidal light)
+- **`has_relays`** (`bool` = `False`) - Has relays (switches)
+- **`has_buttons`** (`bool` = `False`) - Has physical buttons (switches)
 
 #### Location & Group
 
@@ -159,7 +162,7 @@ Emulated LIFX device that processes protocol packets and manages state.
 
 #### `EmulatedLifxDevice(device_state, storage=None, handler_registry=None, scenario_manager=None, on_state_changed=None, persist_initial_state=False)`
 
-Create a new emulated LIFX device.
+Create a new emulated LIFX device. Most code should use the [factory functions](factories.md), which build the `DeviceState` and the device together.
 
 In most cases you should not call this constructor directly: the [factory functions](factories.md) build a fully configured `DeviceState` for a product and wrap it in an `EmulatedLifxDevice` for you, and accept the same `storage` and `scenario_manager` collaborators.
 
@@ -187,7 +190,7 @@ manager.set_device_scenario(
     "d073d5000002",
     ScenarioConfig(
         drop_packets={102: 1.0},  # Drop all SetColor packets (100% drop rate)
-        response_delays={2: 0.5},  # Delay GetService responses by 500ms
+        response_delays={3: 0.5},  # Delay StateService (3) replies by 500ms
     ),
 )
 device = create_color_light("d073d5000002", scenario_manager=manager)
@@ -225,7 +228,7 @@ This is the main entry point for packet processing. It:
 - **`scenario`** (`ScenarioConfig | None`) - Pre-resolved scenario; resolved from the device's scenario manager when omitted
 - **`should_respond`** (`bool | None`) - Pre-resolved drop decision; resolved from the scenario when omitted
 
-**Returns:** `list[tuple[LifxHeader, Any]]` - List of response packets to send
+**Returns:** `list[tuple[LifxHeader, Any]]` - List of `(header, packet)` response tuples to send; `packet` is raw `bytes` when a malformed or invalid-field scenario applies
 
 **Example:**
 ```python
@@ -266,19 +269,19 @@ Capability flags in `DeviceState` determine which features the device supports a
 
 | Flag | Description | Example Products | Supported Packets |
 |------|-------------|------------------|-------------------|
-| `has_color` | Full RGB color control | A19 (27), BR30 (43), GU10 (66) | `Light.Get`, `Light.SetColor`, `Light.State` |
-| `has_infrared` | Night vision IR capability | A19 Night Vision (29), BR30 NV (44) | `Light.GetInfrared`, `Light.SetInfrared`, `Light.StateInfrared` |
+| `has_color` | Full RGB color control | A19 (27), BR30 (44), GU10 (52) | `Light.GetColor`, `Light.SetColor`, `Light.StateColor` |
+| `has_infrared` | Night vision IR capability | LIFX+ A19 (29), LIFX+ BR30 (30) | `Light.GetInfrared`, `Light.SetInfrared`, `Light.StateInfrared` |
 | `has_multizone` | Linear zone control (strips) | LIFX Z (32), Beam (38) | `MultiZone.GetColorZones`, `MultiZone.SetColorZones`, `MultiZone.StateZone`, `MultiZone.StateMultiZone` |
-| `has_extended_multizone` | Extended multizone support | Beam (38), LIFX Z (32) | `MultiZone.GetExtendedColorZones`, `MultiZone.SetExtendedColorZones`, `MultiZone.ExtendedStateMultiZone` |
+| `has_extended_multizone` | Extended multizone support | Beam (38), LIFX Z (32) | `MultiZone.ExtendedGetColorZones`, `MultiZone.ExtendedSetColorZones`, `MultiZone.ExtendedStateMultiZone` |
 | `has_matrix` | 2D tile/matrix control | Tile (55), Candle (57), Ceiling (176) | `Tile.GetDeviceChain`, `Tile.Get64`, `Tile.Set64`, `Tile.StateDeviceChain`, `Tile.State64` |
 | `has_chain` | Supports multiple tiles | Tile (55) | `Tile.StateDeviceChain` may report multiple `tile_devices` |
-| `has_hev` | Germicidal UV-C light | LIFX Clean (90) | `Hev.GetCycle`, `Hev.SetCycle`, `Hev.StateCycle` |
+| `has_hev` | Germicidal UV-C light | LIFX Clean (90) | `Light.GetHevCycle`, `Light.SetHevCycle`, `Light.StateHevCycle` |
 | `has_relays` | Relay/switch control | LIFX Switch (70) | `Device.*` only (returns `StateUnhandled` for Light/MultiZone/Tile) |
-| `has_buttons` | Physical button configuration | LIFX Switch (70), LIFX Luna (199) | Button-related device packets |
+| `has_buttons` | Physical button configuration | LIFX Switch (70), LIFX Luna (219) | `Button.Get`, `Button.Set`, `Button.State`, `Button.GetConfig`, `Button.SetConfig`, `Button.StateConfig` |
 
 **Notes:**
 
-- Devices without a capability flag will ignore related packets
+- Devices without a capability flag reply `StateUnhandled` (223) to related packets
 - Most devices have `has_color=True` (except switches and relays)
 - `has_extended_multizone` is independent of zone count — it indicates firmware support for the extended multizone protocol
 - Matrix devices store tile data in `tile_devices` list
@@ -311,11 +314,12 @@ Scenarios configure error injection and testing behaviours for emulated devices.
 | Scenario | Type | Description | Example |
 |----------|------|-------------|---------|
 | `drop_packets` | `dict[int, float]` | Packet types to drop with rates (0.0-1.0) | `{102: 1.0, 101: 0.5}` - Always drop SetColor, drop Get 50% |
-| `response_delays` | `dict[int, float]` | Delay (seconds) before responding to packet type | `{2: 1.5}` - Delay GetService by 1.5s |
-| `malformed_packets` | `list[int]` | Packet types to send truncated/corrupted | `[107]` - Corrupt State packets |
-| `invalid_field_values` | `list[int]` | Packet types to send with invalid fields (0xFF) | `[107]` - Invalid State values |
+| `response_delays` | `dict[int, float]` | Delay (seconds) before sending the outgoing response type | `{3: 1.5}` - Delay StateService (reply to GetService) by 1.5s |
+| `malformed_packets` | `list[int]` | Packet types to send truncated/corrupted | `[107]` - Corrupt StateColor packets |
+| `invalid_field_values` | `list[int]` | Packet types to send with invalid fields (0xFF) | `[107]` - Invalid StateColor values |
 | `partial_responses` | `list[int]` | Multizone/tile packets to send incomplete | `[506]` - Partial zone data |
-| `firmware_version` | `tuple[int, int]` | Override firmware version | `(2, 80)` - Report v2.80 |
+| `firmware_version` | `tuple[int, int] \| None` | Override firmware version | `(2, 80)` - Report v2.80 |
+| `send_unhandled` | `bool` | Send `StateUnhandled` (223) for unsupported packets | `False` - Stay silent instead |
 
 ### Examples
 
@@ -332,7 +336,7 @@ manager.set_device_scenario(
     "d073d5000001",
     ScenarioConfig(
         drop_packets={2: 1.0},  # Drop all GetService packets - simulate discovery failure
-        response_delays={102: 2.0},  # Delay SetColor by 2 seconds
+        response_delays={107: 2.0},  # Delay StateColor (reply to SetColor) by 2 seconds
     ),
 )
 device = create_color_light("d073d5000001", scenario_manager=manager)

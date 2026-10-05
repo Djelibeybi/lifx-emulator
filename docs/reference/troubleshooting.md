@@ -42,21 +42,40 @@ OSError: [Errno 48] Address already in use
 
 3. **Use dynamic port allocation (best for tests):**
    ```python
-   # Let OS assign available port
-   server = EmulatedLifxServer([device], "127.0.0.1", 0)
+   from lifx_emulator import EmulatedLifxServer, create_color_light
+   from lifx_emulator.devices import DeviceManager
+   from lifx_emulator.repositories import DeviceRepository
+
+   device = create_color_light("d073d5000001")
+
+   # Let the OS assign an available port
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+   )
    await server.start()
-   print(f"Server running on port {server.port}")
+   # server.port stays 0; the assigned port is in ipv4_endpoint
+   print(f"Server running on port {server.ipv4_endpoint[1]}")
    ```
 
-4. **Use port offset in parallel tests:**
+4. **Use port offset in parallel tests (pytest-xdist):**
    ```python
+   import pytest
+
+   from lifx_emulator import EmulatedLifxServer, create_color_light
+   from lifx_emulator.devices import DeviceManager
+   from lifx_emulator.repositories import DeviceRepository
+
+
    @pytest.fixture
    async def emulator(worker_id):
-
-         port = 56700 + int(worker_num) + 1
+       # worker_id is "master" without xdist, otherwise "gw0", "gw1", ...
+       worker_num = 0 if worker_id == "master" else int(worker_id[2:]) + 1
+       port = 56700 + worker_num
 
        device = create_color_light(f"d073d5{worker_num:06d}")
-       server = EmulatedLifxServer([device], "127.0.0.1", port)
+       server = EmulatedLifxServer(
+           [device], DeviceManager(DeviceRepository()), "127.0.0.1", port
+       )
        async with server:
            yield server
    ```
@@ -83,7 +102,9 @@ PermissionError: [Errno 13] Permission denied
 
 1. **Use port >= 1024 (recommended):**
    ```python
-   server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+   )
    ```
 
 2. **Don't run as root** (security risk)
@@ -100,16 +121,22 @@ PermissionError: [Errno 13] Permission denied
    ```bash
    lifx-emulator --verbose
    ```
-   Should show: `Emulator listening on 127.0.0.1:56700`
+   Should show: `Starting LIFX Emulator on 127.0.0.1:56700`
 
 2. **Check bind address:**
    ```python
-   # only localhost
-   server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+   # only localhost (the default)
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+   )
 
    # all interfaces
-   server = EmulatedLifxServer([device], "0.0.0.0", 56700)
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "0.0.0.0", 56700
+   )
    ```
+
+   From the CLI, use `lifx-emulator --bind 0.0.0.0`.
 
 3. **Check firewall:**
 
@@ -174,8 +201,8 @@ PermissionError: [Errno 13] Permission denied
    ```
    This shows all packets sent/received:
    ```
-   RX: GetService (2) from ('127.0.0.1', 54321)
-   TX: StateService (3) to ('127.0.0.1', 54321)
+   ← RX Device.GetService from 127.0.0.1:54321 (target=broadcast, seq=1) [no payload]
+   → TX Device.StateService to 127.0.0.1:54321 (target=d073d5000001, seq=1) [service=1, port=56700]
    ```
 
 ### Devices Discovered Multiple Times
@@ -218,30 +245,50 @@ PermissionError: [Errno 13] Permission denied
    Check your client library documentation for details.
 
 2. **Check response scenarios:**
+
+   Scenarios live on the server's `HierarchicalScenarioManager`, not on the device. List what is configured at each scope:
    ```python
-   # Are you testing timeouts intentionally?
-   device.scenarios = {
-       'drop_packets': {102: 1.0},  # Will cause timeouts
-   }
+   from lifx_emulator.scenarios import get_device_type
+
+   manager = server.scenario_manager
+   print(manager.device_scenarios)  # keyed by serial
+   print(manager.type_scenarios)  # keyed by device type
+   print(manager.location_scenarios)  # keyed by location label
+   print(manager.group_scenarios)  # keyed by group label
+   print(manager.global_scenario)
+
+   # The merged scenario that applies to one device
+   print(
+       manager.get_scenario_for_device(
+           serial=device.state.serial,
+           device_type=get_device_type(device),
+           location=device.state.location_label,
+           group=device.state.group_label,
+       )
+   )
    ```
+   A configuration such as `ScenarioConfig(drop_packets={102: 1.0})` drops every SetColor (102) request, so the client times out by design. `drop_packets` matches the incoming request type.
 
 3. **Check async context:**
    ```python
-   # Wrong - server has to be started manually
-   server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+   # Wrong - creating the server does not start it
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+   )
    # ... try to communicate ...
 
-   # Right - server starts automatically
-   async with EmulatedLifxServer([device], "127.0.0.1", 56700) as server:
-       # ... communicate here ...
+   # Right - the server starts on entry and stops on exit
+   async with EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+   ) as server:
+       ...  # communicate here
    ```
 
 4. **Network latency:**
+
+   Check whether a delay scenario is configured. `response_delays` is keyed by the outgoing response type, so this delays every StateColor (107), the reply to GetColor and SetColor, by 10 seconds:
    ```python
-   # Check if delay scenarios are configured
-   device.scenarios = {
-       'response_delays': {102: 10.0},  # 10 second delay!
-   }
+   ScenarioConfig(response_delays={107: 10.0})  # 10 second delay!
    ```
 
 ### Tests Timeout in CI/CD
@@ -252,30 +299,32 @@ PermissionError: [Errno 13] Permission denied
 
 1. **Use dynamic ports:**
    ```python
-   def get_free_port() -> int:
-    """Get a free UDP port."""
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-   port = get_free_port()
-   server = EmulatedLifxServer([device], "127.0.0.1", port)
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+   )
+   async with server:
+       port = server.ipv4_endpoint[1]  # The port the OS assigned
+       ...
    ```
 
-2. **Increase pytest timeout:**
-   ```python
-   # pytest.ini or pyproject.toml
+2. **Increase pytest timeout** (requires the `pytest-timeout` plugin):
+   ```toml
+   # pyproject.toml
    [tool.pytest.ini_options]
    timeout = 30
    ```
 
-3. **Reduce test fixture scope:**
+3. **Widen test fixture scope:**
    ```python
-   # Module scope for faster tests
-   @pytest.fixture(scope="module")
+   import pytest_asyncio
+
+
+   # Module scope for faster tests: one server per test file
+   @pytest_asyncio.fixture(scope="module", loop_scope="module")
    async def emulator():
        ...
    ```
+   Tests that use a module- or session-scoped server must run on the same event loop, for example with `@pytest.mark.asyncio(loop_scope="module")`. If they run on a different loop, the server's loop is idle during the test and every request times out.
 
 4. **Check CI resource limits:**
 
@@ -312,11 +361,11 @@ PermissionError: [Errno 13] Permission denied
    ```bash
    lifx-emulator --verbose
    ```
-   Look for: `Unknown packet type: XXX`
+   Look for: `← RX Unknown packet type XXX from ...`
 
 ### Malformed Packet Errors
 
-**Problem:** "Failed to unpack packet" errors
+**Problem:** "Failed to unpack ..." warnings, for example `Failed to unpack Light.SetColor (type 102) from 127.0.0.1:54321: ...`
 
 **Causes:**
 
@@ -361,7 +410,8 @@ PermissionError: [Errno 13] Permission denied
 **Causes:**
 
 - `ack_required` flag not set in header
-- Packet dropped by scenario configuration
+- Request dropped by scenario configuration
+- Acknowledgement delayed by scenario configuration
 - Network issues
 
 **Solutions:**
@@ -373,18 +423,24 @@ PermissionError: [Errno 13] Permission denied
    ```
 
 2. **Check scenarios:**
+
+   `drop_packets` matches the incoming request type, and a dropped request gets no acknowledgement either. `response_delays` matches the outgoing packet type, so it can delay the acknowledgement itself:
    ```python
-   # Is ack being dropped?
-   device.scenarios = {
-       'drop_packets': {45: 1.0},  # Drops acknowledgments!
-   }
+   from lifx_emulator.scenarios import ScenarioConfig
+
+   # Drops every SetColor (102) request: no ack and no StateColor
+   ScenarioConfig(drop_packets={102: 1.0})
+
+   # Delays every Acknowledgement (45) by 2 seconds
+   ScenarioConfig(response_delays={45: 2.0})
    ```
+   Putting `45` in `drop_packets` does not suppress acknowledgements, because clients never send packet type 45.
 
 3. **Enable verbose logging:**
    ```bash
    lifx-emulator --verbose
    ```
-   Look for: `TX: Acknowledgment (45) to ...`
+   Look for: `→ TX Device.Acknowledgement to ...`
 
 ## Performance Problems
 
@@ -461,7 +517,7 @@ PermissionError: [Errno 13] Permission denied
    ```python
    # Ensure server stops and releases resources
    async with server:
-       # ... tests ...
+       ...  # tests
    # Cleanup happens automatically
    ```
 
@@ -512,16 +568,8 @@ PermissionError: [Errno 13] Permission denied
 **Common issues:**
 
 1. **Event loop policy:**
-   ```python
-   # Add to conftest.py or test setup
-   import sys
-   import asyncio
 
-   if sys.platform == 'win32':
-       asyncio.set_event_loop_policy(
-           asyncio.WindowsProactorEventLoopPolicy()
-       )
-   ```
+   No change is needed. The default Proactor event loop on Windows supports the UDP sockets the emulator uses. Remove any `asyncio.set_event_loop_policy()` call you added as a workaround: event loop policies are deprecated from Python 3.14.
 
 2. **Firewall prompts:**
    - Windows Defender may prompt to allow Python
@@ -577,8 +625,14 @@ PermissionError: [Errno 13] Permission denied
 
 1. **Port binding requires root (ports < 1024):**
    ```python
+   from lifx_emulator import EmulatedLifxServer
+   from lifx_emulator.devices import DeviceManager
+   from lifx_emulator.repositories import DeviceRepository
+
    # Solution: Use ports >= 1024
-   server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+   server = EmulatedLifxServer(
+       [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+   )
    ```
 
 2. **Too many open files:**
@@ -653,12 +707,12 @@ logging.getLogger('lifx_emulator').setLevel(logging.DEBUG)
 lifx-emulator --verbose
 ```
 
-Output:
+Output (timestamps and field lists trimmed):
 ```
-RX: GetService (2) from ('127.0.0.1', 54321)
-TX: StateService (3) to ('127.0.0.1', 54321)
-RX: GetColor (101) from ('127.0.0.1', 54321) target=d073d5000001
-TX: StateColor (107) to ('127.0.0.1', 54321)
+← RX Device.GetService from 127.0.0.1:54321 (target=broadcast, seq=1) [no payload]
+→ TX Device.StateService to 127.0.0.1:54321 (target=d073d5000001, seq=1) [service=1, port=56700]
+← RX Light.GetColor from 127.0.0.1:54321 (target=d073d5000001, seq=2) [no payload]
+→ TX Light.StateColor to 127.0.0.1:54321 (target=d073d5000001, seq=2) [color=..., power=..., label=...]
 ```
 
 ### Inspect Device State
@@ -666,12 +720,22 @@ TX: StateColor (107) to ('127.0.0.1', 54321)
 **During tests:**
 
 ```python
+import pytest
+
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+
 @pytest.fixture
 async def emulator():
     device = create_color_light("d073d5000001")
-    server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+    )
     async with server:
         yield server, device  # Expose device for inspection
+
 
 async def test_color_change(emulator):
     server, device = emulator
@@ -740,23 +804,34 @@ pytest -sv
 
 ## Common Error Messages
 
-### "RuntimeError: Server not running"
+### "TypeError: 'NoneType' object is not subscriptable" (or requests silently time out)
 
-**Cause:** Attempting to use server before starting
+**Cause:** Attempting to use the server before starting it. Creating an `EmulatedLifxServer` does not bind any sockets, so `server.ipv4_endpoint` is `None` and nothing answers requests.
 
 **Fix:**
 ```python
+from lifx_emulator import EmulatedLifxServer
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+device_manager = DeviceManager(DeviceRepository())
+
 # Wrong
-server = EmulatedLifxServer([device], "127.0.0.1", 56700)
-await send_command()  # Server not started!
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+)
+port = server.ipv4_endpoint[1]  # TypeError: server not started!
 
 # Right
-server = EmulatedLifxServer([device], "127.0.0.1", 56700)
+server = EmulatedLifxServer(
+    [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+)
 async with server:
-    await send_command()  # Server is running
+    port = server.ipv4_endpoint[1]  # Server is running
+    await send_command()
 ```
 
-### "ValueError: Invalid serial format"
+### "ValueError: Serial must be exactly 12 ASCII hexadecimal characters"
 
 **Cause:** Serial not 12 hex characters
 
@@ -778,10 +853,8 @@ device = create_color_light("d073d5000001")  # 12 chars
 
 **Fix:**
 ```python
-import base64
-
-# Convert bytes to base64 string
-serial_str = base64.b64encode(device.state.serial_bytes).decode('ascii')
+# Convert bytes fields (location_id, group_id, mac_address) to hex strings
+location_id = device.state.location_id.hex()
 ```
 
 ### "SyntaxError: 'await' outside async function"
@@ -789,36 +862,55 @@ serial_str = base64.b64encode(device.state.serial_bytes).decode('ascii')
 **Cause:** Using async operations outside async context
 
 **Fix:**
-```python
+```text
 # Wrong
 def test_device():
     await server.start()  # Can't await in sync function
+```
+
+```python
+import asyncio
+
 
 # Right
 async def test_device():
     await server.start()  # Now it works
 
-# Or use asyncio.run()
-def test_device():
+# Or use asyncio.run() outside pytest
+def main():
     asyncio.run(async_main())
 ```
 
 ### "DeprecationWarning: There is no current event loop"
 
-**Cause:** Python 3.10+ changed event loop behavior
+**Cause:** Calling `asyncio.get_event_loop()` when no event loop is running. Python 3.10 and later deprecate this, and Python 3.14 raises `RuntimeError` instead.
 
 **Fix:**
+
+- Inside a coroutine, use `asyncio.get_running_loop()`.
+- Outside one, start the loop with `asyncio.run(main())` instead of fetching a loop yourself.
+- In pytest, write `async def` tests and fixtures and let pytest-asyncio manage the loop. Don't override the `event_loop` fixture: pytest-asyncio 1.0 removed it. To share a server across tests, use `loop_scope` instead:
+
 ```python
 # In conftest.py
-import pytest
-import asyncio
+import pytest_asyncio
 
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+from lifx_emulator import EmulatedLifxServer, create_color_light
+from lifx_emulator.devices import DeviceManager
+from lifx_emulator.repositories import DeviceRepository
+
+
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def emulator():
+    device = create_color_light("d073d5000001")
+    server = EmulatedLifxServer(
+        [device], DeviceManager(DeviceRepository()), "127.0.0.1", 0
+    )
+    async with server:
+        yield server
 ```
+
+Tests that use this fixture need `@pytest.mark.asyncio(loop_scope="session")` so they run on the same loop as the server.
 
 ## Getting Help
 
