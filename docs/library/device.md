@@ -318,7 +318,7 @@ Scenarios configure error injection and testing behaviours for emulated devices.
 | `malformed_packets` | `list[int]` | Packet types to send truncated/corrupted | `[107]` - Corrupt StateColor packets |
 | `invalid_field_values` | `list[int]` | Packet types to send with invalid fields (0xFF) | `[107]` - Invalid StateColor values |
 | `partial_responses` | `list[int]` | Multizone/tile packets to send incomplete | `[506]` - Partial zone data |
-| `firmware_version` | `tuple[int, int] \| None` | Override firmware version | `(2, 80)` - Report v2.80 |
+| `firmware_version` | `tuple[int, int] \| None` | Override the version reported in `StateHostFirmware` | `(2, 80)` - Report v2.80 |
 | `send_unhandled` | `bool` | Send `StateUnhandled` (223) for unsupported packets | `False` - Stay silent instead |
 
 ### Examples

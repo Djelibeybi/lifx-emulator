@@ -126,7 +126,7 @@ Scenarios modify the flow at several points during `process_packet()`:
 | `invalid_field_values` | After handler returns | All response bytes set to 0xFF |
 | `partial_responses` | After handler returns | Multi-packet response list randomly truncated |
 | `send_unhandled` | When no handler found | Forces `StateUnhandled` (type 223) response |
-| `firmware_version` | During state reads | Overrides reported firmware version |
+| `firmware_version` | After handler returns | Overrides the version in `StateHostFirmware` replies |
 
 ## Switch Device Behavior
 
