@@ -287,12 +287,19 @@ Pushed when a scenario configuration is modified.
     "scope": "device",
     "identifier": "d073d5000001",
     "config": {
-      "drop_packets": { "101": 50 },
-      "response_delays": { "101": { "min_ms": 100, "max_ms": 500 } }
+      "drop_packets": { "101": 0.5 },
+      "response_delays": { "107": 0.3 },
+      "malformed_packets": [],
+      "invalid_field_values": [],
+      "firmware_version": null,
+      "partial_responses": [],
+      "send_unhandled": true
     }
   }
 }
 ```
+
+`config` is the full scenario configuration (`null` when the scenario is deleted). Drop rates are 0.0–1.0 and delays are in seconds, keyed by the outgoing response packet type.
 
 **Scope Values:**
 

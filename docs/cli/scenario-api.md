@@ -171,7 +171,7 @@ Content-Type: application/json
 ```bash
 curl -X PUT http://localhost:8080/api/scenarios/global \
   -H "Content-Type: application/json" \
-  -d '{"drop_packets": {"101": 1.0}, "response_delays": {"116": 0.5}}'
+  -d '{"drop_packets": {"101": 1.0}, "response_delays": {"118": 0.5}}'
 ```
 
 #### Clear Global Scenario
@@ -356,7 +356,7 @@ Content-Type: application/json
 # All devices in Kitchen will have poor connectivity
 curl -X PUT http://localhost:8080/api/scenarios/locations/Kitchen \
   -H "Content-Type: application/json" \
-  -d '{"response_delays": {"116": 0.5}, "drop_packets": {"101": 0.3}}'
+  -d '{"response_delays": {"118": 0.5}, "drop_packets": {"101": 0.3}}'
 ```
 
 #### Clear Location Scenario
