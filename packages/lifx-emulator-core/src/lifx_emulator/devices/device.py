@@ -455,6 +455,7 @@ class EmulatedLifxDevice:
 
         # Handle specific packet types - handlers always return list
         response_packets = self._handle_packet_type(header, packet)
+        response_packets = self._apply_firmware_override(response_packets, scenario)
 
         # Apply partial_responses: truncate multi-packet responses to random subset
         if len(response_packets) > 1:
@@ -487,6 +488,37 @@ class EmulatedLifxDevice:
             responses.append((resp_header, resp_packet, resp_payload))
 
         return self._apply_error_scenarios(responses, scenario)
+
+    def _apply_firmware_override(
+        self, response_packets: list[Any], scenario: ScenarioConfig
+    ) -> list[Any]:
+        """Report the scenario's firmware version in StateHostFirmware replies.
+
+        Only the reported version changes: the device state, and so the
+        features the device supports, keep the configured firmware. This lets
+        clients exercise version-based feature detection against a device.
+
+        Args:
+            response_packets: Packets returned by the handler
+            scenario: Resolved scenario config
+
+        Returns:
+            The packets, with any StateHostFirmware carrying the override
+        """
+        override = self.scenario_manager.get_firmware_version_override(scenario)
+        if override is None:
+            return response_packets
+        major, minor = override
+        return [
+            Device.StateHostFirmware(
+                build=resp_packet.build,
+                version_minor=minor,
+                version_major=major,
+            )
+            if isinstance(resp_packet, Device.StateHostFirmware)
+            else resp_packet
+            for resp_packet in response_packets
+        ]
 
     def _apply_error_scenarios(
         self,
