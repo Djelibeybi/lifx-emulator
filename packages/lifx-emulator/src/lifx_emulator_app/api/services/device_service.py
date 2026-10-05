@@ -102,7 +102,7 @@ class DeviceService:
         """Get information about a specific device.
 
         Args:
-            serial: The device serial number (12-character hex string)
+            serial: The device serial (12-character hex string)
 
         Returns:
             DeviceInfo object for the device
@@ -194,7 +194,7 @@ class DeviceService:
         """Delete an emulated device.
 
         Args:
-            serial: The device serial number to delete
+            serial: The device serial to delete
 
         Raises:
             DeviceNotFoundError: If no device with the given serial exists
@@ -233,7 +233,7 @@ class DeviceService:
         """Update the state of an existing device.
 
         Args:
-            serial: The device serial number
+            serial: The device serial
             update: The state update to apply
 
         Returns:

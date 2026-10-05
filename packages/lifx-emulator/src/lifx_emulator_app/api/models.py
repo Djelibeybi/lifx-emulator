@@ -51,7 +51,7 @@ class DeviceCreateRequest(BaseModel):
     @field_validator("serial")
     @classmethod
     def validate_serial_format(cls, v: str | None) -> str | None:
-        """Validate serial number format (12 hex characters)."""
+        """Validate serial format (12 hex characters)."""
         if v is None:
             return v
         if len(v) != 12:

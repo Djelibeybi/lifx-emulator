@@ -30,7 +30,7 @@ class TestDeviceCreateRequestValidation:
             DeviceCreateRequest(product_id=10000)
 
     def test_valid_serial(self):
-        """Test valid serial number."""
+        """Test valid serial."""
         request = DeviceCreateRequest(product_id=27, serial="d073d5000001")
         assert request.serial == "d073d5000001"
 

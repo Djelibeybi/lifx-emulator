@@ -66,7 +66,7 @@ def create_devices_router(server: EmulatedLifxServer) -> APIRouter:
         response_model=DeviceInfo,
         summary="Get device information",
         description=(
-            "Returns detailed information about a specific device by its serial number."
+            "Returns detailed information about a specific device by its serial."
         ),
         responses={
             404: {"description": "Device not found"},

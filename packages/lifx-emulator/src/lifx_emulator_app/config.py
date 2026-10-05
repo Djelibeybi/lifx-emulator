@@ -212,7 +212,7 @@ class EmulatorConfig(BaseModel):
     tile_width: int | None = None
     tile_height: int | None = None
 
-    # Serial number options
+    # Serial options
     serial_prefix: str | None = None
     serial_start: int | None = None
 
