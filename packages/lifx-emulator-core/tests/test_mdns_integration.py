@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
 )
 ROOT = Path(__file__).resolve().parents[3]
 INPUTS = ROOT / "scripts/mdns_spike_inputs/active.json"
-PREFIX = "d073d7"
+PREFIX = "d073d5ee"
 
 
 def run_git(path, *arguments):
@@ -111,13 +111,13 @@ async def test_production_complete_fleet_raw_and_pristine_client(
     ipv4, ipv6 = addresses
     devices = [
         create_color_light(
-            serial=f"{PREFIX}{i:06x}",
+            serial=f"{PREFIX}{i:04x}",
             connectivity="thread" if i % 2 else "wifi",
             firmware_version=(4, 200),
         )
         for i in range(size)
     ]
-    hidden = create_color_light(serial=f"{PREFIX}ffffff", mdns_enabled=False)
+    hidden = create_color_light(serial=f"{PREFIX}ffff", mdns_enabled=False)
     server = EmulatedLifxServer(
         [*devices, hidden],
         DeviceManager(DeviceRepository()),

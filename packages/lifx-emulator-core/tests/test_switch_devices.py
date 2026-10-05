@@ -10,9 +10,9 @@ class TestSwitchFactory:
 
     def test_create_switch_default_product(self):
         """Test creating switch with default product ID (70)."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
-        assert switch.state.serial == "d073d7000001"
+        assert switch.state.serial == "d073d5700001"
         assert switch.state.product == 70
         assert switch.state.has_relays is True
         assert switch.state.has_buttons is True
@@ -22,18 +22,18 @@ class TestSwitchFactory:
 
     def test_create_switch_custom_product(self):
         """Test creating switch with custom product ID."""
-        switch = create_switch("d073d7000002", product_id=89)
+        switch = create_switch("d073d5700002", product_id=89)
 
-        assert switch.state.serial == "d073d7000002"
+        assert switch.state.serial == "d073d5700002"
         assert switch.state.product == 89
         assert switch.state.has_relays is True
         assert switch.state.has_buttons is True
 
     def test_create_switch_via_create_device(self):
         """Test creating switch via universal create_device factory."""
-        switch = create_device(70, serial="d073d7000003")
+        switch = create_device(70, serial="d073d5700003")
 
-        assert switch.state.serial == "d073d7000003"
+        assert switch.state.serial == "d073d5700003"
         assert switch.state.product == 70
         assert switch.state.has_relays is True
         assert switch.state.has_buttons is True
@@ -44,7 +44,7 @@ class TestSwitchFactory:
         switch_pids = [70, 71, 89, 115, 116]
 
         for i, pid in enumerate(switch_pids):
-            serial = f"d073d700{i + 1:04d}"  # e.g., d073d7000001, d073d7000002
+            serial = f"d073d570{i + 1:04d}"  # e.g., d073d5700001, d073d5700002
             switch = create_device(pid, serial=serial)
             assert switch.state.has_relays is True
             assert switch.state.has_buttons is True
@@ -57,7 +57,7 @@ class TestSwitchCapabilityFiltering:
 
     def test_should_handle_device_packets(self):
         """Test switches handle Device.* packets (2-59)."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         # Device.* packets should be handled
         assert switch._should_handle_packet(23) is True  # GetLabel
@@ -67,7 +67,7 @@ class TestSwitchCapabilityFiltering:
 
     def test_should_not_handle_light_packets(self):
         """Test switches reject Light.* packets (101-149)."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         # Light.* packets should be rejected
         assert switch._should_handle_packet(101) is False  # GetColor
@@ -78,7 +78,7 @@ class TestSwitchCapabilityFiltering:
 
     def test_should_not_handle_multizone_packets(self):
         """Test switches reject MultiZone.* packets (501-512)."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         # MultiZone.* packets should be rejected
         assert switch._should_handle_packet(501) is False  # SetColorZones
@@ -88,7 +88,7 @@ class TestSwitchCapabilityFiltering:
 
     def test_should_not_handle_tile_packets(self):
         """Test switches reject Tile.* packets (701-720)."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         # Tile.* packets should be rejected
         assert switch._should_handle_packet(701) is False  # GetDeviceChain
@@ -113,7 +113,7 @@ class TestSwitchStateUnhandled:
 
     def test_switch_returns_state_unhandled_for_get_color(self):
         """Test switch returns StateUnhandled for Light.GetColor."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -136,7 +136,7 @@ class TestSwitchStateUnhandled:
 
     def test_switch_returns_state_unhandled_for_set_color(self):
         """Test switch returns StateUnhandled for Light.SetColor."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -173,7 +173,7 @@ class TestSwitchStateUnhandled:
         The server sends acks before calling process_packet, so the device
         should not include one in its response list by default.
         """
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -196,7 +196,7 @@ class TestSwitchStateUnhandled:
 
     def test_switch_handles_device_packets_normally(self):
         """Test switch handles Device.* packets without StateUnhandled."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -218,7 +218,7 @@ class TestSwitchStateUnhandled:
 
     def test_switch_returns_state_unhandled_for_multizone(self):
         """Test switch returns StateUnhandled for MultiZone packets."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -241,7 +241,7 @@ class TestSwitchStateUnhandled:
 
     def test_switch_returns_state_unhandled_for_tile(self):
         """Test switch returns StateUnhandled for Tile packets."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,
@@ -271,7 +271,7 @@ class TestSwitchEdgeCases:
         from lifx_emulator.devices import DevicePersistenceAsyncFile
 
         storage = DevicePersistenceAsyncFile()
-        switch = create_switch("d073d7000001", storage=storage)
+        switch = create_switch("d073d5700001", storage=storage)
 
         assert switch.storage is storage
         assert switch.state.has_relays is True
@@ -281,14 +281,14 @@ class TestSwitchEdgeCases:
         from lifx_emulator.scenarios import HierarchicalScenarioManager
 
         manager = HierarchicalScenarioManager()
-        switch = create_switch("d073d7000001", scenario_manager=manager)
+        switch = create_switch("d073d5700001", scenario_manager=manager)
 
         assert switch.scenario_manager is manager
         assert switch.state.has_relays is True
 
     def test_switch_label_operations(self):
         """Test switch supports label get/set operations."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         # GetLabel
         header = LifxHeader(
@@ -310,7 +310,7 @@ class TestSwitchEdgeCases:
 
     def test_response_tuple_format(self):
         """Test switch responses use correct 2-tuple format."""
-        switch = create_switch("d073d7000001")
+        switch = create_switch("d073d5700001")
 
         header = LifxHeader(
             source=12345,

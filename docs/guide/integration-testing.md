@@ -228,8 +228,8 @@ from lifx_emulator.repositories import DeviceRepository
 
 @pytest.fixture(params=[
     ("color", lambda: create_color_light("d073d5000001")),
-    ("multizone", lambda: create_multizone_light("d073d8000001", zone_count=16)),
-    ("tile", lambda: create_tile_device("d073d9000001", tile_count=5)),
+    ("multizone", lambda: create_multizone_light("d073d5800001", zone_count=16)),
+    ("tile", lambda: create_tile_device("d073d5900001", tile_count=5)),
 ])
 async def any_device(request):
     """Parametrized device fixture."""
@@ -306,7 +306,7 @@ async def multi_device():
     devices = [
         create_color_light("d073d5000001"),
         create_color_light("d073d5000002"),
-        create_multizone_light("d073d8000001", zone_count=16),
+        create_multizone_light("d073d5800001", zone_count=16),
     ]
     server = EmulatedLifxServer(
         devices, DeviceManager(DeviceRepository()), "127.0.0.1", 56700

@@ -315,17 +315,17 @@ Linear light strips with independently controllable zones.
     from lifx_emulator.factories import create_device
 
     # Standard LIFX Z (product 32) with default 16 zones
-    strip = create_device(32, serial="d073d8000001")
+    strip = create_device(32, serial="d073d5800001")
 
     # create_multizone_light() creates a LIFX Beam (product 38):
     # extended multizone with default 80 zones
-    beam = create_multizone_light("d073d8000002")
+    beam = create_multizone_light("d073d5800002")
 
     # Custom zone count
-    beam = create_multizone_light("d073d8000003", zone_count=24)
+    beam = create_multizone_light("d073d5800003", zone_count=24)
 
     # Non-extended multizone
-    beam = create_multizone_light("d073d8000004", extended_multizone=False)
+    beam = create_multizone_light("d073d5800004", extended_multizone=False)
     ```
 
 === "REST API"
@@ -345,7 +345,7 @@ Linear light strips with independently controllable zones.
 ### Zone Management
 
 ```python
-strip = create_device(32, serial="d073d8000001", zone_count=16)
+strip = create_device(32, serial="d073d5800001", zone_count=16)
 
 # Check configuration
 print(f"Has multizone: {strip.state.has_multizone}")  # True
@@ -452,13 +452,13 @@ info, and the dashboard draws the Mirror as its two rings instead of a grid.
     from lifx_emulator.factories import create_device
 
     # Standard LIFX Tile (8x8) with default 5 tiles
-    tiles = create_tile_device("d073d9000001")
+    tiles = create_tile_device("d073d5900001")
 
     # Custom tile count (1 to 5)
-    tiles = create_tile_device("d073d9000002", tile_count=3)
+    tiles = create_tile_device("d073d5900002", tile_count=3)
 
     # Large matrix device: LIFX Ceiling 13x26", one 16x8 tile (>64 zones)
-    large_matrix = create_device(201, serial="d073dc000001")
+    large_matrix = create_device(201, serial="d073d5c00001")
     ```
 
 === "REST API"
@@ -478,7 +478,7 @@ info, and the dashboard draws the Mirror as its two rings instead of a grid.
 ### Matrix Configuration
 
 ```python
-tiles = create_tile_device("d073d9000001", tile_count=5)
+tiles = create_tile_device("d073d5900001", tile_count=5)
 
 # Check configuration
 print(f"Has matrix: {tiles.state.has_matrix}")  # True
@@ -568,10 +568,10 @@ LIFX Switch devices are relay-based switches with no lighting capabilities. They
     from lifx_emulator.factories import create_switch
 
     # Create LIFX Switch (default product 70)
-    switch = create_switch("d073d7000001")
+    switch = create_switch("d073d5700001")
 
     # Or specify a different switch product
-    switch = create_switch("d073d7000002", product_id=89)
+    switch = create_switch("d073d5700002", product_id=89)
     ```
 
 === "REST API"
@@ -585,7 +585,7 @@ LIFX Switch devices are relay-based switches with no lighting capabilities. They
 ### Switch Behavior
 
 ```python
-switch = create_switch("d073d7000001")
+switch = create_switch("d073d5700001")
 
 # Check capabilities
 print(f"Has relays: {switch.state.has_relays}")  # True
@@ -655,9 +655,9 @@ All factory functions use `create_device()` internally. You can use it directly:
 
     # Create by product ID
     a19 = create_device(27, serial="d073d5000001")
-    z_strip = create_device(32, serial="d073d8000001", zone_count=16)
-    tiles = create_device(55, serial="d073d9000001", tile_count=5)
-    candle = create_device(57, serial="d073d9000002")
+    z_strip = create_device(32, serial="d073d5800001", zone_count=16)
+    tiles = create_device(55, serial="d073d5900001", tile_count=5)
+    candle = create_device(57, serial="d073d5900002")
 
     # Product defaults are automatically loaded
     print(f"Candle size: {candle.state.tile_width}x{candle.state.tile_height}")  # 5x6

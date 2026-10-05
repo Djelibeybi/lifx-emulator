@@ -223,7 +223,7 @@ Capability-specific fields are only written when the device has that capability:
 
 ```json
 {
-  "serial": "d073d8000001",
+  "serial": "d073d5800001",
   "product": 38,
   "label": "Kitchen Strip",
   "power_level": 65535,
@@ -246,7 +246,7 @@ Capability-specific fields are only written when the device has that capability:
 
 ```json
 {
-  "serial": "d073d9000001",
+  "serial": "d073d5900001",
   "product": 55,
   "label": "Wall Art",
   "power_level": 65535,

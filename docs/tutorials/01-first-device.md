@@ -312,7 +312,7 @@ Try these modifications to your `first_device.py`:
 - **Different device type:** Try a multizone strip:
   ```python
   from lifx_emulator import create_multizone_light
-  device = create_multizone_light("d073d8000001", zone_count=16)
+  device = create_multizone_light("d073d5800001", zone_count=16)
   ```
 
 - **Custom labels:** Give each device a unique name:

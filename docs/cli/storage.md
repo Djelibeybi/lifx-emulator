@@ -75,7 +75,7 @@ By default, device state is stored in `~/.lifx-emulator/`:
 ~/.lifx-emulator/
 ├── d073d5000001.json  # State for first device
 ├── d073d5000002.json  # State for second device
-└── d073d8000001.json  # State for multizone device
+└── d073d5800001.json  # State for multizone device
 ```
 
 ### Custom Storage Directory
@@ -229,7 +229,7 @@ storage = DevicePersistenceAsyncFile()
 devices = [
     create_color_light("d073d5000001", storage=storage),
     create_color_light("d073d5000002", storage=storage),
-    create_multizone_light("d073d8000001", storage=storage),
+    create_multizone_light("d073d5800001", storage=storage),
 ]
 
 # All state is independently persisted and restored

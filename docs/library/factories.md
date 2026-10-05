@@ -91,16 +91,16 @@ from lifx_emulator import create_multizone_light
 from lifx_emulator.factories import create_device
 
 # LIFX Beam with the default 80 zones and extended multizone support
-beam = create_multizone_light("d073d8000001")
+beam = create_multizone_light("d073d5800001")
 
 # Custom zone count
-beam_custom = create_multizone_light("d073d8000002", zone_count=60)
+beam_custom = create_multizone_light("d073d5800002", zone_count=60)
 
 # Standard multizone only (no extended multizone packets, firmware 2.60)
-beam_standard = create_multizone_light("d073d8000003", extended_multizone=False)
+beam_standard = create_multizone_light("d073d5800003", extended_multizone=False)
 
 # LIFX Z (product ID 32) with the default 16 zones
-strip = create_device(32, serial="d073d8000004")
+strip = create_device(32, serial="d073d5800004")
 
 print(f"Beam zones: {beam.state.zone_count}")   # 80
 print(f"Strip zones: {strip.state.zone_count}")  # 16
@@ -116,13 +116,13 @@ Create a matrix tile device:
 from lifx_emulator.factories import create_device, create_tile_device
 
 # Default configuration (5 tiles of 8x8)
-tiles = create_tile_device("d073d9000001")
+tiles = create_tile_device("d073d5900001")
 
 # Custom tile count (LIFX Tile chains have 1 to 5 tiles)
-tiles_custom = create_tile_device("d073d9000002", tile_count=3)
+tiles_custom = create_tile_device("d073d5900002", tile_count=3)
 
 # Large matrix device with 16x8 zones (LIFX Ceiling 13x26", product 201)
-large_tile = create_device(201, serial="d073d9000003")
+large_tile = create_device(201, serial="d073d5900003")
 
 print(f"Tile count: {tiles.state.tile_count}")      # 5
 print(f"Tile width: {tiles.state.tile_width}")      # 8
@@ -143,7 +143,7 @@ print(f"Product: {tiles.state.product}")            # 55 (LIFX Tile)
     from lifx_emulator.factories import create_device
 
     # LIFX Ceiling 13x26": one 16x8 tile, so reading it takes two Get64 requests
-    large_matrix = create_device(201, serial="d073d9000003")
+    large_matrix = create_device(201, serial="d073d5900003")
     print(large_matrix.state.tile_width * large_matrix.state.tile_height)  # 128
     ```
 
@@ -158,13 +158,13 @@ from lifx_emulator.factories import create_device
 a19 = create_device(27, serial="d073d5000001")
 
 # LIFX Z (product ID 32) with custom zones
-z_strip = create_device(32, serial="d073d8000001", zone_count=24)
+z_strip = create_device(32, serial="d073d5800001", zone_count=24)
 
 # LIFX Tile (product ID 55) with 3 tiles on its chain
-tiles = create_device(55, serial="d073d9000001", tile_count=3)
+tiles = create_device(55, serial="d073d5900001", tile_count=3)
 
 # LIFX Candle (product ID 57) - loads 5x6 dimensions from product defaults
-candle = create_device(57, serial="d073d9000002")
+candle = create_device(57, serial="d073d5900002")
 print(f"Candle size: {candle.state.tile_width}x{candle.state.tile_height}")  # 5x6
 ```
 
@@ -205,16 +205,16 @@ from lifx_emulator import create_multizone_light, create_tile_device
 from lifx_emulator.factories import create_device
 
 # Uses product default (16 zones for LIFX Z)
-strip = create_device(32, serial="d073d8000001")
+strip = create_device(32, serial="d073d5800001")
 
 # Uses product default (80 zones for LIFX Beam)
-beam = create_multizone_light("d073d8000002")
+beam = create_multizone_light("d073d5800002")
 
 # Uses product default (5 tiles for LIFX Tile)
-tiles = create_tile_device("d073d9000001")
+tiles = create_tile_device("d073d5900001")
 
 # Uses product default (5x6 for LIFX Candle)
-candle = create_device(57, serial="d073d9000002")
+candle = create_device(57, serial="d073d5900002")
 ```
 
 See [Product Registry](products.md) for all product definitions and defaults.
@@ -274,9 +274,9 @@ async def main():
     devices = [
         create_color_light("d073d5000001"),
         create_color_light("d073d5000002"),
-        create_device(32, serial="d073d8000001", zone_count=16),  # LIFX Z
-        create_multizone_light("d073d8000002", zone_count=82),  # LIFX Beam
-        create_tile_device("d073d9000001", tile_count=5),
+        create_device(32, serial="d073d5800001", zone_count=16),  # LIFX Z
+        create_multizone_light("d073d5800002", zone_count=82),  # LIFX Beam
+        create_tile_device("d073d5900001", tile_count=5),
     ]
 
     # Start server with all devices

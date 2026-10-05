@@ -103,7 +103,7 @@ from lifx_emulator.protocol.protocol_types import TileBufferRect, LightHsbk
 
 # Create a LIFX Ceiling 13"x26" (product 201): one 16×8 tile (128 zones).
 # Matrix dimensions come from the product specs.
-device = create_device(201, serial="d073dc000001")
+device = create_device(201, serial="d073d5c00001")
 
 
 def header_for(packet):
