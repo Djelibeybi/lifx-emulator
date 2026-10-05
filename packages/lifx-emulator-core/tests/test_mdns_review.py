@@ -8,7 +8,14 @@ import pytest
 from lifx_emulator import mdns
 from lifx_emulator.factories import create_color_light
 from test_mdns_lifecycle import MembershipOwner
-from test_mdns_responder import dns_name, make_server, raw_query
+from test_mdns_responder import (
+    dns_name,
+    heard_records,
+    make_server,
+    owned_records,
+    raw_query,
+    wire_serial,
+)
 
 
 async def test_committed_removals_survive_degraded_discovery(monkeypatch):
@@ -193,9 +200,9 @@ async def test_failed_announcement_unregisters_successfully_claimed_service(
     await server.stop()
 
 
-async def test_readd_after_wire_ttl_with_delayed_self_cached_ptr():
+async def test_readd_after_wire_ttl_with_delayed_self_cached_ptr(foreign_responder):
     """A late multicast answer must not make our owned name fail a fresh probe."""
-    device = create_color_light(serial="d073d599beef", connectivity="thread")
+    device = create_color_light(serial=wire_serial(0xEF), connectivity="thread")
     server = make_server([device])
     await server.start()
     try:
@@ -221,7 +228,8 @@ async def test_readd_after_wire_ttl_with_delayed_self_cached_ptr():
         await server.wait_for_mdns_updates()
         assert server.mdns_status == "running"
         assert server.ipv6_endpoint is not None
-        assert await raw_query(9911)
+        records = heard_records(await raw_query(9911))
+        assert owned_records(records)
     finally:
         await server.stop()
 

@@ -6,7 +6,7 @@ from dataclasses import FrozenInstanceError, replace
 
 import pytest
 from lifx_emulator.factories import factory
-from test_mdns_responder import make_server, parse_records, raw_query
+from test_mdns_responder import make_server, parse_records, raw_query, wire_serial
 
 FACTORIES = [
     getattr(factory, name) for name in dir(factory) if name.startswith("create_")
@@ -86,12 +86,14 @@ async def test_mdns_invalid_add_has_no_membership_side_effects():
     assert server.get_all_devices() == []
 
 
-async def test_mdns_mixed_records():
-    wifi = factory.create_color_light(serial="d073d5000201", mdns_address="127.0.0.2")
-    thread = factory.create_color_light(
-        serial="d073d5000202", connectivity="thread", mdns_address="fd00::1"
+async def test_mdns_mixed_records(foreign_responder):
+    wifi = factory.create_color_light(
+        serial=wire_serial(0x21), mdns_address="127.0.0.2"
     )
-    hidden = factory.create_color_light(serial="d073d5000203", mdns_enabled=False)
+    thread = factory.create_color_light(
+        serial=wire_serial(0x22), connectivity="thread", mdns_address="fd00::1"
+    )
+    hidden = factory.create_color_light(serial=wire_serial(0x23), mdns_enabled=False)
     server = make_server([wifi, thread, hidden])
     try:
         await server.start()

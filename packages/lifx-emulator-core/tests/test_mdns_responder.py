@@ -2,6 +2,7 @@
 
 import asyncio
 import inspect
+import secrets
 import socket
 import struct
 
@@ -12,6 +13,55 @@ from lifx_emulator.factories import create_color_light
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 
+# Each test process owns a distinct serial range: concurrent runs on one host
+# would otherwise probe for the same mDNS names and see each other's records.
+WIRE_PREFIX = f"d073d5{secrets.token_hex(2)}"
+# zeroconf ignores a datagram identical to one it received within the last
+# second, so concurrent runs sending the same fixed query ID would silence each
+# other. Offset every query ID by a per-process base to keep payloads distinct.
+_QUERY_ID_BASE = secrets.randbelow(0x10000)
+
+
+def wire_serial(index):
+    """Return a serial in this process's wire-test range."""
+    return f"{WIRE_PREFIX}{index:02x}"
+
+
+def foreign_serial():
+    """Return a LIFX serial outside this process's wire-test range."""
+    while True:
+        serial = f"d073d5{secrets.token_hex(3)}"
+        if not serial.startswith(WIRE_PREFIX):
+            return serial
+
+
+def wire_query_id(query_id):
+    """Return the DNS message ID that raw_query sends for a test's query ID."""
+    return (_QUERY_ID_BASE + query_id) & 0xFFFF
+
+
+def owned_records(records, port=None):
+    """Keep only records advertised by the server under test.
+
+    Every responder on the host answers a legacy-unicast query from port 5353,
+    so the source address cannot attribute a reply. A record is ours when it
+    names, or points at, a serial in this process's range, or when it is an
+    SRV record targeting the server's own UDP port when one is given.
+    """
+
+    def owned(record):
+        names = [record[0], record[4]] if record[1] == 12 else [record[0]]
+        if any(name.startswith(WIRE_PREFIX) for name in names):
+            return True
+        return record[1] == 33 and record[4][2] == port
+
+    return [record for record in records if owned(record)]
+
+
+def heard_records(replies):
+    """Flatten every record in a list of raw query replies."""
+    return [record for packet, _ in replies for record in parse_records(packet)[1]]
+
 
 def test_disabled_default():
     """Existing callers must explicitly opt into owning mDNS sockets."""
@@ -20,24 +70,26 @@ def test_disabled_default():
     assert parameters["mdns_enabled"].default is False
 
 
-async def test_tracer_legacy_unicast():
+async def test_tracer_legacy_unicast(foreign_responder):
     """An actual ephemeral query returns complete records at the committed port."""
-    device = create_color_light(serial="d073d5000100", firmware_version=(4, 200))
+    device = create_color_light(serial=wire_serial(0x10), firmware_version=(4, 200))
     server = make_server([device])
     try:
         await server.start()
         for query_id in (123, 456):
             replies = await raw_query(query_id)
-            assert replies
+            port = server.ipv4_endpoint[1]
             records = []
             for packet, peer in replies:
-                assert peer[1] == 5353
                 header, parsed = parse_records(packet)
-                assert header[0] == query_id
-                assert all(0 < record[3] <= 10 for record in parsed)
-                assert all(record[2] & 0x8000 == 0 for record in parsed)
-                records.extend(parsed)
-            assert_service(records, device.state.serial, server.ipv4_endpoint[1])
+                owned = owned_records(parsed, port)
+                if owned:
+                    assert peer[1] == 5353
+                    assert header[0] == wire_query_id(query_id)
+                assert all(0 < record[3] <= 10 for record in owned)
+                assert all(record[2] & 0x8000 == 0 for record in owned)
+                records.extend(owned)
+            assert_service(records, device.state.serial, port)
     finally:
         await server.stop()
     assert server._mdns is None
@@ -83,7 +135,7 @@ async def raw_query(
     query_id, name="_lifx._udp.local.", qtype=12, duration=0.4, interface="127.0.0.1"
 ):
     packet = (
-        struct.pack("!6H", query_id, 0, 1, 0, 0, 0)
+        struct.pack("!6H", wire_query_id(query_id), 0, 1, 0, 0, 0)
         + dns_name(name)
         + struct.pack("!2H", qtype, 1)
     )
@@ -253,33 +305,26 @@ class FakeOwner:
 
 
 @pytest.mark.parametrize("count", [0, 1, 3])
-async def test_default_record_sets(count):
+async def test_default_record_sets(count, foreign_responder):
     devices = [
-        create_color_light(serial=f"d073d500{i:04x}", firmware_version=(4, 200))
+        create_color_light(serial=wire_serial(i), firmware_version=(4, 200))
         for i in range(count)
     ]
     server = make_server(devices)
     try:
         await server.start()
+        port = server.ipv4_endpoint[1]
         for query_id in (812, 913):
-            replies = await raw_query(query_id)
-            records = [
-                record for packet, _ in replies for record in parse_records(packet)[1]
-            ]
+            records = owned_records(heard_records(await raw_query(query_id)), port)
             if not count:
                 assert records == []
             for device in devices:
-                assert_service(records, device.state.serial, server.ipv4_endpoint[1])
+                assert_service(records, device.state.serial, port)
         if devices:
             host = f"{devices[0].state.serial}.local."
-            replies = await raw_query(31, host, 1)
-            records = [r for packet, _ in replies for r in parse_records(packet)[1]]
+            records = heard_records(await raw_query(31, host, 1))
             assert any(r[0] == host and r[1] == 1 for r in records)
-            replies = await raw_query(32, host, 28)
-            assert not any(
-                r[0] == host and r[1] == 28
-                for packet, _ in replies
-                for r in parse_records(packet)[1]
-            )
+            records = heard_records(await raw_query(32, host, 28))
+            assert not any(r[0] == host and r[1] == 28 for r in records)
     finally:
         await server.stop()

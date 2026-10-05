@@ -15,7 +15,13 @@ from lifx_emulator.devices import DeviceManager
 from lifx_emulator.factories import create_color_light
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
-from test_mdns_responder import parse_records, raw_query
+from test_mdns_responder import (
+    WIRE_PREFIX,
+    parse_records,
+    raw_query,
+    wire_query_id,
+    wire_serial,
+)
 
 REQUIRED = os.environ.get("MDNS_INTEGRATION_REQUIRED") == "1"
 pytestmark = pytest.mark.skipif(
@@ -24,7 +30,7 @@ pytestmark = pytest.mark.skipif(
 )
 ROOT = Path(__file__).resolve().parents[3]
 INPUTS = ROOT / "scripts/mdns_spike_inputs/active.json"
-PREFIX = "d073d5ee"
+PREFIX = WIRE_PREFIX
 
 
 def run_git(path, *arguments):
@@ -92,7 +98,7 @@ async def records_for(query_id, interface, name="_lifx._udp.local.", qtype=12):
     records = []
     for packet, peer in replies:
         header, parsed = parse_records(packet)
-        assert header[0] == query_id
+        assert header[0] == wire_query_id(query_id)
         assert peer[1] == 5353
         owned = [
             r
@@ -111,13 +117,13 @@ async def test_production_complete_fleet_raw_and_pristine_client(
     ipv4, ipv6 = addresses
     devices = [
         create_color_light(
-            serial=f"{PREFIX}{i:04x}",
+            serial=wire_serial(i),
             connectivity="thread" if i % 2 else "wifi",
             firmware_version=(4, 200),
         )
         for i in range(size)
     ]
-    hidden = create_color_light(serial=f"{PREFIX}ffff", mdns_enabled=False)
+    hidden = create_color_light(serial=wire_serial(0xFF), mdns_enabled=False)
     server = EmulatedLifxServer(
         [*devices, hidden],
         DeviceManager(DeviceRepository()),

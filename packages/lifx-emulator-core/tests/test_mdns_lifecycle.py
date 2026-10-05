@@ -8,7 +8,14 @@ from lifx_emulator.devices import DeviceManager
 from lifx_emulator.factories import create_color_light
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
-from test_mdns_responder import FakeOwner, make_server, raw_query
+from test_mdns_responder import (
+    FakeOwner,
+    heard_records,
+    make_server,
+    owned_records,
+    raw_query,
+    wire_serial,
+)
 
 
 def test_mdns_lifecycle_public_contract():
@@ -19,24 +26,29 @@ def test_mdns_lifecycle_public_contract():
     assert server.mdns_error is None
 
 
-async def test_membership_add_remove_readd_wire():
+async def test_membership_add_remove_readd_wire(foreign_responder):
     server = make_server([])
-    device = create_color_light(serial="d073d5000400", firmware_version=(4, 200))
+    device = create_color_light(serial=wire_serial(0x40), firmware_version=(4, 200))
     try:
         await server.start()
+
+        async def advertised(query_id):
+            replies = await raw_query(query_id)
+            return owned_records(heard_records(replies), server.ipv4_endpoint[1])
+
+        assert await advertised(1000) == []
         assert server.add_device(device)
         await server.wait_for_mdns_updates()
-        replies = await raw_query(1001)
-        assert replies
+        assert await advertised(1001)
         owner_info = server._mdns._services[f"{device.state.serial}._lifx._udp.local."]
         assert await server.remove_device(device.state.serial)
-        assert not await raw_query(1002)
+        assert await advertised(1002) == []
         assert server.add_device(device)
         await server.wait_for_mdns_updates()
         assert server._mdns._services[owner_info.name] is owner_info
-        assert await raw_query(1003)
+        assert await advertised(1003)
         assert await server.remove_all_devices() == 1
-        assert not await raw_query(1004)
+        assert await advertised(1004) == []
     finally:
         await server.stop()
     assert server._device_manager._lifecycle_listeners == []
