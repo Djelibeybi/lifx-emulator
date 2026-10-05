@@ -1,5 +1,3 @@
-<!-- GSD:project-start source:PROJECT.md -->
-
 ## Project
 
 **LIFX Emulator**
@@ -19,11 +17,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - **Generated files**: `protocol/packets.py` and `products/registry.py` are not edited by hand; no Thread changes belong there
 - **Backwards compatibility**: default behaviour (IPv4, WiFi, existing CLI/config/API) must be unchanged for existing users; `connectivity` defaults to `wifi`
 
-<!-- GSD:project-end -->
-
-<!-- GSD:stack-start source:codebase/STACK.md -->
-
-## Technology Stack
+# Technology Stack
 
 ## Languages
 
@@ -110,10 +104,6 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Standalone PyApp binaries attached to GitHub releases tagged `app-v*` (Linux x86_64, macOS x86_64, macOS arm64, Windows x86_64)
 - Runs locally on the developer's machine; binds UDP 56700 and HTTP 8080 on loopback by default; no container or cloud deployment target
 - OS independent (classifier `Operating System :: OS Independent`); CI tests Linux and macOS
-
-<!-- GSD:stack-end -->
-
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 
 ## Conventions
 
@@ -215,17 +205,8 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Core I/O is `asyncio` (DatagramProtocol server, async file persistence with debouncing). Services that persist are `async def` and `await server.scenario_persistence.save(...)`; pure getters stay synchronous (`api/services/scenario_service.py`).
 - Fire-and-forget save tasks are tracked (`_track_save_task()` in `devices/device.py`) so they can be awaited on shutdown.
 
-<!-- GSD:conventions-end -->
-
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
-
 ## Architecture
 
-## System Overview
-
-```text
-
-```
 
 ## Component Responsibilities
 
@@ -403,37 +384,3 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Pydantic validation guards inputs: `EmulatorConfig` uses `extra="forbid"`, `DeviceCreateRequest.validate_serial_format`, `HsbkConfig` uint16/kelvin validators (`config.py`, `api/models.py`).
 - Constructor invariants raise `ValueError` early (e.g. `persist_scenarios=True` without storage/manager, `server.py:111-121`; unknown product ID, `factory.py:245-246`).
 - CLI logs errors and returns instead of raising for user-facing failures (`__main__.py:1023-1027`, `1029-1039`).
-
-## Cross-Cutting Concerns
-
-<!-- GSD:architecture-end -->
-
-<!-- GSD:skills-start source:skills/ -->
-
-## Project Skills
-
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, `.github/skills/`, or `.codex/skills/` with a `SKILL.md` index file.
-<!-- GSD:skills-end -->
-
-<!-- GSD:workflow-start source:GSD defaults -->
-
-## GSD Workflow Enforcement
-
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
-<!-- GSD:workflow-end -->
-
-<!-- GSD:profile-start -->
-
-## Developer Profile
-
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
