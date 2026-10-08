@@ -2,6 +2,7 @@
 
 import pytest
 from lifx_emulator.factories import create_tile_device
+from lifx_emulator.handlers.tile_handlers import CopyFrameBufferHandler, Set64Handler
 from lifx_emulator.protocol.header import LifxHeader
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import LightHsbk, TileBufferRect
@@ -94,3 +95,60 @@ class TestCopyFrameBufferLength:
         _copy(chain, tile_index=2, length=0)
 
         assert _painted(chain) == [False, False, True, False, False]
+
+
+class TestEdgeCases:
+    @pytest.mark.parametrize("handler", [Set64Handler(), CopyFrameBufferHandler()])
+    def test_handlers_ignore_non_matrix_devices_and_missing_packets(
+        self, handler, color_device, chain
+    ):
+        assert handler.handle(color_device.state, None, True) == []
+        assert handler.handle(chain.state, None, True) == []
+        assert _painted(chain) == [False] * 5
+
+    def test_missing_framebuffer_storage_skips_the_tile(self, chain):
+        chain.state.tile_framebuffers = []
+
+        _set64(chain, tile_index=0, length=2, fb_index=1)
+        _copy(chain, tile_index=0, length=2)
+
+        assert _painted(chain) == [False] * 5
+
+    def test_set64_rect_past_the_right_edge_writes_only_the_visible_part(self, chain):
+        _send(
+            chain,
+            Tile.Set64(
+                tile_index=0,
+                length=1,
+                rect=TileBufferRect(fb_index=0, x=4, y=0, width=8),
+                duration=0,
+                colors=[RED] * 64,
+            ),
+        )
+
+        first_row = chain.state.tile_devices[0]["colors"][:8]
+        assert [c == RED for c in first_row] == [False] * 4 + [True] * 4
+
+    def test_copy_rect_past_the_tile_edges_copies_only_what_fits(self, chain):
+        _set64(chain, tile_index=0, length=1, fb_index=1)
+
+        _send(
+            chain,
+            Tile.CopyFrameBuffer(
+                tile_index=0,
+                length=1,
+                src_fb_index=1,
+                dst_fb_index=0,
+                src_x=0,
+                src_y=0,
+                dst_x=6,
+                dst_y=6,
+                width=8,
+                height=8,
+                duration=0,
+            ),
+        )
+
+        colors = chain.state.tile_devices[0]["colors"]
+        painted = {i for i, c in enumerate(colors) if c == RED}
+        assert painted == {6 * 8 + 6, 6 * 8 + 7, 7 * 8 + 6, 7 * 8 + 7}
