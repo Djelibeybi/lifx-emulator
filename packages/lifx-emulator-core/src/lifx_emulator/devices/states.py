@@ -195,7 +195,11 @@ class InfraredState:
 class HevState:
     """HEV (germicidal UV) capability state."""
 
+    # Configured default cycle length (SetHevCycleConfiguration)
     hev_cycle_duration_s: int = 7200  # 2 hours default
+    # Length the current or most recent cycle was started with (SetHevCycle);
+    # None until a cycle has been started, when the configured length applies
+    hev_cycle_current_duration_s: int | None = None
     hev_cycle_remaining_s: int = 0
     hev_cycle_last_power: bool = False
     hev_indication: bool = True
@@ -209,6 +213,9 @@ class MultiZoneState:
     zone_count: int
     zone_colors: list[LightHsbk]
     effect_type: int = 0  # 0=OFF, 1=MOVE, 2=RESERVED
+    # Zone colours sent with apply=NO_APPLY, keyed by zone index; they are
+    # not shown until a later APPLY or APPLY_ONLY request commits them
+    pending_zone_colors: dict[int, LightHsbk] = field(default_factory=dict)
     effect_instanceid: int = 0
     effect_speed_ms: int = 5000  # Duration of one cycle in milliseconds
     effect_duration: int = 0  # Effect run time in nanoseconds; 0 = infinite
@@ -447,6 +454,7 @@ class DeviceState:
         "infrared_brightness": "infrared",
         # HEV properties
         "hev_cycle_duration_s": "hev",
+        "hev_cycle_current_duration_s": "hev",
         "hev_cycle_remaining_s": "hev",
         "hev_cycle_last_power": "hev",
         "hev_indication": "hev",
@@ -454,6 +462,7 @@ class DeviceState:
         # Multizone properties
         "zone_count": "multizone",
         "zone_colors": "multizone",
+        "multizone_pending_zone_colors": ("multizone", "pending_zone_colors"),
         "multizone_effect_type": ("multizone", "effect_type"),
         "multizone_effect_instanceid": ("multizone", "effect_instanceid"),
         "multizone_effect_speed_ms": ("multizone", "effect_speed_ms"),
@@ -480,12 +489,14 @@ class DeviceState:
     _OPTIONAL_DEFAULTS = {
         "infrared_brightness": 0,
         "hev_cycle_duration_s": 0,
+        "hev_cycle_current_duration_s": None,
         "hev_cycle_remaining_s": 0,
         "hev_cycle_last_power": False,
         "hev_indication": False,
         "hev_last_result": 0,
         "zone_count": 0,
         "zone_colors": [],
+        "multizone_pending_zone_colors": {},
         "multizone_effect_type": 0,
         "multizone_effect_instanceid": 0,
         "multizone_effect_speed_ms": 0,

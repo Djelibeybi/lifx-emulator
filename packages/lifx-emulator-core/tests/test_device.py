@@ -760,10 +760,10 @@ class TestHEVHandlers:
 
         hev_device.process_packet(header, packet)
 
-        assert hev_device.state.hev_cycle_duration_s == 3600
-        assert (
-            hev_device.state.hev_cycle_remaining_s == 3600
-        )  # Set to duration when enabled
+        assert hev_device.state.hev_cycle_current_duration_s == 3600
+        assert hev_device.state.hev_cycle_remaining_s == 3600
+        # A one-off cycle leaves the configured default untouched
+        assert hev_device.state.hev_cycle_duration_s == 7200
 
     def test_set_hev_cycle_disable(self, hev_device):
         """Test LightSetHevCycle disables HEV cycle."""
@@ -816,7 +816,7 @@ class TestMultiZoneHandlers:
             hue=10000, saturation=65535, brightness=50000, kelvin=3500
         )
         packet = MultiZone.SetColorZones(
-            start_index=5, end_index=10, color=new_color, duration=0, apply=0
+            start_index=5, end_index=10, color=new_color, duration=0, apply=1
         )
 
         header = LifxHeader(

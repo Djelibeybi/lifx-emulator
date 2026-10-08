@@ -196,6 +196,68 @@ class Get64Handler(PacketHandler):
         return responses
 
 
+def _target_tiles(device_state: DeviceState, tile_index: int, length: int) -> range:
+    """Indices of the tiles a Set64/CopyFrameBuffer request applies to.
+
+    ``length`` is how many tiles, starting at ``tile_index``, the request
+    covers; 0 is treated as 1, as Get64 does.
+    """
+    end = min(tile_index + max(1, length), len(device_state.tile_devices))
+    return range(tile_index, end)
+
+
+def _framebuffer(
+    device_state: DeviceState, tile_index: int, fb_index: int
+) -> list[LightHsbk] | None:
+    """Return a tile's framebuffer, or None if it has no framebuffer storage.
+
+    Framebuffer 0 is the visible one, held in ``tile_devices[i]["colors"]``;
+    framebuffers 1-7 live in ``tile_framebuffers`` and are created on demand.
+    """
+    tile = device_state.tile_devices[tile_index]
+    if fb_index == 0:
+        return tile["colors"]
+    if tile_index >= len(device_state.tile_framebuffers):
+        logger.warning("Tile %s framebuffer storage not initialized", tile_index)
+        return None
+    return device_state.tile_framebuffers[tile_index].get_framebuffer(
+        fb_index, tile["width"], tile["height"]
+    )
+
+
+def _write_rect(
+    tile: dict[str, Any],
+    target_colors: list[LightHsbk],
+    rect: TileBufferRect,
+    colors: list[LightHsbk],
+) -> int:
+    """Write up to 64 colours into a tile framebuffer, row by row from rect.
+
+    Returns:
+        The number of zone slots consumed from ``colors``.
+    """
+    tile_width = tile["width"]
+    tile_height = tile["height"]
+    rows_to_write = 64 // rect.width if rect.width > 0 else 1
+    rows_to_write = min(rows_to_write, tile_height - rect.y)
+
+    zones_written = 0
+    for row in range(rows_to_write):
+        y = rect.y + row
+        for col in range(rect.width):
+            x = rect.x + col
+            zone_idx = y * tile_width + x
+            if (
+                x < tile_width
+                and zones_written < 64
+                and zone_idx < len(target_colors)
+                and zones_written < len(colors)
+            ):
+                target_colors[zone_idx] = colors[zones_written]
+            zones_written += 1
+    return zones_written
+
+
 class Set64Handler(PacketHandler):
     """Handle TileSet64 (715)."""
 
@@ -207,149 +269,103 @@ class Set64Handler(PacketHandler):
         if not device_state.has_matrix or not packet:
             return []
 
-        tile_index = packet.tile_index
-        fb_index = packet.rect.fb_index
-
-        if tile_index >= len(device_state.tile_devices):
-            return []
-
-        tile = device_state.tile_devices[tile_index]
-        tile_width = tile["width"]
-        tile_height = tile["height"]
         rect = packet.rect
-
-        # Determine which framebuffer to update
-        if fb_index == 0:
-            # Update visible framebuffer (stored in tile_devices)
-            target_colors = tile["colors"]
-        else:
-            # Update non-visible framebuffer (stored in tile_framebuffers)
-            if tile_index < len(device_state.tile_framebuffers):
-                fb_storage = device_state.tile_framebuffers[tile_index]
-                target_colors = fb_storage.get_framebuffer(
-                    fb_index, tile_width, tile_height
-                )
-            else:
-                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
-                return []
-
-        # Update colors in the specified rectangle
-        # Calculate how many rows fit in 64 zones
-        rows_to_write = 64 // rect.width if rect.width > 0 else 1
-        rows_to_write = min(rows_to_write, tile_height - rect.y)
-
-        zones_written = 0
-        for row in range(rows_to_write):
-            y = rect.y + row
-            if y >= tile_height:
-                break
-
-            for col in range(rect.width):
-                x = rect.x + col
-                if x >= tile_width or zones_written >= 64:
-                    zones_written += 1
-                    continue
-
-                # Calculate zone index in flat color array
-                zone_idx = y * tile_width + x
-                if zone_idx < len(target_colors) and zones_written < len(packet.colors):
-                    target_colors[zone_idx] = packet.colors[zones_written]
-                zones_written += 1
-
-        logger.info(
-            f"Tile {tile_index} FB{fb_index} set {zones_written} colors at "
-            f"({rect.x},{rect.y}), duration={packet.duration}ms"
-        )
+        # The same 64 colours are written to each of `length` tiles
+        for tile_index in _target_tiles(device_state, packet.tile_index, packet.length):
+            target_colors = _framebuffer(device_state, tile_index, rect.fb_index)
+            if target_colors is None:
+                continue
+            zones_written = _write_rect(
+                device_state.tile_devices[tile_index],
+                target_colors,
+                rect,
+                packet.colors,
+            )
+            logger.info(
+                "Tile %s FB%s set %s colors at (%s,%s), duration=%sms",
+                tile_index,
+                rect.fb_index,
+                zones_written,
+                rect.x,
+                rect.y,
+                packet.duration,
+            )
 
         # Tiles never return a response to Set64 regardless of res_required
         # https://lan.developer.lifx.com/docs/changing-a-device#set64---packet-715
         return []
 
 
+def _copy_rect(
+    tile: dict[str, Any],
+    src_colors: list[LightHsbk],
+    dst_colors: list[LightHsbk],
+    packet: Tile.CopyFrameBuffer,
+) -> int:
+    """Copy the request's rectangle between two framebuffers of one tile.
+
+    Returns:
+        The number of zones copied.
+    """
+    tile_width = tile["width"]
+    tile_height = tile["height"]
+    zones_copied = 0
+    for row in range(packet.height):
+        src_row = packet.src_y + row
+        dst_row = packet.dst_y + row
+        if src_row >= tile_height or dst_row >= tile_height:
+            break
+        for col in range(packet.width):
+            src_col = packet.src_x + col
+            dst_col = packet.dst_x + col
+            if src_col >= tile_width or dst_col >= tile_width:
+                continue
+            src_idx = src_row * tile_width + src_col
+            dst_idx = dst_row * tile_width + dst_col
+            if src_idx < len(src_colors) and dst_idx < len(dst_colors):
+                dst_colors[dst_idx] = src_colors[src_idx]
+                zones_copied += 1
+    return zones_copied
+
+
 class CopyFrameBufferHandler(PacketHandler):
-    """Handle TileCopyFrameBuffer (716) - copy frame buffer (no-op in emulator)."""
+    """Handle TileCopyFrameBuffer (716) - copy between framebuffers."""
 
     PKT_TYPE = Tile.CopyFrameBuffer.PKT_TYPE
 
     def handle(
-        self, device_state: DeviceState, packet: Any | None, res_required: bool
+        self,
+        device_state: DeviceState,
+        packet: Tile.CopyFrameBuffer | None,
+        res_required: bool,
     ) -> list[Any]:
         if not device_state.has_matrix or not packet:
             return []
 
-        tile_index = packet.tile_index
-        if tile_index >= len(device_state.tile_devices):
-            return []
-
-        tile = device_state.tile_devices[tile_index]
-        tile_width = tile["width"]
-        tile_height = tile["height"]
-
-        src_fb_index = packet.src_fb_index
-        dst_fb_index = packet.dst_fb_index
-
-        # Get source framebuffer
-        if src_fb_index == 0:
-            src_colors = tile["colors"]
-        else:
-            if tile_index < len(device_state.tile_framebuffers):
-                fb_storage = device_state.tile_framebuffers[tile_index]
-                src_colors = fb_storage.get_framebuffer(
-                    src_fb_index, tile_width, tile_height
-                )
-            else:
-                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
-                return []
-
-        # Get destination framebuffer
-        if dst_fb_index == 0:
-            dst_colors = tile["colors"]
-        else:
-            if tile_index < len(device_state.tile_framebuffers):
-                fb_storage = device_state.tile_framebuffers[tile_index]
-                dst_colors = fb_storage.get_framebuffer(
-                    dst_fb_index, tile_width, tile_height
-                )
-            else:
-                logger.warning(f"Tile {tile_index} framebuffer storage not initialized")
-                return []
-
-        # Copy the specified rectangle from source to destination
-        src_x = packet.src_x
-        src_y = packet.src_y
-        dst_x = packet.dst_x
-        dst_y = packet.dst_y
-        width = packet.width
-        height = packet.height
-
-        zones_copied = 0
-        for row in range(height):
-            src_row = src_y + row
-            dst_row = dst_y + row
-
-            if src_row >= tile_height or dst_row >= tile_height:
-                break
-
-            for col in range(width):
-                src_col = src_x + col
-                dst_col = dst_x + col
-
-                if src_col >= tile_width or dst_col >= tile_width:
-                    continue
-
-                src_idx = src_row * tile_width + src_col
-                dst_idx = dst_row * tile_width + dst_col
-
-                if src_idx < len(src_colors) and dst_idx < len(dst_colors):
-                    dst_colors[dst_idx] = src_colors[src_idx]
-                    zones_copied += 1
-
-        logger.info(
-            f"Tile {tile_index} copied {zones_copied} zones from "
-            f"FB{src_fb_index}({src_x},{src_y}) to "
-            f"FB{dst_fb_index}({dst_x},{dst_y}), "
-            f"size={width}x{height}, duration={packet.duration}ms"
-        )
+        # The same copy is made on each of `length` tiles
+        for tile_index in _target_tiles(device_state, packet.tile_index, packet.length):
+            src_colors = _framebuffer(device_state, tile_index, packet.src_fb_index)
+            dst_colors = _framebuffer(device_state, tile_index, packet.dst_fb_index)
+            if src_colors is None or dst_colors is None:
+                continue
+            zones_copied = _copy_rect(
+                device_state.tile_devices[tile_index], src_colors, dst_colors, packet
+            )
+            logger.info(
+                "Tile %s copied %s zones from FB%s(%s,%s) to FB%s(%s,%s), "
+                "size=%sx%s, duration=%sms",
+                tile_index,
+                zones_copied,
+                packet.src_fb_index,
+                packet.src_x,
+                packet.src_y,
+                packet.dst_fb_index,
+                packet.dst_x,
+                packet.dst_y,
+                packet.width,
+                packet.height,
+                packet.duration,
+            )
 
         return []
 

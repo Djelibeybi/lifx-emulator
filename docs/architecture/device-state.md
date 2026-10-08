@@ -85,7 +85,8 @@ The essential identity and light state every device has:
 For devices with independently controllable linear zones (strips, beams):
 
 - `zone_count` — Number of zones (product-dependent; e.g., LIFX Z: 8–16, Beam: 10–82, Neon: 24–48)
-- `zone_colors` — List of `LightHsbk`, one per zone
+- `zone_colors` — List of `LightHsbk`, one per zone (what the strip is showing)
+- `pending_zone_colors` — Colours staged by a `NO_APPLY` request, keyed by zone index, until an `APPLY` or `APPLY_ONLY` request shows them
 - `effect_type`, `effect_instanceid`, `effect_speed_ms`, `effect_duration`, `effect_parameters` — Multizone effect state, stored exactly as the last SetEffect sent it
 
 Zone count ranges are defined per product in `specs.yml`. Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.
@@ -106,7 +107,8 @@ Tile count ranges and dimensions are defined per product in `specs.yml`. Each ti
 
 For LIFX Clean devices with germicidal UV-C:
 
-- `hev_cycle_duration_s` — Cycle duration (default: 7200s / 2 hours)
+- `hev_cycle_duration_s` — Configured default cycle length (default: 7200s / 2 hours)
+- `hev_cycle_current_duration_s` — Length the current or most recent cycle was started with; a SetHevCycle duration of 0 uses the configured default
 - `hev_cycle_remaining_s` — Time remaining in active cycle
 - `hev_cycle_last_power` — Whether HEV was on when last cycle ended
 - `hev_indication` — Whether HEV indicator light is enabled

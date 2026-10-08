@@ -93,6 +93,24 @@ packet = Tile.CopyFrameBuffer(
 )
 ```
 
+### Applying to Several Tiles with `length`
+
+Set64 and CopyFrameBuffer both act on `length` tiles, starting at
+`tile_index`. Set64 writes the same 64 colours to each of those tiles, and
+CopyFrameBuffer makes the same copy on each one. A `length` of 0 is treated as
+1, and a `length` that runs past the end of the chain stops at the last tile.
+
+```python
+# Paint every tile of a 5-tile chain red in one packet
+packet = Tile.Set64(
+    tile_index=0,
+    length=5,
+    rect=TileBufferRect(fb_index=0, x=0, y=0, width=8),
+    duration=0,
+    colors=colors,
+)
+```
+
 ## Complete Example: Updating a 16×8 Tile
 
 ```python

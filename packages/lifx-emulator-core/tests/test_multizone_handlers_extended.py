@@ -116,7 +116,7 @@ class TestSetColorZones:
             hue=30000, saturation=65535, brightness=50000, kelvin=4000
         )
         packet = MultiZone.SetColorZones(
-            start_index=2, end_index=5, color=test_color, duration=0, apply=0
+            start_index=2, end_index=5, color=test_color, duration=0, apply=1
         )
 
         header = LifxHeader(
@@ -141,7 +141,7 @@ class TestSetColorZones:
             hue=45000, saturation=32768, brightness=65535, kelvin=3500
         )
         packet = MultiZone.SetColorZones(
-            start_index=0, end_index=15, color=test_color, duration=1000, apply=0
+            start_index=0, end_index=15, color=test_color, duration=1000, apply=1
         )
 
         header = LifxHeader(
@@ -166,7 +166,7 @@ class TestSetColorZones:
             hue=10000, saturation=40000, brightness=30000, kelvin=2700
         )
         packet = MultiZone.SetColorZones(
-            start_index=0, end_index=7, color=test_color, duration=500, apply=0
+            start_index=0, end_index=7, color=test_color, duration=500, apply=1
         )
 
         header = LifxHeader(
@@ -190,7 +190,7 @@ class TestSetColorZones:
             hue=20000, saturation=50000, brightness=40000, kelvin=3500
         )
         packet = MultiZone.SetColorZones(
-            start_index=0, end_index=7, color=test_color, duration=0, apply=0
+            start_index=0, end_index=7, color=test_color, duration=0, apply=1
         )
 
         header = LifxHeader(
@@ -213,7 +213,7 @@ class TestSetColorZones:
         )
         # Set zones beyond actual count (should be clamped)
         packet = MultiZone.SetColorZones(
-            start_index=14, end_index=20, color=test_color, duration=0, apply=0
+            start_index=14, end_index=20, color=test_color, duration=0, apply=1
         )
 
         header = LifxHeader(
@@ -290,7 +290,7 @@ class TestExtendedColorZones:
             )
 
         packet = MultiZone.ExtendedSetColorZones(
-            duration=0, apply=0, index=5, colors_count=10, colors=test_colors
+            duration=0, apply=1, index=5, colors_count=10, colors=test_colors
         )
 
         header = LifxHeader(
@@ -316,7 +316,7 @@ class TestExtendedColorZones:
             for _ in range(82)
         ]
         packet = MultiZone.ExtendedSetColorZones(
-            duration=1000, apply=0, index=0, colors_count=20, colors=test_colors
+            duration=1000, apply=1, index=0, colors_count=20, colors=test_colors
         )
 
         header = LifxHeader(
@@ -359,7 +359,7 @@ class TestExtendedColorZones:
             for _ in range(82)
         ]
         packet = MultiZone.ExtendedSetColorZones(
-            duration=0, apply=0, index=0, colors_count=10, colors=test_colors
+            duration=0, apply=1, index=0, colors_count=10, colors=test_colors
         )
 
         header = LifxHeader(

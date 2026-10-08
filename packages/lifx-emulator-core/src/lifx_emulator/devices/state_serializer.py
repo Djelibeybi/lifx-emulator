@@ -120,6 +120,9 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
 
     if device_state.has_hev:
         state_dict["hev_cycle_duration_s"] = device_state.hev_cycle_duration_s
+        state_dict["hev_cycle_current_duration_s"] = (
+            device_state.hev_cycle_current_duration_s
+        )
         state_dict["hev_cycle_remaining_s"] = device_state.hev_cycle_remaining_s
         state_dict["hev_cycle_last_power"] = device_state.hev_cycle_last_power
         state_dict["hev_indication"] = device_state.hev_indication

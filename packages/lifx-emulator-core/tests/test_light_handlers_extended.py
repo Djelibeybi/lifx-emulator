@@ -621,10 +621,10 @@ class TestHEV:
 
         device.process_packet(header, packet)
 
-        assert device.state.hev_cycle_duration_s == 3600
-        assert (
-            device.state.hev_cycle_remaining_s == 3600
-        )  # Set to duration when enabled
+        assert device.state.hev_cycle_current_duration_s == 3600
+        assert device.state.hev_cycle_remaining_s == 3600
+        # A one-off cycle leaves the configured default untouched
+        assert device.state.hev_cycle_duration_s == 7200
 
     def test_set_hev_cycle_disable(self, hev_device):
         """Test SetHevCycle disables HEV cycle."""
@@ -642,7 +642,7 @@ class TestHEV:
 
         device.process_packet(header, packet)
 
-        assert device.state.hev_cycle_duration_s == 3600
+        assert device.state.hev_cycle_duration_s == 7200
         assert device.state.hev_cycle_remaining_s == 0  # Reset to 0 when disabled
 
     def test_set_hev_cycle_with_response(self, hev_device):

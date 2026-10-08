@@ -373,6 +373,12 @@ for i, color in enumerate(strip.state.zone_colors):
 **Effects:**
 - `GetEffect` (507)
 - `SetEffect` (508)
+
+Both setters honour the `apply` field as a real strip does. `NO_APPLY` stages
+the colours without showing them, `APPLY` shows everything staged together
+with the request's own colours, and `APPLY_ONLY` shows the staged colours while
+ignoring the colours in the request. Use this to update a long strip across
+several packets and have every zone change at once.
 - `StateEffect` (509)
 
 ## Matrix Devices
