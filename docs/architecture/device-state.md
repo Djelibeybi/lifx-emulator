@@ -87,7 +87,7 @@ For devices with independently controllable linear zones (strips, beams):
 - `zone_count` — Number of zones (product-dependent; e.g., LIFX Z: 8–16, Beam: 10–82, Neon: 24–48)
 - `zone_colors` — List of `LightHsbk`, one per zone (what the strip is showing)
 - `pending_zone_colors` — Colours staged by a `NO_APPLY` request, keyed by zone index, until an `APPLY` or `APPLY_ONLY` request shows them
-- `effect_type`, `effect_speed` — Multizone effect state
+- `effect_type`, `effect_instanceid`, `effect_speed_ms`, `effect_duration`, `effect_parameters` — Multizone effect state, stored exactly as the last SetEffect sent it
 
 Zone count ranges are defined per product in `specs.yml`. Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.
 
@@ -99,6 +99,7 @@ For devices with a 2D zone grid (tiles, candles, ceilings):
 - `tile_width`, `tile_height` — Dimensions of each tile (product-dependent; e.g., Tile: 8x8, Candle: 5x6, Ceiling: 8x8)
 - `tile_devices` — List of tile metadata dicts (position, colors, dimensions)
 - `tile_framebuffers` — List of `TileFramebuffers` for non-visible buffers
+- `effect_type`, `effect_instanceid`, `effect_speed_ms`, `effect_duration`, `effect_palette_count`, `effect_palette`, `effect_sky_type`, `effect_cloud_sat_min`, `effect_cloud_sat_max` — Matrix effect state, stored exactly as the last SetEffect sent it
 
 Tile count ranges and dimensions are defined per product in `specs.yml`. Each tile's visible colors are in `tile_devices[i]["colors"]`. Non-visible framebuffers are stored separately in `TileFramebuffers` and lazily initialized on first access.
 

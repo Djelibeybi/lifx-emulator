@@ -15,6 +15,7 @@ from lifx_emulator.protocol.protocol_types import (
     TileBufferRect,
     TileEffectParameter,
     TileEffectSettings,
+    TileEffectSkyType,
     TileEffectType,
     TileStateDevice,
 )
@@ -385,9 +386,6 @@ class GetEffectHandler(PacketHandler):
         while len(palette) < 16:
             palette.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
-        # Create effect settings with Sky parameters
-        from lifx_emulator.protocol.protocol_types import TileEffectSkyType
-
         # Use defaults for SKY effect when values are None, otherwise use stored values
         # NOTE: Must check for None explicitly, not use 'or', because SUNRISE=0 is falsy
         effect_type = TileEffectType(device_state.tile_effect_type)
@@ -418,10 +416,10 @@ class GetEffectHandler(PacketHandler):
             cloud_saturation_max=cloud_sat_max,
         )
         settings = TileEffectSettings(
-            instanceid=0,
+            instanceid=device_state.tile_effect_instanceid,
             type=TileEffectType(device_state.tile_effect_type),
-            speed=device_state.tile_effect_speed * 1000,  # convert to milliseconds
-            duration=0,  # infinite
+            speed=device_state.tile_effect_speed_ms,
+            duration=device_state.tile_effect_duration,
             parameter=parameter,
             palette_count=min(len(device_state.tile_effect_palette), 16),
             palette=palette,
@@ -467,9 +465,9 @@ class SetEffectHandler(PacketHandler):
                     return []
 
             device_state.tile_effect_type = int(packet.settings.type)
-            device_state.tile_effect_speed = (
-                packet.settings.speed // 1000
-            )  # convert to seconds
+            device_state.tile_effect_instanceid = packet.settings.instanceid
+            device_state.tile_effect_speed_ms = packet.settings.speed
+            device_state.tile_effect_duration = packet.settings.duration
             device_state.tile_effect_palette = list(
                 packet.settings.palette[: packet.settings.palette_count]
             )
@@ -485,12 +483,15 @@ class SetEffectHandler(PacketHandler):
             )
 
             logger.info(
-                f"Tile effect set: type={packet.settings.type}, "
-                f"speed={packet.settings.speed}ms, "
-                f"palette_count={packet.settings.palette_count}, "
-                f"sky_type={packet.settings.parameter.sky_type}, "
-                f"cloud_sat=[{packet.settings.parameter.cloud_saturation_min}, "
-                f"{packet.settings.parameter.cloud_saturation_max}]"
+                "Tile effect set: type=%s, speed=%sms, duration=%sns, "
+                "palette_count=%s, sky_type=%s, cloud_sat=[%s, %s]",
+                packet.settings.type,
+                packet.settings.speed,
+                packet.settings.duration,
+                packet.settings.palette_count,
+                packet.settings.parameter.sky_type,
+                packet.settings.parameter.cloud_saturation_min,
+                packet.settings.parameter.cloud_saturation_max,
             )
 
         if res_required:

@@ -29,6 +29,9 @@ from lifx_emulator.protocol.protocol_types import (
 _MAC_OFFSET_FIRMWARE_MAJOR = 3
 _MAC_OFFSET_FIRMWARE_MIN_MINOR = 70
 
+# MultiZoneEffectParameter carries eight uint32 fields (parameter0-7)
+MULTIZONE_EFFECT_PARAMETER_COUNT = 8
+
 
 @dataclass
 class CoreDeviceState:
@@ -213,7 +216,14 @@ class MultiZoneState:
     # Zone colours sent with apply=NO_APPLY, keyed by zone index; they are
     # not shown until a later APPLY or APPLY_ONLY request commits them
     pending_zone_colors: dict[int, LightHsbk] = field(default_factory=dict)
-    effect_speed: int = 5  # Duration of one cycle in seconds
+    effect_instanceid: int = 0
+    effect_speed_ms: int = 5000  # Duration of one cycle in milliseconds
+    effect_duration: int = 0  # Effect run time in nanoseconds; 0 = infinite
+    # The eight uint32 effect parameters, stored verbatim so GetEffect echoes
+    # what SetEffect sent (for MOVE, parameter1 is the direction).
+    effect_parameters: list[int] = field(
+        default_factory=lambda: [0] * MULTIZONE_EFFECT_PARAMETER_COUNT
+    )
 
 
 @dataclass
@@ -251,7 +261,9 @@ class MatrixState:
     tile_width: int
     tile_height: int
     effect_type: int = 0  # 0=OFF, 2=MORPH, 3=FLAME, 5=SKY
-    effect_speed: int = 5  # Duration of one cycle in seconds
+    effect_instanceid: int = 0
+    effect_speed_ms: int = 5000  # Duration of one cycle in milliseconds
+    effect_duration: int = 0  # Effect run time in nanoseconds; 0 = infinite
     effect_palette_count: int = 0
     effect_palette: list[LightHsbk] = field(default_factory=list)
     effect_sky_type: int = 0  # 0=SUNRISE, 1=SUNSET, 2=CLOUDS (only when effect_type=5)
@@ -452,14 +464,19 @@ class DeviceState:
         "zone_colors": "multizone",
         "multizone_pending_zone_colors": ("multizone", "pending_zone_colors"),
         "multizone_effect_type": ("multizone", "effect_type"),
-        "multizone_effect_speed": ("multizone", "effect_speed"),
+        "multizone_effect_instanceid": ("multizone", "effect_instanceid"),
+        "multizone_effect_speed_ms": ("multizone", "effect_speed_ms"),
+        "multizone_effect_duration": ("multizone", "effect_duration"),
+        "multizone_effect_parameters": ("multizone", "effect_parameters"),
         # Matrix/Tile properties
         "tile_count": "matrix",
         "tile_devices": "matrix",
         "tile_width": "matrix",
         "tile_height": "matrix",
         "tile_effect_type": ("matrix", "effect_type"),
-        "tile_effect_speed": ("matrix", "effect_speed"),
+        "tile_effect_instanceid": ("matrix", "effect_instanceid"),
+        "tile_effect_speed_ms": ("matrix", "effect_speed_ms"),
+        "tile_effect_duration": ("matrix", "effect_duration"),
         "tile_effect_palette_count": ("matrix", "effect_palette_count"),
         "tile_effect_palette": ("matrix", "effect_palette"),
         "tile_effect_sky_type": ("matrix", "effect_sky_type"),
@@ -481,13 +498,18 @@ class DeviceState:
         "zone_colors": [],
         "multizone_pending_zone_colors": {},
         "multizone_effect_type": 0,
-        "multizone_effect_speed": 0,
+        "multizone_effect_instanceid": 0,
+        "multizone_effect_speed_ms": 0,
+        "multizone_effect_duration": 0,
+        "multizone_effect_parameters": [],
         "tile_count": 0,
         "tile_devices": [],
         "tile_width": 8,
         "tile_height": 8,
         "tile_effect_type": 0,
-        "tile_effect_speed": 0,
+        "tile_effect_instanceid": 0,
+        "tile_effect_speed_ms": 0,
+        "tile_effect_duration": 0,
         "tile_effect_palette_count": 0,
         "tile_effect_palette": [],
         "tile_effect_sky_type": 0,

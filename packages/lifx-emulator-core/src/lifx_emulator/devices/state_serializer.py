@@ -134,14 +134,26 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
             serialize_hsbk(c) for c in device_state.zone_colors
         ]
         state_dict["multizone_effect_type"] = device_state.multizone_effect_type
-        state_dict["multizone_effect_speed"] = device_state.multizone_effect_speed
+        state_dict["multizone_effect_instanceid"] = (
+            device_state.multizone_effect_instanceid
+        )
+        state_dict["multizone_effect_speed_ms"] = device_state.multizone_effect_speed_ms
+        state_dict["multizone_effect_duration"] = device_state.multizone_effect_duration
+        state_dict["multizone_effect_parameters"] = list(
+            device_state.multizone_effect_parameters
+        )
 
     if device_state.has_matrix:
         state_dict["tile_count"] = device_state.tile_count
         state_dict["tile_width"] = device_state.tile_width
         state_dict["tile_height"] = device_state.tile_height
         state_dict["tile_effect_type"] = device_state.tile_effect_type
-        state_dict["tile_effect_speed"] = device_state.tile_effect_speed
+        state_dict["tile_effect_instanceid"] = device_state.tile_effect_instanceid
+        state_dict["tile_effect_speed_ms"] = device_state.tile_effect_speed_ms
+        state_dict["tile_effect_duration"] = device_state.tile_effect_duration
+        state_dict["tile_effect_sky_type"] = device_state.tile_effect_sky_type
+        state_dict["tile_effect_cloud_sat_min"] = device_state.tile_effect_cloud_sat_min
+        state_dict["tile_effect_cloud_sat_max"] = device_state.tile_effect_cloud_sat_max
         state_dict["tile_effect_palette_count"] = device_state.tile_effect_palette_count
         state_dict["tile_effect_palette"] = [
             serialize_hsbk(c) for c in device_state.tile_effect_palette
