@@ -979,7 +979,7 @@ async def run(
         if saved_serials and not has_any_device_config:
             restore_from_storage = True
             logger.info(
-                f"Restoring {len(saved_serials)} device(s) from persistent storage"
+                "Restoring %s device(s) from persistent storage", len(saved_serials)
             )
             for saved_serial in saved_serials:
                 saved_state = storage.load_device_state(saved_serial)
@@ -1222,12 +1222,16 @@ async def run(
     try:
         if f_api:
             logger.info(
-                f"LIFX server running on {f_bind}:{f_port}, "
-                f"API server on http://{f_api_host}:{f_api_port}"
+                "LIFX server running on %s:%s, API server on http://%s:%s",
+                f_bind,
+                f_port,
+                f_api_host,
+                f_api_port,
             )
             logger.info(
-                f"Open http://{f_api_host}:{f_api_port} in your browser "
-                "to view the monitoring dashboard"
+                "Open http://%s:%s in your browser to view the monitoring dashboard",
+                f_api_host,
+                f_api_port,
             )
         elif f_verbose:
             logger.info(
