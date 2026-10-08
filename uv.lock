@@ -455,7 +455,7 @@ requires-dist = [
 
 [[package]]
 name = "lifx-emulator-core"
-version = "3.12.5"
+version = "3.12.6"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
     { name = "pydantic" },
