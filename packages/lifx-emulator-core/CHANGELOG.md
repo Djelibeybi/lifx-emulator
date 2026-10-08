@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v3.12.6 (2026-10-08)
+
+### Bug Fixes
+
+- **handlers**: Store every field Set handlers are sent
+  ([#248](https://github.com/Djelibeybi/lifx-emulator/pull/248),
+  [`55962cf`](https://github.com/Djelibeybi/lifx-emulator/commit/55962cf8a4990dc26acb9402ba7b3b11af5b3a35))
+
+
 ## v3.12.5 (2026-10-08)
 
 ### Bug Fixes
