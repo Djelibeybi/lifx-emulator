@@ -110,7 +110,7 @@ For LIFX Clean devices with germicidal UV-C:
 - `hev_cycle_duration_s` — Configured default cycle length (default: 7200s / 2 hours)
 - `hev_cycle_current_duration_s` — Length the current or most recent cycle was started with; a SetHevCycle duration of 0 uses the configured default
 - `hev_cycle_remaining_s` — Time remaining in active cycle
-- `hev_cycle_last_power` — Whether HEV was on when last cycle ended
+- `hev_cycle_last_power` — Whether the light was on (power level non-zero) when the current or most recent cycle started
 - `hev_indication` — Whether HEV indicator light is enabled
 - `hev_last_result` — Result code of last HEV cycle
 

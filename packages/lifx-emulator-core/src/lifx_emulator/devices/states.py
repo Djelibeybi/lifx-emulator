@@ -292,7 +292,6 @@ class WaveformState:
     )
     waveform_period_ms: int = 0
     waveform_cycles: float = 0
-    waveform_duty_cycle: int = 0
     waveform_skew_ratio: int = 0
 
 
@@ -448,7 +447,6 @@ class DeviceState:
         "waveform_color": "waveform",
         "waveform_period_ms": "waveform",
         "waveform_cycles": "waveform",
-        "waveform_duty_cycle": "waveform",
         "waveform_skew_ratio": "waveform",
         # Infrared properties
         "infrared_brightness": "infrared",

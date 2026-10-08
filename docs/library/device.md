@@ -101,7 +101,7 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`hev_cycle_duration_s`** (`int` = `7200`) - Configured default HEV cycle length in seconds (SetHevCycleConfiguration)
 - **`hev_cycle_current_duration_s`** (`int | None` = `None`) - Length the current or most recent cycle was started with (SetHevCycle); `None` until a cycle has run
 - **`hev_cycle_remaining_s`** (`int` = `0`) - Remaining time in current cycle
-- **`hev_cycle_last_power`** (`bool` = `False`) - Last power state before cycle
+- **`hev_cycle_last_power`** (`bool` = `False`) - Whether the light was on (power level non-zero) when SetHevCycle last started a cycle; the power state it returns to when the cycle completes
 - **`hev_indication`** (`bool` = `True`) - Enable visual indication during cycle
 - **`hev_last_result`** (`int` = `0`) - Result of last HEV cycle
 
@@ -126,7 +126,6 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`waveform_color`** (`LightHsbk`) - Target waveform color
 - **`waveform_period_ms`** (`int` = `0`) - Waveform period in milliseconds
 - **`waveform_cycles`** (`float` = `0`) - Number of cycles (0 = infinite)
-- **`waveform_duty_cycle`** (`int` = `0`) - Duty cycle for pulse waveform
 - **`waveform_skew_ratio`** (`int` = `0`) - Skew ratio for waveform
 - **`multizone_effect_type`** (`int` = `0`) - Multizone effect type (move, etc.)
 - **`multizone_effect_instanceid`** (`int` = `0`) - Instance ID sent with the last SetEffect
