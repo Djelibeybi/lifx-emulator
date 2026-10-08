@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v3.12.7 (2026-10-08)
+
+### Bug Fixes
+
+- **handlers**: Record HEV last_power and drop unused waveform_duty_cycle
+  ([#251](https://github.com/Djelibeybi/lifx-emulator/pull/251),
+  [`dcebecc`](https://github.com/Djelibeybi/lifx-emulator/commit/dcebecc7e02de11590dc44d790dd89bf060ca309))
+
+
 ## v3.12.6 (2026-10-08)
 
 ### Bug Fixes
