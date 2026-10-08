@@ -81,6 +81,18 @@ def _compute_average_color(colors: list[LightHsbk]) -> LightHsbk:
     )
 
 
+def _state_hev_cycle(device_state: DeviceState) -> Light.StateHevCycle:
+    """Build a StateHevCycle reporting the current or most recent cycle."""
+    duration_s = device_state.hev_cycle_current_duration_s
+    if duration_s is None:
+        duration_s = device_state.hev_cycle_duration_s
+    return Light.StateHevCycle(
+        duration_s=duration_s,
+        remaining_s=device_state.hev_cycle_remaining_s,
+        last_power=device_state.hev_cycle_last_power,
+    )
+
+
 class GetColorHandler(PacketHandler):
     """Handle LightGet (101) -> LightState (107)."""
 
@@ -370,13 +382,7 @@ class GetHevCycleHandler(PacketHandler):
     ) -> list[Any]:
         if not device_state.has_hev:
             return []
-        return [
-            Light.StateHevCycle(
-                duration_s=device_state.hev_cycle_duration_s,
-                remaining_s=device_state.hev_cycle_remaining_s,
-                last_power=device_state.hev_cycle_last_power,
-            )
-        ]
+        return [_state_hev_cycle(device_state)]
 
 
 class SetHevCycleHandler(PacketHandler):
@@ -393,23 +399,22 @@ class SetHevCycleHandler(PacketHandler):
         if not device_state.has_hev:
             return []
         if packet:
-            device_state.hev_cycle_duration_s = packet.duration_s
             if packet.enable:
-                device_state.hev_cycle_remaining_s = packet.duration_s
+                # A one-off cycle length: it must not change the configured
+                # default, and 0 means "use the configured default"
+                duration_s = packet.duration_s or device_state.hev_cycle_duration_s
+                device_state.hev_cycle_current_duration_s = duration_s
+                device_state.hev_cycle_remaining_s = duration_s
             else:
                 device_state.hev_cycle_remaining_s = 0
             logger.info(
-                f"HEV cycle set: enable={packet.enable}, duration={packet.duration_s}s"
+                "HEV cycle set: enable=%s, duration=%ss",
+                packet.enable,
+                packet.duration_s,
             )
 
         if res_required:
-            return [
-                Light.StateHevCycle(
-                    duration_s=device_state.hev_cycle_duration_s,
-                    remaining_s=device_state.hev_cycle_remaining_s,
-                    last_power=device_state.hev_cycle_last_power,
-                )
-            ]
+            return [_state_hev_cycle(device_state)]
         return []
 
 

@@ -98,7 +98,8 @@ The attributes below are read and written directly on `DeviceState`; each one is
 
 #### HEV (Germicidal Light)
 
-- **`hev_cycle_duration_s`** (`int` = `7200`) - HEV cycle duration in seconds
+- **`hev_cycle_duration_s`** (`int` = `7200`) - Configured default HEV cycle length in seconds (SetHevCycleConfiguration)
+- **`hev_cycle_current_duration_s`** (`int | None` = `None`) - Length the current or most recent cycle was started with (SetHevCycle); `None` until a cycle has run
 - **`hev_cycle_remaining_s`** (`int` = `0`) - Remaining time in current cycle
 - **`hev_cycle_last_power`** (`bool` = `False`) - Last power state before cycle
 - **`hev_indication`** (`bool` = `True`) - Enable visual indication during cycle

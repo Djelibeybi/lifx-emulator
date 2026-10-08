@@ -15,6 +15,16 @@ from lifx_emulator.devices.states import MatrixState
 
 logger = logging.getLogger(__name__)
 
+# Saved HEV keys, each named after the HevState field it restores
+_HEV_STATE_KEYS = (
+    "hev_cycle_duration_s",
+    "hev_cycle_current_duration_s",
+    "hev_cycle_remaining_s",
+    "hev_cycle_last_power",
+    "hev_indication",
+    "hev_last_result",
+)
+
 
 class StateRestorer:
     """Handles restoration of device state from persistent storage.
@@ -180,16 +190,9 @@ class StateRestorer:
 
         # HEV
         if state.has_hev and state.hev:
-            if "hev_cycle_duration_s" in saved_state:
-                state.hev.hev_cycle_duration_s = saved_state["hev_cycle_duration_s"]
-            if "hev_cycle_remaining_s" in saved_state:
-                state.hev.hev_cycle_remaining_s = saved_state["hev_cycle_remaining_s"]
-            if "hev_cycle_last_power" in saved_state:
-                state.hev.hev_cycle_last_power = saved_state["hev_cycle_last_power"]
-            if "hev_indication" in saved_state:
-                state.hev.hev_indication = saved_state["hev_indication"]
-            if "hev_last_result" in saved_state:
-                state.hev.hev_last_result = saved_state["hev_last_result"]
+            for key in _HEV_STATE_KEYS:
+                if key in saved_state:
+                    setattr(state.hev, key, saved_state[key])
 
         # Multizone
         if state.has_multizone and state.multizone:

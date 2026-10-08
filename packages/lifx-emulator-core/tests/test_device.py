@@ -760,10 +760,10 @@ class TestHEVHandlers:
 
         hev_device.process_packet(header, packet)
 
-        assert hev_device.state.hev_cycle_duration_s == 3600
-        assert (
-            hev_device.state.hev_cycle_remaining_s == 3600
-        )  # Set to duration when enabled
+        assert hev_device.state.hev_cycle_current_duration_s == 3600
+        assert hev_device.state.hev_cycle_remaining_s == 3600
+        # A one-off cycle leaves the configured default untouched
+        assert hev_device.state.hev_cycle_duration_s == 7200
 
     def test_set_hev_cycle_disable(self, hev_device):
         """Test LightSetHevCycle disables HEV cycle."""

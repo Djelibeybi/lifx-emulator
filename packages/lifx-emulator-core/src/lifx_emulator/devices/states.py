@@ -192,7 +192,11 @@ class InfraredState:
 class HevState:
     """HEV (germicidal UV) capability state."""
 
+    # Configured default cycle length (SetHevCycleConfiguration)
     hev_cycle_duration_s: int = 7200  # 2 hours default
+    # Length the current or most recent cycle was started with (SetHevCycle);
+    # None until a cycle has been started, when the configured length applies
+    hev_cycle_current_duration_s: int | None = None
     hev_cycle_remaining_s: int = 0
     hev_cycle_last_power: bool = False
     hev_indication: bool = True
@@ -435,6 +439,7 @@ class DeviceState:
         "infrared_brightness": "infrared",
         # HEV properties
         "hev_cycle_duration_s": "hev",
+        "hev_cycle_current_duration_s": "hev",
         "hev_cycle_remaining_s": "hev",
         "hev_cycle_last_power": "hev",
         "hev_indication": "hev",
@@ -463,6 +468,7 @@ class DeviceState:
     _OPTIONAL_DEFAULTS = {
         "infrared_brightness": 0,
         "hev_cycle_duration_s": 0,
+        "hev_cycle_current_duration_s": None,
         "hev_cycle_remaining_s": 0,
         "hev_cycle_last_power": False,
         "hev_indication": False,
