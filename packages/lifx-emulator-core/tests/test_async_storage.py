@@ -99,7 +99,7 @@ class TestDevicePersistenceAsyncFile:
         assert new_state.zone_count == state.zone_count
         assert new_state.zone_colors == state.zone_colors
         assert new_state.multizone_effect_type == state.multizone_effect_type
-        assert new_state.multizone_effect_speed == state.multizone_effect_speed
+        assert new_state.multizone_effect_speed_ms == state.multizone_effect_speed_ms
 
     async def test_device_storage_tile(self, temp_storage):
         """Test saving and loading tile device state."""
@@ -119,7 +119,7 @@ class TestDevicePersistenceAsyncFile:
         assert new_state.tile_height == state.tile_height
         assert new_state.tile_devices == state.tile_devices
         assert new_state.tile_effect_type == state.tile_effect_type
-        assert new_state.tile_effect_speed == state.tile_effect_speed
+        assert new_state.tile_effect_speed_ms == state.tile_effect_speed_ms
 
     async def test_device_storage_list_devices(self, temp_storage):
         """Test listing all devices with saved state."""

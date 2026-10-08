@@ -431,7 +431,7 @@ class TestMultiZoneEffects:
         device.process_packet(header, packet)
 
         assert device.state.multizone_effect_type == int(MultiZoneEffectType.MOVE)
-        assert device.state.multizone_effect_speed == 5  # Converted to seconds
+        assert device.state.multizone_effect_speed_ms == 5000
 
     def test_set_effect_off(self, multizone_device):
         """Test SetEffect turning effect off."""
