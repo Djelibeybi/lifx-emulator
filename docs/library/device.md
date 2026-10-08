@@ -109,6 +109,7 @@ The attributes below are read and written directly on `DeviceState`; each one is
 
 - **`zone_count`** (`int` = `0`) - Number of zones (0 if not multizone)
 - **`zone_colors`** (`list[LightHsbk]` = `[]`) - Color for each zone
+- **`multizone_pending_zone_colors`** (`dict[int, LightHsbk]` = `{}`) - Zone colors staged by a `NO_APPLY` request, not yet shown
 
 #### Matrix (Tiles)
 

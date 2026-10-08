@@ -816,7 +816,7 @@ class TestMultiZoneHandlers:
             hue=10000, saturation=65535, brightness=50000, kelvin=3500
         )
         packet = MultiZone.SetColorZones(
-            start_index=5, end_index=10, color=new_color, duration=0, apply=0
+            start_index=5, end_index=10, color=new_color, duration=0, apply=1
         )
 
         header = LifxHeader(

@@ -85,7 +85,8 @@ The essential identity and light state every device has:
 For devices with independently controllable linear zones (strips, beams):
 
 - `zone_count` — Number of zones (product-dependent; e.g., LIFX Z: 8–16, Beam: 10–82, Neon: 24–48)
-- `zone_colors` — List of `LightHsbk`, one per zone
+- `zone_colors` — List of `LightHsbk`, one per zone (what the strip is showing)
+- `pending_zone_colors` — Colours staged by a `NO_APPLY` request, keyed by zone index, until an `APPLY` or `APPLY_ONLY` request shows them
 - `effect_type`, `effect_speed` — Multizone effect state
 
 Zone count ranges are defined per product in `specs.yml`. Zone colors are initialized to a rainbow pattern by `EmulatedLifxDevice.__init__()` if not provided.

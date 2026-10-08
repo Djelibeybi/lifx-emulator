@@ -9,6 +9,7 @@ from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import MultiZone
 from lifx_emulator.protocol.protocol_types import (
     LightHsbk,
+    MultiZoneApplicationRequest,
     MultiZoneEffectParameter,
     MultiZoneEffectSettings,
     MultiZoneEffectType,
@@ -18,6 +19,31 @@ if TYPE_CHECKING:
     from lifx_emulator.devices import DeviceState
 
 logger = logging.getLogger(__name__)
+
+
+def _update_zones(
+    device_state: DeviceState, updates: dict[int, LightHsbk], apply: int
+) -> None:
+    """Stage and/or show zone colours as a (Extended)SetColorZones asks.
+
+    NO_APPLY only stages the colours. APPLY stages them and then shows every
+    staged colour. APPLY_ONLY ignores the request's colours and shows what an
+    earlier NO_APPLY request staged.
+
+    Args:
+        device_state: Multizone device state to update
+        updates: Zone colours carried by the request, keyed by zone index
+        apply: The request's MultiZoneApplicationRequest value
+    """
+    pending = device_state.multizone_pending_zone_colors
+    if apply != MultiZoneApplicationRequest.APPLY_ONLY:
+        zone_total = min(device_state.zone_count, len(device_state.zone_colors))
+        pending.update({i: c for i, c in updates.items() if 0 <= i < zone_total})
+    if apply == MultiZoneApplicationRequest.NO_APPLY:
+        return
+    for index, color in pending.items():
+        device_state.zone_colors[index] = color
+    pending.clear()
 
 
 class GetColorZonesHandler(PacketHandler):
@@ -91,15 +117,15 @@ class SetColorZonesHandler(PacketHandler):
         if packet:
             start_index = packet.start_index
             end_index = packet.end_index
-
-            # Update zone colors
-            for i in range(start_index, min(end_index + 1, device_state.zone_count)):
-                if i < len(device_state.zone_colors):
-                    device_state.zone_colors[i] = packet.color
+            updates = dict.fromkeys(range(start_index, end_index + 1), packet.color)
+            _update_zones(device_state, updates, packet.apply)
 
             logger.info(
-                f"MultiZone set zones {start_index}-{end_index} to color, "
-                f"duration={packet.duration}ms"
+                "MultiZone set zones %s-%s to color, apply=%s, duration=%sms",
+                start_index,
+                end_index,
+                packet.apply,
+                packet.duration,
             )
 
         if res_required and packet:
@@ -161,15 +187,19 @@ class ExtendedSetColorZonesHandler(PacketHandler):
             return []
 
         if packet:
-            # Update zone colors from packet
-            for i, color in enumerate(packet.colors[: packet.colors_count]):
-                zone_index = packet.index + i
-                if zone_index < len(device_state.zone_colors):
-                    device_state.zone_colors[zone_index] = color
+            updates = {
+                packet.index + i: color
+                for i, color in enumerate(packet.colors[: packet.colors_count])
+            }
+            _update_zones(device_state, updates, packet.apply)
 
             logger.info(
-                f"MultiZone extended set {packet.colors_count} zones "
-                f"from index {packet.index}, duration={packet.duration}ms"
+                "MultiZone extended set %s zones from index %s, apply=%s, "
+                "duration=%sms",
+                packet.colors_count,
+                packet.index,
+                packet.apply,
+                packet.duration,
             )
 
         if res_required:

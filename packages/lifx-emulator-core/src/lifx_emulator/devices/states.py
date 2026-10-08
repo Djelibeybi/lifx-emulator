@@ -210,6 +210,9 @@ class MultiZoneState:
     zone_count: int
     zone_colors: list[LightHsbk]
     effect_type: int = 0  # 0=OFF, 1=MOVE, 2=RESERVED
+    # Zone colours sent with apply=NO_APPLY, keyed by zone index; they are
+    # not shown until a later APPLY or APPLY_ONLY request commits them
+    pending_zone_colors: dict[int, LightHsbk] = field(default_factory=dict)
     effect_speed: int = 5  # Duration of one cycle in seconds
 
 
@@ -447,6 +450,7 @@ class DeviceState:
         # Multizone properties
         "zone_count": "multizone",
         "zone_colors": "multizone",
+        "multizone_pending_zone_colors": ("multizone", "pending_zone_colors"),
         "multizone_effect_type": ("multizone", "effect_type"),
         "multizone_effect_speed": ("multizone", "effect_speed"),
         # Matrix/Tile properties
@@ -475,6 +479,7 @@ class DeviceState:
         "hev_last_result": 0,
         "zone_count": 0,
         "zone_colors": [],
+        "multizone_pending_zone_colors": {},
         "multizone_effect_type": 0,
         "multizone_effect_speed": 0,
         "tile_count": 0,
