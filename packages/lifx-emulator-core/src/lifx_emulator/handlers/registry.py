@@ -51,13 +51,15 @@ class HandlerRegistry:
         if pkt_type in self._handlers:
             old_handler = self._handlers[pkt_type]
             logger.warning(
-                f"Replacing handler for packet type {pkt_type}: "
-                f"{old_handler.__class__.__name__} -> {handler.__class__.__name__}"
+                "Replacing handler for packet type %s: %s -> %s",
+                pkt_type,
+                old_handler.__class__.__name__,
+                handler.__class__.__name__,
             )
 
         self._handlers[pkt_type] = handler
         logger.debug(
-            f"Registered {handler.__class__.__name__} for packet type {pkt_type}"
+            "Registered %s for packet type %s", handler.__class__.__name__, pkt_type
         )
 
     def register_all(self, handlers: list[PacketHandler]) -> None:

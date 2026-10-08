@@ -146,10 +146,14 @@ class SetColorHandler(PacketHandler):
                 for i in range(len(device_state.zone_colors)):
                     device_state.zone_colors[i] = packet.color
                 logger.info(
-                    f"Color set to HSBK({c.hue}, {c.saturation}, "
-                    f"{c.brightness}, {c.kelvin}) across all "
-                    f"{len(device_state.zone_colors)} zones, "
-                    f"duration={packet.duration}ms"
+                    "Color set to HSBK(%s, %s, %s, %s) across all %s zones, "
+                    "duration=%sms",
+                    c.hue,
+                    c.saturation,
+                    c.brightness,
+                    c.kelvin,
+                    len(device_state.zone_colors),
+                    packet.duration,
                 )
             # Matrix devices: update all tile zones
             elif device_state.has_matrix and device_state.tile_devices:
@@ -159,15 +163,24 @@ class SetColorHandler(PacketHandler):
                         tile["colors"][i] = packet.color
                     total_zones += len(tile["colors"])
                 logger.info(
-                    f"Color set to HSBK({c.hue}, {c.saturation}, "
-                    f"{c.brightness}, {c.kelvin}) across all {total_zones} zones, "
-                    f"duration={packet.duration}ms"
+                    "Color set to HSBK(%s, %s, %s, %s) across all %s zones, "
+                    "duration=%sms",
+                    c.hue,
+                    c.saturation,
+                    c.brightness,
+                    c.kelvin,
+                    total_zones,
+                    packet.duration,
                 )
             else:
                 # Simple color device
                 logger.info(
-                    f"Color set to HSBK({c.hue}, {c.saturation}, "
-                    f"{c.brightness}, {c.kelvin}), duration={packet.duration}ms"
+                    "Color set to HSBK(%s, %s, %s, %s), duration=%sms",
+                    c.hue,
+                    c.saturation,
+                    c.brightness,
+                    c.kelvin,
+                    packet.duration,
                 )
 
         if res_required:
@@ -206,7 +219,7 @@ class SetPowerHandler(PacketHandler):
         if packet:
             device_state.power_level = packet.level
             logger.info(
-                f"Light power set to {packet.level}, duration={packet.duration}ms"
+                "Light power set to %s, duration=%sms", packet.level, packet.duration
             )
 
         if res_required:
@@ -251,9 +264,12 @@ class SetWaveformHandler(PacketHandler):
                             tile["colors"][i] = packet.color
 
             logger.info(
-                f"Waveform set: type={packet.waveform}, "
-                f"transient={packet.transient}, period={packet.period}ms, "
-                f"cycles={packet.cycles}, skew={packet.skew_ratio}"
+                "Waveform set: type=%d, transient=%s, period=%sms, cycles=%s, skew=%s",
+                packet.waveform,
+                packet.transient,
+                packet.period,
+                packet.cycles,
+                packet.skew_ratio,
             )
 
         if res_required:
@@ -323,11 +339,16 @@ class SetWaveformOptionalHandler(PacketHandler):
             device_state.waveform_color = packet.color
 
             logger.info(
-                f"Waveform optional set: type={packet.waveform}, "
-                f"transient={packet.transient}, period={packet.period}ms, "
-                f"cycles={packet.cycles}, components=[H:{packet.set_hue},"
-                f"S:{packet.set_saturation},B:{packet.set_brightness},"
-                f"K:{packet.set_kelvin}]"
+                "Waveform optional set: type=%d, transient=%s, period=%sms, "
+                "cycles=%s, components=[H:%s,S:%s,B:%s,K:%s]",
+                packet.waveform,
+                packet.transient,
+                packet.period,
+                packet.cycles,
+                packet.set_hue,
+                packet.set_saturation,
+                packet.set_brightness,
+                packet.set_kelvin,
             )
 
         if res_required:
@@ -462,8 +483,9 @@ class SetHevCycleConfigurationHandler(PacketHandler):
             device_state.hev_indication = packet.indication
             device_state.hev_cycle_duration_s = packet.duration_s
             logger.info(
-                f"HEV config set: indication={packet.indication}, "
-                f"duration={packet.duration_s}s"
+                "HEV config set: indication=%s, duration=%ss",
+                packet.indication,
+                packet.duration_s,
             )
 
         if res_required:
