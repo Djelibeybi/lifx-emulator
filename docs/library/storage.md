@@ -238,9 +238,16 @@ Capability-specific fields are only written when the device has that capability:
     {"hue": 0, "saturation": 65535, "brightness": 32768, "kelvin": 3500},
     {"hue": 21845, "saturation": 65535, "brightness": 32768, "kelvin": 3500},
     ...
-  ]
+  ],
+  "multizone_effect_type": 1,
+  "multizone_effect_instanceid": 7,
+  "multizone_effect_speed_ms": 1250,
+  "multizone_effect_duration": 0,
+  "multizone_effect_parameters": [0, 1, 0, 0, 0, 0, 0, 0]
 }
 ```
+
+Effect speeds are saved in milliseconds and effect durations in nanoseconds. Files written by earlier releases store the speed in whole seconds under `multizone_effect_speed` or `tile_effect_speed`; those are converted to milliseconds when the state is restored.
 
 ### Matrix Device Example
 
@@ -270,7 +277,16 @@ Capability-specific fields are only written when the device has that capability:
       "colors": [...]
     },
     ...
-  ]
+  ],
+  "tile_effect_type": 2,
+  "tile_effect_instanceid": 42,
+  "tile_effect_speed_ms": 3000,
+  "tile_effect_duration": 0,
+  "tile_effect_sky_type": 0,
+  "tile_effect_cloud_sat_min": 0,
+  "tile_effect_cloud_sat_max": 0,
+  "tile_effect_palette_count": 3,
+  "tile_effect_palette": [...]
 }
 ```
 

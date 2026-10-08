@@ -137,6 +137,18 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`tile_effect_duration`** (`int` = `0`) - Effect run time in nanoseconds (0 = infinite)
 - **`tile_effect_palette_count`** (`int` = `0`) - Number of colors in effect palette
 - **`tile_effect_palette`** (`list[LightHsbk]` = `[]`) - Effect palette colors
+- **`tile_effect_sky_type`** (`int` = `0`) - Sky effect type (sunrise, sunset, clouds)
+- **`tile_effect_cloud_sat_min`** (`int` = `0`) - Minimum cloud saturation for the Sky effect
+- **`tile_effect_cloud_sat_max`** (`int` = `0`) - Maximum cloud saturation for the Sky effect
+
+!!! note "Renamed: `multizone_effect_speed` and `tile_effect_speed`"
+    Effect speeds used to be stored in whole seconds as `multizone_effect_speed`
+    and `tile_effect_speed`, which truncated any speed that was not a whole
+    number of seconds. They are now `multizone_effect_speed_ms` and
+    `tile_effect_speed_ms`, in milliseconds, so GetEffect reports exactly the
+    speed SetEffect sent. Code that read or wrote the old names must switch to
+    the new ones and multiply by 1000. Saved device state that still holds the
+    old seconds value is converted when it is restored.
 
 ### Methods
 
