@@ -405,6 +405,9 @@ class SetHevCycleHandler(PacketHandler):
                 duration_s = packet.duration_s or device_state.hev_cycle_duration_s
                 device_state.hev_cycle_current_duration_s = duration_s
                 device_state.hev_cycle_remaining_s = duration_s
+                # StateHevCycle last_power is the power state from before the
+                # cycle started, which the light returns to when it completes
+                device_state.hev_cycle_last_power = device_state.power_level > 0
             else:
                 device_state.hev_cycle_remaining_s = 0
             logger.info(
