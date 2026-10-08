@@ -105,8 +105,10 @@ class SetUserPositionHandler(PacketHandler):
             return []
 
         logger.info(
-            f"Tile user position set: tile_index={packet.tile_index}, "
-            f"user_x={packet.user_x}, user_y={packet.user_y}"
+            "Tile user position set: tile_index=%s, user_x=%s, user_y=%s",
+            packet.tile_index,
+            packet.user_x,
+            packet.user_y,
         )
 
         # Update tile position if we have that tile
@@ -456,11 +458,11 @@ class SetEffectHandler(PacketHandler):
 
                 if not (is_ceiling and firmware_supported):
                     logger.debug(
-                        f"Ignoring SKY effect request: "
-                        f"product={device_state.product}, "
-                        f"firmware={device_state.version_major}."
-                        f"{device_state.version_minor} "
-                        f"(requires Ceiling product and firmware >= 4.4)"
+                        "Ignoring SKY effect request: product=%s, firmware=%s.%s "
+                        "(requires Ceiling product and firmware >= 4.4)",
+                        device_state.product,
+                        device_state.version_major,
+                        device_state.version_minor,
                     )
                     return []
 
