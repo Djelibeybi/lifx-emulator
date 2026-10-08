@@ -98,6 +98,7 @@ For devices with a 2D zone grid (tiles, candles, ceilings):
 - `tile_width`, `tile_height` — Dimensions of each tile (product-dependent; e.g., Tile: 8x8, Candle: 5x6, Ceiling: 8x8)
 - `tile_devices` — List of tile metadata dicts (position, colors, dimensions)
 - `tile_framebuffers` — List of `TileFramebuffers` for non-visible buffers
+- `effect_type`, `effect_instanceid`, `effect_speed_ms`, `effect_duration`, `effect_palette_count`, `effect_palette`, `effect_sky_type`, `effect_cloud_sat_min`, `effect_cloud_sat_max` — Matrix effect state, stored exactly as the last SetEffect sent it
 
 Tile count ranges and dimensions are defined per product in `specs.yml`. Each tile's visible colors are in `tile_devices[i]["colors"]`. Non-visible framebuffers are stored separately in `TileFramebuffers` and lazily initialized on first access.
 
