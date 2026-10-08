@@ -127,9 +127,14 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`waveform_duty_cycle`** (`int` = `0`) - Duty cycle for pulse waveform
 - **`waveform_skew_ratio`** (`int` = `0`) - Skew ratio for waveform
 - **`multizone_effect_type`** (`int` = `0`) - Multizone effect type (move, etc.)
-- **`multizone_effect_speed`** (`int` = `5`) - Multizone effect speed
+- **`multizone_effect_instanceid`** (`int` = `0`) - Instance ID sent with the last SetEffect
+- **`multizone_effect_speed_ms`** (`int` = `5000`) - Duration of one effect cycle in milliseconds
+- **`multizone_effect_duration`** (`int` = `0`) - Effect run time in nanoseconds (0 = infinite)
+- **`multizone_effect_parameters`** (`list[int]` = `[0] * 8`) - The eight effect parameters (for MOVE, `parameter1` is the direction)
 - **`tile_effect_type`** (`int` = `0`) - Tile effect type
-- **`tile_effect_speed`** (`int` = `5`) - Tile effect speed
+- **`tile_effect_instanceid`** (`int` = `0`) - Instance ID sent with the last SetEffect
+- **`tile_effect_speed_ms`** (`int` = `5000`) - Duration of one effect cycle in milliseconds
+- **`tile_effect_duration`** (`int` = `0`) - Effect run time in nanoseconds (0 = infinite)
 - **`tile_effect_palette_count`** (`int` = `0`) - Number of colors in effect palette
 - **`tile_effect_palette`** (`list[LightHsbk]` = `[]`) - Effect palette colors
 

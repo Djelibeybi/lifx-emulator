@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from lifx_emulator.devices.states import MULTIZONE_EFFECT_PARAMETER_COUNT
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import MultiZone
 from lifx_emulator.protocol.protocol_types import (
@@ -189,22 +190,17 @@ class GetEffectHandler(PacketHandler):
         if not device_state.has_multizone:
             return []
 
-        # Create effect settings
-        parameter = MultiZoneEffectParameter(
-            parameter0=0,
-            parameter1=0,
-            parameter2=0,
-            parameter3=0,
-            parameter4=0,
-            parameter5=0,
-            parameter6=0,
-            parameter7=0,
-        )
+        # Echo exactly what SetEffect stored: a real strip reports back the
+        # speed, duration and parameters it was given (for MOVE, parameter1
+        # is the direction, so zeroing it would flip FORWARD to REVERSED).
+        values = list(device_state.multizone_effect_parameters)
+        values += [0] * (MULTIZONE_EFFECT_PARAMETER_COUNT - len(values))
+        parameter = MultiZoneEffectParameter(*values[:MULTIZONE_EFFECT_PARAMETER_COUNT])
         settings = MultiZoneEffectSettings(
-            instanceid=0,
+            instanceid=device_state.multizone_effect_instanceid,
             type=MultiZoneEffectType(device_state.multizone_effect_type),
-            speed=device_state.multizone_effect_speed * 1000,  # convert to milliseconds
-            duration=0,  # infinite
+            speed=device_state.multizone_effect_speed_ms,
+            duration=device_state.multizone_effect_duration,
             parameter=parameter,
         )
 
@@ -226,14 +222,28 @@ class SetEffectHandler(PacketHandler):
             return []
 
         if packet:
-            device_state.multizone_effect_type = int(packet.settings.type)
-            device_state.multizone_effect_speed = (
-                packet.settings.speed // 1000
-            )  # convert to seconds
+            settings = packet.settings
+            parameter = settings.parameter
+            device_state.multizone_effect_type = int(settings.type)
+            device_state.multizone_effect_instanceid = settings.instanceid
+            device_state.multizone_effect_speed_ms = settings.speed
+            device_state.multizone_effect_duration = settings.duration
+            device_state.multizone_effect_parameters = [
+                parameter.parameter0,
+                parameter.parameter1,
+                parameter.parameter2,
+                parameter.parameter3,
+                parameter.parameter4,
+                parameter.parameter5,
+                parameter.parameter6,
+                parameter.parameter7,
+            ]
 
             logger.info(
-                f"MultiZone effect set: type={packet.settings.type}, "
-                f"speed={packet.settings.speed}ms"
+                "MultiZone effect set: type=%s, speed=%sms, duration=%sns",
+                settings.type,
+                settings.speed,
+                settings.duration,
             )
 
         if res_required:

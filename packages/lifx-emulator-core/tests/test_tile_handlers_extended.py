@@ -526,7 +526,7 @@ class TestTileEffects:
 
         # Verify effect was set
         assert device.state.tile_effect_type == int(TileEffectType.MORPH)
-        assert device.state.tile_effect_speed == 5  # Converted to seconds
+        assert device.state.tile_effect_speed_ms == 5000
         assert device.state.tile_effect_palette_count == 3
 
     def test_set_effect_with_response(self, single_tile_device):
@@ -854,7 +854,7 @@ class TestSkyEffectRestrictions:
 
         # Effect SHOULD be set
         assert device.state.tile_effect_type == int(TileEffectType.SKY)
-        assert device.state.tile_effect_speed == 4  # Converted to seconds
+        assert device.state.tile_effect_speed_ms == 4000
         assert device.state.tile_effect_sky_type == int(TileEffectSkyType.SUNRISE)
         assert device.state.tile_effect_cloud_sat_min == 1500
         assert device.state.tile_effect_cloud_sat_max == 6000
@@ -897,7 +897,7 @@ class TestSkyEffectRestrictions:
 
         # Effect SHOULD be set
         assert device.state.tile_effect_type == int(TileEffectType.SKY)
-        assert device.state.tile_effect_speed == 2
+        assert device.state.tile_effect_speed_ms == 2000
         assert device.state.tile_effect_sky_type == int(TileEffectSkyType.CLOUDS)
 
     def test_sky_effect_on_ceiling_265_default_firmware(self):
@@ -991,7 +991,7 @@ class TestSkyEffectRestrictions:
 
         # Effect SHOULD be set (MORPH is allowed on all matrix devices)
         assert device.state.tile_effect_type == int(TileEffectType.MORPH)
-        assert device.state.tile_effect_speed == 3
+        assert device.state.tile_effect_speed_ms == 3000
 
     def test_sky_effect_on_all_ceiling_products(self):
         """Test SKY effect on all Ceiling product IDs (176, 177, 201, 202, 265, 266)."""

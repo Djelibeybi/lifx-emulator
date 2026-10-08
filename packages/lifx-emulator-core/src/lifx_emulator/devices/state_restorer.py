@@ -11,9 +11,92 @@ from typing import Any
 
 from lifx_emulator.constants import is_valid_tile_count
 from lifx_emulator.devices.device import DeviceState
-from lifx_emulator.devices.states import MatrixState
+from lifx_emulator.devices.states import (
+    MULTIZONE_EFFECT_PARAMETER_COUNT,
+    MatrixState,
+    MultiZoneState,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _saved_effect_speed_ms(saved_state: dict[str, Any], prefix: str) -> int | None:
+    """Read a saved effect speed in milliseconds, upgrading older saves.
+
+    State saved before effect speeds were kept in milliseconds stored whole
+    seconds under ``<prefix>_effect_speed``; that value is scaled up so an
+    existing save restores to the same effect speed.
+
+    Args:
+        saved_state: Dictionary with saved state values
+        prefix: Key prefix, ``"multizone"`` or ``"tile"``
+
+    Returns:
+        The effect speed in milliseconds, or None if none was saved.
+    """
+    if f"{prefix}_effect_speed_ms" in saved_state:
+        return saved_state[f"{prefix}_effect_speed_ms"]
+    if f"{prefix}_effect_speed" in saved_state:
+        return saved_state[f"{prefix}_effect_speed"] * 1000
+    return None
+
+
+def _restore_multizone_effect(
+    multizone: MultiZoneState, saved_state: dict[str, Any]
+) -> None:
+    """Restore the multizone effect settings.
+
+    Args:
+        multizone: The device's multizone state (state.multizone)
+        saved_state: Dictionary with saved state values
+    """
+    if "multizone_effect_type" in saved_state:
+        multizone.effect_type = saved_state["multizone_effect_type"]
+    if "multizone_effect_instanceid" in saved_state:
+        multizone.effect_instanceid = saved_state["multizone_effect_instanceid"]
+    speed_ms = _saved_effect_speed_ms(saved_state, "multizone")
+    if speed_ms is not None:
+        multizone.effect_speed_ms = speed_ms
+    if "multizone_effect_duration" in saved_state:
+        multizone.effect_duration = saved_state["multizone_effect_duration"]
+
+    parameters = saved_state.get("multizone_effect_parameters")
+    if parameters is None:
+        return
+    if len(parameters) == MULTIZONE_EFFECT_PARAMETER_COUNT:
+        multizone.effect_parameters = list(parameters)
+    else:
+        logger.warning(
+            "Ignoring saved multizone effect parameters: expected %s, got %s",
+            MULTIZONE_EFFECT_PARAMETER_COUNT,
+            len(parameters),
+        )
+
+
+def _restore_tile_effect(matrix: MatrixState, saved_state: dict[str, Any]) -> None:
+    """Restore the matrix (tile) effect settings.
+
+    Args:
+        matrix: The device's matrix state (state.matrix)
+        saved_state: Dictionary with saved state values
+    """
+    speed_ms = _saved_effect_speed_ms(saved_state, "tile")
+    if speed_ms is not None:
+        matrix.effect_speed_ms = speed_ms
+
+    fields = {
+        "tile_effect_type": "effect_type",
+        "tile_effect_instanceid": "effect_instanceid",
+        "tile_effect_duration": "effect_duration",
+        "tile_effect_palette_count": "effect_palette_count",
+        "tile_effect_palette": "effect_palette",
+        "tile_effect_sky_type": "effect_sky_type",
+        "tile_effect_cloud_sat_min": "effect_cloud_sat_min",
+        "tile_effect_cloud_sat_max": "effect_cloud_sat_max",
+    }
+    for key, attribute in fields.items():
+        if key in saved_state:
+            setattr(matrix, attribute, saved_state[key])
 
 
 class StateRestorer:
@@ -234,10 +317,7 @@ class StateRestorer:
                     state.multizone.zone_count,
                 )
 
-        if "multizone_effect_type" in saved_state:
-            state.multizone.effect_type = saved_state["multizone_effect_type"]
-        if "multizone_effect_speed" in saved_state:
-            state.multizone.effect_speed = saved_state["multizone_effect_speed"]
+        _restore_multizone_effect(state.multizone, saved_state)
 
     def _saved_tile_count_fits(
         self, state: DeviceState, saved_state: dict[str, Any]
@@ -325,14 +405,7 @@ class StateRestorer:
             # another size are then skipped.
             self._restore_tile_layout(matrix, saved_state)
 
-        if "tile_effect_type" in saved_state:
-            matrix.effect_type = saved_state["tile_effect_type"]
-        if "tile_effect_speed" in saved_state:
-            matrix.effect_speed = saved_state["tile_effect_speed"]
-        if "tile_effect_palette_count" in saved_state:
-            matrix.effect_palette_count = saved_state["tile_effect_palette_count"]
-        if "tile_effect_palette" in saved_state:
-            matrix.effect_palette = saved_state["tile_effect_palette"]
+        _restore_tile_effect(matrix, saved_state)
 
     def _restore_buttons_state(
         self, state: DeviceState, saved_state: dict[str, Any]
