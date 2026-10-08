@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.12.5 (2026-10-08)
+
+### Bug Fixes
+
+- **handlers**: Preserve effect speed, duration and parameters across SetEffect/GetEffect
+  ([`9ccc9d3`](https://github.com/Djelibeybi/lifx-emulator/commit/9ccc9d3dc3567d3863907a12a799700ac5e72f2a))
+
+
 ## v3.12.4 (2026-10-05)
 
 ### Bug Fixes
