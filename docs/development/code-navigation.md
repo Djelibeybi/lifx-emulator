@@ -138,6 +138,7 @@ class DeviceState:
     location: LocationState
     group: GroupState
     waveform: WaveformState
+    transition: TransitionState  # in-flight fades and waveforms
     infrared: InfraredState | None = None
     hev: HevState | None = None
     multizone: MultiZoneState | None = None

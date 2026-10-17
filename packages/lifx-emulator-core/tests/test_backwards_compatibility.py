@@ -8,7 +8,7 @@ from lifx_emulator.protocol.protocol_types import LightHsbk, LightWaveform
 class TestTileBackwardsCompatibility:
     """Test that tile devices respond correctly to standard Light packets."""
 
-    def test_set_color_propagates_to_all_tiles(self, tile_device):
+    def test_set_color_propagates_to_all_tiles(self, tile_device, fake_clock):
         """Test SetColor updates all zones on all tiles."""
         device = tile_device
 
@@ -35,8 +35,10 @@ class TestTileBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)
+        device.settle()
 
-        # Verify all zones were updated
+        # Verify all zones were updated once the fade has run
         for tile in device.state.tile_devices:
             for zone in tile["colors"]:
                 assert zone.hue == 30000
@@ -131,7 +133,7 @@ class TestTileBackwardsCompatibility:
 class TestMultizoneBackwardsCompatibility:
     """Test that multizone devices respond correctly to standard Light packets."""
 
-    def test_set_color_propagates_to_all_zones(self, multizone_device):
+    def test_set_color_propagates_to_all_zones(self, multizone_device, fake_clock):
         """Test SetColor updates all zones on multizone device."""
         device = multizone_device
 
@@ -154,8 +156,10 @@ class TestMultizoneBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(500)
+        device.settle()
 
-        # Verify all zones were updated
+        # Verify all zones were updated once the fade has run
         for zone_color in device.state.zone_colors:
             assert zone_color.hue == 15000
             assert zone_color.saturation == 45000
@@ -249,7 +253,9 @@ class TestMultizoneBackwardsCompatibility:
 class TestWaveformBackwardsCompatibility:
     """Test that SetWaveform propagates to zones when not transient."""
 
-    def test_set_waveform_non_transient_updates_tile_zones(self, tile_device):
+    def test_set_waveform_non_transient_updates_tile_zones(
+        self, tile_device, fake_clock
+    ):
         """Test non-transient SetWaveform updates all tile zones."""
         device = tile_device
 
@@ -273,15 +279,23 @@ class TestWaveformBackwardsCompatibility:
             res_required=False,
         )
 
+        before = [list(tile["colors"]) for tile in device.state.tile_devices]
         device.process_packet(header, packet)
 
-        # Verify all zones were updated
+        # At the peak of a SINE cycle every zone shows the waveform colour
+        fake_clock.advance_ms(250)
+        device.settle()
         for tile in device.state.tile_devices:
             for zone in tile["colors"]:
                 assert zone.hue == 25000
                 assert zone.saturation == 55000
                 assert zone.brightness == 35000
                 assert zone.kelvin == 3500
+
+        # SINE returns to the original colour when it completes
+        fake_clock.advance_ms(2250)
+        device.settle()
+        assert [tile["colors"] for tile in device.state.tile_devices] == before
 
     def test_set_waveform_transient_does_not_update_tile_zones(self, tile_device):
         """Test transient SetWaveform does NOT update tile zones."""
@@ -326,7 +340,9 @@ class TestWaveformBackwardsCompatibility:
                 assert zone.brightness == 3000
                 assert zone.kelvin == 2700
 
-    def test_set_waveform_non_transient_updates_multizone(self, multizone_device):
+    def test_set_waveform_non_transient_updates_multizone(
+        self, multizone_device, fake_clock
+    ):
         """Test non-transient SetWaveform updates all zones."""
         device = multizone_device
 
@@ -337,7 +353,7 @@ class TestWaveformBackwardsCompatibility:
             period=250,
             cycles=2.0,
             skew_ratio=0,
-            waveform=3,  # HALF_SINE
+            waveform=3,  # TRIANGLE
         )
 
         header = LifxHeader(
@@ -348,20 +364,28 @@ class TestWaveformBackwardsCompatibility:
             res_required=False,
         )
 
+        before = list(device.state.zone_colors)
         device.process_packet(header, packet)
 
-        # Verify all zones were updated
+        # At the peak of a TRIANGLE cycle every zone shows the waveform colour
+        fake_clock.advance_ms(125)
+        device.settle()
         for zone_color in device.state.zone_colors:
             assert zone_color.hue == 8000
             assert zone_color.saturation == 12000
             assert zone_color.brightness == 16000
             assert zone_color.kelvin == 4500
 
+        # TRIANGLE returns to the original colour when it completes
+        fake_clock.advance_ms(375)
+        device.settle()
+        assert device.state.zone_colors == before
+
 
 class TestWaveformOptionalBackwardsCompatibility:
     """Test that SetWaveformOptional propagates component changes to zones."""
 
-    def test_set_waveform_optional_updates_tile_hue_only(self, tile_device):
+    def test_set_waveform_optional_updates_tile_hue_only(self, tile_device, fake_clock):
         """Test SetWaveformOptional with set_hue updates only hue on all zones."""
         device = tile_device
 
@@ -401,6 +425,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(250)  # peak of the SINE cycle
+        device.settle()
 
         # Verify only hue was updated, other components unchanged
         for tile in device.state.tile_devices:
@@ -411,7 +437,7 @@ class TestWaveformOptionalBackwardsCompatibility:
                 assert zone.kelvin == 3000  # Unchanged
 
     def test_set_waveform_optional_updates_multizone_brightness_only(
-        self, multizone_device
+        self, multizone_device, fake_clock
     ):
         """Test SetWaveformOptional with set_brightness updates only brightness."""
         device = multizone_device
@@ -451,6 +477,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(600)  # HALF_SINE ends on the waveform colour
+        device.settle()
 
         # Verify only brightness was updated
         for zone_color in device.state.zone_colors:
@@ -460,7 +488,7 @@ class TestWaveformOptionalBackwardsCompatibility:
             assert zone_color.kelvin == 3500  # Unchanged
 
     def test_set_waveform_optional_updates_tile_saturation_and_kelvin(
-        self, tile_device
+        self, tile_device, fake_clock
     ):
         """Test SetWaveformOptional with multiple components on tile device."""
         device = tile_device
@@ -501,6 +529,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(150)  # peak of the SINE cycle
+        device.settle()
 
         # Verify saturation and kelvin were updated, hue and brightness unchanged
         for tile in device.state.tile_devices:
@@ -511,7 +541,7 @@ class TestWaveformOptionalBackwardsCompatibility:
                 assert pixel.kelvin == 6500  # Updated
 
     def test_set_waveform_optional_updates_multizone_all_components(
-        self, multizone_device
+        self, multizone_device, fake_clock
     ):
         """Test SetWaveformOptional with all components on multizone device."""
         device = multizone_device
@@ -551,6 +581,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(250)  # peak of the TRIANGLE cycle
+        device.settle()
 
         # Verify all components were updated
         for zone_color in device.state.zone_colors:
@@ -657,7 +689,9 @@ class TestWaveformOptionalBackwardsCompatibility:
             assert zone_color.brightness == 9000  # Unchanged
             assert zone_color.kelvin == 2500  # Unchanged
 
-    def test_set_waveform_optional_multizone_kelvin_only(self, multizone_device):
+    def test_set_waveform_optional_multizone_kelvin_only(
+        self, multizone_device, fake_clock
+    ):
         """Test SetWaveformOptional with only kelvin update on multizone."""
         device = multizone_device
 
@@ -696,6 +730,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)  # HALF_SINE ends on the waveform colour
+        device.settle()
 
         # Verify only kelvin was updated
         for zone_color in device.state.zone_colors:
@@ -704,7 +740,7 @@ class TestWaveformOptionalBackwardsCompatibility:
             assert zone_color.brightness == 35000  # Unchanged
             assert zone_color.kelvin == 8000  # Updated
 
-    def test_set_waveform_optional_tile_saturation_only(self, tile_device):
+    def test_set_waveform_optional_tile_saturation_only(self, tile_device, fake_clock):
         """Test SetWaveformOptional with only saturation update on tile."""
         device = tile_device
 
@@ -744,6 +780,8 @@ class TestWaveformOptionalBackwardsCompatibility:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(175)  # peak of the TRIANGLE cycle
+        device.settle()
 
         # Verify only saturation was updated
         for tile in device.state.tile_devices:

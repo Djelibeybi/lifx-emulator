@@ -613,8 +613,8 @@ class TestLightPacketHandlers:
         assert resp_packet.color.hue == 21845
         assert resp_packet.power == 65535
 
-    def test_light_set_color_handler(self, color_device):
-        """Test LightSetColor (102) updates device color."""
+    def test_light_set_color_handler(self, color_device, fake_clock):
+        """Test LightSetColor (102) updates device color once its fade has run."""
         new_color = LightHsbk(
             hue=10000, saturation=50000, brightness=40000, kelvin=4000
         )
@@ -629,6 +629,8 @@ class TestLightPacketHandlers:
         )
 
         _responses = color_device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)
+        color_device.settle()
 
         assert color_device.state.color.hue == 10000
         assert color_device.state.color.saturation == 50000

@@ -295,6 +295,72 @@ class WaveformState:
     waveform_skew_ratio: int = 0
 
 
+@dataclass
+class ColorTransition:
+    """One zone fading from one colour to another over a monotonic interval."""
+
+    from_color: LightHsbk
+    to_color: LightHsbk
+    start_ns: int
+    end_ns: int
+
+
+@dataclass
+class PowerEnvelope:
+    """The light's power level ramping between two levels (LightSetPower)."""
+
+    from_level: int
+    to_level: int
+    start_ns: int
+    end_ns: int
+
+
+@dataclass
+class ActiveWaveform:
+    """The single waveform a light can run, with per-zone start and target."""
+
+    start_colors: list[LightHsbk]
+    target_colors: list[LightHsbk]
+    start_ns: int
+    period_ns: int
+    cycles: float
+    skew_ratio: int
+    waveform_type: int
+    transient: bool
+
+
+@dataclass
+class TransitionState:
+    """In-flight colour and power changes, evaluated lazily against a clock.
+
+    Nothing here is persisted: the serialiser writes the end values of every
+    active entry instead. Zones use a flat index: a colour light has zone 0,
+    a multizone light zone 0 to ``zone_count - 1``, and a matrix device one
+    zone per framebuffer-0 cell, tile by tile.
+    """
+
+    # The monotonic instant the state was last settled to. New transitions
+    # start here, so packet handlers never need the clock themselves.
+    settled_ns: int = 0
+    zones: dict[int, ColorTransition] = field(default_factory=dict)
+    power: PowerEnvelope | None = None
+    waveform: ActiveWaveform | None = None
+
+    @property
+    def is_active(self) -> bool:
+        """Whether any transition, power envelope or waveform is in flight."""
+        return bool(self.zones) or self.power is not None or self.waveform is not None
+
+    def cancel_colors(self) -> None:
+        """Drop every colour transition and the waveform, keeping the fields."""
+        self.zones.clear()
+        self.waveform = None
+
+    def cancel_power(self) -> None:
+        """Drop the power envelope, keeping the current power level."""
+        self.power = None
+
+
 # Button.State/Set pack a fixed [8]<Button> array on the wire, and each Button
 # struct always unpacks exactly 5 ButtonAction entries (see
 # protocol_types.Button.unpack). Any button we synthesise must match that shape
@@ -383,6 +449,9 @@ class DeviceState:
     # products whose zone numbering does not follow buffer order (Mirror)
     zone_map: tuple[int, ...] | None = None
     buttons_state: ButtonsState = field(default_factory=ButtonsState)
+    # In-flight fades and waveforms; deep-copied with the rest of the state
+    # and never persisted
+    transition: TransitionState = field(default_factory=TransitionState)
 
     @property
     def has_uplight(self) -> bool:

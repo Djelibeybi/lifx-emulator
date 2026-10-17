@@ -133,8 +133,8 @@ class TestSetColorZones:
         for i in range(2, 6):
             assert device.state.zone_colors[i].hue == 30000
 
-    def test_set_color_zones_all(self, multizone_device):
-        """Test SetColorZones updates all zones."""
+    def test_set_color_zones_all(self, multizone_device, fake_clock):
+        """Test SetColorZones updates all zones once the fade has run."""
         device = multizone_device
 
         test_color = LightHsbk(
@@ -153,6 +153,8 @@ class TestSetColorZones:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)
+        device.settle()
 
         # All zones should be updated
         for i in range(16):

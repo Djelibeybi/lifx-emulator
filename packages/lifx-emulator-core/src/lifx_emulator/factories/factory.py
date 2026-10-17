@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from lifx_emulator.devices import Connectivity, EmulatedLifxDevice
@@ -45,6 +46,7 @@ def create_color_light(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a regular color light (LIFX Color).
 
@@ -59,6 +61,9 @@ def create_color_light(
             port.
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -77,6 +82,7 @@ def create_color_light(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )  # LIFX Color
 
 
@@ -90,6 +96,7 @@ def create_infrared_light(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create an infrared-enabled light (LIFX A19 Night Vision).
 
@@ -104,6 +111,9 @@ def create_infrared_light(
             port.
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -122,6 +132,7 @@ def create_infrared_light(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )  # LIFX A19 Night Vision
 
 
@@ -135,6 +146,7 @@ def create_hev_light(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create an HEV-enabled light (LIFX Clean).
 
@@ -149,6 +161,9 @@ def create_hev_light(
             port.
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -167,6 +182,7 @@ def create_hev_light(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )  # LIFX Clean
 
 
@@ -182,6 +198,7 @@ def create_multizone_light(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a multizone light (LIFX Beam)
 
@@ -194,6 +211,9 @@ def create_multizone_light(
         scenario_manager: Optional scenario manager
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -211,6 +231,7 @@ def create_multizone_light(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )
 
 
@@ -227,6 +248,7 @@ def create_tile_device(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a tile device (LIFX Tile)
 
@@ -242,6 +264,9 @@ def create_tile_device(
         scenario_manager: Optional scenario manager
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. LIFX Tile (product 55) has a terminal firmware ceiling
@@ -261,6 +286,7 @@ def create_tile_device(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )  # LIFX Tile
 
 
@@ -274,6 +300,7 @@ def create_color_temperature_light(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a color temperature light (LIFX Mini White to Warm).
 
@@ -290,6 +317,9 @@ def create_color_temperature_light(
             port.
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -308,6 +338,7 @@ def create_color_temperature_light(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )  # LIFX Mini White to Warm
 
 
@@ -322,6 +353,7 @@ def create_switch(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a LIFX Switch device.
 
@@ -336,6 +368,9 @@ def create_switch(
         scenario_manager: Optional scenario manager for testing
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -354,6 +389,7 @@ def create_switch(
         connectivity=connectivity,
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
+        clock=clock,
     )
 
 
@@ -374,6 +410,7 @@ def create_device(
     *,
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
+    clock: Callable[[], int] | None = None,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -402,6 +439,9 @@ def create_device(
                          single UDP reply on the device's port.
         mdns_enabled: Advertise this device when server mDNS is enabled.
         mdns_address: Explicit matching-family address, or concrete bind fallback.
+        clock: Optional monotonic nanosecond clock used for uptime and for
+            evaluating colour and power transitions (defaults to
+            ``time.monotonic_ns``).
         connectivity: Optional connectivity ("wifi", "thread", or a
                          Connectivity member). None means unspecified and
                          resolves to WiFi. An explicit string that is not
@@ -463,5 +503,7 @@ def create_device(
 
     builder.with_mdns(mdns_enabled, mdns_address)
     builder.with_initial_persistence(persist_initial_state)
+    if clock is not None:
+        builder.with_clock(clock)
 
     return builder.build()

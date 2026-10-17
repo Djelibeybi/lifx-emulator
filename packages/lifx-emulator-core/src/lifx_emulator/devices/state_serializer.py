@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from lifx_emulator.devices.transitions import project_to_end
 from lifx_emulator.protocol.protocol_types import Button as ButtonStruct
 from lifx_emulator.protocol.protocol_types import (
     ButtonAction,
@@ -90,7 +91,13 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
     """Serialize DeviceState to dict.
 
     Note: Accesses state via properties for backward compatibility with composed state.
+
+    An in-flight fade, power ramp or waveform is written at its end value and
+    the transition records themselves are never serialised, so a restored
+    device lands where the change would have finished with nothing in flight.
     """
+    if getattr(device_state, "transition", None) is not None:
+        device_state = project_to_end(device_state)
     state_dict = {
         "serial": device_state.serial,
         "label": device_state.label,

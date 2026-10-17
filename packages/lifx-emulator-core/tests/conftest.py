@@ -48,6 +48,30 @@ async def foreign_responder():
         await server.stop()
 
 
+class FakeClock:
+    """A monotonic nanosecond clock that only moves when a test advances it.
+
+    Devices built by the shared fixtures run on this clock, so a test drives
+    a fade or waveform forward with ``fake_clock.advance_ms()`` instead of
+    sleeping.
+    """
+
+    def __init__(self, start_ns: int = 1_000_000_000) -> None:
+        self.now_ns = start_ns
+
+    def __call__(self) -> int:
+        return self.now_ns
+
+    def advance_ms(self, milliseconds: float) -> None:
+        self.now_ns += int(milliseconds * 1_000_000)
+
+
+@pytest.fixture
+def fake_clock() -> FakeClock:
+    """The controllable clock shared by the device fixtures."""
+    return FakeClock()
+
+
 @pytest.fixture
 def color_hsbk():
     """Standard color value for testing."""
@@ -79,69 +103,69 @@ def device_state():
 
 
 @pytest.fixture
-def color_device():
+def color_device(fake_clock):
     """Create a standard color light device."""
-    return create_color_light("d073d5000001")
+    return create_color_light("d073d5000001", clock=fake_clock)
 
 
 @pytest.fixture
-def infrared_device():
+def infrared_device(fake_clock):
     """Create an infrared-capable device."""
-    return create_infrared_light("d073d5000002")
+    return create_infrared_light("d073d5000002", clock=fake_clock)
 
 
 @pytest.fixture
-def hev_device():
+def hev_device(fake_clock):
     """Create a HEV-capable device."""
-    return create_hev_light("d073d5000003")
+    return create_hev_light("d073d5000003", clock=fake_clock)
 
 
 @pytest.fixture
-def multizone_device():
+def multizone_device(fake_clock):
     """Create a multizone device with 16 zones."""
-    return create_multizone_light("d073d5000004", zone_count=16)
+    return create_multizone_light("d073d5000004", zone_count=16, clock=fake_clock)
 
 
 @pytest.fixture
-def extended_multizone_device():
+def extended_multizone_device(fake_clock):
     """Create an extended multizone device with 82 zones."""
     return create_multizone_light(
-        "d073d5000005", zone_count=82, extended_multizone=True
+        "d073d5000005", zone_count=82, extended_multizone=True, clock=fake_clock
     )
 
 
 @pytest.fixture
-def tile_device():
+def tile_device(fake_clock):
     """Create a chained matrix device with 5 tiles (8x8 each)."""
-    return create_tile_device("d073d5000006", tile_count=5)
+    return create_tile_device("d073d5000006", tile_count=5, clock=fake_clock)
 
 
 @pytest.fixture
-def single_tile_device():
+def single_tile_device(fake_clock):
     """Create a single matrix device (8x8)."""
-    return create_tile_device("d073d5000010", tile_count=1)
+    return create_tile_device("d073d5000010", tile_count=1, clock=fake_clock)
 
 
 @pytest.fixture
-def multi_tile_device():
+def multi_tile_device(fake_clock):
     """Create a chained matrix device with 3 tiles (8x8 each)."""
-    return create_tile_device("d073d5000011", tile_count=3)
+    return create_tile_device("d073d5000011", tile_count=3, clock=fake_clock)
 
 
 @pytest.fixture
-def large_matrix_device():
+def large_matrix_device(fake_clock):
     """Create a large matrix device (single 16x8 tile with >64 zones).
 
     The LIFX Ceiling 13x26" (PID 201) is one 16x8 tile; tile size is fixed per
     product, so a LIFX Tile cannot stand in for it.
     """
-    return create_device(201, serial="d073d5000012")
+    return create_device(201, serial="d073d5000012", clock=fake_clock)
 
 
 @pytest.fixture
-def white_device():
+def white_device(fake_clock):
     """Create a color temperature light device."""
-    return create_color_temperature_light("d073d5000007")
+    return create_color_temperature_light("d073d5000007", clock=fake_clock)
 
 
 @pytest.fixture

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from lifx_emulator.devices import transitions
 from lifx_emulator.devices.states import MULTIZONE_EFFECT_PARAMETER_COUNT
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import MultiZone
@@ -23,18 +24,24 @@ logger = logging.getLogger(__name__)
 
 
 def _update_zones(
-    device_state: DeviceState, updates: dict[int, LightHsbk], apply: int
+    device_state: DeviceState,
+    updates: dict[int, LightHsbk],
+    apply: int,
+    duration_ms: int,
 ) -> None:
     """Stage and/or show zone colours as a (Extended)SetColorZones asks.
 
     NO_APPLY only stages the colours. APPLY stages them and then shows every
     staged colour. APPLY_ONLY ignores the request's colours and shows what an
-    earlier NO_APPLY request staged.
+    earlier NO_APPLY request staged. Zones being shown fade over the flushing
+    request's duration (a NO_APPLY request's duration is never used), each
+    from its own current colour, so unrelated zones keep their own fades.
 
     Args:
         device_state: Multizone device state to update
         updates: Zone colours carried by the request, keyed by zone index
         apply: The request's MultiZoneApplicationRequest value
+        duration_ms: The request's duration in milliseconds
     """
     pending = device_state.multizone_pending_zone_colors
     if apply != MultiZoneApplicationRequest.APPLY_ONLY:
@@ -42,8 +49,7 @@ def _update_zones(
         pending.update({i: c for i, c in updates.items() if 0 <= i < zone_total})
     if apply == MultiZoneApplicationRequest.NO_APPLY:
         return
-    for index, color in pending.items():
-        device_state.zone_colors[index] = color
+    transitions.apply_zone_colors(device_state, dict(pending), duration_ms)
     pending.clear()
 
 
@@ -102,7 +108,11 @@ class GetColorZonesHandler(PacketHandler):
 
 
 class SetColorZonesHandler(PacketHandler):
-    """Handle MultiZoneSetColorZones (501)."""
+    """Handle MultiZoneSetColorZones (501).
+
+    Zones shown by APPLY or APPLY_ONLY fade over the packet's duration; the
+    reply reports the colours at the time of the reply.
+    """
 
     PKT_TYPE = MultiZone.SetColorZones.PKT_TYPE
 
@@ -119,7 +129,7 @@ class SetColorZonesHandler(PacketHandler):
             start_index = packet.start_index
             end_index = packet.end_index
             updates = dict.fromkeys(range(start_index, end_index + 1), packet.color)
-            _update_zones(device_state, updates, packet.apply)
+            _update_zones(device_state, updates, packet.apply, packet.duration)
 
             logger.info(
                 "MultiZone set zones %s-%s to color, apply=%s, duration=%sms",
@@ -174,7 +184,11 @@ class ExtendedGetColorZonesHandler(PacketHandler):
 
 
 class ExtendedSetColorZonesHandler(PacketHandler):
-    """Handle MultiZoneExtendedSetColorZones (510)."""
+    """Handle MultiZoneExtendedSetColorZones (510).
+
+    Zones shown by APPLY or APPLY_ONLY fade over the packet's duration; the
+    reply reports the colours at the time of the reply.
+    """
 
     PKT_TYPE = MultiZone.ExtendedSetColorZones.PKT_TYPE
 
@@ -192,7 +206,7 @@ class ExtendedSetColorZonesHandler(PacketHandler):
                 packet.index + i: color
                 for i, color in enumerate(packet.colors[: packet.colors_count])
             }
-            _update_zones(device_state, updates, packet.apply)
+            _update_zones(device_state, updates, packet.apply, packet.duration)
 
             logger.info(
                 "MultiZone extended set %s zones from index %s, apply=%s, "

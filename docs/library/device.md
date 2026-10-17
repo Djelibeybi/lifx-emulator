@@ -127,6 +127,7 @@ The attributes below are read and written directly on `DeviceState`; each one is
 - **`waveform_period_ms`** (`int` = `0`) - Waveform period in milliseconds
 - **`waveform_cycles`** (`float` = `0`) - Number of cycles (0 = infinite)
 - **`waveform_skew_ratio`** (`int` = `0`) - Skew ratio for waveform
+- **`transition`** (`TransitionState`) - In-flight colour fades, power ramp and the running waveform; see [Transitions and waveforms](#transitions-and-waveforms)
 - **`multizone_effect_type`** (`int` = `0`) - Multizone effect type (move, etc.)
 - **`multizone_effect_instanceid`** (`int` = `0`) - Instance ID sent with the last SetEffect
 - **`multizone_effect_speed_ms`** (`int` = `5000`) - Duration of one effect cycle in milliseconds
@@ -178,7 +179,7 @@ Emulated LIFX device that processes protocol packets and manages state.
 
 ### Constructor
 
-#### `EmulatedLifxDevice(device_state, storage=None, handler_registry=None, scenario_manager=None, on_state_changed=None, persist_initial_state=False)`
+#### `EmulatedLifxDevice(device_state, storage=None, handler_registry=None, scenario_manager=None, on_state_changed=None, persist_initial_state=False, clock=None)`
 
 Create a new emulated LIFX device. Most code should use the [factory functions](factories.md), which build the `DeviceState` and the device together.
 
@@ -192,6 +193,7 @@ In most cases you should not call this constructor directly: the [factory functi
 - **`scenario_manager`** (`HierarchicalScenarioManager | None`) - Optional scenario manager for testing scenarios (see [Testing Scenarios](#testing-scenarios))
 - **`on_state_changed`** (`StateChangeCallback | None`) - Optional callback invoked after a state-changing packet
 - **`persist_initial_state`** (`bool` = `False`) - Save the initial state as soon as persistence is activated
+- **`clock`** (`Callable[[], int] | None`) - Monotonic nanosecond clock used for uptime and for evaluating fades and waveforms; defaults to `time.monotonic_ns`. Inject a fake to test transitions without sleeping
 
 **Example:**
 ```python
@@ -221,6 +223,10 @@ device = create_color_light("d073d5000002", scenario_manager=manager)
 Calculate current uptime in nanoseconds since device creation.
 
 **Returns:** `int` - Uptime in nanoseconds
+
+#### `settle() -> None`
+
+Bring every in-flight fade, power ramp and waveform up to now. Interpolated values are committed into the ordinary colour and power fields and finished transitions are pruned. The device does this itself before processing every packet; call it before reading `device.state` from outside the packet path. It costs nothing beyond recording the instant when nothing is in flight.
 
 #### `invalidate_scenario_cache() -> None`
 
@@ -470,6 +476,47 @@ asyncio.run(main())
 
 ---
 
+## Transitions and waveforms
+
+A real bulb fades to a `SetColor` over the packet's `duration` and runs a `SetWaveform` for `cycles` periods; the emulator reproduces both without timers or threads. The handler records where each zone is going and the device evaluates the record lazily, against its monotonic clock, whenever state is read:
+
+- `Light.SetColor`, `MultiZone.SetColorZones`, `MultiZone.ExtendedSetColorZones` and `Tile.Set64` (framebuffer 0 only) record a per-zone fade when `duration > 0`. Hue takes the shortest path around the colour wheel; saturation, brightness and kelvin are linear. A new fade starts from the zone's current colour and replaces any fade already running on that zone. Zones staged with `NO_APPLY` start fading only when `APPLY` or `APPLY_ONLY` flushes them, over the flushing packet's duration.
+- `Light.SetPower` with a duration records a power ramp and `LightGetPower` reports the interpolated level. `Device.SetPower` has no duration and applies at once.
+- `Light.SetWaveform` and `Light.SetWaveformOptional` run SAW, SINE, HALF_SINE, TRIANGLE and PULSE as the [LIFX waveform documentation](https://lan.developer.lifx.com/docs/waveforms) describes. PULSE holds the target colour for a duty cycle of `1 - skew_ratio` (scaled from the signed 16-bit range to 0..1). A transient waveform restores each zone's start colour when it completes; a non-transient SAW, HALF_SINE or PULSE leaves the waveform colour, while SINE and TRIANGLE always return to the start colour, as the documentation specifies. A period of 0, a cycle count that is not positive and finite, or an unknown type is ignored, though `LightState` is still returned when requested.
+- Any colour `Set` cancels a running waveform at the colour it had reached. `Tile.CopyFrameBuffer` and writes to framebuffers 1-7 are immediate.
+- The reply to a `Set` reports the state at the time of the reply, which for a non-zero duration is the start of the fade.
+
+Inject a clock to test this deterministically:
+
+```python
+from lifx_emulator.factories import create_color_light
+from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Light
+from lifx_emulator.protocol.protocol_types import LightHsbk
+
+now_ns = [0]
+device = create_color_light("d073d5000001", clock=lambda: now_ns[0])
+header = LifxHeader(
+    source=1, target=device.state.get_target_bytes(), sequence=1, pkt_type=102
+)
+device.process_packet(
+    header,
+    Light.SetColor(
+        color=LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500),
+        duration=1000,
+    ),
+)
+
+now_ns[0] += 500_000_000  # half a second later
+((_, state),) = device.process_packet(
+    LifxHeader(
+        source=1, target=device.state.get_target_bytes(), sequence=2, pkt_type=101
+    ),
+    Light.GetColor(),
+)
+print(state.color.brightness)  # roughly half way to 65535
+```
+
 ## Packet Processing Flow
 
 The packet processing flow in `EmulatedLifxDevice.process_packet()` follows these steps:
@@ -483,7 +530,8 @@ graph TD
     SB -->|Yes| A
     SC --> A
 
-    A[process_packet called] --> B{Drop packet?}
+    A[process_packet called] --> A2[settle fades and waveforms to now]
+    A2 --> B{Drop packet?}
     B -->|Yes| L[Return empty]
     B -->|No| C[Route to handler]
 
@@ -505,6 +553,7 @@ graph TD
 
 **Key Points:**
 
+- Every packet first settles in-flight fades, power ramps and waveforms to the current instant, so handlers read and reply with evaluated state (see [Transitions and waveforms](#transitions-and-waveforms))
 - Acknowledgments (packet type 45) are sent by the server immediately before `process_packet()` for minimal latency. When a scenario targets ack behavior, the device generates the ack instead so it goes through scenario processing.
 - `res_required` is passed to the handler, which decides whether to return a response based on its value
 - Handlers are registered by packet type and dispatched via `HandlerRegistry`
