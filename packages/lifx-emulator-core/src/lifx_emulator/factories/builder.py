@@ -6,6 +6,7 @@ import logging
 import re
 import time
 import warnings
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from lifx_emulator.constants import is_valid_tile_count, max_tile_count
@@ -123,6 +124,7 @@ class DeviceBuilder:
         self._mdns_enabled = True
         self._mdns_address: str | None = None
         self._persist_initial_state = False
+        self._clock: Callable[[], int] | None = None
 
         # Helper services
         self._serial_generator = SerialGenerator()
@@ -224,6 +226,22 @@ class DeviceBuilder:
             Self for method chaining
         """
         self._storage = storage
+        return self
+
+    def with_clock(self, clock: Callable[[], int]) -> DeviceBuilder:
+        """Set the monotonic nanosecond clock the device evaluates time with.
+
+        The device uses it for uptime and for settling colour and power
+        transitions, so a fake clock lets tests drive fades and waveforms
+        without sleeping.
+
+        Args:
+            clock: Callable returning monotonic nanoseconds
+
+        Returns:
+            Self for method chaining
+        """
+        self._clock = clock
         return self
 
     def with_initial_persistence(self, enabled: bool) -> DeviceBuilder:
@@ -487,6 +505,7 @@ class DeviceBuilder:
             storage=self._storage,
             scenario_manager=self._scenario_manager,
             persist_initial_state=self._persist_initial_state,
+            clock=self._clock,
         )
 
     def _apply_product_defaults(self):

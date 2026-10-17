@@ -371,6 +371,21 @@ new_device = create_color_light(
 )
 ```
 
+### Injected Clock
+
+Every factory accepts a `clock` argument: a callable returning monotonic nanoseconds that the device uses for uptime and for evaluating colour fades, power ramps and waveforms. Injecting a fake clock lets a test drive a `SetColor` with a duration, or a `SetWaveform`, forward without sleeping:
+
+```python
+from lifx_emulator.factories import create_color_light
+
+now_ns = [0]
+device = create_color_light("d073d5000001", clock=lambda: now_ns[0])
+now_ns[0] += 2_500_000_000
+print(device.get_uptime_ns())  # 2500000000
+```
+
+See [Transitions and waveforms](device.md#transitions-and-waveforms) for how fades are evaluated.
+
 ## Next Steps
 
 - [Server API](server.md) - Running the emulator server

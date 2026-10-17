@@ -57,7 +57,11 @@ class GetPowerHandler(PacketHandler):
 
 
 class SetPowerHandler(PacketHandler):
-    """Handle DeviceSetPower (21) -> DeviceStatePower (22)."""
+    """Handle DeviceSetPower (21) -> DeviceStatePower (22).
+
+    This packet has no duration, so the level applies at once and any power
+    ramp started by LightSetPower (117) is abandoned at the new level.
+    """
 
     PKT_TYPE = Device.SetPower.PKT_TYPE
 
@@ -68,6 +72,7 @@ class SetPowerHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
+            device_state.transition.cancel_power()
             device_state.power_level = packet.level
             logger.info("Power set to %s", device_state.power_level)
 

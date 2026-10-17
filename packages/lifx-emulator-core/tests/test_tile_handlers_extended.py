@@ -313,7 +313,7 @@ class TestSet64:
             if i < len(device.state.tile_devices[0]["colors"]):
                 assert device.state.tile_devices[0]["colors"][i].hue == i * 100
 
-    def test_set_64_with_response(self, single_tile_device):
+    def test_set_64_with_response(self, single_tile_device, fake_clock):
         """Test Set64 with res_required returns nothing."""
         device = single_tile_device
 
@@ -337,8 +337,10 @@ class TestSet64:
         )
 
         responses = device.process_packet(header, packet)
+        fake_clock.advance_ms(100)
+        device.settle()
 
-        # Verify colors were updated
+        # Verify colors were updated once the fade has run
         for i in range(64):
             if i < len(device.state.tile_devices[0]["colors"]):
                 assert device.state.tile_devices[0]["colors"][i].hue == i * 100
@@ -369,8 +371,8 @@ class TestSet64:
         # Should not crash
         device.process_packet(header, packet)
 
-    def test_set_64_with_duration(self, single_tile_device):
-        """Test Set64 with transition duration."""
+    def test_set_64_with_duration(self, single_tile_device, fake_clock):
+        """Test Set64 with transition duration fades framebuffer 0."""
         device = single_tile_device
 
         test_colors = [
@@ -392,7 +394,13 @@ class TestSet64:
 
         device.process_packet(header, packet)
 
-        # Colors should be updated (emulator applies immediately regardless of duration)
+        # Nothing has moved yet; halfway through the fade the hue is midway
+        assert device.state.tile_devices[0]["colors"][0].hue == 0
+        fake_clock.advance_ms(2500)
+        device.settle()
+        assert device.state.tile_devices[0]["colors"][0].hue == 15000
+        fake_clock.advance_ms(2500)
+        device.settle()
         assert device.state.tile_devices[0]["colors"][0].hue == 30000
 
 

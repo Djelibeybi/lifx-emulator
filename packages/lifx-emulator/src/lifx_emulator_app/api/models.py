@@ -113,6 +113,13 @@ class DeviceInfo(BaseModel):
     location_label: str = ""
     uptime_ns: int = 0
     wifi_signal: float = 0.0
+    transition_active: bool = Field(
+        default=False,
+        description=(
+            "Whether a colour fade, power ramp or waveform is in flight; "
+            "colour and power fields are the values at the time of the read"
+        ),
+    )
 
 
 class ServerStats(BaseModel):

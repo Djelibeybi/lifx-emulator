@@ -18,6 +18,8 @@ from lifx_emulator.factories import (
     create_tile_device,
 )
 from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Light
+from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api import create_api_app
@@ -1512,3 +1514,117 @@ class TestFirmwareVersionScenarioValidation:
         )
         assert response.status_code == 200
         assert response.json()["scenario"]["firmware_version"] == [65535, 65535]
+
+
+class TestTransitionsInApi:
+    """The API reports settled colours and whether a transition is active."""
+
+    @staticmethod
+    def _fading_device(clock_ns: list[int]):
+        device = create_color_light("d073d5000099", clock=lambda: clock_ns[0])
+        header = LifxHeader(
+            source=1,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=Light.SetColor.PKT_TYPE,
+        )
+        device.process_packet(
+            header,
+            Light.SetColor(
+                color=LightHsbk(hue=0, saturation=65535, brightness=0, kelvin=3500),
+                duration=0,
+            ),
+        )
+        device.process_packet(
+            header,
+            Light.SetColor(
+                color=LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500),
+                duration=1000,
+            ),
+        )
+        return device
+
+    def test_get_device_mid_fade_is_interpolated_and_active(self):
+        clock_ns = [1_000_000_000]
+        device = self._fading_device(clock_ns)
+        server = EmulatedLifxServer(
+            [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+        )
+        client = TestClient(create_api_app(server))
+
+        clock_ns[0] += 500_000_000
+        data = client.get("/api/devices/d073d5000099").json()
+        assert data["transition_active"] is True
+        assert abs(data["color"]["brightness"] - 32768) <= 1
+
+        clock_ns[0] += 500_000_000
+        data = client.get("/api/devices/d073d5000099").json()
+        assert data["transition_active"] is False
+        assert data["color"]["brightness"] == 65535
+
+    def test_device_list_reports_static_device_inactive(self, api_client):
+        data = api_client.get("/api/devices").json()
+        assert all(d["transition_active"] is False for d in data["devices"])
+
+    def test_multizone_top_level_colour_follows_fade(self):
+        clock_ns = [1_000_000_000]
+        device = create_multizone_light(
+            "d073d5000096", zone_count=16, clock=lambda: clock_ns[0]
+        )
+        header = LifxHeader(
+            source=1,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=Light.SetColor.PKT_TYPE,
+        )
+        black = LightHsbk(hue=0, saturation=65535, brightness=0, kelvin=3500)
+        full = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
+        device.process_packet(header, Light.SetColor(color=black, duration=0))
+        device.process_packet(header, Light.SetColor(color=full, duration=1000))
+        server = EmulatedLifxServer(
+            [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+        )
+        client = TestClient(create_api_app(server))
+
+        clock_ns[0] += 500_000_000
+        data = client.get("/api/devices/d073d5000096").json()
+        assert abs(data["color"]["brightness"] - 32768) <= 1
+        assert abs(data["zone_colors"][0]["brightness"] - 32768) <= 1
+
+    def test_partial_tile_patch_keeps_other_tiles_fading(self):
+        """PATCHing one tile mid-fade leaves the other tile's fade running."""
+        clock_ns = [1_000_000_000]
+        device = create_tile_device(
+            "d073d5000095", tile_count=2, clock=lambda: clock_ns[0]
+        )
+        header = LifxHeader(
+            source=1,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=Light.SetColor.PKT_TYPE,
+        )
+        black = LightHsbk(hue=0, saturation=65535, brightness=0, kelvin=3500)
+        full = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
+        device.process_packet(header, Light.SetColor(color=black, duration=0))
+        device.process_packet(header, Light.SetColor(color=full, duration=1000))
+        server = EmulatedLifxServer(
+            [device], DeviceManager(DeviceRepository()), "127.0.0.1", 56700
+        )
+        client = TestClient(create_api_app(server))
+
+        # No read happens before the PATCH, so the candidate must settle itself
+        clock_ns[0] += 500_000_000
+        patched = {"hue": 0, "saturation": 0, "brightness": 1000, "kelvin": 3500}
+        data = client.patch(
+            "/api/devices/d073d5000095/state",
+            json={"tile_colors": [{"tile_index": 0, "colors": [patched] * 64}]},
+        ).json()
+        assert data["tile_devices"][0]["colors"][0]["brightness"] == 1000
+        assert abs(data["tile_devices"][1]["colors"][0]["brightness"] - 32768) <= 1
+        assert data["transition_active"] is True
+
+        clock_ns[0] += 500_000_000
+        data = client.get("/api/devices/d073d5000095").json()
+        assert data["tile_devices"][0]["colors"][0]["brightness"] == 1000
+        assert data["tile_devices"][1]["colors"][0]["brightness"] == 65535
+        assert data["transition_active"] is False

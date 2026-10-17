@@ -12,6 +12,7 @@ from typing import Any
 
 from lifx_emulator.background_tasks import BackgroundTaskTracker
 from lifx_emulator.constants import LIFX_HEADER_SIZE
+from lifx_emulator.devices import transitions
 from lifx_emulator.devices.states import Connectivity, DeviceState, TileFramebuffers
 from lifx_emulator.handlers import HandlerRegistry, create_default_registry
 from lifx_emulator.protocol.header import LifxHeader
@@ -73,15 +74,32 @@ class EmulatedLifxDevice:
         scenario_manager: HierarchicalScenarioManager | None = None,
         on_state_changed: StateChangeCallback | None = None,
         persist_initial_state: bool = False,
+        clock: Callable[[], int] | None = None,
     ):
+        """Create an emulated device around a composed state.
+
+        Args:
+            device_state: The device's composed state
+            storage: Optional persistence backend
+            handler_registry: Packet handlers, defaulting to the full registry
+            scenario_manager: Shared scenario manager, or a private empty one
+            on_state_changed: Callback run after each committed state change
+            persist_initial_state: Schedule a first save on construction
+            clock: Monotonic nanosecond clock used for uptime and for
+                evaluating colour and power transitions. Defaults to
+                ``time.monotonic_ns``; tests inject a fake to drive fades
+                and waveforms without sleeping.
+        """
         self.state = device_state
+        self._clock = clock if clock is not None else time.monotonic_ns
         self.on_state_changed = on_state_changed
         # Use provided scenario manager or create a default empty one
         if scenario_manager is not None:
             self.scenario_manager = scenario_manager
         else:
             self.scenario_manager = HierarchicalScenarioManager()
-        self._started_monotonic_ns = time.monotonic_ns()
+        self._started_monotonic_ns = self._clock()
+        self.state.transition.settled_ns = self._started_monotonic_ns
         self.storage = storage
 
         # Scenario caching for performance (HierarchicalScenarioManager only)
@@ -172,7 +190,24 @@ class EmulatedLifxDevice:
 
     def get_uptime_ns(self) -> int:
         """Calculate current uptime in nanoseconds"""
-        return time.monotonic_ns() - self._started_monotonic_ns
+        return self._clock() - self._started_monotonic_ns
+
+    def settle(self, state: DeviceState | None = None) -> None:
+        """Bring every in-flight fade, power ramp and waveform up to now.
+
+        Interpolated values are committed into the ordinary colour and power
+        fields and finished transitions are pruned, so a caller that reads
+        ``state`` afterwards sees what a client on the wire would see. The
+        device does this itself before processing every packet; the API
+        mapper and WebSocket snapshots call it before reading. It is a no-op
+        beyond recording the instant when nothing is in flight.
+
+        Args:
+            state: The state to settle; defaults to the device's live state.
+                A mutation run through ``apply_state_mutation`` passes its
+                candidate copy so it edits evaluated, not stale, values.
+        """
+        transitions.settle(self.state if state is None else state, self._clock())
 
     async def _persist_state(self, state: DeviceState, *, durable: bool) -> None:
         """Queue one immutable state snapshot and optionally flush it to disk."""
@@ -392,6 +427,10 @@ class EmulatedLifxDevice:
     ) -> list[tuple[LifxHeader, Any]]:
         """Process incoming packet and return response packets"""
         responses = []
+
+        # Evaluate fades and waveforms to now so every handler, including
+        # the one about to record a new transition, reads settled fields
+        self.settle()
 
         # Get resolved scenario configuration (cached for performance)
         if scenario is None:

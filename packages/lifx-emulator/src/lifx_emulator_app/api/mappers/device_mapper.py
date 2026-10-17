@@ -36,6 +36,9 @@ class DeviceMapper:
             >>> info.serial
             'd073d5000001'
         """
+        # Bring fades, power ramps and waveforms up to now so the colours and
+        # power reported here match what a LAN client would read
+        device.settle()
         return DeviceInfo(
             # Core identification
             serial=device.state.serial,
@@ -99,6 +102,7 @@ class DeviceMapper:
             # Runtime metadata
             uptime_ns=device.state.uptime_ns,
             wifi_signal=device.state.wifi_signal,
+            transition_active=device.state.transition.is_active,
         )
 
     @staticmethod
