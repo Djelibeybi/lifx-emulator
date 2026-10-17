@@ -42,6 +42,8 @@ export interface Device {
 	location_label: string;
 	wifi_signal: number;
 	uptime_ns: number;
+	// Whether a colour fade, power ramp or waveform is in flight
+	transition_active?: boolean;
 	version_major: number;
 	version_minor: number;
 }

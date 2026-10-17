@@ -250,8 +250,17 @@ class DeviceService:
         def mutate(candidate: DeviceState) -> None:
             self._validate_state_update(candidate, serial, update)
 
+            # A management write lands at once, so any fade or ramp on the
+            # fields it touches is abandoned rather than overwriting it later
             if update.power_level is not None:
+                candidate.transition.cancel_power()
                 candidate.power_level = update.power_level
+            if (
+                update.color is not None
+                or update.zone_colors is not None
+                or update.tile_colors is not None
+            ):
+                candidate.transition.cancel_colors()
 
             if update.color is not None:
                 self._apply_color(candidate, update.color)
