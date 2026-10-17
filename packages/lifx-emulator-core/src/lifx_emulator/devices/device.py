@@ -192,7 +192,7 @@ class EmulatedLifxDevice:
         """Calculate current uptime in nanoseconds"""
         return self._clock() - self._started_monotonic_ns
 
-    def settle(self) -> None:
+    def settle(self, state: DeviceState | None = None) -> None:
         """Bring every in-flight fade, power ramp and waveform up to now.
 
         Interpolated values are committed into the ordinary colour and power
@@ -201,8 +201,13 @@ class EmulatedLifxDevice:
         device does this itself before processing every packet; the API
         mapper and WebSocket snapshots call it before reading. It is a no-op
         beyond recording the instant when nothing is in flight.
+
+        Args:
+            state: The state to settle; defaults to the device's live state.
+                A mutation run through ``apply_state_mutation`` passes its
+                candidate copy so it edits evaluated, not stale, values.
         """
-        transitions.settle(self.state, self._clock())
+        transitions.settle(self.state if state is None else state, self._clock())
 
     async def _persist_state(self, state: DeviceState, *, durable: bool) -> None:
         """Queue one immutable state snapshot and optionally flush it to disk."""

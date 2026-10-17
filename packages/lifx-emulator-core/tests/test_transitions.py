@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 
 import pytest
+from lifx_emulator.devices import transitions
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
     DeviceBuilder,
@@ -329,8 +330,57 @@ class TestMultiZone:
         )
         assert [c.brightness for c in reply.colors] == [0] * 8
 
+    def test_set_colour_reply_reports_evaluated_zones(self, strip):
+        (reply,) = _set_color(strip, _hsbk(brightness=65535), duration_ms=1000)
+        assert reply.color.brightness == 0
+        assert _get_color(strip).brightness == 0
+
 
 class TestMatrix:
+    def test_set_colour_reply_reports_evaluated_zones(self, tile):
+        (reply,) = _set_color(tile, _hsbk(brightness=65535), duration_ms=1000)
+        assert reply.color.brightness == 0
+        assert _get_color(tile).brightness == 0
+
+    def test_copy_into_hidden_framebuffer_then_back_ends_fade(self, tile, clock):
+        _send(
+            tile,
+            Tile.CopyFrameBuffer(
+                tile_index=0,
+                length=1,
+                src_fb_index=0,
+                dst_fb_index=1,
+                src_x=0,
+                src_y=0,
+                dst_x=0,
+                dst_y=0,
+                width=8,
+                height=8,
+                duration=0,
+            ),
+        )
+        _set_color(tile, _hsbk(brightness=65535), duration_ms=1000)
+        clock.advance_ms(500)
+        _send(
+            tile,
+            Tile.CopyFrameBuffer(
+                tile_index=0,
+                length=1,
+                src_fb_index=1,
+                dst_fb_index=0,
+                src_x=0,
+                src_y=0,
+                dst_x=0,
+                dst_y=0,
+                width=8,
+                height=8,
+                duration=0,
+            ),
+        )
+        assert all(c.brightness == 0 for c in _get_tile(tile))
+        clock.advance_ms(500)
+        assert all(c.brightness == 0 for c in _get_tile(tile))
+
     def test_set64_fades_only_the_rectangle(self, tile, clock):
         target = _hsbk(brightness=65535)
         _send(
@@ -589,7 +639,34 @@ class TestWaveforms:
         assert light.state.waveform_cycles == 3.0
 
 
+class TestZoneAddressing:
+    def test_matrix_index_out_of_range_raises(self, tile):
+        with pytest.raises(IndexError):
+            transitions.get_zone_color(tile.state, 10_000)
+        with pytest.raises(IndexError):
+            transitions.set_zone_color(tile.state, 10_000, BLACK)
+
+
 class TestPersistence:
+    async def test_saved_state_holds_power_and_waveform_end_values(
+        self, tmp_path, clock
+    ):
+        storage = DevicePersistenceAsyncFile(str(tmp_path))
+        light = create_color_light(SERIAL, storage=storage, clock=clock)
+        _set_color(light, _hsbk(brightness=0))
+        _send(light, Light.SetPower(level=0, duration=1000))
+        _set_waveform(light, _hsbk(brightness=65535), LightWaveform.SAW, False)
+        clock.advance_ms(500)
+        light.settle()
+
+        await storage.save_device_state(light.state)
+        await storage.shutdown()
+
+        saved = storage.load_device_state(SERIAL)
+        assert saved is not None
+        assert saved["power_level"] == 0
+        assert saved["color"].brightness == 65535
+
     async def test_saved_state_holds_target_mid_fade(self, tmp_path, clock):
         storage = DevicePersistenceAsyncFile(str(tmp_path))
         light = create_color_light(SERIAL, storage=storage, clock=clock)

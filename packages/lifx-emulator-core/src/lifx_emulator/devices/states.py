@@ -7,6 +7,7 @@ import difflib
 import ipaddress
 import time
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -354,6 +355,16 @@ class TransitionState:
     def cancel_colors(self) -> None:
         """Drop every colour transition and the waveform, keeping the fields."""
         self.zones.clear()
+        self.waveform = None
+
+    def cancel_zones(self, indices: Iterable[int]) -> None:
+        """Drop the colour transitions on the given flat zones only.
+
+        A waveform spans every zone, so it is dropped too; other zones keep
+        the colours they were last settled to.
+        """
+        for index in indices:
+            self.zones.pop(index, None)
         self.waveform = None
 
     def cancel_power(self) -> None:

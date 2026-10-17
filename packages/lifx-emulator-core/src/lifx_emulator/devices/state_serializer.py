@@ -96,8 +96,7 @@ def serialize_device_state(device_state: Any) -> dict[str, Any]:
     the transition records themselves are never serialised, so a restored
     device lands where the change would have finished with nothing in flight.
     """
-    if getattr(device_state, "transition", None) is not None:
-        device_state = project_to_end(device_state)
+    device_state = project_to_end(device_state)
     state_dict = {
         "serial": device_state.serial,
         "label": device_state.label,

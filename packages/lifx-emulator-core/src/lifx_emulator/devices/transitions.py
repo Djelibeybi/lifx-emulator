@@ -46,6 +46,12 @@ _RETURNS_TO_START = frozenset({int(LightWaveform.SINE), int(LightWaveform.TRIANG
 
 ZoneWriter = Callable[[int, LightHsbk], None]
 
+# The device-level colour of a multizone or matrix device, which SetColor
+# fades alongside the zones so the top-level colour never reports the
+# destination before the zones reach it. On a colour light zone 0 is the
+# device colour already.
+DEVICE_COLOR_ZONE = -1
+
 
 class WaveformParameters(Protocol):
     """The waveform fields shared by SetWaveform and SetWaveformOptional."""
@@ -75,7 +81,9 @@ def matrix_zone_offset(state: DeviceState, tile_index: int) -> int:
 
 
 def get_zone_color(state: DeviceState, index: int) -> LightHsbk:
-    """Current colour of one flat zone."""
+    """Current colour of one flat zone (or the device colour for -1)."""
+    if index == DEVICE_COLOR_ZONE:
+        return state.color
     if state.has_matrix and state.tile_devices:
         for tile in state.tile_devices:
             if index < len(tile["colors"]):
@@ -88,7 +96,10 @@ def get_zone_color(state: DeviceState, index: int) -> LightHsbk:
 
 
 def set_zone_color(state: DeviceState, index: int, color: LightHsbk) -> None:
-    """Write one flat zone's colour straight into the device fields."""
+    """Write one flat zone's colour (or the device colour for -1) to the fields."""
+    if index == DEVICE_COLOR_ZONE:
+        state.color = color
+        return
     if state.has_matrix and state.tile_devices:
         for tile in state.tile_devices:
             if index < len(tile["colors"]):

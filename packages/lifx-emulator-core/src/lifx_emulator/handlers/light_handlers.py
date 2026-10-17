@@ -129,11 +129,13 @@ class GetColorHandler(PacketHandler):
 class SetColorHandler(PacketHandler):
     """Handle LightSetColor (102) -> LightState (107).
 
-    With a duration of 0 the colour applies at once. Otherwise every zone
+    With a duration of 0 the colour applies at once. Otherwise every zone,
+    and on multizone and matrix devices the device-level colour as well,
     records a fade from its current colour to the new one, evaluated lazily
-    on each later read, and the reply reports the colour at the time of the
-    reply (the start of the fade). Either way an active waveform is cancelled
-    at the colour it had reached.
+    on each later read. The reply is built like LightState: the colour at the
+    time of the reply (the start of the fade), averaged over the zones on a
+    multizone or matrix device. Either way an active waveform is cancelled at
+    the colour it had reached.
     """
 
     PKT_TYPE = Light.SetColor.PKT_TYPE
@@ -147,13 +149,12 @@ class SetColorHandler(PacketHandler):
         if packet:
             c = packet.color
             zone_total = transitions.zone_count(device_state)
-            # The device-level colour mirrors the request on multizone and
-            # matrix devices, whose zones carry the fade themselves
+            targets = dict.fromkeys(range(zone_total), c)
+            # Fade the device-level colour of a multizone or matrix device in
+            # step with its zones (a colour light's zone 0 is that colour)
             if device_state.has_multizone or device_state.has_matrix:
-                device_state.color = packet.color
-            transitions.apply_zone_colors(
-                device_state, dict.fromkeys(range(zone_total), c), packet.duration
-            )
+                targets[transitions.DEVICE_COLOR_ZONE] = c
+            transitions.apply_zone_colors(device_state, targets, packet.duration)
             logger.info(
                 "Color set to HSBK(%s, %s, %s, %s) across %s zone(s), duration=%sms",
                 c.hue,
@@ -165,13 +166,8 @@ class SetColorHandler(PacketHandler):
             )
 
         if res_required:
-            return [
-                Light.StateColor(
-                    color=device_state.color,
-                    power=device_state.power_level,
-                    label=device_state.label,
-                )
-            ]
+            # Report evaluated state: averaged over the zones where there are any
+            return GetColorHandler().handle(device_state, None, res_required)
         return []
 
 
