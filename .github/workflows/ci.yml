@@ -97,8 +97,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
 
+    # The latest-Python Linux leg also installs the third-party client
+    # libraries so the client-driven suite (-m client) runs there; every other
+    # leg skips it via importorskip.
     - name: Install dependencies
-      run: uv sync --frozen
+      run: uv sync --frozen ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == env.PYTHON_VERSION && '--group third-party' || '' }}
 
     - name: Run unit tests with coverage threshold
       run: uv run --frozen pytest --cov-fail-under=80
