@@ -12,6 +12,7 @@ import lifx_emulator_app.api.app as api_app_module
 import pytest
 from fastapi.testclient import TestClient
 from lifx_emulator.background_tasks import BackgroundTaskTracker
+from lifx_emulator.constants import HEADER_SIZE
 from lifx_emulator.devices import (
     ActivityLogger,
     DeviceLifecycleListener,
@@ -581,6 +582,74 @@ class TestEventBridge:
                 "addr": "192.168.1.100:56700",
             }
         )
+
+    def test_websocket_activity_observer_broadcasts_undecodable_fields(self):
+        """Test on_packet_received forwards payload hex and decode reason."""
+
+        mock_ws_manager = MagicMock()
+        mock_ws_manager.broadcast_activity = AsyncMock()
+        tracker = RecordingTaskTracker()
+        observer = WebSocketActivityObserver(
+            mock_ws_manager, MagicMock(), task_tracker=tracker
+        )
+
+        event = PacketEvent(
+            timestamp=1704067200.0,
+            direction="rx",
+            packet_type=9999,
+            packet_name="Unknown(9999)",
+            target="d073d5000001",
+            addr="192.168.1.100:56700",
+            payload_hex="deadbeef",
+            decode_error="unknown type",
+        )
+
+        observer.on_packet_received(event)
+
+        mock_ws_manager.broadcast_activity.assert_called_once_with(
+            {
+                "timestamp": 1704067200.0,
+                "direction": "rx",
+                "packet_type": 9999,
+                "packet_name": "Unknown(9999)",
+                "target": "d073d5000001",
+                "addr": "192.168.1.100:56700",
+                "payload_hex": "deadbeef",
+                "decode_error": "unknown type",
+            }
+        )
+
+    def test_websocket_sync_activity_carries_undecodable_fields(self, server):
+        """Test the activity delivered over /ws includes the raw bytes."""
+        server.activity_observer = ActivityLogger(max_events=10)
+        server.add_device(create_color_light("d073d5000001"))
+        server.transport = MagicMock()
+        header = LifxHeader(
+            size=HEADER_SIZE + 2,
+            source=1,
+            target=bytes.fromhex("d073d5000001") + b"\x00\x00",
+            sequence=1,
+            pkt_type=9999,
+        )
+        asyncio.run(
+            server.handle_packet(header.pack() + b"\xbe\xef", ("127.0.0.1", 56700))
+        )
+        client = TestClient(create_api_app(server))
+
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json({"type": "subscribe", "topics": ["activity"]})
+            websocket.send_json({"type": "sync"})
+            response = websocket.receive_json()
+
+        assert response["type"] == "sync"
+        (event,) = [
+            event
+            for event in response["data"]["activity"]
+            if event["direction"] == "rx"
+        ]
+        assert event["packet_type"] == 9999
+        assert event["payload_hex"] == "beef"
+        assert event["decode_error"] == "unknown type"
 
     def test_websocket_activity_observer_on_packet_sent(self):
         """Test on_packet_sent broadcasts activity."""

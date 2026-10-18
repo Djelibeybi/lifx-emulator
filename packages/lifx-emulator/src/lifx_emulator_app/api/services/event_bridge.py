@@ -309,6 +309,7 @@ class WebSocketActivityObserver:
                     "packet_name": event.packet_name,
                     "target": event.target,
                     "addr": event.addr,
+                    **event.undecodable_fields(),
                 }
             ),
             f"activity:rx:{event.packet_type}",

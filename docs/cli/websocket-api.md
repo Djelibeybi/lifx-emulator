@@ -273,6 +273,8 @@ Pushed for each packet received or sent.
 | `device` | Target device serial (if applicable) |
 | `target` | LIFX protocol target field |
 | `addr` | Client IP address and port |
+| `payload_hex` | Raw payload bytes as hex; present only on received packets the emulator could not decode |
+| `decode_error` | `unknown type` for an undefined packet type, or the unpack error for a malformed known type; present only alongside `payload_hex` |
 
 ---
 
