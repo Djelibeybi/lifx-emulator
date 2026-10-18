@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { connection, theme, ui } from '$lib/stores';
+	import { connection, theme, ui } from '#lib/stores/index.ts';
 
 	const themeIcons: Record<string, string> = {
 		light: '☀',

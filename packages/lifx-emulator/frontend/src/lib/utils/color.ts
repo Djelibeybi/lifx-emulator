@@ -1,4 +1,4 @@
-import type { HsbkColor } from '$lib/types';
+import type { HsbkColor } from '#lib/types.ts';
 
 /**
  * Convert sRGB gamma-encoded value (0-1) to linear.

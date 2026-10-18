@@ -1,4 +1,4 @@
-import type { ViewMode, ActiveTab } from '$lib/types';
+import type { ViewMode, ActiveTab } from '#lib/types.ts';
 
 const STORAGE_KEY_VIEW = 'lifx-emulator-view';
 const STORAGE_KEY_PAGE_SIZE = 'lifx-emulator-page-size';

@@ -7,7 +7,7 @@ import type {
 	Stats,
 	Device,
 	ActivityEvent
-} from '$lib/types';
+} from '#lib/types.ts';
 import { stats } from './stats.svelte';
 import { devices } from './devices.svelte';
 import { activity } from './activity.svelte';

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Device } from '$lib/types';
-	import { ui } from '$lib/stores';
-	import { hsbkToCss } from '$lib/utils/color';
-	import { deleteDevice } from '$lib/utils/api';
-	import { mirrorRings } from '$lib/utils/mirror';
+	import type { Device } from '#lib/types.ts';
+	import { ui } from '#lib/stores/index.ts';
+	import { hsbkToCss } from '#lib/utils/color.ts';
+	import { deleteDevice } from '#lib/utils/api.ts';
+	import { mirrorRings } from '#lib/utils/mirror.ts';
 	import MirrorRings from './MirrorRings.svelte';
 
 	let { device }: { device: Device } = $props();

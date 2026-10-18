@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ScenarioConfig } from '$lib/types';
-	import { scenarios, devices } from '$lib/stores';
+	import type { ScenarioConfig } from '#lib/types.ts';
+	import { scenarios, devices } from '#lib/stores/index.ts';
 	import {
 		getGlobalScenario,
 		setGlobalScenario,
@@ -8,7 +8,7 @@
 		getScenario,
 		setScenario,
 		clearScenario
-	} from '$lib/utils/api';
+	} from '#lib/utils/api.ts';
 
 	type Scope = 'global' | 'device' | 'type' | 'location' | 'group';
 	type ApiScope = 'devices' | 'types' | 'locations' | 'groups';

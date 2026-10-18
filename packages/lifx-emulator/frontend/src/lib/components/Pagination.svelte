@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ui } from '$lib/stores';
+	import { ui } from '#lib/stores/index.ts';
 
 	let { totalPages }: { totalPages: number } = $props();
 

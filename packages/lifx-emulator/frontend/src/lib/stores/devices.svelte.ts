@@ -1,4 +1,4 @@
-import type { Device, DeviceTransition, DeviceStateChanges } from '$lib/types';
+import type { Device, DeviceTransition, DeviceStateChanges } from '#lib/types.ts';
 
 function createDevicesStore() {
 	let deviceMap = $state<Map<string, Device>>(new Map());

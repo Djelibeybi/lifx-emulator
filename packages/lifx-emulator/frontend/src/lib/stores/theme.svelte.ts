@@ -1,4 +1,4 @@
-import type { ThemeMode } from '$lib/types';
+import type { ThemeMode } from '#lib/types.ts';
 
 const STORAGE_KEY = 'lifx-emulator-theme';
 
