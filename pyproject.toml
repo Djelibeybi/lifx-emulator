@@ -74,6 +74,9 @@ addopts = """\
     --cov-report=term-missing:skip-covered
     --junitxml=junit.xml -o junit_family=legacy
     """
+markers = [
+    "client: drives the emulator with the lifx-async client library (uv sync --group third-party)",
+]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
