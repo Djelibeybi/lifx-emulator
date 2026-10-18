@@ -25,7 +25,11 @@ from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api import create_api_app
 from lifx_emulator_app.api.app import run_api_server
-from lifx_emulator_app.api.models import ColorHsbk, DeviceStateUpdate
+from lifx_emulator_app.api.models import (
+    ColorHsbk,
+    DeviceCreateRequest,
+    DeviceStateUpdate,
+)
 from lifx_emulator_app.api.services.device_service import DeviceService
 
 
@@ -1686,8 +1690,21 @@ class TestLocationAndGroupMembership:
         assert created["group_label"] == "Test Group"
         assert created["group_id"] == "fedcba9876543210fedcba9876543210"
 
-    def test_create_with_invalid_identifier_rejected(self, api_client):
+    def test_create_with_wrong_length_identifier_rejected(self, api_client):
         response = api_client.post(
             "/api/devices", json={"product_id": 27, "group_id": "not-hex"}
         )
         assert response.status_code == 422
+        assert "32 hex characters" in response.text
+
+    def test_explicit_none_identifiers_are_accepted(self):
+        request = DeviceCreateRequest(product_id=27, location_id=None, group_id=None)
+        assert request.location_id is None
+        assert request.group_id is None
+
+    def test_create_with_non_hex_identifier_rejected(self, api_client):
+        response = api_client.post(
+            "/api/devices", json={"product_id": 27, "location_id": "g" * 32}
+        )
+        assert response.status_code == 422
+        assert "valid hexadecimal" in response.text

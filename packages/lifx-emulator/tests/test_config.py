@@ -803,6 +803,11 @@ class TestLocationAndGroupIdentifiers:
         assert dev.location_id is None
         assert dev.group_id is None
 
+    def test_explicit_none_identifiers_are_accepted(self):
+        dev = DeviceDefinition(product_id=27, location_id=None, group_id=None)
+        assert dev.location_id is None
+        assert dev.group_id is None
+
     def test_valid_identifiers_are_normalised_to_lowercase(self):
         dev = DeviceDefinition(
             product_id=27,
