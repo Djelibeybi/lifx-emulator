@@ -307,6 +307,10 @@ class EmulatedLifxServer:
                     addr,
                 )
                 return
+            context = _DatagramContext(self.family, addr, self.transport)
+            # Filter off-interface peers before they can consume a pending slot.
+            if self.server._filter_peer(context):
+                return
             if not self._background_tasks.has_capacity:
                 self.server.packets_dropped_overload += 1
                 logger.warning(
@@ -316,7 +320,6 @@ class EmulatedLifxServer:
                     addr,
                 )
                 return
-            context = _DatagramContext(self.family, addr, self.transport)
             operation = f"packet:{_format_peer(context)}"
             self._background_tasks.schedule(
                 self.server.handle_packet(data, context), operation
@@ -350,6 +353,16 @@ class EmulatedLifxServer:
         if peer_filter is None or context.family != socket.AF_INET:
             return False
         return not peer_filter.accepts(str(context.peer[0]))
+
+    def _filter_peer(self, context: _DatagramContext) -> bool:
+        """Count and report an off-interface peer; True when the datagram is dropped."""
+        if not self._is_filtered_peer(context):
+            return False
+        self.packets_filtered += 1
+        logger.debug(
+            "Filtered datagram from %s: peer is off-interface", _format_peer(context)
+        )
+        return True
 
     def _unpack_header(self, data: bytes, peer_text: str) -> LifxHeader | None:
         """Validate and unpack a header with the established counter outcomes."""
@@ -560,9 +573,7 @@ class EmulatedLifxServer:
             transport=transport,
         )
         peer_text = _format_peer(context)
-        if self._is_filtered_peer(context):
-            self.packets_filtered += 1
-            logger.debug("Filtered datagram from %s: peer is off-interface", peer_text)
+        if self._filter_peer(context):
             return
         try:
             header = self._unpack_header(data, peer_text)

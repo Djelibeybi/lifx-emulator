@@ -165,6 +165,22 @@ class TestPeerFiltering:
         assert server.packets_received == 1
         assert server.packets_filtered == 0
 
+    def test_off_subnet_peer_is_filtered_before_admission(self, lan_selection):
+        server = EmulatedLifxServer(
+            [], DeviceManager(DeviceRepository()), "192.0.2.10", max_pending_packets=1
+        )
+        server.peer_filter = lan_selection
+        protocol = server.LifxProtocol(server)
+        server._background_tasks.start_accepting()
+        with patch.object(server._background_tasks, "schedule") as schedule:
+            protocol.datagram_received(_get_service_datagram(), ("203.0.113.5", 1))
+            protocol.datagram_received(_get_service_datagram(), ("203.0.113.6", 1))
+
+        schedule.assert_not_called()
+        assert server.packets_filtered == 2
+        assert server.packets_dropped_overload == 0
+        assert server._background_tasks.pending_count == 0
+
     def test_stats_expose_filtered_counter(self):
         server = _make_server("127.0.0.1")
         server.packets_filtered = 3
