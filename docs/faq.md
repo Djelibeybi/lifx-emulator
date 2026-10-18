@@ -371,7 +371,8 @@ strip = create_multizone_light(
 )
 
 # Device responds to:
-# - GetColorZones (502) / SetColorZones (501) -> StateMultiZone (506)
+# - GetColorZones (502) / SetColorZones (501) -> StateMultiZone (506),
+#   or StateZone (503) when the request covers exactly one zone
 # - GetEffect (507) / SetEffect (508) -> StateEffect (509)
 # - ExtendedGetColorZones (511) / ExtendedSetColorZones (510)
 #   -> ExtendedStateMultiZone (512), when extended_multizone=True

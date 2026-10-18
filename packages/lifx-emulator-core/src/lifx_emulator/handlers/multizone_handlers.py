@@ -53,8 +53,53 @@ def _update_zones(
     pending.clear()
 
 
+def _zone_color(device_state: DeviceState, zone_index: int) -> LightHsbk:
+    """Return the colour of a zone, or black if the zone has no stored colour.
+
+    Args:
+        device_state: Multizone device state to read
+        zone_index: Zone to look up
+
+    Returns:
+        The zone's current colour, or black (kelvin 3500) when unset
+    """
+    if zone_index < len(device_state.zone_colors):
+        return device_state.zone_colors[zone_index]
+    return LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
+
+
+def _state_zone(device_state: DeviceState, zone_index: int) -> list[Any]:
+    """Build the StateZone (503) reply to a single-zone legacy request.
+
+    Real firmware answers a GetColorZones or SetColorZones whose start and end
+    index match with one StateZone rather than a padded StateMultiZone. An
+    index at or beyond the zone count gets no reply at all.
+
+    Args:
+        device_state: Multizone device state to read
+        zone_index: The single zone requested
+
+    Returns:
+        A list holding one StateZone, or an empty list if out of range
+    """
+    if zone_index >= device_state.zone_count:
+        return []
+    return [
+        MultiZone.StateZone(
+            count=device_state.zone_count,
+            index=zone_index,
+            color=_zone_color(device_state, zone_index),
+        )
+    ]
+
+
 class GetColorZonesHandler(PacketHandler):
-    """Handle MultiZoneGetColorZones (502) -> StateMultiZone (506) packets."""
+    """Handle MultiZoneGetColorZones (502).
+
+    A request covering exactly one zone (start_index == end_index) is answered
+    with one StateZone (503). A range of two or more zones is answered with
+    one StateMultiZone (506) per 8 zones, as real firmware does.
+    """
 
     PKT_TYPE = MultiZone.GetColorZones.PKT_TYPE
 
@@ -70,32 +115,24 @@ class GetColorZonesHandler(PacketHandler):
         start_index = packet.start_index if packet else 0
         end_index = packet.end_index if packet else 0
 
+        # A single zone is answered with StateZone, never a padded StateMultiZone
+        if start_index == end_index:
+            return _state_zone(device_state, start_index)
+
         # Return multiple StateMultiZone packets, each containing up to 8 zones
         responses = []
 
-        # Send packets of up to 8 zones each (StateMultiZone format)
         index = start_index
         while index <= end_index and index < device_state.zone_count:
-            # Collect up to 8 zones for this packet
+            # Collect up to 8 zones for this packet, padding the rest with black
             colors = []
-            for i in range(8):
-                zone_index = index + i
+            for zone_index in range(index, index + 8):
                 if zone_index < device_state.zone_count and zone_index <= end_index:
-                    zone_color = (
-                        device_state.zone_colors[zone_index]
-                        if zone_index < len(device_state.zone_colors)
-                        else LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
-                    )
-                    colors.append(zone_color)
+                    colors.append(_zone_color(device_state, zone_index))
                 else:
-                    # Pad remaining slots with black
                     colors.append(
                         LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
                     )
-
-            # Pad to exactly 8 colors
-            while len(colors) < 8:
-                colors.append(LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500))
 
             packet_obj = MultiZone.StateMultiZone(
                 count=device_state.zone_count, index=index, colors=colors
@@ -111,7 +148,10 @@ class SetColorZonesHandler(PacketHandler):
     """Handle MultiZoneSetColorZones (501).
 
     Zones shown by APPLY or APPLY_ONLY fade over the packet's duration; the
-    reply reports the colours at the time of the reply.
+    reply reports the colours at the time of the reply. When a response is
+    required, a set covering exactly one zone is answered with StateZone (503)
+    and a range of two or more zones with StateMultiZone (506) packets, the
+    same shapes GetColorZones uses.
     """
 
     PKT_TYPE = MultiZone.SetColorZones.PKT_TYPE

@@ -101,8 +101,9 @@ class TestGetColorZones:
 
         responses = device.process_packet(header, packet)
 
-        state_multizone_responses = [r for r in responses if r[0].pkt_type == 506]
-        assert len(state_multizone_responses) == 1
+        # A single zone is answered with StateZone (503), not StateMultiZone
+        assert [r[0].pkt_type for r in responses] == [503]
+        assert isinstance(responses[0][1], MultiZone.StateZone)
 
 
 class TestSetColorZones:
