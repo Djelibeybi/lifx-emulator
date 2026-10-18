@@ -98,7 +98,9 @@ class DeviceMapper:
             build_timestamp=device.state.build_timestamp,
             # Location/group metadata
             group_label=device.state.group.group_label,
+            group_id=device.state.group.group_id.hex(),
             location_label=device.state.location.location_label,
+            location_id=device.state.location.location_id.hex(),
             # Runtime metadata
             uptime_ns=device.state.uptime_ns,
             wifi_signal=device.state.wifi_signal,

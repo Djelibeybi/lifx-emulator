@@ -12,6 +12,8 @@ from pydantic import (
     model_serializer,
 )
 
+from lifx_emulator_app.config import validate_identifier_hex
+
 
 class DeviceCreateRequest(BaseModel):
     """Request to create a new device."""
@@ -55,6 +57,42 @@ class DeviceCreateRequest(BaseModel):
     firmware_minor: int | None = Field(
         None, description="Firmware minor version", ge=0, le=255
     )
+    location_label: str | None = Field(
+        None,
+        description=(
+            "Location label; devices sharing a label share a location "
+            "identifier (default 'Test Location')"
+        ),
+        max_length=32,
+    )
+    location_id: str | None = Field(
+        None,
+        description=(
+            "Explicit location identifier as 32 hex characters; derived from "
+            "the label when omitted"
+        ),
+    )
+    group_label: str | None = Field(
+        None,
+        description=(
+            "Group label; devices sharing a label share a group identifier "
+            "(default 'Test Group')"
+        ),
+        max_length=32,
+    )
+    group_id: str | None = Field(
+        None,
+        description=(
+            "Explicit group identifier as 32 hex characters; derived from the "
+            "label when omitted"
+        ),
+    )
+
+    @field_validator("location_id", "group_id")
+    @classmethod
+    def validate_identifier_format(cls, v: str | None) -> str | None:
+        """Validate a location or group identifier (32 ASCII hex characters)."""
+        return validate_identifier_hex(v) if v is not None else None
 
     @field_validator("serial")
     @classmethod
@@ -118,7 +156,13 @@ class DeviceInfo(BaseModel):
     version_minor: int = 0
     build_timestamp: int = 0
     group_label: str = ""
+    group_id: str = Field(
+        default="", description="Group identifier as 32 hex characters"
+    )
     location_label: str = ""
+    location_id: str = Field(
+        default="", description="Location identifier as 32 hex characters"
+    )
     uptime_ns: int = 0
     wifi_signal: float = 0.0
     transition_active: bool = Field(
@@ -145,6 +189,14 @@ class ServerStats(BaseModel):
         ...,
         ge=0,
         description="Packets rejected because the server's pending-work limit was full",
+    )
+    packets_filtered: int = Field(
+        ...,
+        ge=0,
+        description=(
+            "IPv4 datagrams ignored because the peer is outside the subnets of "
+            "the interface selected by the bind address"
+        ),
     )
     websocket_events_dropped: int = Field(
         ...,

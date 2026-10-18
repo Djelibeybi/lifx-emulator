@@ -92,9 +92,14 @@ Returns server uptime, packet counts, error counts, and device count.
     "116": 300
   },
   "error_count": 2,
+  "packets_dropped_overload": 0,
+  "packets_filtered": 0,
+  "websocket_events_dropped": 0,
   "activity_enabled": true
 }
 ```
+
+`packets_filtered` counts IPv4 datagrams ignored because the peer is outside the subnets of the interface selected by `--bind`. It stays at zero for loopback and `0.0.0.0` binds.
 
 **Use Cases:**
 - Monitor emulator health and uptime
@@ -219,8 +224,10 @@ Returns a paginated list of all emulated devices with their current configuratio
       "version_major": 3,
       "version_minor": 70,
       "build_timestamp": 0,
-      "group_label": "",
-      "location_label": "",
+      "group_label": "Test Group",
+      "group_id": "5d0f6f8e0c2c5a2a9d0f0a3b8f4e3c1d",
+      "location_label": "Test Location",
+      "location_id": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5",
       "uptime_ns": 123000000000,
       "wifi_signal": -45.5
     }
@@ -251,8 +258,10 @@ Returns a paginated list of all emulated devices with their current configuratio
 - `tile_devices`: Tile configuration and colors (if matrix)
 - `version_major/minor`: Firmware version
 - `build_timestamp`: Build timestamp (usually 0)
-- `group_label`: Group assignment
-- `location_label`: Location assignment
+- `group_label`: Group label
+- `group_id`: Group identifier as 32 hex characters (derived from the label unless set explicitly)
+- `location_label`: Location label
+- `location_id`: Location identifier as 32 hex characters (derived from the label unless set explicitly)
 - `uptime_ns`: Device uptime in nanoseconds
 - `wifi_signal`: WiFi signal strength in dBm
 
@@ -302,7 +311,9 @@ Creates a new emulated device by product ID. The device will be added to the emu
   "zone_count": 16,
   "tile_count": 5,
   "firmware_major": 3,
-  "firmware_minor": 70
+  "firmware_minor": 70,
+  "location_label": "Kitchen",
+  "group_label": "Downlights"
 }
 ```
 
@@ -314,6 +325,10 @@ Creates a new emulated device by product ID. The device will be added to the emu
 - `tile_width`, `tile_height` (optional, **deprecated**): Accepted but ignored, with a logged warning; tile size is fixed per product. Will be removed in the next major release.
 - `firmware_major` (optional): Firmware major version
 - `firmware_minor` (optional): Firmware minor version
+- `location_label` (optional): Location label. Devices sharing a label share a location identifier; defaults to `Test Location`
+- `location_id` (optional): Explicit location identifier, 32 hex characters; derived from the label when omitted
+- `group_label` (optional): Group label. Devices sharing a label share a group identifier; defaults to `Test Group`
+- `group_id` (optional): Explicit group identifier, 32 hex characters; derived from the label when omitted
 
 **Response (201 Created):**
 Same as get device response.

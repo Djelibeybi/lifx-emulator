@@ -159,8 +159,12 @@ serial_start: 1
 #   label:                Optional - Device label (max 32 characters)
 #   power_level:          Optional - Initial power (0 = off, 65535 = on)
 #   color:                Optional - Initial HSBK color (dict or [h, s, b, k] list)
-#   location:             Optional - Location label (UUID auto-generated)
-#   group:                Optional - Group label (UUID auto-generated)
+#   location:             Optional - Location label (default "Test Location");
+#                         devices sharing a label share a location identifier
+#   location_id:          Optional - Explicit location identifier (32 hex chars)
+#   group:                Optional - Group label (default "Test Group");
+#                         devices sharing a label share a group identifier
+#   group_id:             Optional - Explicit group identifier (32 hex chars)
 #   zone_count:           Optional - Number of zones (multizone devices only)
 #   zone_colors:          Optional - Per-zone HSBK colors (multizone devices only)
 #   infrared_brightness:  Optional - Initial IR brightness 0-65535 (IR devices only)

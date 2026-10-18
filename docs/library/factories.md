@@ -290,6 +290,43 @@ async def main():
 asyncio.run(main())
 ```
 
+## Locations and Groups
+
+Every factory accepts `location_label`, `location_id`, `group_label` and
+`group_id`. Identifiers are derived from labels with a name-based UUID
+(version 5) under a fixed emulator namespace, so devices that share a label
+share an identifier in any process on any host. The defaults are
+`"Test Location"` and `"Test Group"`, so a default fleet reports one location
+and one group. Pass an explicit 16-byte identifier to override the derived
+value:
+
+```python
+from lifx_emulator import create_color_light
+from lifx_emulator.devices import derive_group_id
+
+kitchen = create_color_light(
+    "d073d5000001", location_label="Kitchen", group_label="Downlights"
+)
+pantry = create_color_light(
+    "d073d5000002", location_label="Kitchen", group_label="Downlights"
+)
+assert kitchen.state.location_id == pantry.state.location_id
+assert kitchen.state.group_id == derive_group_id("Downlights")
+
+# Same labels, private group
+lamp = create_color_light(
+    "d073d5000003",
+    location_label="Kitchen",
+    group_label="Downlights",
+    group_id=bytes(range(16)),
+)
+assert lamp.state.group_id != kitchen.state.group_id
+```
+
+`SetLocation` and `SetGroup` packets change only the device they target and
+use the identifier carried in the packet. `DeviceBuilder` exposes the same
+options as `with_location(label, location_id)` and `with_group(label, group_id)`.
+
 ## Advanced Options
 
 ### Persistent Storage

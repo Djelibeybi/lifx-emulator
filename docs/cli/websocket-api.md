@@ -162,6 +162,9 @@ Pushed every second to clients subscribed to `stats`.
     "packets_received_by_type": { "2": 50, "101": 200 },
     "packets_sent_by_type": { "3": 50, "107": 200 },
     "error_count": 2,
+    "packets_dropped_overload": 0,
+    "packets_filtered": 0,
+    "websocket_events_dropped": 0,
     "activity_enabled": true
   }
 }

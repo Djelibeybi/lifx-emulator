@@ -112,10 +112,20 @@ CLI parameters override config file values. See [Configuration File Guide](confi
 
 ### `--bind <IP>`
 
-IP address to bind to.
+IPv4 address to bind to.
 
 - **Default:** `127.0.0.1` (localhost only)
 - **Example:** `--bind 0.0.0.0` (all IP addresses)
+- **Example:** `--bind 192.168.1.50` (one LAN interface)
+
+Loopback and `0.0.0.0` bind directly. Any other address selects the interface that owns it: the emulator binds `0.0.0.0` on the configured port so that LIFX discovery broadcasts to `255.255.255.255` are received, and only accepts datagrams from peers on that interface's subnets. Replies leave by ordinary routing, so clients on the same LAN see them from the selected address. Datagrams from other interfaces are ignored and counted as `packets_filtered` in the statistics.
+
+Start-up fails with a clear error when the address is not assigned to any local interface.
+
+!!! note "Limitation"
+    Unicast from peers outside the selected interface's subnets (for example, routed traffic from another VLAN) is filtered. Bind to `0.0.0.0` to answer on every interface instead.
+
+    The filter is decided from the peer's source address, which is not authenticated. It selects which network the emulator answers on; it is not a security control, so use a firewall to restrict who can reach the port.
 
 ### `--port <PORT>`
 

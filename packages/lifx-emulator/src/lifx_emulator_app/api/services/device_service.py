@@ -59,6 +59,11 @@ class DeviceStateUpdateError(Exception):
     pass
 
 
+def _identifier_bytes(identifier: str | None) -> bytes | None:
+    """Convert a validated 32-hex-character identifier to its 16 bytes."""
+    return bytes.fromhex(identifier) if identifier is not None else None
+
+
 class DeviceService:
     """Service for managing emulated LIFX devices.
 
@@ -167,6 +172,10 @@ class DeviceService:
                     storage=self.server.storage,
                     scenario_manager=self.server.scenario_manager,
                     persist_initial_state=False,
+                    location_label=request.location_label,
+                    location_id=_identifier_bytes(request.location_id),
+                    group_label=request.group_label,
+                    group_id=_identifier_bytes(request.group_id),
                 )
             except Exception as e:
                 logger.error("Failed to create device: %s", e, exc_info=True)

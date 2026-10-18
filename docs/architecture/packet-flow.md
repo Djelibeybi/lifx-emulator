@@ -104,7 +104,7 @@ Handlers return packet objects (not headers). The device wraps each response in 
 
 Some handlers return multiple packets:
 
-- **Multizone** (`GetColorZones`): one `StateMultiZone` (type 506) per 8 zones
+- **Multizone** (`GetColorZones`): one `StateMultiZone` (type 506) per 8 zones; a single-zone request gets one `StateZone` (type 503) instead
 - **Extended multizone** (`ExtendedGetColorZones`): one or more `ExtendedStateMultiZone` (type 512) per 82 zones
 - **Tile** (`Get64`): one `State64` (type 711) per tile in the chain, with up to 64 zones per packet
 

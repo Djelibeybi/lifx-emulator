@@ -4,6 +4,7 @@ import json
 
 import pytest
 import yaml
+from lifx_emulator.devices import derive_group_id, derive_location_id
 from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator_app.__main__ import (
     _clean_scenario,
@@ -747,3 +748,71 @@ class TestExportConfigCommand:
         captured = capsys.readouterr()
 
         assert "Warning:" in captured.out
+
+
+class TestExportIdentifiers:
+    """Export writes identifiers only when they differ from the label (#255)."""
+
+    def test_default_identifiers_omitted(self):
+        state = {
+            "product": 27,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "location_id": derive_location_id("Test Location"),
+            "location_label": "Test Location",
+            "group_id": derive_group_id("Test Group"),
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "location_id" not in result
+        assert "group_id" not in result
+
+    def test_label_derived_identifiers_omitted_for_custom_labels(self):
+        state = {
+            "product": 27,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "location_id": derive_location_id("Office"),
+            "location_label": "Office",
+            "group_id": derive_group_id("Lights"),
+            "group_label": "Lights",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result["location"] == "Office"
+        assert result["group"] == "Lights"
+        assert "location_id" not in result
+        assert "group_id" not in result
+
+    def test_explicit_identifiers_included_as_hex(self):
+        state = {
+            "product": 27,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "location_id": bytes(range(16)),
+            "location_label": "Office",
+            "group_id": bytes(range(16, 32)),
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert result["location_id"] == bytes(range(16)).hex()
+        # A default label with a non-derived identifier still needs the id
+        assert "group" not in result
+        assert result["group_id"] == bytes(range(16, 32)).hex()
+
+    def test_hex_string_identifiers_are_accepted(self):
+        state = {
+            "product": 27,
+            "serial": "d073d5000001",
+            "label": "",
+            "power_level": 0,
+            "location_id": derive_location_id("Test Location").hex(),
+            "location_label": "Test Location",
+            "group_id": "00" * 16,
+            "group_label": "Test Group",
+        }
+        result = _device_state_to_yaml_dict(state)
+        assert "location_id" not in result
+        assert result["group_id"] == "00" * 16

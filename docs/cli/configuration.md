@@ -72,7 +72,7 @@ lifx-emulator --config base.yaml --port 56701
 ### Server Options
 
 ```yaml
-# IP address to bind to (default: 127.0.0.1)
+# IPv4 address to bind to (default: 127.0.0.1)
 bind: 127.0.0.1
 
 # UDP port for LIFX protocol (default: 56700)
@@ -81,6 +81,16 @@ port: 56700
 # Enable verbose packet logging (default: false)
 verbose: false
 ```
+
+`bind` accepts three kinds of address:
+
+| Value | Behaviour |
+| --- | --- |
+| `127.0.0.1` (default) | Loopback only. Binds directly; unchanged from earlier releases. |
+| `0.0.0.0` | All interfaces. Binds directly and answers every peer. |
+| A LAN address, e.g. `192.168.1.50` | Selects the interface that owns the address. The emulator binds `0.0.0.0` so discovery broadcasts are received, and accepts only peers on that interface's subnets. Other peers are counted as `packets_filtered`. |
+
+A LAN address that is not assigned to any local interface is rejected at start-up. Unicast from peers outside the selected interface's subnets is filtered; use `0.0.0.0` if you need to answer routed traffic from other networks.
 
 ### Storage & Persistence (Deprecated)
 
@@ -256,8 +266,10 @@ devices:
 | `label` | No | Device label (max 32 characters) |
 | `power_level` | No | Initial power level (`0` = off, `65535` = on) |
 | `color` | No | Initial HSBK color (dict or `[h, s, b, k]` list) |
-| `location` | No | Location label (UUID auto-generated from label) |
-| `group` | No | Group label (UUID auto-generated from label) |
+| `location` | No | Location label (default `Test Location`). Devices sharing a label share a location identifier. |
+| `location_id` | No | Explicit location identifier, 32 hex characters. Overrides the label-derived value. |
+| `group` | No | Group label (default `Test Group`). Devices sharing a label share a group identifier. |
+| `group_id` | No | Explicit group identifier, 32 hex characters. Overrides the label-derived value. |
 | `zone_count` | No | Number of zones (multizone devices only) |
 | `zone_colors` | No | List of per-zone HSBK colors (multizone devices only) |
 | `infrared_brightness` | No | Initial IR brightness 0–65535 (infrared devices only) |
@@ -266,6 +278,37 @@ devices:
 | `tile_count` | No | Number of tiles (1 to 5 for the LIFX Tile; other matrix products have exactly 1) |
 | `tile_width` | No | **Deprecated and ignored**: tile size is fixed per product |
 | `tile_height` | No | **Deprecated and ignored**: tile size is fixed per product |
+
+### Locations and Groups
+
+Location and group identifiers are derived from their labels: a name-based
+UUID (version 5) of the label under a fixed emulator namespace. Two devices
+configured with `location: "Kitchen"` therefore report the same location
+identifier, within one emulator, across restarts, and across separate emulator
+instances on the same LAN. Devices without explicit labels all share the default
+`Test Location` and `Test Group`, so a default fleet appears as one location and
+one group to a client library.
+
+Set `location_id` or `group_id` when you need deliberate separation or
+deliberate sharing that the labels alone do not express:
+
+```yaml
+devices:
+  # Shares its location and group with every other "Kitchen"/"Downlights" device
+  - product_id: 27
+    location: "Kitchen"
+    group: "Downlights"
+
+  # Same labels, but a private group identifier
+  - product_id: 27
+    location: "Kitchen"
+    group: "Downlights"
+    group_id: 0123456789abcdef0123456789abcdef
+```
+
+A `SetLocation` or `SetGroup` packet sent to one device changes only that
+device and uses the identifier carried in the packet. `export-config` writes a
+`location_id` or `group_id` only when it differs from the label-derived value.
 
 #### HSBK Color Format
 

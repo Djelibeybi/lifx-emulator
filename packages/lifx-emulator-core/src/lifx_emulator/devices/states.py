@@ -167,22 +167,71 @@ class NetworkState:
             object.__setattr__(self, "mdns_address", address)
 
 
+# Fixed namespace for label-derived location and group identifiers. Equal
+# labels must yield equal identifiers in any process on any host, so a fleet
+# configured with the same labels (or two emulators on one LAN) presents as
+# one installation rather than one singleton location and group per device.
+LIFX_EMULATOR_NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+
+
+def derive_location_id(label: str) -> bytes:
+    """Derive the 16-byte location identifier for a location label.
+
+    Args:
+        label: Location label
+
+    Returns:
+        Name-based (version 5) UUID of the label under LIFX_EMULATOR_NAMESPACE
+    """
+    return uuid.uuid5(LIFX_EMULATOR_NAMESPACE, label).bytes
+
+
+def derive_group_id(label: str) -> bytes:
+    """Derive the 16-byte group identifier for a group label.
+
+    Args:
+        label: Group label
+
+    Returns:
+        Name-based (version 5) UUID of the label under LIFX_EMULATOR_NAMESPACE
+    """
+    return uuid.uuid5(LIFX_EMULATOR_NAMESPACE, label).bytes
+
+
 @dataclass
 class LocationState:
-    """Device location metadata."""
+    """Device location metadata.
 
-    location_id: bytes = field(default_factory=lambda: uuid.uuid4().bytes)
+    An empty ``location_id`` is replaced at construction by the identifier
+    derived from ``location_label``, so devices sharing a label share a
+    location. An explicit identifier is kept as supplied.
+    """
+
+    location_id: bytes = b""
     location_label: str = "Test Location"
     location_updated_at: int = field(default_factory=lambda: int(time.time() * 1e9))
+
+    def __post_init__(self) -> None:
+        if not self.location_id:
+            self.location_id = derive_location_id(self.location_label)
 
 
 @dataclass
 class GroupState:
-    """Device group metadata."""
+    """Device group metadata.
 
-    group_id: bytes = field(default_factory=lambda: uuid.uuid4().bytes)
+    An empty ``group_id`` is replaced at construction by the identifier
+    derived from ``group_label``, so devices sharing a label share a group.
+    An explicit identifier is kept as supplied.
+    """
+
+    group_id: bytes = b""
     group_label: str = "Test Group"
     group_updated_at: int = field(default_factory=lambda: int(time.time() * 1e9))
+
+    def __post_init__(self) -> None:
+        if not self.group_id:
+            self.group_id = derive_group_id(self.group_label)
 
 
 @dataclass
