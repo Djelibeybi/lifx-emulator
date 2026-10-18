@@ -81,10 +81,10 @@ The attributes below are read and written directly on `DeviceState`; each one is
 
 #### Location & Group
 
-- **`location_id`** (`bytes`) - 16-byte location UUID
+- **`location_id`** (`bytes`) - 16-byte location UUID; derived from `location_label` (uuid5 under `LIFX_EMULATOR_NAMESPACE`) unless set explicitly, so devices sharing a label share a location
 - **`location_label`** (`str` = `'Test Location'`) - Location name
 - **`location_updated_at`** (`int`) - Location update timestamp (nanoseconds)
-- **`group_id`** (`bytes`) - 16-byte group UUID
+- **`group_id`** (`bytes`) - 16-byte group UUID; derived from `group_label` unless set explicitly, so devices sharing a label share a group
 - **`group_label`** (`str` = `'Test Group'`) - Group name
 - **`group_updated_at`** (`int`) - Group update timestamp (nanoseconds)
 
