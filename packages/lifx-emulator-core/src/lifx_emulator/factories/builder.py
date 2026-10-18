@@ -7,7 +7,7 @@ import re
 import time
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from lifx_emulator.constants import is_valid_tile_count, max_tile_count
 from lifx_emulator.devices import DeviceState, EmulatedLifxDevice
@@ -125,6 +125,10 @@ class DeviceBuilder:
         self._mdns_address: str | None = None
         self._persist_initial_state = False
         self._clock: Callable[[], int] | None = None
+        self._location_label: str | None = None
+        self._location_id: bytes | None = None
+        self._group_label: str | None = None
+        self._group_id: bytes | None = None
 
         # Helper services
         self._serial_generator = SerialGenerator()
@@ -382,6 +386,62 @@ class DeviceBuilder:
         self._mdns_address = address
         return self
 
+    def with_location(
+        self, label: str | None = None, location_id: bytes | None = None
+    ) -> DeviceBuilder:
+        """Set the device's location label and, optionally, its identifier.
+
+        Without an identifier the location identifier is derived from the
+        label, so devices sharing a label share a location.
+
+        Args:
+            label: Location label (defaults to "Test Location")
+            location_id: Explicit 16-byte location identifier
+
+        Returns:
+            Self for method chaining
+        """
+        self._location_label = label
+        self._location_id = location_id
+        return self
+
+    def with_group(
+        self, label: str | None = None, group_id: bytes | None = None
+    ) -> DeviceBuilder:
+        """Set the device's group label and, optionally, its identifier.
+
+        Without an identifier the group identifier is derived from the label,
+        so devices sharing a label share a group.
+
+        Args:
+            label: Group label (defaults to "Test Group")
+            group_id: Explicit 16-byte group identifier
+
+        Returns:
+            Self for method chaining
+        """
+        self._group_label = label
+        self._group_id = group_id
+        return self
+
+    def _create_location_state(self) -> LocationState:
+        """Create the location state from the configured label and identifier."""
+        kwargs: dict[str, Any] = {}
+        if self._location_label is not None:
+            kwargs["location_label"] = self._location_label
+        if self._location_id is not None:
+            kwargs["location_id"] = self._location_id
+        return LocationState(**kwargs)
+
+    def _create_group_state(self) -> GroupState:
+        """Create the group state from the configured label and identifier."""
+        kwargs: dict[str, Any] = {}
+        if self._group_label is not None:
+            kwargs["group_label"] = self._group_label
+        if self._group_id is not None:
+            kwargs["group_id"] = self._group_id
+        return GroupState(**kwargs)
+
     def build(self) -> EmulatedLifxDevice:
         """Build the emulated device.
 
@@ -432,8 +492,8 @@ class DeviceBuilder:
             mdns_enabled=self._mdns_enabled,
             mdns_address=self._mdns_address,
         )
-        location = LocationState()
-        group = GroupState()
+        location = self._create_location_state()
+        group = self._create_group_state()
         waveform = WaveformState()
 
         # 7. Create capability-specific states

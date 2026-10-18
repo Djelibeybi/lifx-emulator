@@ -47,6 +47,10 @@ def create_color_light(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a regular color light (LIFX Color).
 
@@ -64,6 +68,14 @@ def create_color_light(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -83,6 +95,10 @@ def create_color_light(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )  # LIFX Color
 
 
@@ -97,6 +113,10 @@ def create_infrared_light(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create an infrared-enabled light (LIFX A19 Night Vision).
 
@@ -114,6 +134,14 @@ def create_infrared_light(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -133,6 +161,10 @@ def create_infrared_light(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )  # LIFX A19 Night Vision
 
 
@@ -147,6 +179,10 @@ def create_hev_light(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create an HEV-enabled light (LIFX Clean).
 
@@ -164,6 +200,14 @@ def create_hev_light(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -183,6 +227,10 @@ def create_hev_light(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )  # LIFX Clean
 
 
@@ -199,6 +247,10 @@ def create_multizone_light(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a multizone light (LIFX Beam)
 
@@ -214,6 +266,14 @@ def create_multizone_light(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -232,6 +292,10 @@ def create_multizone_light(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )
 
 
@@ -249,6 +313,10 @@ def create_tile_device(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a tile device (LIFX Tile)
 
@@ -267,6 +335,14 @@ def create_tile_device(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. LIFX Tile (product 55) has a terminal firmware ceiling
@@ -287,6 +363,10 @@ def create_tile_device(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )  # LIFX Tile
 
 
@@ -301,6 +381,10 @@ def create_color_temperature_light(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a color temperature light (LIFX Mini White to Warm).
 
@@ -320,6 +404,14 @@ def create_color_temperature_light(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -339,6 +431,10 @@ def create_color_temperature_light(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )  # LIFX Mini White to Warm
 
 
@@ -354,6 +450,10 @@ def create_switch(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a LIFX Switch device.
 
@@ -371,6 +471,14 @@ def create_switch(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
             Connectivity member). None means unspecified and resolves to
             WiFi. An explicit string that is not "wifi" or "thread" raises
@@ -390,6 +498,10 @@ def create_switch(
         mdns_enabled=mdns_enabled,
         mdns_address=mdns_address,
         clock=clock,
+        location_label=location_label,
+        location_id=location_id,
+        group_label=group_label,
+        group_id=group_id,
     )
 
 
@@ -411,6 +523,10 @@ def create_device(
     mdns_enabled: bool = True,
     mdns_address: str | None = None,
     clock: Callable[[], int] | None = None,
+    location_label: str | None = None,
+    location_id: bytes | None = None,
+    group_label: str | None = None,
+    group_id: bytes | None = None,
 ) -> EmulatedLifxDevice:
     """Create a device for any LIFX product using the product registry.
 
@@ -442,6 +558,14 @@ def create_device(
         clock: Optional monotonic nanosecond clock used for uptime and for
             evaluating colour and power transitions (defaults to
             ``time.monotonic_ns``).
+        location_label: Optional location label (defaults to
+            "Test Location"). Devices sharing a label share a location.
+        location_id: Optional explicit 16-byte location identifier;
+            derived from the label when omitted.
+        group_label: Optional group label (defaults to "Test Group").
+            Devices sharing a label share a group.
+        group_id: Optional explicit 16-byte group identifier; derived
+            from the label when omitted.
         connectivity: Optional connectivity ("wifi", "thread", or a
                          Connectivity member). None means unspecified and
                          resolves to WiFi. An explicit string that is not
@@ -502,6 +626,8 @@ def create_device(
         builder.with_connectivity(connectivity)
 
     builder.with_mdns(mdns_enabled, mdns_address)
+    builder.with_location(location_label, location_id)
+    builder.with_group(group_label, group_id)
     builder.with_initial_persistence(persist_initial_state)
     if clock is not None:
         builder.with_clock(clock)
