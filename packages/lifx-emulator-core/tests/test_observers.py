@@ -84,6 +84,54 @@ class TestActivityLogger:
         assert activity[0]["packet_name"] == "GetStatus"
         assert activity[0]["target"] == "d073d5000001"
 
+    def test_packet_event_defaults_to_fully_decoded(self):
+        """Test PacketEvent carries no payload hex or reason by default."""
+        event = PacketEvent(
+            timestamp=time.time(),
+            direction="rx",
+            packet_type=101,
+            packet_name="GetColor",
+            addr="127.0.0.1:56700",
+        )
+        assert event.payload_hex is None
+        assert event.decode_error is None
+
+    def test_activity_logger_records_undecodable_payload(self):
+        """Test ActivityLogger keeps the raw hex and reason when present."""
+        logger = ActivityLogger(max_events=100)
+        event = PacketEvent(
+            timestamp=time.time(),
+            direction="rx",
+            packet_type=9999,
+            packet_name="Unknown(9999)",
+            addr="127.0.0.1:56700",
+            target="d073d5000001",
+            payload_hex="deadbeef",
+            decode_error="unknown type",
+        )
+        logger.on_packet_received(event)
+
+        (activity,) = logger.get_recent_activity()
+        assert activity["payload_hex"] == "deadbeef"
+        assert activity["decode_error"] == "unknown type"
+
+    def test_activity_logger_omits_payload_fields_when_decoded(self):
+        """Test ActivityLogger leaves out the payload keys for decoded packets."""
+        logger = ActivityLogger(max_events=100)
+        event = PacketEvent(
+            timestamp=time.time(),
+            direction="rx",
+            packet_type=101,
+            packet_name="GetColor",
+            addr="127.0.0.1:56700",
+            target="d073d5000001",
+        )
+        logger.on_packet_received(event)
+
+        (activity,) = logger.get_recent_activity()
+        assert "payload_hex" not in activity
+        assert "decode_error" not in activity
+
     def test_activity_logger_logs_sent_packets(self):
         """Test that ActivityLogger logs sent packets."""
         logger = ActivityLogger(max_events=100)

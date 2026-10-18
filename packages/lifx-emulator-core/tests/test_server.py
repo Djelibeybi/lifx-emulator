@@ -1393,7 +1393,7 @@ class TestErrorHandling:
     async def test_handle_unparsable_payload_preserves_error_count_and_activity(
         self, color_device
     ):
-        """Test invalid payload records receive/type but no error or activity."""
+        """Test invalid payload records receive/type and activity but no error."""
         activity_logger = ActivityLogger(max_events=10)
         device_manager = DeviceManager(DeviceRepository())
         server = EmulatedLifxServer(
@@ -1425,7 +1425,113 @@ class TestErrorHandling:
         assert server.packets_received == 1
         assert server.packets_received_by_type == {102: 1}
         assert server.error_count == 0
-        assert activity_logger.get_recent_activity() == []
+        # The observer still receives the rx event, now carrying the raw bytes
+        # and the unpack failure reason so the activity log can show them.
+        (event,) = activity_logger.get_recent_activity()
+        assert event["direction"] == "rx"
+        assert event["packet_type"] == 102
+        assert event["target"] == color_device.state.serial
+        assert event["payload_hex"] == "0000000000"
+        assert isinstance(event["decode_error"], str)
+        assert event["decode_error"]
+        assert event["decode_error"] != "unknown type"
+        server.transport.sendto.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_unknown_type_activity_carries_payload_hex(self, color_device):
+        """Test an unknown packet type records its raw payload and reason."""
+        activity_logger = ActivityLogger(max_events=10)
+        device_manager = DeviceManager(DeviceRepository())
+        server = EmulatedLifxServer(
+            [color_device],
+            device_manager,
+            "127.0.0.1",
+            56707,
+            activity_observer=activity_logger,
+        )
+        payload = bytes(range(1, 11))
+        header = LifxHeader(
+            size=HEADER_SIZE + len(payload),
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=9999,
+            tagged=False,
+        )
+        server.transport = Mock()
+
+        await server.handle_packet(header.pack() + payload, ("127.0.0.1", 56700))
+
+        assert server.packets_received == 1
+        assert server.packets_received_by_type == {9999: 1}
+        assert server.error_count == 0
+        (event,) = [
+            event
+            for event in activity_logger.get_recent_activity()
+            if event["direction"] == "rx"
+        ]
+        assert event["packet_type"] == 9999
+        assert event["payload_hex"] == "0102030405060708090a"
+        assert event["decode_error"] == "unknown type"
+
+    @pytest.mark.asyncio
+    async def test_unknown_type_without_payload_records_empty_hex(self, color_device):
+        """Test an unknown type with no payload still records the reason."""
+        activity_logger = ActivityLogger(max_events=10)
+        server = EmulatedLifxServer(
+            [color_device],
+            DeviceManager(DeviceRepository()),
+            activity_observer=activity_logger,
+        )
+        header = LifxHeader(
+            size=HEADER_SIZE,
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=9999,
+            tagged=False,
+        )
+        server.transport = Mock()
+
+        await server.handle_packet(header.pack(), ("127.0.0.1", 56700))
+
+        (event,) = [
+            event
+            for event in activity_logger.get_recent_activity()
+            if event["direction"] == "rx"
+        ]
+        assert event["payload_hex"] == ""
+        assert event["decode_error"] == "unknown type"
+
+    @pytest.mark.asyncio
+    async def test_decodable_packet_activity_has_no_payload_fields(self, color_device):
+        """Test a fully decoded packet records neither hex nor reason."""
+        activity_logger = ActivityLogger(max_events=10)
+        server = EmulatedLifxServer(
+            [color_device],
+            DeviceManager(DeviceRepository()),
+            activity_observer=activity_logger,
+        )
+        header = LifxHeader(
+            size=HEADER_SIZE,
+            source=12345,
+            target=color_device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=Light.GetColor.PKT_TYPE,
+            res_required=True,
+        )
+        server.transport = Mock()
+
+        await server.handle_packet(header.pack(), ("127.0.0.1", 56700))
+
+        rx_events = [
+            event
+            for event in activity_logger.get_recent_activity()
+            if event["direction"] == "rx"
+        ]
+        assert len(rx_events) == 1
+        assert "payload_hex" not in rx_events[0]
+        assert "decode_error" not in rx_events[0]
 
     @pytest.mark.parametrize(
         "serial",

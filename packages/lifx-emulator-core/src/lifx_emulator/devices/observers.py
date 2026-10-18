@@ -23,6 +23,10 @@ class PacketEvent:
         addr: Network address string (host:port)
         device: Device serial (for tx events) or None
         target: Target identifier (for rx events) or None
+        payload_hex: Raw payload bytes as hex when the packet could not be
+            fully decoded, or None for decoded packets
+        decode_error: Why the payload could not be decoded ("unknown type"
+            or the unpack error message), or None for decoded packets
     """
 
     timestamp: float
@@ -32,6 +36,19 @@ class PacketEvent:
     addr: str
     device: str | None = None  # Device serial for tx events
     target: str | None = None  # Target for rx events
+    payload_hex: str | None = None  # Raw payload for undecodable rx events
+    decode_error: str | None = None  # Reason the payload was not decoded
+
+    def undecodable_fields(self) -> dict[str, str]:
+        """Return the payload hex and reason when the packet was not decoded.
+
+        Returns:
+            Dict with ``payload_hex`` and ``decode_error`` keys when both are
+            set, otherwise an empty dict so decoded events stay compact
+        """
+        if self.payload_hex is None or self.decode_error is None:
+            return {}
+        return {"payload_hex": self.payload_hex, "decode_error": self.decode_error}
 
 
 class ActivityObserver(Protocol):
@@ -87,6 +104,7 @@ class ActivityLogger:
                 "packet_name": event.packet_name,
                 "target": event.target,
                 "addr": event.addr,
+                **event.undecodable_fields(),
             }
         )
 
