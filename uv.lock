@@ -455,7 +455,7 @@ requires-dist = [
 
 [[package]]
 name = "lifx-emulator-core"
-version = "3.14.0"
+version = "3.15.0"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
     { name = "ifaddr" },
