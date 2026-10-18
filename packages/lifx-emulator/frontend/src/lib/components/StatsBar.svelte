@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { stats } from '$lib/stores';
-	import { formatUptime } from '$lib/utils/color';
+	import { stats } from '#lib/stores/index.ts';
+	import { formatUptime } from '#lib/utils/color.ts';
 </script>
 
 <div class="card">

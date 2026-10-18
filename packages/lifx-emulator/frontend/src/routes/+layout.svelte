@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { theme } from '$lib/stores';
+	import { theme } from '#lib/stores/index.ts';
 
 	let { children } = $props();
 

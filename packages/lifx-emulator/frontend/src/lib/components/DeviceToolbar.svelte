@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createDevice, deleteAllDevices } from '$lib/utils/api';
-	import { devices, ui, products } from '$lib/stores';
+	import { createDevice, deleteAllDevices } from '#lib/utils/api.ts';
+	import { devices, ui, products } from '#lib/stores/index.ts';
 
 	let selectedProductId = $state<number | null>(null);
 	let loading = $state(false);

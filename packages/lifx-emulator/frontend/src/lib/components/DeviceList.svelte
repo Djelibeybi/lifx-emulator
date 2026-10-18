@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { devices, ui } from '$lib/stores';
+	import { devices, ui } from '#lib/stores/index.ts';
 	import DeviceCard from './DeviceCard.svelte';
 	import Pagination from './Pagination.svelte';
 

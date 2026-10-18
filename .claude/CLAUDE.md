@@ -45,7 +45,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Uvicorn 0.44.x (`>=0.34.0`) - ASGI server; `run_api_server()` in `api/app.py` builds `uvicorn.Config`/`uvicorn.Server` and awaits `serve()` inside the existing event loop
 - websockets 16.0 (`>=16.0`) - WebSocket transport backend for Uvicorn (`/ws` endpoint in `api/routers/websocket.py`)
 - cyclopts 4.10.x (`>=4.2.0`) - CLI framework; entry point `lifx_emulator_app.__main__:main` in `packages/lifx-emulator/src/lifx_emulator_app/__main__.py` (commands: `run`, `list-products`, `clear-storage`, `export-config`)
-- SvelteKit 2.70.x with `@sveltejs/adapter-static` 3.0.x - Frontend, statically exported into the FastAPI package (`packages/lifx-emulator/frontend/svelte.config.js` writes `pages`/`assets` to `../src/lifx_emulator_app/api/static` with `fallback: 'index.html'`)
+- SvelteKit 3.1.x with `@sveltejs/adapter-static` 4.0.x - Frontend, statically exported into the FastAPI package (the `sveltekit()` plugin options in `packages/lifx-emulator/frontend/vite.config.ts` write `pages`/`assets` to `../src/lifx_emulator_app/api/static` with `fallback: 'index.html'`; SvelteKit 3 no longer reads `svelte.config.js`)
 - pytest 9.0.x (`>=8.4.2`) - Config in root `pyproject.toml` `[tool.pytest.ini_options]`; `testpaths` covers both packages' `tests/` dirs
 - pytest-asyncio 1.3.x - `asyncio_mode = "auto"`, function-scoped loops
 - pytest-cov 7.1.x - Branch coverage, XML + terminal reports; CI enforces `--cov-fail-under=80`
@@ -75,8 +75,8 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - `websockets>=16.0` - Required so Uvicorn can upgrade `/ws` connections
 - `rich>=14.2.0` - `RichHandler` logging output in `__main__.py`
 - Stdlib only for protocol work: `struct` (`protocol/serializer.py`), `urllib.request.urlopen` (code generators only)
-- `svelte ^5.55.7`, `@sveltejs/kit ^2.50.2`, `@sveltejs/adapter-static ^3.0.10`, `@sveltejs/adapter-auto ^7.0.0`, `@sveltejs/vite-plugin-svelte ^7.0.0`, `vite ^8.0.5`, `typescript ^6.0.0`, `svelte-check ^4.3.5`
-- npm `overrides.cookie: ^0.7.0` pinned below 1.0 (SvelteKit needs the `parse`/`serialize` named exports; also enforced by `renovate.json` `allowedVersions: "<1.0.0"`)
+- `svelte ^5.55.7`, `@sveltejs/kit ^3.1.0`, `@sveltejs/adapter-static ^4.0.0`, `@sveltejs/vite-plugin-svelte ^7.0.0`, `vite ^8.3.4`, `typescript ^6.0.0`, `svelte-check ^4.3.5`
+- `cookie` is no longer overridden: SvelteKit 3 depends on cookie 2.x directly (the old `<1.0.0` pin was only needed by SvelteKit 2)
 
 ## Configuration
 
@@ -87,7 +87,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Persistent storage directory: `~/.lifx-emulator/` (`DEFAULT_STORAGE_DIR` in `devices/persistence.py` and `scenarios/persistence.py`); `--persistent` / `--persistent-scenarios` flags are deprecated in favour of `lifx-emulator export-config`.
 - `pyproject.toml` (root) - uv workspace, dev dependency group, Ruff/Pyright/pytest/coverage/bandit/codespell config
 - `packages/lifx-emulator-core/pyproject.toml`, `packages/lifx-emulator/pyproject.toml` - Package metadata, hatchling build, per-package pytest/pyright overrides, semantic-release config
-- `packages/lifx-emulator/frontend/package.json`, `svelte.config.js`, `vite.config.ts`, `tsconfig.json` - Frontend build
+- `packages/lifx-emulator/frontend/package.json` (including the `imports` field that declares `#lib`), `vite.config.ts` (SvelteKit and adapter options), `tsconfig.json` (extends `$app/tsconfig`) - Frontend build
 - `.pre-commit-config.yaml` - Hook definitions
 - `mkdocs.yml` - Docs site (Zensical consumes it)
 - `renovate.json` - Dependency update policy (Australia/Melbourne schedule, digest pinning for GitHub Actions, auto-merge for dev/test/code-quality groups, Python version updates disabled)
@@ -148,7 +148,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 ## Import Organization
 
 - Python: none; always absolute package imports (`lifx_emulator.*`, `lifx_emulator_app.*`). Never relative imports.
-- Frontend: SvelteKit `$lib` alias (`import type { Device } from '$lib/types'`).
+- Frontend: SvelteKit 3 `#lib` subpath import with an explicit extension (`import type { Device } from '#lib/types.ts'`; directories need `/index.ts`).
 
 ## Error Handling
 
@@ -201,7 +201,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - `lifx_emulator` (core) never imports `lifx_emulator_app`.
 - `api/services/*` never import FastAPI; `api/routers/*` never touch `server.device_manager` directly -- they call a service.
 - Auto-generated files are never hand-edited: `protocol/packets.py` (`python -m lifx_emulator.protocol.generator`) and `products/registry.py` (`python -m lifx_emulator.products.generator`). `protocol/protocol_types.py` is also generator-maintained.
-- The Svelte build writes into `packages/lifx-emulator/src/lifx_emulator_app/api/static/` (`frontend/svelte.config.js`); treat that directory as a build artefact and edit only `frontend/src/`.
+- The Svelte build writes into `packages/lifx-emulator/src/lifx_emulator_app/api/static/` (`frontend/vite.config.ts`); treat that directory as a build artefact and edit only `frontend/src/`.
 - Core I/O is `asyncio` (DatagramProtocol server, async file persistence with debouncing). Services that persist are `async def` and `await server.scenario_persistence.save(...)`; pure getters stay synchronous (`api/services/scenario_service.py`).
 - Fire-and-forget save tasks are tracked (`_track_save_task()` in `devices/device.py`) so they can be awaited on shutdown.
 
@@ -287,7 +287,7 @@ This milestone adds **Thread emulation**: LIFX bulbs now ship firmware that runs
 - Location: `packages/lifx-emulator/frontend/src/`
 - Contains: `routes/+page.svelte`, `lib/components/*.svelte`, `lib/stores/*.svelte.ts` (Svelte 5 runes), `lib/utils/api.ts` (REST calls), `lib/utils/color.ts`, `lib/types.ts`.
 - Depends on: `/api/*` REST and `/ws` WebSocket.
-- Used by: Browser; built into `api/static/` via `@sveltejs/adapter-static` (`frontend/svelte.config.js`).
+- Used by: Browser; built into `api/static/` via `@sveltejs/adapter-static` (`frontend/vite.config.ts`).
 
 ## Data Flow
 

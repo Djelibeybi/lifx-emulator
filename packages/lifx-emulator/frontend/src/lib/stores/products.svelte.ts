@@ -1,5 +1,5 @@
-import type { Product } from '$lib/types';
-import { fetchProducts } from '$lib/utils/api';
+import type { Product } from '#lib/types.ts';
+import { fetchProducts } from '#lib/utils/api.ts';
 
 function createProductsStore() {
 	let items = $state<Product[]>([]);

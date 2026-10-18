@@ -3,7 +3,7 @@
 // this module places each zone on its physical ring so the dashboard can draw
 // the fixture as it looks instead of as its 4x13 buffer.
 
-import type { Device, HsbkColor } from '$lib/types';
+import type { Device, HsbkColor } from '#lib/types.ts';
 
 export interface RingZone {
 	zone: number;

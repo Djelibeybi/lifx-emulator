@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { devices, ui, products } from '$lib/stores';
-	import { deleteDevice } from '$lib/utils/api';
-	import { hsbkToCss } from '$lib/utils/color';
+	import { devices, ui, products } from '#lib/stores/index.ts';
+	import { deleteDevice } from '#lib/utils/api.ts';
+	import { hsbkToCss } from '#lib/utils/color.ts';
 	import Pagination from './Pagination.svelte';
 
 	let deletingSerial = $state<string | null>(null);
