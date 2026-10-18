@@ -42,6 +42,10 @@ from lifx_emulator.scenarios import HierarchicalScenarioManager
 
 logger = logging.getLogger(__name__)
 
+# Decode-failure reason recorded on activity events for packet types that
+# have no generated packet class.
+UNKNOWN_TYPE_REASON = "unknown type"
+
 PeerAddress = tuple[str, int] | tuple[str, int, int, int]
 _DUAL_BIND_ATTEMPTS = 5
 _TRACKED_TASK_DRAIN_TIMEOUT = 5.0
@@ -163,6 +167,33 @@ def _format_peer(context: _DatagramContext) -> str:
     if context.family == socket.AF_INET6:
         return f"[{host}]:{port}"
     return f"{host}:{port}"
+
+
+def _build_rx_event(
+    header: LifxHeader, peer_text: str, payload: bytes, decode_error: str | None
+) -> PacketEvent:
+    """Build the activity event for a received datagram.
+
+    Args:
+        header: Unpacked header for the datagram
+        peer_text: Formatted peer address
+        payload: Payload bytes following the header
+        decode_error: Reason the payload was not decoded, or None
+
+    Returns:
+        PacketEvent carrying the raw payload hex and reason only when the
+        payload could not be decoded
+    """
+    return PacketEvent(
+        timestamp=time.time(),
+        direction="rx",
+        packet_type=header.pkt_type,
+        packet_name=_get_packet_type_name(header.pkt_type),
+        addr=peer_text,
+        target=_format_target(header),
+        payload_hex=payload.hex() if decode_error is not None else None,
+        decode_error=decode_error,
+    )
 
 
 class EmulatedLifxServer:
@@ -558,6 +589,58 @@ class EmulatedLifxServer:
                 )
             )
 
+    def _decode_payload(
+        self, header: LifxHeader, payload: bytes, peer_text: str
+    ) -> tuple[Any, str | None, bool]:
+        """Unpack a payload, returning the packet, failure reason and drop flag.
+
+        Args:
+            header: Unpacked header for the datagram
+            payload: Payload bytes following the header (may be empty)
+            peer_text: Formatted peer address for log messages
+
+        Returns:
+            ``(packet, None, False)`` when the payload decoded (``packet`` is
+            None for a known type with no payload); ``(None, "unknown type",
+            False)`` when the type has no generated class, so devices still
+            see it; ``(None, reason, True)`` when a known type's payload
+            failed to unpack and the packet must be discarded
+        """
+        packet_class = get_packet_class(header.pkt_type)
+        if packet_class is None:
+            logger.warning(
+                "← RX Unknown packet type %s from %s (target=%s, seq=%s)",
+                header.pkt_type,
+                peer_text,
+                _format_target(header),
+                header.sequence,
+            )
+            if payload:
+                logger.info(
+                    "Unknown packet payload (%s bytes): %s",
+                    len(payload),
+                    payload.hex(),
+                )
+            # Continue processing - device might still want to respond or log it
+            return None, UNKNOWN_TYPE_REASON, False
+
+        if not payload:
+            # A known packet class with no payload is valid for Get* packets.
+            return None, None, False
+
+        try:
+            return packet_class.unpack(payload), None, False
+        except Exception as error:
+            logger.warning(
+                "Failed to unpack %s (type %s) from %s: %s",
+                _get_packet_type_name(header.pkt_type),
+                header.pkt_type,
+                peer_text,
+                error,
+            )
+            logger.debug("Raw payload (%s bytes): %s", len(payload), payload.hex())
+            return None, str(error), True
+
     async def handle_packet(
         self,
         data: bytes,
@@ -594,72 +677,32 @@ class EmulatedLifxServer:
                 else b""
             )
 
-            # Unpack payload into packet object
-            packet = None
-            packet_class = get_packet_class(header.pkt_type)
-
             # Update packet type statistics
             self.packets_received_by_type[header.pkt_type] += 1
 
-            if packet_class:
-                if payload:
-                    try:
-                        packet = packet_class.unpack(payload)
-                    except Exception as e:
-                        logger.warning(
-                            "Failed to unpack %s (type %s) from %s: %s",
-                            _get_packet_type_name(header.pkt_type),
-                            header.pkt_type,
-                            peer_text,
-                            e,
-                        )
-                        logger.debug(
-                            "Raw payload (%s bytes): %s", len(payload), payload.hex()
-                        )
-                        return
-                # else: packet_class exists but no payload (valid for some packet types)
-            else:
-                # Unknown packet type - log it with raw payload
-                target_str = _format_target(header)
-                logger.warning(
-                    "← RX Unknown packet type %s from %s (target=%s, seq=%s)",
-                    header.pkt_type,
-                    peer_text,
-                    target_str,
-                    header.sequence,
-                )
-                if payload:
-                    logger.info(
-                        "Unknown packet payload (%s bytes): %s",
-                        len(payload),
-                        payload.hex(),
-                    )
-                # Continue processing - device might still want to respond or log it
+            packet, decode_error, drop = self._decode_payload(
+                header, payload, peer_text
+            )
 
             # Log received packet with details
             packet_name = _get_packet_type_name(header.pkt_type)
             target_str = _format_target(header)
-            fields_str = _format_packet_fields(packet)
             logger.debug(
                 "← RX %s from %s (target=%s, seq=%s) [%s]",
                 packet_name,
                 peer_text,
                 target_str,
                 header.sequence,
-                fields_str,
+                _format_packet_fields(packet),
             )
 
-            # Notify observer
+            # Notify observer. An undecodable payload is still reported so the
+            # activity log can show its raw bytes, before the packet is dropped.
             self.activity_observer.on_packet_received(
-                PacketEvent(
-                    timestamp=time.time(),
-                    direction="rx",
-                    packet_type=header.pkt_type,
-                    packet_name=packet_name,
-                    addr=peer_text,
-                    target=target_str,
-                )
+                _build_rx_event(header, peer_text, payload, decode_error)
             )
+            if drop:
+                return
 
             # Process packet for each target device
             # Use parallel processing for broadcasts to improve scalability

@@ -69,6 +69,10 @@ export interface ActivityEvent {
 	device?: string;
 	target: string;
 	addr: string;
+	/** Raw payload bytes as hex; present only when the packet was undecodable. */
+	payload_hex?: string;
+	/** Why the payload was not decoded ("unknown type" or the unpack error). */
+	decode_error?: string;
 }
 
 export interface ScenarioConfig {

@@ -149,6 +149,24 @@ Returns the last 100 packet events (TX/RX) with timestamps and packet details.
 - `device`: Target device serial (if applicable)
 - `target`: LIFX protocol target field
 - `addr`: Client IP and port
+- `payload_hex`: Raw payload bytes as hex. Present only on received packets the emulator could not decode
+- `decode_error`: Why the payload was not decoded: `"unknown type"` for a packet type with no definition, or the unpack error for a known type with a malformed payload. Present only alongside `payload_hex`
+
+Undecodable packets are still counted in `packets_received` and do not increment `error_count`. Example event for an unknown packet type:
+
+```json
+{
+  "timestamp": 1699564923.458,
+  "direction": "rx",
+  "packet_type": 9999,
+  "packet_name": "Unknown(9999)",
+  "device": null,
+  "target": "d073d5000001",
+  "addr": "192.168.1.100:54321",
+  "payload_hex": "0102030405",
+  "decode_error": "unknown type"
+}
+```
 
 **Use Cases:**
 - Debugging LIFX client communication

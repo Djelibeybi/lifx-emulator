@@ -1,8 +1,16 @@
 """Pydantic models for API requests and responses."""
 
 # Import shared domain models
+from typing import Any
+
 from lifx_emulator.scenarios import ScenarioConfig
-from pydantic import BaseModel, Field, field_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer,
+)
 
 from lifx_emulator_app.config import validate_identifier_hex
 
@@ -199,7 +207,13 @@ class ServerStats(BaseModel):
 
 
 class ActivityEvent(BaseModel):
-    """Recent activity event."""
+    """Recent activity event.
+
+    ``payload_hex`` and ``decode_error`` are present only for received packets
+    the emulator could not fully decode: an unknown packet type (reason
+    ``"unknown type"``) or a known type whose payload failed to unpack (reason
+    carries the unpack error). Decoded packets omit both fields.
+    """
 
     timestamp: float
     direction: str
@@ -208,6 +222,23 @@ class ActivityEvent(BaseModel):
     device: str | None = None
     target: str | None = None
     addr: str
+    payload_hex: str | None = Field(
+        None, description="Raw payload bytes as hex when the packet was undecodable"
+    )
+    decode_error: str | None = Field(
+        None, description="Why the payload was not decoded, when undecodable"
+    )
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_payload(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        """Drop the undecodable-payload keys when the packet was decoded."""
+        data = handler(self)
+        for key in ("payload_hex", "decode_error"):
+            if data.get(key) is None:
+                data.pop(key, None)
+        return data
 
 
 class TileColorUpdate(BaseModel):

@@ -10,7 +10,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 import uvicorn
 from fastapi.testclient import TestClient
-from lifx_emulator.devices import derive_group_id, derive_location_id
+from lifx_emulator.constants import HEADER_SIZE
+from lifx_emulator.devices import ActivityLogger, derive_group_id, derive_location_id
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
@@ -373,6 +374,64 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         activity = response.json()
         assert isinstance(activity, list)
+
+    def test_get_activity_undecodable_packets_carry_payload_hex(self):
+        """Test GET /api/activity exposes raw bytes and reason when undecodable."""
+        device = create_color_light("d073d5000001")
+        server = EmulatedLifxServer(
+            [device],
+            DeviceManager(DeviceRepository()),
+            "127.0.0.1",
+            56700,
+            activity_observer=ActivityLogger(max_events=10),
+        )
+        server.transport = Mock()
+        target = device.state.get_target_bytes()
+        unknown_payload = b"\x01\x02\x03"
+        unknown = LifxHeader(
+            size=HEADER_SIZE + len(unknown_payload),
+            source=1,
+            target=target,
+            sequence=1,
+            pkt_type=9999,
+        )
+        malformed = LifxHeader(
+            size=HEADER_SIZE + 2,
+            source=1,
+            target=target,
+            sequence=2,
+            pkt_type=Light.SetColor.PKT_TYPE,
+        )
+        decodable = LifxHeader(
+            size=HEADER_SIZE,
+            source=1,
+            target=target,
+            sequence=3,
+            pkt_type=Light.GetColor.PKT_TYPE,
+        )
+
+        async def send_all():
+            addr = ("127.0.0.1", 56700)
+            await server.handle_packet(unknown.pack() + unknown_payload, addr)
+            await server.handle_packet(malformed.pack() + b"\xaa\xbb", addr)
+            await server.handle_packet(decodable.pack(), addr)
+
+        asyncio.run(send_all())
+
+        with TestClient(create_api_app(server)) as client:
+            response = client.get("/api/activity")
+        assert response.status_code == 200
+        rx_events = {
+            event["packet_type"]: event
+            for event in response.json()
+            if event["direction"] == "rx"
+        }
+        assert rx_events[9999]["payload_hex"] == "010203"
+        assert rx_events[9999]["decode_error"] == "unknown type"
+        assert rx_events[Light.SetColor.PKT_TYPE]["payload_hex"] == "aabb"
+        assert rx_events[Light.SetColor.PKT_TYPE]["decode_error"]
+        assert "payload_hex" not in rx_events[Light.GetColor.PKT_TYPE]
+        assert "decode_error" not in rx_events[Light.GetColor.PKT_TYPE]
 
 
 class TestWebUI:

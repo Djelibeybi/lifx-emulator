@@ -6,6 +6,7 @@ const DEFAULT_STATS: Stats = {
 	device_count: 0,
 	packets_received: 0,
 	packets_sent: 0,
+	packets_filtered: 0,
 	packets_received_by_type: {},
 	packets_sent_by_type: {},
 	error_count: 0,
