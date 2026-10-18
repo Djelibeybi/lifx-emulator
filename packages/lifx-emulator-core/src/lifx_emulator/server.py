@@ -46,7 +46,9 @@ PeerAddress = tuple[str, int] | tuple[str, int, int, int]
 _DUAL_BIND_ATTEMPTS = 5
 _TRACKED_TASK_DRAIN_TIMEOUT = 5.0
 _ENDPOINT_CLOSE_TIMEOUT = 1.0
-_IPV4_WILDCARD = "0.0.0.0"
+# Bound only when the operator names a specific LAN address, so that limited
+# broadcasts are received; peers are then filtered to that interface.
+_IPV4_WILDCARD = "0.0.0.0"  # nosec B104
 
 
 @dataclass(frozen=True)
