@@ -369,7 +369,7 @@ As on real firmware, the reply to `GetColorZones` (or to `SetColorZones` with
 `res_required`) depends on the requested range: a single zone
 (`start_index == end_index`) gets one `StateZone` carrying the total zone
 count, the index and that zone's colour, while a range of two or more zones
-gets one `StateMultiZone` per 8 zones. A single-zone request at or beyond the
+gets one `StateMultiZone` per 8 zones. A single-zone request beyond the
 last zone gets no reply.
 
 **Extended (extended multizone only):**
