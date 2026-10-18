@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v4.9.0 (2026-10-18)
+
+### Features
+
+- **frontend**: Upgrade dashboard to SvelteKit 3 and adapter-static 4
+  ([#261](https://github.com/Djelibeybi/lifx-emulator/pull/261),
+  [`2fcf29a`](https://github.com/Djelibeybi/lifx-emulator/commit/2fcf29a93a6afa0adc145b45f36bd0468695a349))
+
+
 ## v4.8.0 (2026-10-18)
 
 ### Features
