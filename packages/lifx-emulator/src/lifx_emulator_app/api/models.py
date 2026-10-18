@@ -138,6 +138,14 @@ class ServerStats(BaseModel):
         ge=0,
         description="Packets rejected because the server's pending-work limit was full",
     )
+    packets_filtered: int = Field(
+        ...,
+        ge=0,
+        description=(
+            "IPv4 datagrams ignored because the peer is outside the subnets of "
+            "the interface selected by the bind address"
+        ),
+    )
     websocket_events_dropped: int = Field(
         ...,
         ge=0,

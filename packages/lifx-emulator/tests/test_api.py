@@ -52,6 +52,7 @@ class TestAPIEndpoints:
     def test_get_stats(self, api_client, server_with_devices):
         """Test GET /api/stats returns server statistics."""
         server_with_devices.packets_dropped_overload = 7
+        server_with_devices.packets_filtered = 4
         response = api_client.get("/api/stats")
         assert response.status_code == 200
         data = response.json()
@@ -63,6 +64,7 @@ class TestAPIEndpoints:
         assert "packets_sent" in data
         assert "error_count" in data
         assert data["packets_dropped_overload"] == 7
+        assert data["packets_filtered"] == 4
 
     async def test_concurrent_durable_updates_discard_failed_candidate(self):
         """A later REST mutation cannot inherit an earlier failed candidate."""

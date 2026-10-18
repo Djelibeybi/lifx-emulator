@@ -772,7 +772,11 @@ async def run(
         config: Path to YAML config file. If not specified, checks
             LIFX_EMULATOR_CONFIG env var, then auto-detects
             lifx-emulator.yaml or lifx-emulator.yml in current directory.
-        bind: IP address to bind to. Default: 127.0.0.1.
+        bind: IPv4 address to bind to. Default: 127.0.0.1. Loopback and
+            0.0.0.0 bind directly. Any other address binds 0.0.0.0 and only
+            accepts peers on the subnets of the interface owning that address,
+            so broadcast discovery works; unicast from other subnets is
+            filtered. Use 0.0.0.0 to answer on every interface.
         port: UDP port to listen on. Default: 56700.
         verbose: Enable verbose logging showing all packets sent and received.
         persistent: DEPRECATED. Enable persistent storage of device state across

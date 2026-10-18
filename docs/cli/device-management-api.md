@@ -92,9 +92,14 @@ Returns server uptime, packet counts, error counts, and device count.
     "116": 300
   },
   "error_count": 2,
+  "packets_dropped_overload": 0,
+  "packets_filtered": 0,
+  "websocket_events_dropped": 0,
   "activity_enabled": true
 }
 ```
+
+`packets_filtered` counts IPv4 datagrams ignored because the peer is outside the subnets of the interface selected by `--bind`. It stays at zero for loopback and `0.0.0.0` binds.
 
 **Use Cases:**
 - Monitor emulator health and uptime

@@ -136,7 +136,13 @@ PermissionError: [Errno 13] Permission denied
    )
    ```
 
-   From the CLI, use `lifx-emulator --bind 0.0.0.0`.
+   From the CLI, use `lifx-emulator --bind 0.0.0.0`, or bind the address of
+   one LAN interface, for example `--bind 192.168.1.50`. A specific address
+   binds `0.0.0.0` underneath so broadcasts are received, and only answers
+   peers on that interface's subnets; peers elsewhere are counted as
+   `packets_filtered` in `/api/stats`. A rising `packets_filtered` with no
+   `packets_received` means the client is on a different subnet: bind
+   `0.0.0.0` instead.
 
 3. **Check firewall:**
 

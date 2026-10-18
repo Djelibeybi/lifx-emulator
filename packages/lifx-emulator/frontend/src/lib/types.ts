@@ -57,6 +57,7 @@ export interface Stats {
 	packets_received_by_type: Record<string, number>;
 	packets_sent_by_type: Record<string, number>;
 	error_count: number;
+	packets_filtered: number;
 	activity_enabled: boolean;
 }
 
