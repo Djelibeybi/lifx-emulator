@@ -434,6 +434,31 @@ class TestMatrix:
         )
         assert all(c.brightness == 65535 for c in _get_tile(tile))
 
+    def test_copy_from_short_framebuffer_copies_what_it_has(self, tile):
+        """A framebuffer shorter than the tile (hand-edited state) is not read past."""
+        full = _hsbk(brightness=65535)
+        framebuffer = tile.state.tile_framebuffers[0].get_framebuffer(1, 8, 8)
+        framebuffer[:] = [full] * 8  # only the first row exists
+        _send(
+            tile,
+            Tile.CopyFrameBuffer(
+                tile_index=0,
+                length=1,
+                src_fb_index=1,
+                dst_fb_index=0,
+                src_x=0,
+                src_y=0,
+                dst_x=0,
+                dst_y=0,
+                width=8,
+                height=8,
+                duration=0,
+            ),
+        )
+        zones = _get_tile(tile)
+        assert all(c.brightness == 65535 for c in zones[:8])
+        assert all(c.brightness == 0 for c in zones[8:])
+
     def test_set_color_fades_every_tile_zone(self, tile, clock):
         _set_color(tile, _hsbk(brightness=65535), duration_ms=1000)
         clock.advance_ms(500)
