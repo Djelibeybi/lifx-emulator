@@ -135,7 +135,7 @@ IPv4 address to bind the UDP server to.
 - `"127.0.0.1"` - Localhost only
 - `"192.168.1.100"` - Specific interface
 
-Loopback and `"0.0.0.0"` bind directly. A specific interface address binds `"0.0.0.0"` on the port so that discovery broadcasts are received, and filters datagrams to peers on the subnets of the interface that owns the address. Filtered datagrams are counted in `packets_filtered` (see `get_stats()`), are not counted as received and do not reach the activity observer. `start()` raises `ValueError` if no local interface owns the address. Unicast from peers outside the interface's subnets is filtered; use `"0.0.0.0"` to accept every peer.
+Loopback and `"0.0.0.0"` bind directly. A specific interface address binds `"0.0.0.0"` on the port so that discovery broadcasts are received, and filters datagrams to peers on the subnets of the interface that owns the address. Filtered datagrams are counted in `packets_filtered` (see `get_stats()`), are not counted as received and do not reach the activity observer. `start()` raises `ValueError` if no local interface owns the address. Unicast from peers outside the interface's subnets is filtered; use `"0.0.0.0"` to accept every peer. The filter is based on the peer's source address and is an interface-selection convenience, not a security control.
 
 The mDNS responder keeps advertising the configured `bind_address`.
 

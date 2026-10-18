@@ -125,6 +125,8 @@ Start-up fails with a clear error when the address is not assigned to any local 
 !!! note "Limitation"
     Unicast from peers outside the selected interface's subnets (for example, routed traffic from another VLAN) is filtered. Bind to `0.0.0.0` to answer on every interface instead.
 
+    The filter is decided from the peer's source address, which is not authenticated. It selects which network the emulator answers on; it is not a security control, so use a firewall to restrict who can reach the port.
+
 ### `--port <PORT>`
 
 UDP port to listen on.
