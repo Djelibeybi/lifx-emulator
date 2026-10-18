@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v4.11.0 (2026-10-18)
+
+### Features
+
+- Raw payload bytes for undecodable packets in the activity log
+  ([#266](https://github.com/Djelibeybi/lifx-emulator/pull/266),
+  [`fe931c3`](https://github.com/Djelibeybi/lifx-emulator/commit/fe931c3ef714472f573dc14efab05c49160c8d67))
+
+
 ## v4.10.0 (2026-10-18)
 
 ### Features
