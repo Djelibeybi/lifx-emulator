@@ -252,7 +252,8 @@ async def test_multizone_zones_round_trip(fleet: Fleet) -> None:
     reason=(
         "lifx-async up to 7.11.3 parses every GetColorZones reply as "
         "StateMultiZone (506); real firmware and the emulator answer a "
-        "single-zone request with StateZone (503), which has no colors field"
+        "single-zone request with StateZone (503), which has no colors field. "
+        "Reported upstream as Djelibeybi/lifx-async#324"
     ),
 )
 async def test_single_zone_legacy_request_reads_back(fleet: Fleet) -> None:
