@@ -234,13 +234,13 @@ jobs:
         fi
 
     - name: Upload Core Library Artifacts
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a   # v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7
       with:
         name: lifx-emulator-core-artifacts
         path: packages/lifx-emulator-core/dist
 
     - name: Upload CLI Package Artifacts
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a   # v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7
       with:
         name: lifx-emulator-artifacts
         path: packages/lifx-emulator/dist
