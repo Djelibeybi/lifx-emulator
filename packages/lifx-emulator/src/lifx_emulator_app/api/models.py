@@ -4,6 +4,8 @@
 from lifx_emulator.scenarios import ScenarioConfig
 from pydantic import BaseModel, Field, field_validator
 
+from lifx_emulator_app.config import validate_identifier_hex
+
 
 class DeviceCreateRequest(BaseModel):
     """Request to create a new device."""
@@ -81,18 +83,8 @@ class DeviceCreateRequest(BaseModel):
     @field_validator("location_id", "group_id")
     @classmethod
     def validate_identifier_format(cls, v: str | None) -> str | None:
-        """Validate a location or group identifier (32 hex characters)."""
-        if v is None:
-            return v
-        if len(v) != 32:
-            raise ValueError("Identifier must be exactly 32 hex characters")
-        try:
-            int(v, 16)
-        except ValueError as e:
-            raise ValueError(
-                "Identifier must be valid hexadecimal (0-9, a-f, A-F)"
-            ) from e
-        return v.lower()
+        """Validate a location or group identifier (32 ASCII hex characters)."""
+        return validate_identifier_hex(v) if v is not None else None
 
     @field_validator("serial")
     @classmethod

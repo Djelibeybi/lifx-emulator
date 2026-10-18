@@ -26,6 +26,8 @@ from lifx_emulator.devices.states import (
     WaveformState,
     coerce_connectivity,
     default_button,
+    derive_group_id,
+    derive_location_id,
 )
 from lifx_emulator.factories.default_config import DefaultColorConfig
 from lifx_emulator.factories.firmware_config import FirmwareConfig
@@ -424,6 +426,24 @@ class DeviceBuilder:
         self._group_id = group_id
         return self
 
+    def _apply_explicit_membership(self, state: DeviceState) -> None:
+        """Re-apply explicitly configured location and group after a restore.
+
+        An explicit label replaces the restored label and, unless an explicit
+        identifier was also given, derives a fresh identifier so the device
+        joins the configured location or group rather than keeping the saved
+        identifier under a new name. An explicit identifier alone replaces
+        only the identifier.
+        """
+        if self._location_label is not None or self._location_id is not None:
+            label = self._location_label or state.location.location_label
+            state.location.location_label = label
+            state.location.location_id = self._location_id or derive_location_id(label)
+        if self._group_label is not None or self._group_id is not None:
+            label = self._group_label or state.group.group_label
+            state.group.group_label = label
+            state.group.group_id = self._group_id or derive_group_id(label)
+
     def _create_location_state(self) -> LocationState:
         """Create the location state from the configured label and identifier."""
         kwargs: dict[str, Any] = {}
@@ -558,6 +578,11 @@ class DeviceBuilder:
         # single check already covers both conditions.
         if restorer is not None:
             restorer.restore_if_available(state)
+            # Restore replaces saved membership wholesale, so explicitly
+            # configured labels and identifiers must be re-applied to keep
+            # precedence over persisted values. Omitted options keep what
+            # was restored.
+            self._apply_explicit_membership(state)
 
         # 12. Create device
         return EmulatedLifxDevice(

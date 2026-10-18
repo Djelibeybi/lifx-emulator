@@ -197,3 +197,47 @@ class TestRestore:
         assert result.group_label == "Test Group"
         assert result.group_id == EXPLICIT_GROUP_ID
         assert result.group_id != derive_group_id("Test Group")
+
+
+class TestExplicitMembershipWinsOverRestore:
+    """Explicit factory options take precedence over restored membership."""
+
+    SAVED = {
+        "product": 91,  # LIFX Color, as built by create_color_light
+        "location_id": bytes(range(16)),
+        "location_label": "Old Location",
+        "group_id": bytes(range(16, 32)),
+        "group_label": "Old Group",
+    }
+
+    def _storage(self):
+        return MockStorage({"d073d5000001": dict(self.SAVED)})
+
+    def test_omitted_options_keep_restored_membership(self):
+        device = create_color_light("d073d5000001", storage=self._storage())
+        assert get_location(device).label == "Old Location"
+        assert get_location(device).location == bytes(range(16))
+        assert get_group(device).label == "Old Group"
+        assert get_group(device).group == bytes(range(16, 32))
+
+    def test_explicit_labels_replace_restored_labels_and_identifiers(self):
+        device = create_color_light(
+            "d073d5000001",
+            storage=self._storage(),
+            location_label="Kitchen",
+            group_label="Downlights",
+        )
+        assert get_location(device).label == "Kitchen"
+        assert get_location(device).location == derive_location_id("Kitchen")
+        assert get_group(device).label == "Downlights"
+        assert get_group(device).group == derive_group_id("Downlights")
+
+    def test_explicit_identifier_replaces_restored_identifier_only(self):
+        device = create_color_light(
+            "d073d5000001", storage=self._storage(), group_id=EXPLICIT_GROUP_ID
+        )
+        assert get_group(device).label == "Old Group"
+        assert get_group(device).group == EXPLICIT_GROUP_ID
+        # Location was not configured, so the saved location is kept
+        assert get_location(device).label == "Old Location"
+        assert get_location(device).location == bytes(range(16))

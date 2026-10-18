@@ -825,6 +825,23 @@ class TestLocationAndGroupIdentifiers:
         with pytest.raises(ValueError, match="32 hex characters"):
             DeviceDefinition(product_id=27, group_id="g" * 32)
 
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "+" + "a" * 31,
+            "-" + "a" * 31,
+            " " + "ab" * 15 + " ",
+            "ab" * 15 + "_a",
+            "ab" * 16 + "\n",
+            "\u0661" + "a" * 31,
+        ],
+        ids=["plus", "minus", "whitespace", "underscore", "newline", "unicode"],
+    )
+    def test_identifier_must_be_ascii_hex_only(self, value):
+        """int(v, 16) would accept these; the config boundary must not."""
+        with pytest.raises(ValueError, match="32 hex characters"):
+            DeviceDefinition(product_id=27, location_id=value)
+
     def test_identifiers_load_from_yaml(self, tmp_path):
         config_file = tmp_path / "config.yaml"
         config_file.write_text(

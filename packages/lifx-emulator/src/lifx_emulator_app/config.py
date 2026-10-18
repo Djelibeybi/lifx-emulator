@@ -16,7 +16,30 @@ AUTO_DETECT_FILENAMES = ("lifx-emulator.yaml", "lifx-emulator.yml")
 ENV_VAR = "LIFX_EMULATOR_CONFIG"
 
 _SERIAL_PATTERN = re.compile(r"^[0-9a-fA-F]{12}$")
-_IDENTIFIER_PATTERN = re.compile(r"^[0-9a-fA-F]{32}$")
+_IDENTIFIER_PATTERN = re.compile(r"[0-9a-fA-F]{32}")
+
+
+def validate_identifier_hex(value: str) -> str:
+    """Validate a location or group identifier and normalise it to lowercase.
+
+    Exactly 32 ASCII hexadecimal characters are accepted, so every accepted
+    identifier decodes to exactly 16 bytes. A full match is used rather than
+    ``int(value, 16)``, which also accepts signs, whitespace, underscores and
+    non-ASCII digits.
+
+    Args:
+        value: Candidate identifier
+
+    Returns:
+        The identifier in lowercase
+
+    Raises:
+        ValueError: If the value is not exactly 32 ASCII hex characters
+    """
+    if not _IDENTIFIER_PATTERN.fullmatch(value):
+        msg = "location_id and group_id must be exactly 32 hex characters"
+        raise ValueError(msg)
+    return value.lower()
 
 
 class HsbkConfig(BaseModel):
@@ -140,12 +163,7 @@ class DeviceDefinition(BaseModel):
     @field_validator("location_id", "group_id")
     @classmethod
     def validate_identifier(cls, v: str | None) -> str | None:
-        if v is None:
-            return v
-        if not _IDENTIFIER_PATTERN.match(v):
-            msg = "location_id and group_id must be exactly 32 hex characters"
-            raise ValueError(msg)
-        return v.lower()
+        return validate_identifier_hex(v) if v is not None else None
 
     @field_validator("power_level")
     @classmethod

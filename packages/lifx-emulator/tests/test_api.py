@@ -1707,4 +1707,27 @@ class TestLocationAndGroupMembership:
             "/api/devices", json={"product_id": 27, "location_id": "g" * 32}
         )
         assert response.status_code == 422
-        assert "valid hexadecimal" in response.text
+        assert "32 hex characters" in response.text
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "+" + "a" * 31,
+            "-" + "a" * 31,
+            " " + "ab" * 15 + " ",
+            "ab" * 15 + "_a",
+            "ab" * 16 + "\n",
+            "\u0661" + "a" * 31,
+        ],
+        ids=["plus", "minus", "whitespace", "underscore", "newline", "unicode"],
+    )
+    def test_create_rejects_identifiers_that_are_not_ascii_hex(
+        self, api_client, server_with_devices, value
+    ):
+        """Every accepted identifier must decode to exactly 16 bytes."""
+        response = api_client.post(
+            "/api/devices", json={"product_id": 27, "group_id": value}
+        )
+        assert response.status_code == 422
+        assert "32 hex characters" in response.text
+        assert len(server_with_devices.get_all_devices()) == 2
