@@ -87,6 +87,19 @@ uv sync --group third-party
 uv run --group third-party python example.py
 ```
 
+#### Client-driven integration suite
+
+`packages/lifx-emulator-core/tests/test_client_lifx_async.py` starts an emulated fleet on loopback and drives it end to end with `lifx-async`: discovery, classification of every product family, identity reads, colour, power and label round trips, multizone and matrix transfers, and capability gating on the switch. The suite carries the `client` marker and skips itself with a clear reason when `lifx-async` is not installed, so a plain `uv sync` followed by `pytest` is unaffected.
+
+To reproduce the CI run locally, install the group and select the marker:
+
+```bash
+uv sync --group third-party
+uv run pytest -m client
+```
+
+Deselect it with `-m "not client"`. CI runs the suite on the latest-Python Linux leg only; the other legs skip it. Renovate keeps `lifx-async` current in `uv.lock`, so a client release that changes behaviour fails that leg.
+
 ### 2. Run Tests
 ```bash
 # Run all tests (764 tests)

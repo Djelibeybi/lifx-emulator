@@ -423,11 +423,11 @@ wheels = [
 
 [[package]]
 name = "lifx-async"
-version = "7.6.6"
+version = "7.11.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/03/bf/2d1c93de31aa7d4aedf0b0921e7c2e1839bacd4bc89a892e7230d49efaa6/lifx_async-7.6.6.tar.gz", hash = "sha256:1728e1863cf45808d0d32e7b661c2c85d98d11059e8714d17229295bd317d6c5", size = 11455609, upload-time = "2026-10-04T22:53:20.088Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cb/7c/b660599a828103b666f4f8a0caa2f3bf003076d4f270270415bf49f36c77/lifx_async-7.11.3.tar.gz", hash = "sha256:abc96711cfc6f41085b4990be1813dfb0deb6419a4cc6bbe5274b299fbd85ec4", size = 11687739, upload-time = "2026-10-14T09:35:16.06Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/d2/3f31f0b585641b6d3705141c2dbc998d667b14da0dc0fd718c729467e293/lifx_async-7.6.6-py3-none-any.whl", hash = "sha256:1ef2864f47b65badadadf3919ad39c86942d36b5d539088db6883bb1bacbf7de", size = 426550, upload-time = "2026-10-04T22:53:17.839Z" },
+    { url = "https://files.pythonhosted.org/packages/55/93/1b874d07fb98cda0b67c05e6221f66fb119acc1dabcb8d05510aed4d3bf1/lifx_async-7.11.3-py3-none-any.whl", hash = "sha256:09dad72fbf61287f4403b785bf2b4ea47f0e9b69c0ce8ccc3b9ac04356f119ef", size = 510777, upload-time = "2026-10-14T09:35:14.119Z" },
 ]
 
 [[package]]
