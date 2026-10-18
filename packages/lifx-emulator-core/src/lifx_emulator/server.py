@@ -24,6 +24,11 @@ from lifx_emulator.devices import (
     NullObserver,
     PacketEvent,
 )
+from lifx_emulator.interfaces import (
+    InterfaceSelection,
+    is_direct_bind_address,
+    select_interface,
+)
 from lifx_emulator.mdns import (
     MdnsResponder,
     MdnsStatus,
@@ -41,6 +46,9 @@ PeerAddress = tuple[str, int] | tuple[str, int, int, int]
 _DUAL_BIND_ATTEMPTS = 5
 _TRACKED_TASK_DRAIN_TIMEOUT = 5.0
 _ENDPOINT_CLOSE_TIMEOUT = 1.0
+# Bound only when the operator names a specific LAN address, so that limited
+# broadcasts are received; peers are then filtered to that interface.
+_IPV4_WILDCARD = "0.0.0.0"  # nosec B104
 
 
 @dataclass(frozen=True)
@@ -196,6 +204,9 @@ class EmulatedLifxServer:
         self._ipv4_endpoint: tuple[str, int] | None = None
         self._ipv6_endpoint: tuple[str, int] | None = None
         self._effective_port: int | None = None
+        # Set while the IPv4 endpoint is bound to the wildcard on behalf of a
+        # specific LAN address; peers outside its subnets are filtered.
+        self.peer_filter: InterfaceSelection | None = None
         self.storage = storage
         self._max_pending_packets = max_pending_packets
         self._packet_generation = 0
@@ -251,6 +262,7 @@ class EmulatedLifxServer:
         self.packets_sent_by_type: dict[int, int] = defaultdict(int)
         self.error_count = 0
         self.packets_dropped_overload = 0
+        self.packets_filtered = 0
         self.websocket_events_dropped = 0
 
     class LifxProtocol(asyncio.DatagramProtocol):
@@ -295,6 +307,10 @@ class EmulatedLifxServer:
                     addr,
                 )
                 return
+            context = _DatagramContext(self.family, addr, self.transport)
+            # Filter off-interface peers before they can consume a pending slot.
+            if self.server._filter_peer(context):
+                return
             if not self._background_tasks.has_capacity:
                 self.server.packets_dropped_overload += 1
                 logger.warning(
@@ -304,7 +320,6 @@ class EmulatedLifxServer:
                     addr,
                 )
                 return
-            context = _DatagramContext(self.family, addr, self.transport)
             operation = f"packet:{_format_peer(context)}"
             self._background_tasks.schedule(
                 self.server.handle_packet(data, context), operation
@@ -331,6 +346,23 @@ class EmulatedLifxServer:
             return context_or_addr
         resolved_transport = self.transport if transport is None else transport
         return _DatagramContext(family, context_or_addr, resolved_transport)
+
+    def _is_filtered_peer(self, context: _DatagramContext) -> bool:
+        """Decide whether an IPv4 peer lies outside the selected interface."""
+        peer_filter = self.peer_filter
+        if peer_filter is None or context.family != socket.AF_INET:
+            return False
+        return not peer_filter.accepts(str(context.peer[0]))
+
+    def _filter_peer(self, context: _DatagramContext) -> bool:
+        """Count and report an off-interface peer; True when the datagram is dropped."""
+        if not self._is_filtered_peer(context):
+            return False
+        self.packets_filtered += 1
+        logger.debug(
+            "Filtered datagram from %s: peer is off-interface", _format_peer(context)
+        )
+        return True
 
     def _unpack_header(self, data: bytes, peer_text: str) -> LifxHeader | None:
         """Validate and unpack a header with the established counter outcomes."""
@@ -541,6 +573,8 @@ class EmulatedLifxServer:
             transport=transport,
         )
         peer_text = _format_peer(context)
+        if self._filter_peer(context):
+            return
         try:
             header = self._unpack_header(data, peer_text)
             if header is None:
@@ -754,6 +788,7 @@ class EmulatedLifxServer:
             "packets_sent_by_type": dict(self.packets_sent_by_type),
             "error_count": self.error_count,
             "packets_dropped_overload": self.packets_dropped_overload,
+            "packets_filtered": self.packets_filtered,
             "websocket_events_dropped": self.websocket_events_dropped,
             "activity_enabled": hasattr(self.activity_observer, "get_recent_activity"),
         }
@@ -860,6 +895,7 @@ class EmulatedLifxServer:
         self._ipv4_endpoint = None
         self._ipv6_endpoint = None
         self._effective_port = None
+        self.peer_filter = None
 
     @staticmethod
     def _close_unique_transports(*transports: object) -> None:
@@ -1076,12 +1112,39 @@ class EmulatedLifxServer:
                         await self._stop_locked()
                     raise
 
+    def _resolve_ipv4_bind(self) -> tuple[str, InterfaceSelection | None]:
+        """Choose the IPv4 local address to bind and any peer filter to apply.
+
+        Loopback and wildcard addresses bind directly. Any other address binds
+        the wildcard so limited broadcasts are received, and peers are filtered
+        to the subnets of the interface that owns the configured address.
+
+        Returns:
+            The local address to bind and the interface selection, or None
+            when no filtering applies.
+
+        Raises:
+            ValueError: If the address is invalid or no local interface owns it.
+        """
+        if is_direct_bind_address(self.bind_address):
+            return self.bind_address, None
+        selection = select_interface(self.bind_address)
+        logger.info(
+            "Binding %s on behalf of %s (%s); accepting IPv4 peers on %s",
+            _IPV4_WILDCARD,
+            self.bind_address,
+            selection.name,
+            ", ".join(str(prefix) for prefix in selection.prefixes),
+        )
+        return _IPV4_WILDCARD, selection
+
     async def _start_locked(self) -> None:
         """Start one endpoint pair while holding the lifecycle lock."""
         if self._has_complete_endpoint_pair():
             logger.debug("LIFX emulated server endpoint pair is already running")
             return
 
+        ipv4_local_address, peer_filter = self._resolve_ipv4_bind()
         await self._discard_existing_endpoints()
         self._prepare_packet_generation()
         loop = asyncio.get_running_loop()
@@ -1100,7 +1163,7 @@ class EmulatedLifxServer:
             try:
                 ipv4_transport, _ = await loop.create_datagram_endpoint(
                     lambda: ipv4_protocol,
-                    local_addr=(self.bind_address, self.port),
+                    local_addr=(ipv4_local_address, self.port),
                     family=socket.AF_INET,
                 )
                 ipv4_endpoint = self._endpoint_from_transport(ipv4_transport)
@@ -1138,6 +1201,7 @@ class EmulatedLifxServer:
                 self._ipv4_endpoint = ipv4_endpoint
                 self._ipv6_endpoint = (ipv6_endpoint[0], ipv6_endpoint[1])
                 self._effective_port = effective_port
+                self.peer_filter = peer_filter
                 self.transport = ipv4_transport
                 committed = True
                 return

@@ -72,7 +72,7 @@ lifx-emulator --config base.yaml --port 56701
 ### Server Options
 
 ```yaml
-# IP address to bind to (default: 127.0.0.1)
+# IPv4 address to bind to (default: 127.0.0.1)
 bind: 127.0.0.1
 
 # UDP port for LIFX protocol (default: 56700)
@@ -81,6 +81,16 @@ port: 56700
 # Enable verbose packet logging (default: false)
 verbose: false
 ```
+
+`bind` accepts three kinds of address:
+
+| Value | Behaviour |
+| --- | --- |
+| `127.0.0.1` (default) | Loopback only. Binds directly; unchanged from earlier releases. |
+| `0.0.0.0` | All interfaces. Binds directly and answers every peer. |
+| A LAN address, e.g. `192.168.1.50` | Selects the interface that owns the address. The emulator binds `0.0.0.0` so discovery broadcasts are received, and accepts only peers on that interface's subnets. Other peers are counted as `packets_filtered`. |
+
+A LAN address that is not assigned to any local interface is rejected at start-up. Unicast from peers outside the selected interface's subnets is filtered; use `0.0.0.0` if you need to answer routed traffic from other networks.
 
 ### Storage & Persistence (Deprecated)
 

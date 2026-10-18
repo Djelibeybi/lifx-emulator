@@ -351,6 +351,7 @@ server = EmulatedLifxServer(
 
 - Bind to `0.0.0.0` for network-wide discovery
 - Bind to `127.0.0.1` for localhost-only discovery
+- Bind to a LAN interface address (e.g. `192.168.1.50`) to answer only peers on that interface's subnets; other peers are counted as `packets_filtered`
 - Ensure firewall allows UDP traffic
 - Use correct port (default: 56700)
 

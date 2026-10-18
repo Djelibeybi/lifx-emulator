@@ -201,6 +201,8 @@ Use the emulator in your Python tests:
 
 The emulator responds to discovery broadcasts on port 56700 (or your chosen port). Your LIFX library should be able to discover emulated devices just like real ones.
 
+By default the emulator listens on `127.0.0.1`, so only clients on the same machine can find it. To test clients on other machines, bind the address of your LAN interface (`--bind 192.168.1.50`): the emulator then receives discovery broadcasts and answers only peers on that interface's subnets. Bind `0.0.0.0` to answer on every interface.
+
 Example with a typical discovery flow:
 
 1. Your library broadcasts `GetService` (packet type 2)
