@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from lifx_emulator.server import EmulatedLifxServer
 
 from lifx_emulator.devices import EXTERNAL_STATE_UPDATE
+from lifx_emulator.devices.transitions import matrix_zone_offset
 from lifx_emulator.factories import create_device
 from lifx_emulator.protocol.protocol_types import LightHsbk
 
@@ -250,6 +251,13 @@ class DeviceService:
         def mutate(candidate: DeviceState) -> None:
             self._validate_state_update(candidate, serial, update)
 
+            # Evaluate every fade to now first, then abandon only the fades on
+            # the fields this write replaces: a management write lands at
+            # once, while untouched zones keep fading from their evaluated
+            # colours
+            device.settle(candidate)
+            self._cancel_written_transitions(candidate, update)
+
             if update.power_level is not None:
                 candidate.power_level = update.power_level
 
@@ -271,6 +279,24 @@ class DeviceService:
             await persistence
 
         return DeviceMapper.to_device_info(device)
+
+    @staticmethod
+    def _cancel_written_transitions(
+        state: DeviceState, update: DeviceStateUpdate
+    ) -> None:
+        """Drop the in-flight changes on exactly the fields ``update`` writes."""
+        if update.power_level is not None:
+            state.transition.cancel_power()
+        if update.color is not None or update.zone_colors is not None:
+            # Both rewrite every zone (and the device colour)
+            state.transition.cancel_colors()
+        if update.tile_colors is not None:
+            zones: list[int] = []
+            for tile_update in update.tile_colors:
+                offset = matrix_zone_offset(state, tile_update.tile_index)
+                tile = state.tile_devices[tile_update.tile_index]
+                zones.extend(range(offset, offset + len(tile["colors"])))
+            state.transition.cancel_zones(zones)
 
     @staticmethod
     def _validate_state_update(

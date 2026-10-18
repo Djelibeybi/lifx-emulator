@@ -23,6 +23,9 @@ from lifx_emulator.factories import (
     create_multizone_light,
     create_tile_device,
 )
+from lifx_emulator.protocol.header import LifxHeader
+from lifx_emulator.protocol.packets import Light
+from lifx_emulator.protocol.protocol_types import LightHsbk
 from lifx_emulator.repositories import DeviceRepository
 from lifx_emulator.server import EmulatedLifxServer
 from lifx_emulator_app.api.app import create_api_app
@@ -117,6 +120,30 @@ class TestWebSocketEndpoint:
             assert "devices" in response["data"]
             assert len(response["data"]["devices"]) == 1
             assert response["data"]["devices"][0]["serial"] == device.state.serial
+
+    def test_websocket_sync_carries_settled_colours(self, client, server):
+        """A sync mid-fade reports the interpolated colour and the active flag."""
+        clock_ns = [1_000_000_000]
+        device = create_color_light("d073d5000098", clock=lambda: clock_ns[0])
+        server.add_device(device)
+        header = LifxHeader(
+            source=1,
+            target=device.state.get_target_bytes(),
+            sequence=1,
+            pkt_type=Light.SetColor.PKT_TYPE,
+        )
+        black = LightHsbk(hue=0, saturation=65535, brightness=0, kelvin=3500)
+        full = LightHsbk(hue=0, saturation=65535, brightness=65535, kelvin=3500)
+        device.process_packet(header, Light.SetColor(color=black, duration=0))
+        device.process_packet(header, Light.SetColor(color=full, duration=1000))
+        clock_ns[0] += 500_000_000
+
+        with client.websocket_connect("/ws") as websocket:
+            websocket.send_json({"type": "subscribe", "topics": ["devices"]})
+            websocket.send_json({"type": "sync"})
+            (payload,) = websocket.receive_json()["data"]["devices"]
+        assert payload["transition_active"] is True
+        assert abs(payload["color"]["brightness"] - 32768) <= 1
 
     def test_websocket_sync_with_scenarios(self, client):
         """Test sync returns scenarios when subscribed."""

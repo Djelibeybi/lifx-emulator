@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from lifx_emulator.devices import transitions
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import Tile
 from lifx_emulator.protocol.protocol_types import (
@@ -227,19 +229,23 @@ def _framebuffer(
     )
 
 
+ZoneWriter = Callable[[int, LightHsbk], None]
+
+
 def _write_rect(
     tile: dict[str, Any],
-    target_colors: list[LightHsbk],
     rect: TileBufferRect,
     colors: list[LightHsbk],
+    write: ZoneWriter,
 ) -> int:
-    """Write up to 64 colours into a tile framebuffer, row by row from rect.
+    """Hand up to 64 colours to ``write`` by tile zone index, row by row.
 
     Returns:
         The number of zone slots consumed from ``colors``.
     """
     tile_width = tile["width"]
     tile_height = tile["height"]
+    capacity = len(tile["colors"])
     rows_to_write = 64 // rect.width if rect.width > 0 else 1
     rows_to_write = min(rows_to_write, tile_height - rect.y)
 
@@ -252,16 +258,51 @@ def _write_rect(
             if (
                 x < tile_width
                 and zones_written < 64
-                and zone_idx < len(target_colors)
+                and zone_idx < capacity
                 and zones_written < len(colors)
             ):
-                target_colors[zone_idx] = colors[zones_written]
+                write(zone_idx, colors[zones_written])
             zones_written += 1
     return zones_written
 
 
+def _visible_zone_writer(
+    device_state: DeviceState, tile_index: int, duration_ms: int
+) -> tuple[ZoneWriter, Callable[[], None]]:
+    """A writer that fades framebuffer-0 zones, and the call that commits it.
+
+    Writes are collected by flat zone index and handed to the transition
+    engine in one go, so a duration of 0 shows them at once and anything
+    else fades each zone from its current colour.
+    """
+    offset = transitions.matrix_zone_offset(device_state, tile_index)
+    targets: dict[int, LightHsbk] = {}
+
+    def write(zone_idx: int, color: LightHsbk) -> None:
+        targets[offset + zone_idx] = color
+
+    def commit() -> None:
+        transitions.apply_zone_colors(device_state, targets, duration_ms)
+
+    return write, commit
+
+
+def _buffer_writer(target_colors: list[LightHsbk]) -> ZoneWriter:
+    """A writer that stores straight into an off-screen framebuffer."""
+
+    def write(zone_idx: int, color: LightHsbk) -> None:
+        target_colors[zone_idx] = color
+
+    return write
+
+
 class Set64Handler(PacketHandler):
-    """Handle TileSet64 (715)."""
+    """Handle TileSet64 (715).
+
+    On framebuffer 0 the zones inside the rectangle fade over the packet's
+    duration, each from its current colour; zones outside it are untouched.
+    Writes to framebuffers 1-7 are stored at once, as they are not visible.
+    """
 
     PKT_TYPE = Tile.Set64.PKT_TYPE
 
@@ -274,15 +315,19 @@ class Set64Handler(PacketHandler):
         rect = packet.rect
         # The same 64 colours are written to each of `length` tiles
         for tile_index in _target_tiles(device_state, packet.tile_index, packet.length):
-            target_colors = _framebuffer(device_state, tile_index, rect.fb_index)
-            if target_colors is None:
-                continue
+            if rect.fb_index == 0:
+                write, commit = _visible_zone_writer(
+                    device_state, tile_index, packet.duration
+                )
+            else:
+                target_colors = _framebuffer(device_state, tile_index, rect.fb_index)
+                if target_colors is None:
+                    continue
+                write, commit = _buffer_writer(target_colors), lambda: None
             zones_written = _write_rect(
-                device_state.tile_devices[tile_index],
-                target_colors,
-                rect,
-                packet.colors,
+                device_state.tile_devices[tile_index], rect, packet.colors, write
             )
+            commit()
             logger.info(
                 "Tile %s FB%s set %s colors at (%s,%s), duration=%sms",
                 tile_index,
@@ -301,16 +346,17 @@ class Set64Handler(PacketHandler):
 def _copy_rect(
     tile: dict[str, Any],
     src_colors: list[LightHsbk],
-    dst_colors: list[LightHsbk],
+    write: ZoneWriter,
     packet: Tile.CopyFrameBuffer,
 ) -> int:
-    """Copy the request's rectangle between two framebuffers of one tile.
+    """Copy the request's rectangle from one framebuffer through ``write``.
 
     Returns:
         The number of zones copied.
     """
     tile_width = tile["width"]
     tile_height = tile["height"]
+    capacity = len(tile["colors"])
     zones_copied = 0
     for row in range(packet.height):
         src_row = packet.src_y + row
@@ -324,14 +370,18 @@ def _copy_rect(
                 continue
             src_idx = src_row * tile_width + src_col
             dst_idx = dst_row * tile_width + dst_col
-            if src_idx < len(src_colors) and dst_idx < len(dst_colors):
-                dst_colors[dst_idx] = src_colors[src_idx]
+            if src_idx < len(src_colors) and dst_idx < capacity:
+                write(dst_idx, src_colors[src_idx])
                 zones_copied += 1
     return zones_copied
 
 
 class CopyFrameBufferHandler(PacketHandler):
-    """Handle TileCopyFrameBuffer (716) - copy between framebuffers."""
+    """Handle TileCopyFrameBuffer (716) - copy between framebuffers.
+
+    Copies are immediate: the packet's duration is logged but not animated.
+    A copy into framebuffer 0 shows at once and ends any fade on those zones.
+    """
 
     PKT_TYPE = Tile.CopyFrameBuffer.PKT_TYPE
 
@@ -350,9 +400,14 @@ class CopyFrameBufferHandler(PacketHandler):
             dst_colors = _framebuffer(device_state, tile_index, packet.dst_fb_index)
             if src_colors is None or dst_colors is None:
                 continue
+            if packet.dst_fb_index == 0:
+                write, commit = _visible_zone_writer(device_state, tile_index, 0)
+            else:
+                write, commit = _buffer_writer(dst_colors), lambda: None
             zones_copied = _copy_rect(
-                device_state.tile_devices[tile_index], src_colors, dst_colors, packet
+                device_state.tile_devices[tile_index], list(src_colors), write, packet
             )
+            commit()
             logger.info(
                 "Tile %s copied %s zones from FB%s(%s,%s) to FB%s(%s,%s), "
                 "size=%sx%s, duration=%sms",

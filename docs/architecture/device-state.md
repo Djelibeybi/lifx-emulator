@@ -17,13 +17,14 @@ DeviceState
 ├── location: LocationState        (location ID, label, timestamp)
 ├── group: GroupState              (group ID, label, timestamp)
 ├── waveform: WaveformState        (waveform effect parameters)
+├── transition: TransitionState    (in-flight fades, power ramps and waveform)
 ├── infrared: InfraredState | None (IR brightness — color lights with IR only)
 ├── hev: HevState | None           (HEV cycle state — LIFX Clean only)
 ├── multizone: MultiZoneState | None (zone count, zone colors, effects)
 └── matrix: MatrixState | None     (tile count, dimensions, tile data, framebuffers)
 ```
 
-The first five sub-states are always present. The last four are `None` when the device lacks the corresponding capability.
+The first six sub-states are always present. The last four are `None` when the device lacks the corresponding capability.
 
 ## Capability Flags
 
@@ -125,6 +126,20 @@ device_state.power_level = 65535
 ```
 
 These writes are routed through `__setattr__` to the correct sub-state object. The device's `process_packet()` method calls the handler and then optionally triggers a persistence save if storage is configured.
+
+### TransitionState
+
+A `Set` with a non-zero duration, and any waveform, does not write its final colour straight away. Instead the handler records what the device is moving towards in `state.transition`:
+
+- `zones` — Per-zone colour fades (`from_color`, `to_color`, `start_ns`, `end_ns`), keyed by a flat zone index: a colour light has zone 0, a multizone light has zone `0` to `zone_count - 1` and a matrix device has one zone per framebuffer-0 cell, tile by tile
+- `power` — An optional `PowerEnvelope` recorded by `LightSetPower` with a duration
+- `waveform` — At most one `ActiveWaveform` holding each zone's start and target colours plus the period, cycles, skew ratio, type and transient flag
+- `settled_ns` — The monotonic instant the state was last evaluated to; new transitions start here, so handlers never touch the clock
+- `is_active` — Whether anything is in flight
+
+Nothing ticks in the background. `EmulatedLifxDevice.settle()` evaluates every record against the device's monotonic clock, commits the interpolated values into the ordinary colour and power fields, and prunes what has finished. The device settles itself at the start of every `process_packet()` call and the management API does the same before reading, so a `LightGet` mid-fade returns the interpolated colour and a waveform follows its documented curve. The evaluation code lives in `devices/transitions.py`.
+
+`TransitionState` is never persisted: the serialiser writes the end value of every active fade or waveform, so a restored device lands where the change would have finished with nothing in flight.
 
 ## See Also
 

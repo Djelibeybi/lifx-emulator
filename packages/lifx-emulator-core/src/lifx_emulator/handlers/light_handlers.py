@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from lifx_emulator.devices import transitions
 from lifx_emulator.handlers.base import PacketHandler
 from lifx_emulator.protocol.packets import Light
 from lifx_emulator.protocol.protocol_types import LightHsbk, LightLastHevCycleResult
@@ -126,7 +127,16 @@ class GetColorHandler(PacketHandler):
 
 
 class SetColorHandler(PacketHandler):
-    """Handle LightSetColor (102) -> LightState (107)."""
+    """Handle LightSetColor (102) -> LightState (107).
+
+    With a duration of 0 the colour applies at once. Otherwise every zone,
+    and on multizone and matrix devices the device-level colour as well,
+    records a fade from its current colour to the new one, evaluated lazily
+    on each later read. The reply is built like LightState: the colour at the
+    time of the reply (the start of the fade), averaged over the zones on a
+    multizone or matrix device. Either way an active waveform is cancelled at
+    the colour it had reached.
+    """
 
     PKT_TYPE = Light.SetColor.PKT_TYPE
 
@@ -137,60 +147,27 @@ class SetColorHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
-            device_state.color = packet.color
             c = packet.color
-
-            # For backwards compatibility: propagate color to all zones
-            # Multizone devices: update all zone colors
-            if device_state.has_multizone and device_state.zone_colors:
-                for i in range(len(device_state.zone_colors)):
-                    device_state.zone_colors[i] = packet.color
-                logger.info(
-                    "Color set to HSBK(%s, %s, %s, %s) across all %s zones, "
-                    "duration=%sms",
-                    c.hue,
-                    c.saturation,
-                    c.brightness,
-                    c.kelvin,
-                    len(device_state.zone_colors),
-                    packet.duration,
-                )
-            # Matrix devices: update all tile zones
-            elif device_state.has_matrix and device_state.tile_devices:
-                total_zones = 0
-                for tile in device_state.tile_devices:
-                    for i in range(len(tile["colors"])):
-                        tile["colors"][i] = packet.color
-                    total_zones += len(tile["colors"])
-                logger.info(
-                    "Color set to HSBK(%s, %s, %s, %s) across all %s zones, "
-                    "duration=%sms",
-                    c.hue,
-                    c.saturation,
-                    c.brightness,
-                    c.kelvin,
-                    total_zones,
-                    packet.duration,
-                )
-            else:
-                # Simple color device
-                logger.info(
-                    "Color set to HSBK(%s, %s, %s, %s), duration=%sms",
-                    c.hue,
-                    c.saturation,
-                    c.brightness,
-                    c.kelvin,
-                    packet.duration,
-                )
+            zone_total = transitions.zone_count(device_state)
+            targets = dict.fromkeys(range(zone_total), c)
+            # Fade the device-level colour of a multizone or matrix device in
+            # step with its zones (a colour light's zone 0 is that colour)
+            if device_state.has_multizone or device_state.has_matrix:
+                targets[transitions.DEVICE_COLOR_ZONE] = c
+            transitions.apply_zone_colors(device_state, targets, packet.duration)
+            logger.info(
+                "Color set to HSBK(%s, %s, %s, %s) across %s zone(s), duration=%sms",
+                c.hue,
+                c.saturation,
+                c.brightness,
+                c.kelvin,
+                zone_total,
+                packet.duration,
+            )
 
         if res_required:
-            return [
-                Light.StateColor(
-                    color=device_state.color,
-                    power=device_state.power_level,
-                    label=device_state.label,
-                )
-            ]
+            # Report evaluated state: averaged over the zones where there are any
+            return GetColorHandler().handle(device_state, None, res_required)
         return []
 
 
@@ -206,7 +183,15 @@ class GetPowerHandler(PacketHandler):
 
 
 class SetPowerHandler(PacketHandler):
-    """Handle LightSetPower (117) -> LightStatePower (118)."""
+    """Handle LightSetPower (117) -> LightStatePower (118).
+
+    A non-zero duration records a power envelope from the current level to
+    the new one. The LIFX documentation only says the level "will transition"
+    over the duration and does not state what LightStatePower reports in the
+    meantime, so this emulator reports the interpolated level, as it does for
+    colour, and the reply to the Set carries the level at the time of the
+    reply (the start of the ramp).
+    """
 
     PKT_TYPE = Light.SetPower.PKT_TYPE
 
@@ -217,7 +202,7 @@ class SetPowerHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
-            device_state.power_level = packet.level
+            transitions.apply_power(device_state, packet.level, packet.duration)
             logger.info(
                 "Light power set to %s, duration=%sms", packet.level, packet.duration
             )
@@ -227,8 +212,33 @@ class SetPowerHandler(PacketHandler):
         return []
 
 
+def _store_waveform_fields(
+    device_state: DeviceState,
+    packet: Light.SetWaveform | Light.SetWaveformOptional,
+) -> None:
+    """Keep the raw waveform parameters so they round-trip through state."""
+    device_state.waveform_active = True
+    device_state.waveform_transient = packet.transient
+    device_state.waveform_color = packet.color
+    device_state.waveform_period_ms = packet.period
+    device_state.waveform_cycles = packet.cycles
+    device_state.waveform_skew_ratio = packet.skew_ratio
+    device_state.waveform_type = int(packet.waveform)
+
+
 class SetWaveformHandler(PacketHandler):
-    """Handle LightSetWaveform (103) -> LightState (107)."""
+    """Handle LightSetWaveform (103) -> LightState (107).
+
+    The waveform runs lazily from every zone's current colour towards the
+    packet's colour for ``cycles`` periods. On completion a transient
+    waveform restores each zone's start colour; a non-transient SAW,
+    HALF_SINE or PULSE leaves the target colour. SINE and TRIANGLE always end
+    on the start colour, whatever ``transient`` says, because that is what
+    the LIFX waveform documentation specifies for those two types (and the
+    mathematical end of a full cycle). A period of 0, a cycle count that is
+    not positive and finite, or an unknown type is ignored: nothing changes
+    but LightState is still returned when requested.
+    """
 
     PKT_TYPE = Light.SetWaveform.PKT_TYPE
 
@@ -239,32 +249,12 @@ class SetWaveformHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
-            # Store waveform state
-            device_state.waveform_active = True
-            device_state.waveform_transient = packet.transient
-            device_state.waveform_color = packet.color
-            device_state.waveform_period_ms = packet.period
-            device_state.waveform_cycles = packet.cycles
-            device_state.waveform_skew_ratio = packet.skew_ratio
-            device_state.waveform_type = int(packet.waveform)
-
-            # If not transient, update the color state
-            if not packet.transient:
-                device_state.color = packet.color
-
-                # For backwards compatibility: propagate color to all zones
-                # Multizone devices: update all zone colors
-                if device_state.has_multizone and device_state.zone_colors:
-                    for i in range(len(device_state.zone_colors)):
-                        device_state.zone_colors[i] = packet.color
-                # Matrix devices: update all tile zones
-                elif device_state.has_matrix and device_state.tile_devices:
-                    for tile in device_state.tile_devices:
-                        for i in range(len(tile["colors"])):
-                            tile["colors"][i] = packet.color
-
+            _store_waveform_fields(device_state, packet)
+            color = packet.color
+            started = transitions.begin_waveform(device_state, packet, lambda _: color)
             logger.info(
-                "Waveform set: type=%d, transient=%s, period=%sms, cycles=%s, skew=%s",
+                "Waveform %s: type=%s, transient=%s, period=%sms, cycles=%s, skew=%s",
+                "set" if started else "rejected",
                 packet.waveform,
                 packet.transient,
                 packet.period,
@@ -280,7 +270,13 @@ class SetWaveformHandler(PacketHandler):
 
 
 class SetWaveformOptionalHandler(PacketHandler):
-    """Handle LightSetWaveformOptional (119) -> LightState (107)."""
+    """Handle LightSetWaveformOptional (119) -> LightState (107).
+
+    As SetWaveform, except that each zone's target is its own start colour
+    with only the components whose ``set_*`` flag is true replaced by the
+    packet's colour. End-state rules (transient, and SINE/TRIANGLE always
+    returning to the start colour) are those of SetWaveformHandler.
+    """
 
     PKT_TYPE = Light.SetWaveformOptional.PKT_TYPE
 
@@ -291,56 +287,26 @@ class SetWaveformOptionalHandler(PacketHandler):
         res_required: bool,
     ) -> list[Any]:
         if packet:
-            # Store waveform state
-            device_state.waveform_active = True
-            device_state.waveform_transient = packet.transient
-            device_state.waveform_period_ms = packet.period
-            device_state.waveform_cycles = packet.cycles
-            device_state.waveform_skew_ratio = packet.skew_ratio
-            device_state.waveform_type = int(packet.waveform)
+            _store_waveform_fields(device_state, packet)
+            color = packet.color
 
-            # Apply color components selectively based on flags
-            if not packet.transient:
-                if packet.set_hue:
-                    device_state.color.hue = packet.color.hue
-                if packet.set_saturation:
-                    device_state.color.saturation = packet.color.saturation
-                if packet.set_brightness:
-                    device_state.color.brightness = packet.color.brightness
-                if packet.set_kelvin:
-                    device_state.color.kelvin = packet.color.kelvin
+            def target_for(start: LightHsbk) -> LightHsbk:
+                return LightHsbk(
+                    hue=color.hue if packet.set_hue else start.hue,
+                    saturation=(
+                        color.saturation if packet.set_saturation else start.saturation
+                    ),
+                    brightness=(
+                        color.brightness if packet.set_brightness else start.brightness
+                    ),
+                    kelvin=color.kelvin if packet.set_kelvin else start.kelvin,
+                )
 
-                # Backwards compatibility propagates color changes to zones
-                # Multizone devices: update all zone colors
-                if device_state.has_multizone and device_state.zone_colors:
-                    for zone_color in device_state.zone_colors:
-                        if packet.set_hue:
-                            zone_color.hue = packet.color.hue
-                        if packet.set_saturation:
-                            zone_color.saturation = packet.color.saturation
-                        if packet.set_brightness:
-                            zone_color.brightness = packet.color.brightness
-                        if packet.set_kelvin:
-                            zone_color.kelvin = packet.color.kelvin
-                # Matrix devices: update all tile zones
-                elif device_state.has_matrix and device_state.tile_devices:
-                    for tile in device_state.tile_devices:
-                        for zone_color in tile["colors"]:
-                            if packet.set_hue:
-                                zone_color.hue = packet.color.hue
-                            if packet.set_saturation:
-                                zone_color.saturation = packet.color.saturation
-                            if packet.set_brightness:
-                                zone_color.brightness = packet.color.brightness
-                            if packet.set_kelvin:
-                                zone_color.kelvin = packet.color.kelvin
-
-            # Store the waveform color (all components)
-            device_state.waveform_color = packet.color
-
+            started = transitions.begin_waveform(device_state, packet, target_for)
             logger.info(
-                "Waveform optional set: type=%d, transient=%s, period=%sms, "
+                "Waveform optional %s: type=%s, transient=%s, period=%sms, "
                 "cycles=%s, components=[H:%s,S:%s,B:%s,K:%s]",
+                "set" if started else "rejected",
                 packet.waveform,
                 packet.transient,
                 packet.period,

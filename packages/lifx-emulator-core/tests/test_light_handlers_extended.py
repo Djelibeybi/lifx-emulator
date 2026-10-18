@@ -28,8 +28,8 @@ class TestGetAndSetColor:
         assert isinstance(resp_packet, Light.StateColor)
         assert resp_packet.power == device.state.power_level
 
-    def test_set_color_updates_state(self, color_device):
-        """Test SetColor updates device color."""
+    def test_set_color_updates_state(self, color_device, fake_clock):
+        """Test SetColor updates device color once its fade has run."""
         device = color_device
 
         new_color = LightHsbk(
@@ -46,6 +46,8 @@ class TestGetAndSetColor:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)
+        device.settle()
 
         assert device.state.color.hue == 30000
         assert device.state.color.saturation == 65535
@@ -98,8 +100,8 @@ class TestGetAndSetPower:
         assert isinstance(resp_packet, Light.StatePower)
         assert resp_packet.level == 65535
 
-    def test_set_power_on(self, color_device):
-        """Test SetPower turns light on."""
+    def test_set_power_on(self, color_device, fake_clock):
+        """Test SetPower turns light on once its ramp has run."""
         device = color_device
         device.state.power_level = 0
 
@@ -113,6 +115,8 @@ class TestGetAndSetPower:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(500)
+        device.settle()
 
         assert device.state.power_level == 65535
 
@@ -134,8 +138,8 @@ class TestGetAndSetPower:
 
         assert device.state.power_level == 0
 
-    def test_set_power_with_duration(self, color_device):
-        """Test SetPower with transition duration."""
+    def test_set_power_with_duration(self, color_device, fake_clock):
+        """Test SetPower with transition duration ramps the level."""
         device = color_device
 
         packet = Light.SetPower(level=32768, duration=2000)
@@ -149,12 +153,19 @@ class TestGetAndSetPower:
 
         responses = device.process_packet(header, packet)
 
-        # Verify power was set
-        assert device.state.power_level == 32768
-
-        # Verify response was sent
+        # The reply carries the level at the time of the reply
         state_power_responses = [r for r in responses if r[0].pkt_type == 118]
         assert len(state_power_responses) > 0
+        assert state_power_responses[0][1].level == 65535
+
+        # Halfway through the ramp the level is interpolated
+        fake_clock.advance_ms(1000)
+        device.settle()
+        assert abs(device.state.power_level - 49152) <= 1
+
+        fake_clock.advance_ms(1000)
+        device.settle()
+        assert device.state.power_level == 32768
 
 
 class TestWaveforms:
@@ -191,7 +202,7 @@ class TestWaveforms:
         assert device.state.waveform_transient is True
         assert device.state.waveform_cycles == 5.0
 
-    def test_set_waveform_sine(self, color_device):
+    def test_set_waveform_sine(self, color_device, fake_clock):
         """Test SetWaveform with SINE waveform."""
         device = color_device
 
@@ -215,12 +226,19 @@ class TestWaveforms:
             res_required=False,
         )
 
+        original_color = device.state.color
         device.process_packet(header, packet)
 
         assert device.state.waveform_type == int(LightWaveform.SINE)
         assert device.state.waveform_transient is False
-        # Non-transient should update color
+        # The peak of each SINE cycle shows the waveform colour
+        fake_clock.advance_ms(1000)
+        device.settle()
         assert device.state.color == waveform_color
+        # SINE returns to the original colour once every cycle has run
+        fake_clock.advance_ms(19000)
+        device.settle()
+        assert device.state.color == original_color
 
     def test_set_waveform_triangle(self, color_device):
         """Test SetWaveform with TRIANGLE waveform."""
@@ -310,7 +328,7 @@ class TestWaveforms:
 class TestWaveformOptional:
     """Test SetWaveformOptional handler."""
 
-    def test_set_waveform_optional_all_components(self, color_device):
+    def test_set_waveform_optional_all_components(self, color_device, fake_clock):
         """Test SetWaveformOptional with all color components enabled."""
         device = color_device
 
@@ -339,13 +357,15 @@ class TestWaveformOptional:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(500)  # peak of the SINE cycle
+        device.settle()
 
         assert device.state.color.hue == 25000
         assert device.state.color.saturation == 50000
         assert device.state.color.brightness == 40000
         assert device.state.color.kelvin == 4500
 
-    def test_set_waveform_optional_hue_only(self, color_device):
+    def test_set_waveform_optional_hue_only(self, color_device, fake_clock):
         """Test SetWaveformOptional updating only hue."""
         device = color_device
         original_saturation = device.state.color.saturation
@@ -376,13 +396,17 @@ class TestWaveformOptional:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(500)  # peak of the TRIANGLE cycle
+        device.settle()
 
         # Only hue should be updated
         assert device.state.color.hue == 50000
         assert device.state.color.saturation == original_saturation
         assert device.state.color.brightness == original_brightness
 
-    def test_set_waveform_optional_saturation_brightness(self, color_device):
+    def test_set_waveform_optional_saturation_brightness(
+        self, color_device, fake_clock
+    ):
         """Test SetWaveformOptional updating saturation and brightness."""
         device = color_device
         original_hue = device.state.color.hue
@@ -413,6 +437,8 @@ class TestWaveformOptional:
         )
 
         device.process_packet(header, packet)
+        fake_clock.advance_ms(1000)  # non-transient PULSE ends on its colour
+        device.settle()
 
         assert device.state.color.hue == original_hue
         assert device.state.color.saturation == 40000
