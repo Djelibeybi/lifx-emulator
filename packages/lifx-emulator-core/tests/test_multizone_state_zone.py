@@ -14,6 +14,7 @@ from lifx_emulator.protocol.protocol_types import (
 )
 
 GREEN = LightHsbk(hue=21845, saturation=65535, brightness=65535, kelvin=3500)
+BLACK = LightHsbk(hue=0, saturation=0, brightness=0, kelvin=3500)
 
 
 def _send(device, packet) -> list:
@@ -142,3 +143,31 @@ class TestExtendedDeviceLegacySingleZone:
 
     def test_single_zone_out_of_range_returns_nothing(self, extended_multizone_device):
         assert _get_zones(extended_multizone_device, 82, 82) == []
+
+
+class TestMissingZoneColours:
+    """A zone within zone_count but without a stored colour reads as black."""
+
+    def test_single_zone_without_stored_colour_is_black(self, multizone_device):
+        del multizone_device.state.zone_colors[12:]
+
+        responses = _get_zones(multizone_device, 14, 14)
+
+        assert len(responses) == 1
+        packet = responses[0][1]
+        assert isinstance(packet, MultiZone.StateZone)
+        assert packet.count == 16
+        assert packet.index == 14
+        assert packet.color == BLACK
+
+    def test_range_without_stored_colours_is_padded_black(self, multizone_device):
+        multizone_device.state.zone_colors[11] = GREEN
+        del multizone_device.state.zone_colors[12:]
+
+        responses = _get_zones(multizone_device, 8, 15)
+
+        assert len(responses) == 1
+        packet = responses[0][1]
+        assert isinstance(packet, MultiZone.StateMultiZone)
+        assert packet.colors[3] == GREEN
+        assert packet.colors[4:] == [BLACK] * 4
