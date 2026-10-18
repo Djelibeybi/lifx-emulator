@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v4.10.0 (2026-10-18)
+
+### Features
+
+- Shared location and group identifiers derived from labels
+  ([#264](https://github.com/Djelibeybi/lifx-emulator/pull/264),
+  [`36c92b1`](https://github.com/Djelibeybi/lifx-emulator/commit/36c92b1dd7c6ba3049b780be392dcee76ce9f287))
+
+- Wildcard bind with interface filtering for LAN discovery
+  ([#263](https://github.com/Djelibeybi/lifx-emulator/pull/263),
+  [`9265f74`](https://github.com/Djelibeybi/lifx-emulator/commit/9265f74d95c836fca20e85b3773083dd87ace9a4))
+
+
 ## v4.9.0 (2026-10-18)
 
 ### Features
