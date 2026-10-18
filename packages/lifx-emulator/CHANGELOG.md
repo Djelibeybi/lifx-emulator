@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v4.8.0 (2026-10-18)
+
+### Features
+
+- Lazy transition engine for durations and waveforms
+  ([#259](https://github.com/Djelibeybi/lifx-emulator/pull/259),
+  [`2169256`](https://github.com/Djelibeybi/lifx-emulator/commit/2169256fb9bb0fdce368955bfe95611322d3ebd3))
+
+
 ## v4.7.2 (2026-10-05)
 
 ### Bug Fixes
