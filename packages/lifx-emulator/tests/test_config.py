@@ -793,3 +793,45 @@ class TestExtendedConfigLoad:
         assert loaded.scenarios is not None
         assert loaded.scenarios.global_scenario is not None
         assert loaded.scenarios.global_scenario.send_unhandled is True
+
+
+class TestLocationAndGroupIdentifiers:
+    """Explicit location_id and group_id on DeviceDefinition (#255)."""
+
+    def test_identifiers_default_to_none(self):
+        dev = DeviceDefinition(product_id=27, location="Kitchen", group="Lights")
+        assert dev.location_id is None
+        assert dev.group_id is None
+
+    def test_valid_identifiers_are_normalised_to_lowercase(self):
+        dev = DeviceDefinition(
+            product_id=27,
+            location_id="0123456789ABCDEF0123456789abcdef",
+            group_id="fedcba9876543210fedcba9876543210",
+        )
+        assert dev.location_id == "0123456789abcdef0123456789abcdef"
+        assert dev.group_id == "fedcba9876543210fedcba9876543210"
+
+    def test_identifier_wrong_length_rejected(self):
+        with pytest.raises(ValueError, match="32 hex characters"):
+            DeviceDefinition(product_id=27, location_id="abc")
+
+    def test_identifier_non_hex_rejected(self):
+        with pytest.raises(ValueError, match="32 hex characters"):
+            DeviceDefinition(product_id=27, group_id="g" * 32)
+
+    def test_identifiers_load_from_yaml(self, tmp_path):
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(
+            "devices:\n"
+            "  - product_id: 27\n"
+            "    location: Kitchen\n"
+            "    location_id: 0123456789abcdef0123456789abcdef\n"
+            "    group: Lights\n"
+            "    group_id: fedcba9876543210fedcba9876543210\n"
+        )
+        config = load_config(config_file)
+        assert config.devices is not None
+        dev = config.devices[0]
+        assert dev.location_id == "0123456789abcdef0123456789abcdef"
+        assert dev.group_id == "fedcba9876543210fedcba9876543210"

@@ -4,7 +4,6 @@ import asyncio
 import json
 import logging
 import signal
-import uuid
 import warnings
 import webbrowser
 from pathlib import Path
@@ -17,6 +16,8 @@ from lifx_emulator.devices import (
     DEFAULT_STORAGE_DIR,
     DeviceManager,
     DevicePersistenceAsyncFile,
+    derive_group_id,
+    derive_location_id,
 )
 from lifx_emulator.devices.state_serializer import deserialize_device_state
 from lifx_emulator.factories import (
@@ -286,6 +287,42 @@ def clear_storage(
     print(f"\nSuccessfully deleted {deleted} device state(s).")
 
 
+def _identifier_bytes(identifier: str | None) -> bytes | None:
+    """Convert a validated 32-hex-character identifier to its 16 bytes."""
+    return bytes.fromhex(identifier) if identifier is not None else None
+
+
+def _identifier_hex(value: bytes | str) -> str:
+    """Normalise a persisted identifier (bytes or hex string) to lowercase hex."""
+    return value.hex() if isinstance(value, bytes) else value.lower()
+
+
+def _membership_to_yaml_dict(state_dict: dict, entry: dict) -> None:
+    """Add location and group fields to a config-file device entry.
+
+    Labels are written when they differ from the defaults. An identifier is
+    written only when it differs from the value derived from its label, so
+    label-derived membership stays implicit and exported files stay minimal.
+    """
+    loc_label = state_dict.get("location_label")
+    if loc_label and loc_label != "Test Location":
+        entry["location"] = loc_label
+    loc_id = state_dict.get("location_id")
+    if loc_id and _identifier_hex(loc_id) != (
+        derive_location_id(loc_label or "Test Location").hex()
+    ):
+        entry["location_id"] = _identifier_hex(loc_id)
+
+    grp_label = state_dict.get("group_label")
+    if grp_label and grp_label != "Test Group":
+        entry["group"] = grp_label
+    grp_id = state_dict.get("group_id")
+    if grp_id and _identifier_hex(grp_id) != (
+        derive_group_id(grp_label or "Test Group").hex()
+    ):
+        entry["group_id"] = _identifier_hex(grp_id)
+
+
 def _device_state_to_yaml_dict(state_dict: dict) -> dict:
     """Convert a persistent device state dict to a config-file device entry.
 
@@ -321,13 +358,7 @@ def _device_state_to_yaml_dict(state_dict: dict) -> dict:
                 color.kelvin,
             ]
 
-    loc_label = state_dict.get("location_label")
-    if loc_label and loc_label != "Test Location":
-        entry["location"] = loc_label
-
-    grp_label = state_dict.get("group_label")
-    if grp_label and grp_label != "Test Group":
-        entry["group"] = grp_label
+    _membership_to_yaml_dict(state_dict, entry)
 
     # Multizone zone_colors
     if state_dict.get("has_multizone") and state_dict.get("zone_colors"):
@@ -1066,11 +1097,6 @@ async def run(
 
         # Create devices from per-device definitions in config
         if config_devices:
-            # Namespace for deterministic location/group UUIDs
-            ns = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-            location_ids: dict[str, bytes] = {}
-            group_ids: dict[str, bytes] = {}
-
             for dev_def in config_devices:
                 try:
                     serial = dev_def.serial or get_serial()
@@ -1081,6 +1107,10 @@ async def run(
                         tile_count=dev_def.tile_count,
                         storage=storage,
                         advertised_services=dev_def.advertised_services,
+                        location_label=dev_def.location,
+                        location_id=_identifier_bytes(dev_def.location_id),
+                        group_label=dev_def.group,
+                        group_id=_identifier_bytes(dev_def.group_id),
                     )
                     if dev_def.label:
                         device.state.label = dev_def.label
@@ -1093,18 +1123,6 @@ async def run(
                             brightness=dev_def.color.brightness,
                             kelvin=dev_def.color.kelvin,
                         )
-                    if dev_def.location is not None:
-                        loc = dev_def.location
-                        if loc not in location_ids:
-                            location_ids[loc] = uuid.uuid5(ns, loc).bytes
-                        device.state.location_id = location_ids[loc]
-                        device.state.location_label = loc
-                    if dev_def.group is not None:
-                        grp = dev_def.group
-                        if grp not in group_ids:
-                            group_ids[grp] = uuid.uuid5(ns, grp).bytes
-                        device.state.group_id = group_ids[grp]
-                        device.state.group_label = grp
                     if dev_def.zone_colors is not None:
                         default_color = LightHsbk(
                             hue=0, saturation=0, brightness=0, kelvin=3500

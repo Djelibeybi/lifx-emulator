@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 import uvicorn
 from fastapi.testclient import TestClient
+from lifx_emulator.devices import derive_group_id, derive_location_id
 from lifx_emulator.devices.manager import DeviceManager
 from lifx_emulator.devices.persistence import DevicePersistenceAsyncFile
 from lifx_emulator.factories import (
@@ -1630,3 +1631,63 @@ class TestTransitionsInApi:
         assert data["tile_devices"][0]["colors"][0]["brightness"] == 1000
         assert data["tile_devices"][1]["colors"][0]["brightness"] == 65535
         assert data["transition_active"] is False
+
+
+class TestLocationAndGroupMembership:
+    """API create requests join locations and groups by label (#255)."""
+
+    def test_device_info_exposes_identifiers_as_hex(self, api_client):
+        response = api_client.get("/api/devices/d073d5000001")
+        assert response.status_code == 200
+        device = response.json()
+        assert device["location_id"] == derive_location_id("Test Location").hex()
+        assert device["group_id"] == derive_group_id("Test Group").hex()
+
+    def test_create_with_labels_joins_existing_group(
+        self, api_client, server_with_devices
+    ):
+        existing = server_with_devices.get_device("d073d5000001")
+        assert existing is not None
+        response = api_client.post(
+            "/api/devices",
+            json={
+                "product_id": 27,
+                "location_label": "Test Location",
+                "group_label": "Downlights",
+            },
+        )
+        assert response.status_code == 201
+        created = response.json()
+        assert created["location_label"] == "Test Location"
+        assert created["location_id"] == existing.state.location_id.hex()
+        assert created["group_label"] == "Downlights"
+        assert created["group_id"] == derive_group_id("Downlights").hex()
+
+        # A second device with the same group label lands in the same group
+        second = api_client.post(
+            "/api/devices", json={"product_id": 27, "group_label": "Downlights"}
+        ).json()
+        assert second["group_id"] == created["group_id"]
+
+    def test_create_with_explicit_identifiers(self, api_client):
+        response = api_client.post(
+            "/api/devices",
+            json={
+                "product_id": 27,
+                "location_label": "Kitchen",
+                "location_id": "0123456789ABCDEF0123456789abcdef",
+                "group_id": "fedcba9876543210fedcba9876543210",
+            },
+        )
+        assert response.status_code == 201
+        created = response.json()
+        assert created["location_label"] == "Kitchen"
+        assert created["location_id"] == "0123456789abcdef0123456789abcdef"
+        assert created["group_label"] == "Test Group"
+        assert created["group_id"] == "fedcba9876543210fedcba9876543210"
+
+    def test_create_with_invalid_identifier_rejected(self, api_client):
+        response = api_client.post(
+            "/api/devices", json={"product_id": 27, "group_id": "not-hex"}
+        )
+        assert response.status_code == 422

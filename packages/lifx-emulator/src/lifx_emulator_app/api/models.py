@@ -47,6 +47,52 @@ class DeviceCreateRequest(BaseModel):
     firmware_minor: int | None = Field(
         None, description="Firmware minor version", ge=0, le=255
     )
+    location_label: str | None = Field(
+        None,
+        description=(
+            "Location label; devices sharing a label share a location "
+            "identifier (default 'Test Location')"
+        ),
+        max_length=32,
+    )
+    location_id: str | None = Field(
+        None,
+        description=(
+            "Explicit location identifier as 32 hex characters; derived from "
+            "the label when omitted"
+        ),
+    )
+    group_label: str | None = Field(
+        None,
+        description=(
+            "Group label; devices sharing a label share a group identifier "
+            "(default 'Test Group')"
+        ),
+        max_length=32,
+    )
+    group_id: str | None = Field(
+        None,
+        description=(
+            "Explicit group identifier as 32 hex characters; derived from the "
+            "label when omitted"
+        ),
+    )
+
+    @field_validator("location_id", "group_id")
+    @classmethod
+    def validate_identifier_format(cls, v: str | None) -> str | None:
+        """Validate a location or group identifier (32 hex characters)."""
+        if v is None:
+            return v
+        if len(v) != 32:
+            raise ValueError("Identifier must be exactly 32 hex characters")
+        try:
+            int(v, 16)
+        except ValueError as e:
+            raise ValueError(
+                "Identifier must be valid hexadecimal (0-9, a-f, A-F)"
+            ) from e
+        return v.lower()
 
     @field_validator("serial")
     @classmethod
@@ -110,7 +156,13 @@ class DeviceInfo(BaseModel):
     version_minor: int = 0
     build_timestamp: int = 0
     group_label: str = ""
+    group_id: str = Field(
+        default="", description="Group identifier as 32 hex characters"
+    )
     location_label: str = ""
+    location_id: str = Field(
+        default="", description="Location identifier as 32 hex characters"
+    )
     uptime_ns: int = 0
     wifi_signal: float = 0.0
     transition_active: bool = Field(

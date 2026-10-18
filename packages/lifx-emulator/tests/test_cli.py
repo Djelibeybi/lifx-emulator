@@ -1432,6 +1432,55 @@ class TestRunWithConfigDevices:
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_device_with_explicit_location_and_group_ids(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Explicit identifiers win over the label-derived default (#255)."""
+
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[
+                DeviceDefinition(
+                    product_id=27,
+                    location="Office",
+                    location_id="00" * 16,
+                    group="Testing",
+                    group_id="ff" * 16,
+                ),
+                DeviceDefinition(product_id=27, location="Office", group="Testing"),
+            ]
+        )
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        assert len(devices) == 2
+        assert devices[0].state.location_id == b"\x00" * 16
+        assert devices[0].state.location_label == "Office"
+        assert devices[0].state.group_id == b"\xff" * 16
+        assert devices[0].state.group_label == "Testing"
+        # The second device keeps the label-derived identifiers
+        ns = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+        assert devices[1].state.location_id == uuid.uuid5(ns, "Office").bytes
+        assert devices[1].state.group_id == uuid.uuid5(ns, "Testing").bytes
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
     async def test_device_with_zone_colors(
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):

@@ -16,6 +16,7 @@ AUTO_DETECT_FILENAMES = ("lifx-emulator.yaml", "lifx-emulator.yml")
 ENV_VAR = "LIFX_EMULATOR_CONFIG"
 
 _SERIAL_PATTERN = re.compile(r"^[0-9a-fA-F]{12}$")
+_IDENTIFIER_PATTERN = re.compile(r"^[0-9a-fA-F]{32}$")
 
 
 class HsbkConfig(BaseModel):
@@ -113,7 +114,9 @@ class DeviceDefinition(BaseModel):
     power_level: int | None = None
     color: HsbkConfig | None = None
     location: str | None = None
+    location_id: str | None = None
     group: str | None = None
+    group_id: str | None = None
     zone_count: int | None = None
     zone_colors: list[HsbkConfig] | None = None
     infrared_brightness: int | None = None
@@ -133,6 +136,16 @@ class DeviceDefinition(BaseModel):
             msg = "serial must be exactly 12 hex characters"
             raise ValueError(msg)
         return v
+
+    @field_validator("location_id", "group_id")
+    @classmethod
+    def validate_identifier(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if not _IDENTIFIER_PATTERN.match(v):
+            msg = "location_id and group_id must be exactly 32 hex characters"
+            raise ValueError(msg)
+        return v.lower()
 
     @field_validator("power_level")
     @classmethod
