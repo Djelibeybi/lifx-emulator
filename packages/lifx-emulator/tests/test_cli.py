@@ -1432,6 +1432,133 @@ class TestRunWithConfigDevices:
     @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
     @patch("lifx_emulator_app.__main__._setup_logging")
     @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_device_with_explicit_location_and_group_ids(
+        self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
+    ):
+        """Explicit identifiers win over the label-derived default (#255)."""
+
+        mock_load_cfg.return_value = _make_cfg(
+            devices=[
+                DeviceDefinition(
+                    product_id=27,
+                    location="Office",
+                    location_id="00" * 16,
+                    group="Testing",
+                    group_id="ff" * 16,
+                ),
+                DeviceDefinition(product_id=27, location="Office", group="Testing"),
+            ]
+        )
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        assert len(devices) == 2
+        assert devices[0].state.location_id == b"\x00" * 16
+        assert devices[0].state.location_label == "Office"
+        assert devices[0].state.group_id == b"\xff" * 16
+        assert devices[0].state.group_label == "Testing"
+        # The second device keeps the label-derived identifiers
+        ns = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+        assert devices[1].state.location_id == uuid.uuid5(ns, "Office").bytes
+        assert devices[1].state.group_id == uuid.uuid5(ns, "Testing").bytes
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__.DevicePersistenceAsyncFile")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
+    async def test_config_membership_wins_over_restored_state(
+        self,
+        mock_load_cfg,
+        mock_setup_logging,
+        mock_storage_class,
+        mock_server_class,
+        mock_resolve,
+    ):
+        """Explicit config membership takes precedence over persisted values."""
+        mock_load_cfg.return_value = _make_cfg(
+            persistent=True,
+            devices=[
+                DeviceDefinition(
+                    product_id=27,
+                    serial="d073d5000001",
+                    location="Kitchen",
+                    group="Downlights",
+                ),
+                DeviceDefinition(
+                    product_id=27, serial="d073d5000002", group_id="ff" * 16
+                ),
+                DeviceDefinition(product_id=27, serial="d073d5000003"),
+            ],
+        )
+        # load_device_state() returns the deserialised form (bytes identifiers)
+        saved = {
+            "product": 27,
+            "location_id": b"\x00" * 16,
+            "location_label": "Old Location",
+            "group_id": b"\x11" * 16,
+            "group_label": "Old Group",
+        }
+        mock_storage = MagicMock()
+        mock_storage.storage_dir = "/tmp/lifx"
+        mock_storage.shutdown = AsyncMock()
+        mock_storage.save_device_state = AsyncMock()
+        mock_storage.load_device_state.side_effect = lambda serial: dict(saved)
+        mock_storage.list_devices.return_value = []
+        mock_storage_class.return_value = mock_storage
+
+        mock_server = MagicMock()
+        mock_server_class.return_value = mock_server
+        mock_server.start = MagicMock(return_value=asyncio.Future())
+        mock_server.start.return_value.set_result(None)
+        mock_server.stop = MagicMock(return_value=asyncio.Future())
+        mock_server.stop.return_value.set_result(None)
+
+        task = asyncio.create_task(run())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        devices = mock_server_class.call_args[0][0]
+        assert len(devices) == 3
+        ns = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+        # Configured labels replace the saved labels and derive fresh identifiers
+        assert devices[0].state.location_label == "Kitchen"
+        assert devices[0].state.location_id == uuid.uuid5(ns, "Kitchen").bytes
+        assert devices[0].state.group_label == "Downlights"
+        assert devices[0].state.group_id == uuid.uuid5(ns, "Downlights").bytes
+        # An explicit identifier replaces the saved one; the saved label stays
+        assert devices[1].state.group_id == b"\xff" * 16
+        assert devices[1].state.group_label == "Old Group"
+        assert devices[1].state.location_id == b"\x00" * 16
+        # Nothing configured: the saved membership is restored untouched
+        assert devices[2].state.location_label == "Old Location"
+        assert devices[2].state.location_id == b"\x00" * 16
+        assert devices[2].state.group_id == b"\x11" * 16
+
+    @pytest.mark.asyncio
+    @patch("lifx_emulator_app.__main__.resolve_config_path", return_value=None)
+    @patch("lifx_emulator_app.__main__.EmulatedLifxServer")
+    @patch("lifx_emulator_app.__main__._setup_logging")
+    @patch("lifx_emulator_app.__main__._load_merged_config")
     async def test_device_with_zone_colors(
         self, mock_load_cfg, mock_setup_logging, mock_server_class, mock_resolve
     ):

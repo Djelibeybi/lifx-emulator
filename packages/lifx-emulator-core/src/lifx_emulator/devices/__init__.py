@@ -35,7 +35,14 @@ from lifx_emulator.devices.persistence import (
     DevicePersistenceAsyncFile,
     DevicePersistenceError,
 )
-from lifx_emulator.devices.states import Connectivity, DeviceState, TransitionState
+from lifx_emulator.devices.states import (
+    LIFX_EMULATOR_NAMESPACE,
+    Connectivity,
+    DeviceState,
+    TransitionState,
+    derive_group_id,
+    derive_location_id,
+)
 
 __all__ = [
     "DeviceLifecycleListener",
@@ -52,6 +59,9 @@ __all__ = [
     "Connectivity",
     "DeviceState",
     "TransitionState",
+    "LIFX_EMULATOR_NAMESPACE",
+    "derive_location_id",
+    "derive_group_id",
     "DevicePersistenceAsyncFile",
     "DevicePersistenceError",
     "DEFAULT_STORAGE_DIR",
