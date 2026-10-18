@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 
 [manifest]
@@ -458,6 +458,7 @@ name = "lifx-emulator-core"
 version = "3.13.0"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
+    { name = "ifaddr" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "zeroconf" },
@@ -465,6 +466,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ifaddr", specifier = ">=0.2.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "zeroconf", specifier = ">=0.151.3" },
