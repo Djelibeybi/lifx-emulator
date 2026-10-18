@@ -1,4 +1,4 @@
-import type { Product, ScenarioConfig } from '$lib/types';
+import type { Product, ScenarioConfig } from '#lib/types.ts';
 
 const API_BASE = '/api';
 

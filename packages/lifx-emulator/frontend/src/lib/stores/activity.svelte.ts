@@ -1,4 +1,4 @@
-import type { ActivityEvent } from '$lib/types';
+import type { ActivityEvent } from '#lib/types.ts';
 
 const MAX_EVENTS = 100;
 

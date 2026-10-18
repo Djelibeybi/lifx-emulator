@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { MirrorRings } from '$lib/utils/mirror';
-	import { hsbkToCss } from '$lib/utils/color';
+	import type { MirrorRings } from '#lib/utils/mirror.ts';
+	import { hsbkToCss } from '#lib/utils/color.ts';
 
 	let {
 		rings,

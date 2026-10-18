@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { activity, stats } from '$lib/stores';
+	import { activity, stats } from '#lib/stores/index.ts';
 
 	let filterDirection = $state<'all' | 'rx' | 'tx'>('all');
 	let filterDevice = $state<string>('');

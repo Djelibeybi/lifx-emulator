@@ -1,4 +1,4 @@
-import type { ScenarioConfig, ScenariosState, ScenarioChangedData } from '$lib/types';
+import type { ScenarioConfig, ScenariosState, ScenarioChangedData } from '#lib/types.ts';
 
 function createScenariosStore() {
 	let state = $state<ScenariosState>({

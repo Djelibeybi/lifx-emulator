@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Device, HsbkColor, TileDevice } from '$lib/types';
-	import { devices, ui } from '$lib/stores';
-	import { hsbkToCss, directionalGlow } from '$lib/utils/color';
-	import { addressableZoneCount, mirrorRings, type MirrorRings as Rings } from '$lib/utils/mirror';
+	import type { Device, HsbkColor, TileDevice } from '#lib/types.ts';
+	import { devices, ui } from '#lib/stores/index.ts';
+	import { hsbkToCss, directionalGlow } from '#lib/utils/color.ts';
+	import { addressableZoneCount, mirrorRings, type MirrorRings as Rings } from '#lib/utils/mirror.ts';
 	import MirrorRings from './MirrorRings.svelte';
 
 	// Track which devices have seamless tile mode enabled

@@ -1,4 +1,4 @@
-import type { Stats } from '$lib/types';
+import type { Stats } from '#lib/types.ts';
 
 const DEFAULT_STATS: Stats = {
 	uptime_seconds: 0,

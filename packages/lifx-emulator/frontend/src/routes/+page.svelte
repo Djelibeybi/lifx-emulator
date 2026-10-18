@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { connection, ui, devices, activity, products } from '$lib/stores';
-	import type { ActiveTab } from '$lib/types';
+	import { connection, ui, devices, activity, products } from '#lib/stores/index.ts';
+	import type { ActiveTab } from '#lib/types.ts';
 	import {
 		Header,
 		StatsBar,
@@ -11,7 +11,7 @@
 		ActivityLog,
 		ScenarioPanel,
 		Visualizer
-	} from '$lib/components';
+	} from '#lib/components/index.ts';
 
 	const tabs: { id: ActiveTab; label: string }[] = [
 		{ id: 'visualizer', label: 'Visualizer' },
