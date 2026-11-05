@@ -2,6 +2,55 @@
 
 <!-- version list -->
 
+## v4.11.1 (2026-11-03)
+
+### Bug Fixes
+
+- Align default tsconfig "include" logic with tsc/tsserver
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Check all files with `--tsgo` / `--incremental` when the tsconfig
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Disallow `--tsgo` together with `--tsgo-experimental-api`
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Ignore the `.svelte-check` cache directory in `--watch` with
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Recognise modern CSS properties such as corner-shape by updating
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Recognise the real `<script>` and `<style>` start tags when a
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Report a failed TypeScript compiler process and exit non-zero
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Resolve symlinked packages when importing their `.svelte` files,
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Type elements from Svelte's `svelte-html.d.ts` with `--tsgo` /
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Type the exports of `src/hooks.server` with
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+- Update --tsgo-experimental-api for typescript 7.1
+  ([#274](https://github.com/Djelibeybi/lifx-emulator/pull/274),
+  [`b59b40b`](https://github.com/Djelibeybi/lifx-emulator/commit/b59b40b869da5e23b3cf2d0bda3ab6582a022781))
+
+
 ## v4.11.0 (2026-10-18)
 
 ### Features
