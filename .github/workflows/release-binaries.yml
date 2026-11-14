@@ -55,7 +55,7 @@ jobs:
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Set up Python
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97    # v7
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0    # v7
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
@@ -95,7 +95,7 @@ jobs:
         cp pyapp/target/${{ matrix.target }}/release/pyapp.exe ${{ matrix.asset_name }}
 
     - name: Upload release asset
-      uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64    # v3
+      uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3    # v3
       with:
         files: ${{ matrix.asset_name }}
       env:
