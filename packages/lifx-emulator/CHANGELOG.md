@@ -2,6 +2,55 @@
 
 <!-- version list -->
 
+## v4.11.2 (2026-11-16)
+
+### Bug Fixes
+
+- Avoid adding a file watcher while loading `src/env`
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Avoid injecting a non-serializable TypeScript config callback by
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Parse remote form submissions in linear time
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Preserve service worker sourcemaps when injecting env
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Prevent separate non-exported `query.batch` functions from
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Prevent server-only modules from being imported into browser code
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Prevent server-side route resolution from loading code from
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Report actionable errors for remote modules in server-only
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Restore function snapshots on reload when SSR is disabled
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Return a 400 response instead of throwing when `reroute` rewrites
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+- Reuse the original `fetch` across dev server reloads
+  ([#289](https://github.com/Djelibeybi/lifx-emulator/pull/289),
+  [`f95bade`](https://github.com/Djelibeybi/lifx-emulator/commit/f95bade0505557c4c75fcf0dccfda4cf0ab2e1d0))
+
+
 ## v4.11.1 (2026-11-03)
 
 ### Bug Fixes

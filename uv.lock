@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.10"
 
 [manifest]
@@ -432,7 +432,7 @@ wheels = [
 
 [[package]]
 name = "lifx-emulator"
-version = "4.11.1"
+version = "4.11.2"
 source = { editable = "packages/lifx-emulator" }
 dependencies = [
     { name = "cyclopts" },
