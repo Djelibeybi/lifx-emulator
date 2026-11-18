@@ -430,9 +430,9 @@ lifx-emulator list-products
 
 ### Documentation
 ```bash
-uv run zensical serve            # Live preview (localhost:8000)
-uv run zensical build            # Build static site
-uv run llmstxt-standalone build  # Build llms.txt outputs
+uv run --group docs zensical serve            # Live preview (localhost:8000)
+uv run --group docs zensical build            # Build static site
+uv run --group docs llmstxt-standalone build  # Build llms.txt outputs
 ```
 
 ### Auto-Generation

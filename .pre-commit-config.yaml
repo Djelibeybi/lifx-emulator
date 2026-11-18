@@ -4,6 +4,9 @@
 # Run manually: pre-commit run --all-files
 # Update hooks: pre-commit autoupdate
 
+# Preserve generated bundle bytes, including whitespace inside string literals.
+exclude: ^packages/lifx-emulator/src/lifx_emulator_app/api/static/
+
 repos:
   # General file checks
 - repo: https://github.com/pre-commit/pre-commit-hooks

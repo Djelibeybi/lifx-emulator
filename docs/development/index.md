@@ -140,13 +140,16 @@ lifx-emulator --color 2 --multizone 1 --tile 1 --api
 ```
 
 ### 5. Build Documentation
+
+Documentation tools require Python 3.11.5 or later; the emulator supports Python 3.10+.
+
 ```bash
 # Serve locally (live reload)
-uv run zensical serve
+uv run --group docs zensical serve
 
 # Build static site
-uv run zensical build
-uv run llmstxt-standalone build
+uv run --group docs zensical build
+uv run --group docs llmstxt-standalone build
 
 # View at http://localhost:8000
 ```

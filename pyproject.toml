@@ -4,6 +4,14 @@ members = ["packages/*"]
 [tool.uv.sources]
 lifx-emulator-core = { workspace = true }
 
+[tool.uv]
+# Keep the documentation dependency outside all known vulnerable ranges.
+constraint-dependencies = ["soupsieve>=4.1.1"]
+
+[tool.uv.dependency-groups]
+# Patched Soup Sieve requires a newer Python than the emulator itself.
+docs = { requires-python = ">=3.11.5" }
+
 [dependency-groups]
 dev = [
     "hatchling>=1.27.0",
@@ -15,6 +23,8 @@ dev = [
     "pytest-sugar>=1.1.1",
     "ruff>=0.14.2",
     "prek>=0.3.8",
+]
+docs = [
     "zensical>=0.0.37",
     "llmstxt-standalone>=0.2.0",
     "mkdocstrings-python>=2.0.3",

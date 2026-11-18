@@ -50,13 +50,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --frozen
+        uv sync --frozen --group docs
 
     - name: Build documentation
       run: |
-        uv run zensical build --clean
-        uv run llmstxt-standalone validate
-        uv run llmstxt-standalone build
+        uv run --group docs zensical build --clean
+        uv run --group docs llmstxt-standalone validate
+        uv run --group docs llmstxt-standalone build
 
     - name: Configure GitHub Pages
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -108,10 +108,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --frozen
+        uv sync --frozen --group docs
 
     - name: Build documentation
       run: |
-        uv run zensical build --clean
-        uv run llmstxt-standalone validate
-        uv run llmstxt-standalone build
+        uv run --group docs zensical build --clean
+        uv run --group docs llmstxt-standalone validate
+        uv run --group docs llmstxt-standalone build
