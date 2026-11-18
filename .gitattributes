@@ -3,6 +3,8 @@
 
 # SvelteKit build output (frontend static assets)
 packages/lifx-emulator/src/lifx_emulator_app/api/static/_app/** linguist-generated=true
+# Bundled string literals can contain significant trailing whitespace.
+packages/lifx-emulator/src/lifx_emulator_app/api/static/** -whitespace
 
 # Python auto-generated protocol definitions
 packages/lifx-emulator-core/src/lifx_emulator/protocol/packets.py linguist-generated=true
