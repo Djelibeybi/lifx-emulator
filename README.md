@@ -128,7 +128,7 @@ uv run pytest
 uv run ruff check .
 
 # Preview docs
-uv run zensical serve
+uv run --group docs zensical serve
 ```
 
 ## License

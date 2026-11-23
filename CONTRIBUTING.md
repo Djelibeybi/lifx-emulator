@@ -147,13 +147,19 @@ uv run lifx-emulator --help
 
 Documentation is built with Zensical:
 
+Documentation tooling requires Python 3.11.5 or later and the `docs` dependency group.
+The emulator and its tests continue to support Python 3.10 and later.
+
 ```bash
+# Install documentation tools
+uv sync --group docs
+
 # Serve docs locally
-uv run zensical serve
+uv run --group docs zensical serve
 
 # Build docs
-uv run zensical build
-uv run llmstxt-standalone build
+uv run --group docs zensical build
+uv run --group docs llmstxt-standalone build
 ```
 
 ## Architecture

@@ -1,19 +1,22 @@
 version = 1
 revision = 5
 requires-python = ">=3.10"
+resolution-markers = [
+    "python_full_version >= '3.11.5'",
+    "python_full_version < '3.11.5'",
+]
 
 [manifest]
 members = [
     "lifx-emulator",
     "lifx-emulator-core",
 ]
+constraints = [{ name = "soupsieve", specifier = ">=4.1.1" }]
 
 [manifest.dependency-groups]
 dev = [
     { name = "hatchling", specifier = ">=1.27.0" },
     { name = "httpx", specifier = ">=0.28.0" },
-    { name = "llmstxt-standalone", specifier = ">=0.2.0" },
-    { name = "mkdocstrings-python", specifier = ">=2.0.3" },
     { name = "prek", specifier = ">=0.3.8" },
     { name = "pyright", specifier = ">=1.1.407" },
     { name = "pytest", specifier = ">=8.4.2" },
@@ -21,9 +24,16 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-sugar", specifier = ">=1.1.1" },
     { name = "ruff", specifier = ">=0.14.2" },
-    { name = "zensical", specifier = ">=0.0.37" },
+]
+docs = [
+    { name = "llmstxt-standalone", marker = "python_full_version >= '3.11.5'", specifier = ">=0.2.0" },
+    { name = "mkdocstrings-python", marker = "python_full_version >= '3.11.5'", specifier = ">=2.0.3" },
+    { name = "zensical", marker = "python_full_version >= '3.11.5'", specifier = ">=0.0.37" },
 ]
 third-party = [{ name = "lifx-async", specifier = ">=7.6.6" }]
+
+[manifest.group-requires-python]
+docs = ">=3.11.5"
 
 [[package]]
 name = "annotated-doc"
@@ -432,7 +442,7 @@ wheels = [
 
 [[package]]
 name = "lifx-emulator"
-version = "4.11.1"
+version = "4.11.2"
 source = { editable = "packages/lifx-emulator" }
 dependencies = [
     { name = "cyclopts" },
@@ -616,7 +626,6 @@ version = "0.7.22"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/fc/eb/b5cbf2484411af039a3d4aeb53a5160fae25dd8c84af6a4243bc2f3fedb3/mdformat-0.7.22.tar.gz", hash = "sha256:eef84fa8f233d3162734683c2a8a6222227a229b9206872e6139658d99acb1ea", size = 34610, upload-time = "2025-01-30T18:00:51.418Z" }
 wheels = [
@@ -731,7 +740,6 @@ dependencies = [
     { name = "griffelib" },
     { name = "mkdocs-autorefs" },
     { name = "mkdocstrings" },
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/29/33/c225eaf898634bdda489a6766fc35d1683c640bffe0e0acd10646b13536d/mkdocstrings_python-2.0.3.tar.gz", hash = "sha256:c518632751cc869439b31c9d3177678ad2bfa5c21b79b863956ad68fc92c13b8", size = 199083, upload-time = "2026-02-20T10:38:36.368Z" }
 wheels = [
@@ -1202,11 +1210,11 @@ wheels = [
 
 [[package]]
 name = "soupsieve"
-version = "2.9"
+version = "4.1.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/80/f1/93422647dd7e461f23d254e6b2bfa687a85b53aeb4903fcdbb74474d4584/soupsieve-2.9.tar.gz", hash = "sha256:acee8417325c5653e1377dc31eccad59eb82cbc65942afe6174c53b3aaad63fc", size = 122122, upload-time = "2026-07-19T01:35:18.425Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/52/ee5646b65d98a252e807ccc37725363942372a4113072e0bce7ed22f8b84/soupsieve-4.1.1.tar.gz", hash = "sha256:b296bd2d2f65b1a78149f3d7bf6736a147d2c9e2dfbde0e4404639d748a02e03", size = 169784, upload-time = "2026-11-14T17:23:32.467Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7b/d6/3185ab5ad1280319b31986898f3206dd7227cd75e293d4dba2a5e6bf27a0/soupsieve-2.9-py3-none-any.whl", hash = "sha256:a2b2c76d67df2382d245409fd71e321a571717e58463efa32ace87dcadac2c12", size = 37387, upload-time = "2026-07-19T01:35:17.106Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/65/7fae69a095696195334a934eab23aeb12e2715e6c3f08025d2f91942750e/soupsieve-4.1.1-py3-none-any.whl", hash = "sha256:8ff3422dab0b720fb667ee79864d80531a0e57994a13eb701697719ffcb751f6", size = 55089, upload-time = "2026-11-14T17:23:31.001Z" },
 ]
 
 [[package]]
