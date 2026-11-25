@@ -435,6 +435,22 @@ products:
     tile_height: 2
     notes: LIFX Path Intl
 
+  263:  # LIFX Floor Lamp Spot US
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Floor Lamp Spot US, provisional 3x2 geometry until LIFX confirms
+
+  264:  # LIFX Floor Lamp Spot Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 3
+    tile_height: 2
+    notes: LIFX Floor Lamp Spot Intl, provisional 3x2 geometry until LIFX confirms
+
   265:  # LIFX Ceiling 13"
     default_tile_count: 1
     min_tile_count: 1
@@ -478,6 +494,24 @@ products:
     zone_map: [9, -1, 40, -1, 8, 10, 41, 39, 7, 11, 42, 38, 6, 12, 43, 37, 5, 13, 44, 36, 4, 14, 45, 35, 3, 15, 46, 34, 2, 16, 47, 33, 1, 17, 48, 32, 0, 18, 49, 31, 24, 19, 25, 30, 23, 20, 26, 29, 22, 21, 27, 28]
     button_count: 4
     notes: LIFX Mirror, 4x13 matrix, zones 0-24 front, 25-49 rear
+
+  275:  # LIFX Luna
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 7
+    tile_height: 5
+    button_count: 4
+    notes: LIFX Luna, same geometry as pid 219
+
+  276:  # LIFX Luna Intl
+    default_tile_count: 1
+    min_tile_count: 1
+    max_tile_count: 1
+    tile_width: 7
+    tile_height: 5
+    button_count: 4
+    notes: LIFX Luna Intl, same geometry as pid 220
 
   # ========================================
   # Switch Products (Relays)
