@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v3.15.1 (2026-11-25)
+
+### Bug Fixes
+
+- Update upstream product registry
+  ([`49e8b8b`](https://github.com/Djelibeybi/lifx-emulator/commit/49e8b8bd7ac3cd376c57709a90b9b9482cf25501))
+
+- **specs**: Add specs for Floor Lamp Spot and new Luna products
+  ([`eab6bee`](https://github.com/Djelibeybi/lifx-emulator/commit/eab6bee0091f6990e86d013c7cb7bf1e8976fee0))
+
+
 ## v3.15.0 (2026-10-18)
 
 ### Features

@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.11.5'",
@@ -31,9 +31,6 @@ docs = [
     { name = "zensical", marker = "python_full_version >= '3.11.5'", specifier = ">=0.0.37" },
 ]
 third-party = [{ name = "lifx-async", specifier = ">=7.6.6" }]
-
-[manifest.group-requires-python]
-docs = ">=3.11.5"
 
 [[package]]
 name = "annotated-doc"
@@ -465,7 +462,7 @@ requires-dist = [
 
 [[package]]
 name = "lifx-emulator-core"
-version = "3.15.0"
+version = "3.15.1"
 source = { editable = "packages/lifx-emulator-core" }
 dependencies = [
     { name = "ifaddr" },
