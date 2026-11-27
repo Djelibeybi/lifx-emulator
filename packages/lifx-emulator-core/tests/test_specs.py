@@ -15,6 +15,8 @@ def test_specs_yaml_loads_and_new_matrix_dims_correct():
     assert reg.get_tile_dimensions(229) == (3, 2)  # new Path Intl
     assert reg.get_tile_dimensions(172) == (3, 1)  # new Spot
     assert reg.get_tile_dimensions(265) == (8, 8)  # Ceiling 13"
+    assert reg.get_tile_dimensions(263) == (3, 1)  # Floor Lamp Spot US
+    assert reg.get_tile_dimensions(264) == (3, 1)  # Floor Lamp Spot Intl
 
 
 def test_uplight_zone_count():
