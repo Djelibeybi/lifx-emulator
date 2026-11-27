@@ -435,21 +435,21 @@ products:
     tile_height: 2
     notes: LIFX Path Intl
 
-  263:  # LIFX Floor Lamp Spot US
+  263:  # LIFX Floor Lamp Spot US, 3x1 matrix
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
     tile_width: 3
-    tile_height: 2
-    notes: LIFX Floor Lamp Spot US, provisional 3x2 geometry until LIFX confirms
+    tile_height: 1
+    notes: LIFX Floor Lamp Spot US, 3x1 matrix
 
-  264:  # LIFX Floor Lamp Spot Intl
+  264:  # LIFX Floor Lamp Spot Intl, 3x1 matrix
     default_tile_count: 1
     min_tile_count: 1
     max_tile_count: 1
     tile_width: 3
-    tile_height: 2
-    notes: LIFX Floor Lamp Spot Intl, provisional 3x2 geometry until LIFX confirms
+    tile_height: 1
+    notes: LIFX Floor Lamp Spot Intl, 3x1 matrix
 
   265:  # LIFX Ceiling 13"
     default_tile_count: 1
